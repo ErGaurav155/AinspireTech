@@ -6,11 +6,16 @@ import Image from "next/image";
 import Logo from "/public/assets/img/file.png";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { SignedIn, SignedOut, useAuth, UserButton } from "@clerk/nextjs";
+import { getOwner } from "@/lib/action/appointment.actions";
 
 export function NavBar() {
   const [openNav, setOpenNav] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isOwn, setIsOwn] = useState(false);
+
   const router = useRouter();
+  const { userId } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,13 +40,23 @@ export function NavBar() {
 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
+  useEffect(() => {
+    const isOwner = async () => {
+      const ownerId = await getOwner();
+      if (userId !== ownerId) {
+        setIsOwn(false);
+      } else {
+        setIsOwn(true);
+      }
+    };
+    isOwner();
+  }, [router, userId]);
   const navList = (
     <ul className="mb-4 mt-2 flex flex-col gap-1 sm:mb-2 sm:mt-2 lg:mb-0  lg:mt-0 sm:flex-row items-center justify-center sm:gap-1 md:gap-2 lg:gap-6 border shadow-inner-glow rounded-md  text-white w-full ">
       <li className="flex-auto p-[1px]">
         <a
           href="/"
-          className="    flex   hover:text-black hover:bg-gray-300 active:text-black active:bg-white font-thin  text-md md:font-light md:text-lg p-3 justify-center w-full  rounded-md"
+          className="    flex   hover:text-black hover:bg-gray-300 active:text-black active:bg-white font-thin  text-md md:font-light md:text-lg p-1 justify-center w-full  rounded-md"
         >
           Home
         </a>
@@ -50,7 +65,7 @@ export function NavBar() {
       <li className="flex-auto  p-[1px]">
         <a
           href="/OurService"
-          className="    flex   hover:text-black hover:bg-gray-300 active:text-black active:bg-white  font-thin  text-md md:font-light md:text-lg p-3 justify-center w-full  rounded-md"
+          className="    flex   hover:text-black hover:bg-gray-300 active:text-black active:bg-white  font-thin  text-md md:font-light md:text-lg p-1 justify-center w-full  rounded-md"
         >
           Services
         </a>
@@ -58,15 +73,15 @@ export function NavBar() {
       <li className="flex-auto  p-[1px]">
         <a
           href="/Aboutus"
-          className="    flex  hover:text-black hover:bg-gray-300 active:text-black active:bg-white  font-thin  text-md md:font-light md:text-lg p-3 justify-center w-full rounded-md"
+          className="    flex  hover:text-black hover:bg-gray-300 active:text-black active:bg-white  font-thin  text-md md:font-light md:text-lg p-1 justify-center w-full rounded-md"
         >
-          About us
+          AboutUs
         </a>
       </li>
       <li className="flex-auto  p-[1px]">
         <a
           href="/Review"
-          className="    flex  hover:text-black hover:bg-gray-300 active:text-black active:bg-white font-thin  text-md md:font-light md:text-lg p-3 justify-center w-full  rounded-md "
+          className="    flex  hover:text-black hover:bg-gray-300 active:text-black active:bg-white font-thin  text-md md:font-light md:text-lg p-1 justify-center w-full  rounded-md "
         >
           Review
         </a>
@@ -83,7 +98,7 @@ export function NavBar() {
       <div className="flex items-center w-full justify-between text-white">
         <Link
           href="/"
-          className="w-1/2   sm:w-1/4  lg:w-2/5 cursor-pointer py-1.5 font-bold text-xl"
+          className="w-1/2   sm:w-1/6  cursor-pointer py-1.5 font-bold text-xl"
         >
           <Image
             alt="image"
@@ -94,19 +109,47 @@ export function NavBar() {
             priority
           />
         </Link>
-        <div className="hidden sm:flex  w-1/2  sm:w-3/4  lg:w-3/5 items-center gap-3 justify-between ">
-          <div className="   w-9/12 ">{navList}</div>
+        <div className="hidden sm:flex   w-1/2  sm:w-5/6  items-center gap-3 justify-end ">
+          <div className="  w-8/12  lg:w-6/12">{navList}</div>
 
-          <Button
-            size="lg"
-            color="white"
-            variant="gradient"
-            onClick={() => router.push("/contactUs")}
-            className="text-black 
-              w-3/12 p-4 border text-center  border-white shadow-sm shadow-blue-gray-800"
-          >
-            Contact us
-          </Button>
+          <SignedIn>
+            {isOwn && (
+              <Button
+                size="lg"
+                color="white"
+                variant="gradient"
+                onClick={() => router.push("/admin")}
+                className="text-black 
+                w-2/12 py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
+              >
+                Dashboard
+              </Button>
+            )}
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
+          <SignedOut>
+            <Button
+              size="lg"
+              color="white"
+              variant="gradient"
+              onClick={() => router.push("/contactUs")}
+              className="text-black 
+              w-2/12 py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
+            >
+              ContactUs
+            </Button>
+            <Button
+              size="lg"
+              color="white"
+              variant="gradient"
+              onClick={() => router.push("/sign-up")}
+              className="text-black 
+           
+               w-2/12  py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800 "
+            >
+              Admin
+            </Button>
+          </SignedOut>
         </div>
 
         <IconButton
@@ -123,16 +166,48 @@ export function NavBar() {
       </div>
       <Collapse open={openNav}>
         {navList}
-        <Button
-          size="lg"
-          color="white"
-          variant="gradient"
-          onClick={() => router.push("/contactUs")}
-          className="text-black 
-              w-full border border-white shadow-sm shadow-blue-gray-800"
-        >
-          <span>Contact Us</span>
-        </Button>
+
+        <SignedIn>
+          {isOwn && (
+            <Button
+              fullWidth
+              size="lg"
+              color="white"
+              variant="gradient"
+              onClick={() => router.push("/admin")}
+              className="text-black 
+                py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
+            >
+              Dashboard
+            </Button>
+          )}
+          <UserButton afterSignOutUrl="/" />
+        </SignedIn>
+        <SignedOut>
+          <Button
+            fullWidth
+            size="lg"
+            color="white"
+            variant="gradient"
+            onClick={() => router.push("/contactUs")}
+            className="text-black 
+               py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
+          >
+            ContactUs
+          </Button>
+          <Button
+            fullWidth
+            size="lg"
+            color="white"
+            variant="gradient"
+            onClick={() => router.push("/sign-up")}
+            className="text-black 
+              
+                py-2 mt-1 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800 "
+          >
+            Admin
+          </Button>
+        </SignedOut>
       </Collapse>
     </Navbar>
   );
