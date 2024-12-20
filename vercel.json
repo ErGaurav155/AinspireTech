@@ -1,8 +1,7 @@
 {
   "functions": {
     "app/**/*": {
-      "maxDuration": 120,
-      "runtime": "nodejs16.x"
+      "maxDuration": 120
     }
   }
 }
