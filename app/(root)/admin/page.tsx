@@ -47,22 +47,22 @@ const columns = [
 ];
 
 const AppointmentTable = () => {
-  // const { userId } = useAuth();
+  const { userId } = useAuth();
   const router = useRouter();
 
   const [data, setData] = useState<AppointmentParams[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      // if (!userId) {
-      //   router.push("/sign-in");
-      //   return;
-      // }
-      // const ownerId = await getOwner();
-      // if (userId !== ownerId) {
-      //   router.push("/");
-      //   return;
-      // }
+      if (!userId) {
+        router.push("/sign-in");
+        return;
+      }
+      const ownerId = await getOwner();
+      if (userId !== ownerId) {
+        router.push("/");
+        return;
+      }
 
       try {
         const response = await getAllAppointments();
@@ -75,7 +75,7 @@ const AppointmentTable = () => {
     };
 
     fetchData();
-  }, [router]);
+  }, [userId, router]);
 
   const table = useReactTable({
     data,
