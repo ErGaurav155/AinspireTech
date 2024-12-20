@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/users/**/*.js": {
+    "app/**/*": {
       "maxDuration": 60
     }
   }
