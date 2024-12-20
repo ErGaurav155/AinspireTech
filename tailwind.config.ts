@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 const withMT = require("@material-tailwind/react/utils/withMT");
+import { fontFamily } from "tailwindcss/defaultTheme";
 import plugin from "tailwindcss/plugin";
 
 module.exports = withMT({
@@ -106,6 +107,15 @@ module.exports = withMT({
           foreground: "hsl(var(--card-foreground))",
         },
       },
+
+      boxShadow: {
+        "inner-glow": "inset 0 0 15px rgba(255, 255, 255, 0.5)", // Original glow
+        "left-right-inner-glow":
+          "inset -15px 0 30px rgba(255, 255, 255, 0.5), inset 15px 0 30px rgba(255, 255, 255, 0.5)",
+        "left-right-blur":
+          "inset -90px 0 90px rgba(0, 0, 0, 0.5), inset 90px 0 90px rgba(0, 0, 0, 0.5)", // Adding blur effect
+      },
+
       fontFamily: {
         IBMPlex: ["var(--font-ibm-plex)"],
         sans: [
@@ -170,15 +180,10 @@ module.exports = withMT({
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "scroll-left": {
-          "0%": { transform: "translateX(100%)" },
-          "100%": { transform: "translateX(-100%)" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "scroll-left": "scroll-left 15s linear infinite",
       },
     },
   },

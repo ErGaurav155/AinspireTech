@@ -7,13 +7,6 @@ export interface TextareaProps
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, ...props }, ref) => {
-    const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      // Here, you can modify the event or pass it along as is
-      // For example, adding a value to props before passing the event along
-      // const newValue = event.target.value + " additional value";
-      // props.onChange?.({ ...event, target: { ...event.target, value: newValue } });
-      props.onChange?.(event); // Pass along the event as is
-    };
     return (
       <textarea
         className={cn(
@@ -22,7 +15,6 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
         ref={ref}
         {...props}
-        onChange={handleChange}
       />
     );
   }

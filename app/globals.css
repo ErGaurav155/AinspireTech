@@ -79,7 +79,7 @@
 }
 
 .root {
-  @apply flex min-h-screen px-5 md:px-10 w-full flex-col bg-gray-50;
+  @apply flex min-h-screen px-5 md:px-10 w-full flex-col bg-black;
 }
 
 /* ========================================== TAILWIND STYLES */
@@ -87,10 +87,10 @@
   /* ===== UTILITIES */
 
   .wrapper {
-    @apply max-w-5xl mx-auto px-5 md:px-10 w-full text-dark-400;
+    @apply max-w-5xl mx-auto px-5 md:px-10 w-full text-white;
   }
   .wrapper2 {
-    @apply max-w-7xl mx-auto px-5 md:px-10  w-full text-dark-400;
+    @apply max-w-7xl mx-auto    w-full text-white;
   }
   .gradient-text {
     @apply bg-purple-gradient bg-cover bg-clip-text text-transparent;

@@ -1,5 +1,4 @@
 import { NavBar } from "@/components/shared/Navbar";
-import { Banner } from "@/components/shared/Banner";
 import { Toaster } from "@/components/ui/toaster";
 import { Metadata } from "next";
 
@@ -28,10 +27,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           duration: 0.5,
         }}
         viewport={{ amount: 0 }}
-        className=""
+        className="bg-black "
       >
-        <Banner />
-        <hr className="wrapper2" />
         <NavBar />
 
         {children}

@@ -2,141 +2,135 @@ import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { Footer } from "@/components/shared/Footer";
 import React from "react";
 
-const terms = () => {
+const TermsOfService = () => {
   return (
     <div>
       <div className="wrapper2">
         <BreadcrumbsDefault />
-        <div className="max-w-3xl mx-auto px-5 md:px-10 mt-5 md:mt-10 w-full text-dark-400">
-          <h2 className="font-black text-3xl text-black mb-5">
-            Privacy Policy
+        <div className="max-w-3xl mx-auto px-5 md:px-10 mt-5 md:mt-10 w-full text-white">
+          <h2 className="font-black text-3xl text-white mb-5">
+            Terms of Service
           </h2>
+
+          <h3 className="font-bold text-2xl text-white mb-4">
+            1. Introduction
+          </h3>
           <p className="mb-5">
-            Welcome to Shriniwas Pathology Lab. The domain name weburl here is
-            owned and managed by Shriniwas Pathology Lab. This Privacy Policy
-            outlines the terms governing the use of the Platform and services
-            provided to the users
+            Welcome to MorningsideAI. These Terms of Service (“Terms”) govern
+            your access to and use of our website and services. By accessing or
+            using the service, you agree to be bound by these Terms.
           </p>
 
-          <h2 className="font-black text-3xl text-black mb-5">
-            Users Obligations While Using the Platform
-          </h2>
-          <ul className="list-disc list-inside mb-5">
-            <li>
-              The User shall not transfer or assign a booked service to another
-              individual.
-            </li>
-            <li>
-              Users may not use the Services for any unlawful purposes or
-              activities that violate applicable laws or regulations.
-            </li>
-            <li>
-              Users cannot modify existing packages but may add additional tests
-              as add-ons at applicable rates.
-            </li>
-            <li>
-              Users must not infringe the intellectual property rights of
-              Shriniwas Pathology Lab or its partners. Any derogatory
-              statements, defamation, or harassment directed toward the lab or
-              its associates will not be tolerated.
-            </li>
-            <li>
-              Users must not attempt to access unauthorized data, transmit
-              harmful content (e.g., viruses, trojans), or disrupt the
-              functioning of the Platform.
-            </li>
-            <li>
-              Users must not create false accounts or engage in fraudulent
-              activities to book or avail of services.
-            </li>
-          </ul>
-
-          <h2 className="font-black text-3xl text-black mb-5">
-            Booking and Payment for Services
-          </h2>
+          <h3 className="font-bold text-2xl text-white mb-4">
+            2. Services Provided
+          </h3>
           <p className="mb-5">
-            Users can book services via the Platform either by scheduling a home
-            collection or by visiting the nearest lab. The booking process
-            involves
-          </p>
-          <ul className="list-disc list-inside mb-5">
-            <li>
-              Entering a valid mobile number for OTP verification if the User
-              has previously registered or booked services.
-            </li>
-            <li>
-              Generating a receipt after the service is booked, which will allow
-              the User to download test reports from the Platform.
-            </li>
-          </ul>
-          <p className="mb-5">
-            Test reports will be stored on the Platform for a period of two (2)
-            years, after which they will be deleted. Users can also collect
-            their reports directly from any Shriniwas Pathology Lab location.
+            MorningsideAI provides Autonomous Agent Development, Enterprise
+            Consulting, and Chatbot Development. These services are subject to
+            the terms and conditions outlined in this document.
           </p>
 
-          <h2 className="font-black text-3xl text-black mb-5"> Payment</h2>
-          <ul className="list-disc list-inside mb-5">
-            <li>
-              All charges are in INR and inclusive of taxes. Full payment is
-              required to avail of the services, either in cash or via online
-              payment.
-            </li>
-            <li>
-              For online payments, Users will be redirected to a third-party
-              payment gateway. An additional fee applies to home collections.
-            </li>
-          </ul>
-
-          <h2 className="font-black text-3xl text-black mb-5"> Disclaimer</h2>
-          <ul className="list-disc list-inside mb-5">
-            <li>
-              Shriniwas Pathology Lab reserves the right to amend terms, modify
-              services, or discontinue the Platform without prior notice.
-            </li>
-            <li>
-              In cases of unauthorized access attempts or Clause 5 violations,
-              Shriniwas Pathology Lab may take legal action against the
-              offending User.
-            </li>
-            <li>
-              The Platform and its services are provided on an basis without any
-              warranties, including uninterrupted, secure, or error free
-              operation.
-            </li>
-            <li>
-              The lab shall not be held liable for damages arising from loss,
-              misuse, or unavailability of User content.
-            </li>
-          </ul>
-
-          <h2 className="font-black text-3xl text-black mb-5">
-            Limitation of Liability and Indemnity
-          </h2>
-          <ul className="list-disc list-inside mb-5">
-            <li>
-              Users engaging in prohibited activities shall indemnify Shriniwas
-              Pathology Lab from all claims, expenses, and damages resulting
-              from such actions.
-            </li>
-            <li>
-              Shriniwas Pathology Lab will not be liable for any direct,
-              indirect, or consequential damages arising from the use or
-              inability to use the Platform.
-            </li>
-          </ul>
-
-          <h2 className="font-black text-3xl text-black mb-5">
-            Privacy and Confidentiality
-          </h2>
+          <h3 className="font-bold text-2xl text-white mb-4">
+            3. Changes to Terms
+          </h3>
           <p className="mb-5">
-            The use of the Platform is governed by Shriniwas Pathology Labs
-            Privacy Policy. We are committed to maintaining confidentiality and
-            using User information solely for delivering booked services.
-            However, Shriniwas Pathology Lab will not be responsible for the
-            unauthorized disclosure of data not required for the requested
-            services.
+            We reserve the right to modify these Terms at any time. We will
+            notify users of any changes by posting the new Terms on this site.
+            Your continued use of the service after such changes constitutes
+            your agreement to the new Terms.
           </p>
+
+          <h3 className="font-bold text-2xl text-white mb-4">
+            4. Account Registration and Use
+          </h3>
+          <p className="mb-5">
+            To access certain features of our service, you may be required to
+            create an account. You agree to provide accurate, current, and
+            complete information during the registration process and to update
+            such information to keep it accurate, current, and complete.
+          </p>
+
+          <h3 className="font-bold text-2xl text-white mb-4">
+            5. Privacy Policy
+          </h3>
+          <p className="mb-5">
+            Our Privacy Policy, which describes how we handle personal data, is
+            available on our website and forms part of these Terms.
+          </p>
+
+          <h3 className="font-bold text-2xl text-white mb-4">
+            6. User Conduct
+          </h3>
+          <p className="mb-5">
+            You agree to use the service only for lawful purposes and not to use
+            the service for any illegal or unauthorized purpose.
+          </p>
+
+          <h3 className="font-bold text-2xl text-white mb-4">
+            7. Intellectual Property
+          </h3>
+          <p className="mb-5">
+            All intellectual property rights in the service and its content are
+            the exclusive property of MorningsideAI or its licensors.
+          </p>
+
+          <h3 className="font-bold text-2xl text-white mb-4">
+            8. Third-Party Services
+          </h3>
+          <p className="mb-5">
+            Our service may contain links to third-party websites or services
+            that are not owned or controlled by MorningsideAI. We have no
+            control over, and assume no responsibility for, the content or
+            practices of any third-party websites or services.
+          </p>
+
+          <h3 className="font-bold text-2xl text-white mb-4">9. Termination</h3>
+          <p className="mb-5">
+            We may terminate or suspend access to our service immediately,
+            without prior notice or liability, for any reason, including without
+            limitation if you breach the Terms.
+          </p>
+
+          <h3 className="font-bold text-2xl text-white mb-4">
+            10. Governing Law
+          </h3>
+          <p className="mb-5">
+            These Terms shall be governed by and construed in accordance with
+            the laws of the INDIA, without regard to its conflict of law
+            provisions.
+          </p>
+
+          <h3 className="font-bold text-2xl text-white mb-4">
+            11. Changes to Service
+          </h3>
+          <p className="mb-5">
+            We reserve the right to withdraw or amend our service, and any
+            service or material we provide via the service, in our sole
+            discretion without notice.
+          </p>
+
+          <h3 className="font-bold text-2xl text-white mb-4">
+            12. Disclaimer and Limitation of Liability
+          </h3>
+          <p className="mb-5">
+            The service and its content are provided “as is” without warranty of
+            any kind. In no event will MorningsideAI, nor its directors,
+            employees, partners, agents, suppliers, or affiliates, be liable for
+            any indirect, incidental, special, consequential, or punitive
+            damages, including without limitation, loss of profits, data, use,
+            goodwill, or other intangible losses, resulting from your access to
+            or use of or inability to access or use the service.
+          </p>
+
+          <h3 className="font-bold text-2xl text-white mb-4">13. Contact Us</h3>
+          <p className="mb-5">
+            For any questions about these Terms, please contact us using the
+            following information:
+          </p>
+          <ul className="list-disc list-inside mb-5">
+            <li>Email address:info@mywebsite.com</li>
+            <li>Postal address: Address:Nashik,Maharastra 423101,india</li>
+          </ul>
         </div>
       </div>
       <Footer />
@@ -144,4 +138,4 @@ const terms = () => {
   );
 };
 
-export default terms;
+export default TermsOfService;

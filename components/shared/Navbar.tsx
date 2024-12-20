@@ -6,7 +6,6 @@ import Image from "next/image";
 import Logo from "/public/assets/img/file.png";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import StickyWhatsAppButton from "./WhatsApp";
 
 export function NavBar() {
   const [openNav, setOpenNav] = useState(false);
@@ -38,38 +37,38 @@ export function NavBar() {
   }, []);
 
   const navList = (
-    <ul className="mb-4 mt-2 flex flex-col gap-1 sm:mb-2 sm:mt-2 lg:mb-0  lg:mt-0 sm:flex-row items-center justify-evenly sm:gap-1 md:gap-2 lg:gap-6  text-black w-full ">
-      <li>
+    <ul className="mb-4 mt-2 flex flex-col gap-1 sm:mb-2 sm:mt-2 lg:mb-0  lg:mt-0 sm:flex-row items-center justify-center sm:gap-1 md:gap-2 lg:gap-6 border shadow-inner-glow rounded-md  text-white w-full ">
+      <li className="flex-auto p-[1px]">
         <a
           href="/"
-          className="flex  hover:text-indigo-500 active:text-indigo-500 font-thin  text-md md:font-light md:text-lg"
+          className="    flex   hover:text-black hover:bg-gray-300 active:text-black active:bg-white font-thin  text-md md:font-light md:text-lg p-3 justify-center w-full  rounded-md"
         >
           Home
         </a>
       </li>
 
-      <li>
+      <li className="flex-auto  p-[1px]">
         <a
-          href="/Doctors"
-          className="flex  hover:text-indigo-500 active:text-indigo-500 font-thin  text-md md:font-light md:text-lg"
+          href="/OurService"
+          className="    flex   hover:text-black hover:bg-gray-300 active:text-black active:bg-white  font-thin  text-md md:font-light md:text-lg p-3 justify-center w-full  rounded-md"
         >
-          About Us
+          Services
         </a>
       </li>
-      <li>
+      <li className="flex-auto  p-[1px]">
         <a
-          href="/PathTest"
-          className="flex  hover:text-indigo-500 active:text-indigo-500 font-thin  text-md md:font-light md:text-lg"
+          href="/Aboutus"
+          className="    flex  hover:text-black hover:bg-gray-300 active:text-black active:bg-white  font-thin  text-md md:font-light md:text-lg p-3 justify-center w-full rounded-md"
         >
-          Tests
+          About us
         </a>
       </li>
-      <li>
+      <li className="flex-auto  p-[1px]">
         <a
-          href="/contactUs"
-          className="flex hover:text-indigo-500 active:text-indigo-500 font-thin  text-md md:font-light md:text-lg"
+          href="/Review"
+          className="    flex  hover:text-black hover:bg-gray-300 active:text-black active:bg-white font-thin  text-md md:font-light md:text-lg p-3 justify-center w-full  rounded-md "
         >
-          Contact Us
+          Review
         </a>
       </li>
     </ul>
@@ -77,14 +76,14 @@ export function NavBar() {
 
   return (
     <Navbar
-      className={`sm:px-1 md:px-8 max-w-7xl mx-auto sticky top-0 z-10 transition-all duration-300 ${
+      className={`m-auto sticky top-0 z-10 px-0 transition-all duration-300  border-black bg-black  ${
         isScrolled ? "rounded-lg shadow-md" : "rounded-none"
       }`}
     >
-      <div className="flex items-center w-full justify-between text-blue-gray-900">
+      <div className="flex items-center w-full justify-between text-white">
         <Link
           href="/"
-          className=" w-6/12 sm:w-3/12  cursor-pointer py-1.5 font-bold text-xl"
+          className="w-1/2   sm:w-1/4  lg:w-2/5 cursor-pointer py-1.5 font-bold text-xl"
         >
           <Image
             alt="image"
@@ -95,19 +94,20 @@ export function NavBar() {
             priority
           />
         </Link>
-        <div className=" hidden sm:flex w-6/12  ">{navList}</div>
+        <div className="hidden sm:flex  w-1/2  sm:w-3/4  lg:w-3/5 items-center gap-3 justify-between ">
+          <div className="   w-9/12 ">{navList}</div>
 
-        <Button
-          size="md"
-          color="indigo"
-          variant="gradient"
-          onClick={() => router.push("/Appointment")}
-          className="text-white 
-             hidden sm:inline-block
-               w-3/12  "
-        >
-          <span>Book Appointment</span>
-        </Button>
+          <Button
+            size="lg"
+            color="white"
+            variant="gradient"
+            onClick={() => router.push("/contactUs")}
+            className="text-black 
+              w-3/12 p-4 border text-center  border-white shadow-sm shadow-blue-gray-800"
+          >
+            Contact us
+          </Button>
+        </div>
 
         <IconButton
           variant="text"
@@ -124,14 +124,14 @@ export function NavBar() {
       <Collapse open={openNav}>
         {navList}
         <Button
-          fullWidth
+          size="lg"
+          color="white"
           variant="gradient"
-          color="indigo"
-          size="sm"
-          className=""
-          onClick={() => router.push("/Appointment")}
+          onClick={() => router.push("/contactUs")}
+          className="text-black 
+              w-full border border-white shadow-sm shadow-blue-gray-800"
         >
-          <span>Book Appointment</span>
+          <span>Contact Us</span>
         </Button>
       </Collapse>
     </Navbar>

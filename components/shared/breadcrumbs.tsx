@@ -12,7 +12,7 @@ export function BreadcrumbsDefault() {
   const pathSegments = pathname.split("/").filter((segment) => segment);
 
   return (
-    <Breadcrumbs className="mt-4 flex items-center justify-center w-full ">
+    <Breadcrumbs className="mt-4 flex items-center justify-center w-full bg-white bg-opacity-90 ">
       {/* Always include Home as the first breadcrumb */}
       <Link
         href="/"

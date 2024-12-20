@@ -1,26 +1,13 @@
 "use client";
 
-import { Typography } from "@material-tailwind/react";
-import {
-  Clock,
-  FacebookIcon,
-  InstagramIcon,
-  LocateIcon,
-  MapPin,
-  Phone,
-  TwitterIcon,
-  YoutubeIcon,
-} from "lucide-react";
+import { MapPin } from "lucide-react";
 import Image from "next/image";
-import InfoComp from "./Info";
 import Link from "next/link";
-
-const currentYear = new Date().getFullYear();
+import { InboxArrowDownIcon } from "@heroicons/react/24/outline";
 
 export function Footer() {
   return (
     <footer className=" w-full max-w-7xl m-auto    ">
-      <InfoComp />
       <div className=" mt-10     rounded-t-lg flex flex-row flex-wrap items-center justify-center gap-y-6 gap-x-12 bg-gray-900 text-center md:justify-between text-white p-4 md:p-10">
         <Image
           src="/assets/img/file.png"
@@ -32,11 +19,11 @@ export function Footer() {
         <ul className="flex flex-wrap items-center gap-y-2 gap-x-8">
           <li>
             <Link
-              href="/PathTest"
+              href="/Aboutus"
               color="white"
               className="font-normal transition-colors hover:text-blue-500 focus:text-blue-500"
             >
-              Services
+              About Us
             </Link>
           </li>
           <li>
@@ -68,46 +55,30 @@ export function Footer() {
             </Link>
           </li>
         </ul>
-      </div>
-
-      <div className=" flex w-full flex-col items-center justify-center p-4  md:p-10 md:flex-row md:justify-between bg-gray-900 text-white">
-        <Typography
-          variant="small"
-          className="mb-4 text-center font-normal  md:mb-0"
-        >
-          &copy; {currentYear}{" "}
-          <a href="https://criconai.com">Shrinivas Pathology Lab</a>. All Rights
-          Reserved.
-        </Typography>
-        <div className="flex gap-4  sm:justify-center">
-          <Typography
-            as="a"
-            target="_blank"
-            href="https://www.facebook.com/CriconAi/"
-          >
-            <FacebookIcon className="h-5 w-5" />
-          </Typography>
-          <Typography
-            as="a"
-            target="_blank"
-            href="https://www.instagram.com/criconai/"
-          >
-            <InstagramIcon className="h-5 w-5" />
-          </Typography>
-          <Typography
-            as="a"
-            target="_blank"
-            href="https://twitter.com/CriconAi"
-          >
-            <TwitterIcon className="h-5 w-5" />
-          </Typography>
-          <Typography
-            as="a"
-            target="_blank"
-            href="https://www.youtube.com/channel/UC6UCOXsY_Y4Rm7IW34_v9Lg"
-          >
-            <YoutubeIcon className="h-5 w-5" />
-          </Typography>
+        <div className=" flex  w-full items-center justify-end  gap-5 p-4  md:p-10 pr-5 md:pr-10  bg-gray-900 text-white">
+          <div>
+            <div className="flex items-center justify-center gap-3">
+              <MapPin className="size-6" />
+              <span className="font-bold text-base ">Address</span>
+            </div>
+            <div className="flex flex-col items-start justify-center ">
+              <span className="text-sm md:text-md font-light">Nashik,IND</span>
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center justify-center gap-3">
+              <InboxArrowDownIcon className="h-5 w-5" />{" "}
+              <span className="font-bold text-base">Contact</span>
+            </div>
+            <div>
+              <a
+                href="mailto:info@mywebsite.com"
+                className="cursor-pointer hover:text-[#20704d]  font-thin  text-xs md:font-light md:text-base "
+              >
+                info@mywebsite.com
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Collapse, Button, CardBody, Input } from "@material-tailwind/react";
-import { User2, ChevronDown } from "lucide-react";
+import { Collapse, Button } from "@material-tailwind/react";
 import {
   ArrowPathIcon,
   ChevronDoubleDownIcon,
@@ -13,16 +12,14 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
-import { generateGptResponse } from "@/action/ai.action";
-import { string, z } from "zod";
+import { z } from "zod";
 import { toast } from "../ui/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { formSchema1 } from "@/lib/validator";
+import { generateGptResponse } from "@/lib/action/ai.action";
 export default function AibotCollapse() {
   const form = useForm<z.infer<typeof formSchema1>>({
     resolver: zodResolver(formSchema1),
@@ -86,7 +83,7 @@ export default function AibotCollapse() {
     <div className="h-auto w-auto flex flex-col">
       {/* Floating Button */}
       <div
-        className={`fixed bottom-4 right-4 bg-black text-white rounded-full shadow-lg p-3 z-40 hover:bg-n-5 transition ${
+        className={`fixed bottom-4 right-4 bg-[#55edab] text-white rounded-full shadow-lg p-3 z-40 hover:bg-n-5 transition ${
           open ? "hidden" : "inline-block"
         } `}
       >
@@ -111,7 +108,7 @@ export default function AibotCollapse() {
               <SparklesIcon className="text-gray-700" />
             </div>
             <span className="font-normal flex gap-1 md:gap-2 text-xl md:text-2xl">
-              {["Lab", "Ai"].map((word, index) => (
+              {["Dev", "Ai"].map((word, index) => (
                 <span
                   key={index}
                   style={{

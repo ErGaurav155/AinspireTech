@@ -1,5 +1,3 @@
-import { PhoneIcon } from "@heroicons/react/24/solid";
-import { MessageCircle } from "lucide-react"; // or use any WhatsApp icon
 import Image from "next/image";
 import Link from "next/link";
 
@@ -14,7 +12,7 @@ export default function StickyWhatsAppButton() {
         target="_blank"
       >
         <Image
-          src="/assets/whatsapp.png"
+          src="/assets/img/whatsapp.png"
           className=" h-8 w-8 sm:h-10 md:w-10 lg:h-15 lg:w-15  cursor-pointer rounded-lg object-cover object-center bg-transparent"
           alt="gallery-image"
           height={50}
