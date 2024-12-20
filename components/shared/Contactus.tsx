@@ -203,31 +203,31 @@ const ContactForm = () => {
                           <SelectContent>
                             <SelectItem
                               className="bg-white hover:bg-gray-100 text-black text-lg  py-2 px- mb-4 m-auto text-center flex min-w-max"
-                              value="Budget A"
+                              value=" $100 - $500"
                             >
                               $100 - $500
                             </SelectItem>
                             <SelectItem
                               className="bg-white hover:bg-gray-100 text-black text-lg  py-2 px- mb-4 m-auto text-center flex min-w-max"
-                              value="Budget B"
+                              value="$500 - $1000"
                             >
                               $500 - $1000
                             </SelectItem>
                             <SelectItem
                               className="bg-white hover:bg-gray-100 text-black text-lg  py-2 px- mb-4 m-auto text-center flex min-w-max"
-                              value="Budget C"
+                              value="$1,000 - $1,500"
                             >
                               $1,000 - $1,500
                             </SelectItem>
                             <SelectItem
                               className="bg-white hover:bg-gray-100 text-black text-lg  py-2 px- mb-4 m-auto text-center flex min-w-max"
-                              value="Budget D"
+                              value=" $1,500- $2,000"
                             >
                               $1,500- $2,000
                             </SelectItem>
                             <SelectItem
                               className="bg-white hover:bg-gray-100 text-black text-lg  py-2 px- mb-4 m-auto text-center flex min-w-max"
-                              value="Budget E"
+                              value=" $2,000 +"
                             >
                               $2,000 +
                             </SelectItem>

@@ -12,14 +12,14 @@ export interface CreateUserParams {
   clerkId: string;
   email: string;
   username: string | null;
-  firstName: string | null;
-  lastName: string | null;
+  firstName: string;
+  lastName: string;
   photo: string;
 }
 
 export interface UpdateUserParams {
-  firstName: string | null;
-  lastName: string | null;
+  firstName: string;
+  lastName: string;
   username: string | null;
   photo: string;
 }
