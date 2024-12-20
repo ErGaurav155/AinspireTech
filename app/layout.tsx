@@ -12,7 +12,7 @@ const IBMPlex = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "CriconAi",
+  title: "AinspireTech",
   description:
     "AI-powered text,images and audio generators for content creators",
 };
