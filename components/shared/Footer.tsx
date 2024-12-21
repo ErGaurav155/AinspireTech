@@ -14,7 +14,7 @@ export function Footer() {
           alt="logo"
           width={200}
           height={200}
-          className=" rounded bg-white"
+          className=" rounded "
         />
         <ul className="flex flex-wrap items-center gap-y-2 gap-x-8">
           <li>
