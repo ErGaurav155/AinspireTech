@@ -11,8 +11,8 @@ const variants = {
   visible: { opacity: 1 },
 };
 export const metadata: Metadata = {
-  title: "AI Tools For Content Creators",
-  description: "AI-powered content creation technology for content creators",
+  title: "Best Web Services available",
+  description: "Web dev,ai agent,chatbots in best quality",
 };
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (

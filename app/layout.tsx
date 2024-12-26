@@ -13,8 +13,7 @@ const IBMPlex = IBM_Plex_Sans({
 
 export const metadata: Metadata = {
   title: "AinspireTech",
-  description:
-    "AI-powered text,images and audio generators for content creators",
+  description: "Ai-Agent,Web-Dev and Chatbot Agency",
 };
 
 export default function RootLayout({
