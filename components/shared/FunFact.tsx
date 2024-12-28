@@ -75,7 +75,7 @@ const FunFacts = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 w-full m-auto  p-5 items-center justify-center gap-8">
           {/* Single Fun Fact */}
           <div className="flex w-full  items-center justify-center text-center">
-            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#55edab] hover:text-[#55edab] transition-all">
+            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#88e2bb] hover:text-[#88e2bb] transition-all">
               <BotIcon className="h-10 w-10" />
             </div>
             <div className="flex gap-2 flex-col w-full">
@@ -88,7 +88,7 @@ const FunFacts = () => {
 
           {/* Single Fun Fact */}
           <div className="flex  w-full   items-center justify-center text-center">
-            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#55edab] hover:text-[#55edab] transition-all">
+            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#88e2bb] hover:text-[#88e2bb] transition-all">
               {" "}
               <Users2Icon className="h-10 w-10" />
             </div>
@@ -102,7 +102,7 @@ const FunFacts = () => {
 
           {/* Single Fun Fact */}
           <div className="flex  w-full   items-center justify-center text-center">
-            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#55edab] hover:text-[#55edab] transition-all">
+            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#88e2bb] hover:text-[#88e2bb] transition-all">
               {" "}
               <FaceSmileIcon className="h-10 w-10" />
             </div>
@@ -114,7 +114,7 @@ const FunFacts = () => {
 
           {/* Single Fun Fact */}
           <div className="flex  w-full   items-center justify-center text-center">
-            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#55edab] hover:text-[#55edab] transition-all">
+            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#88e2bb] hover:text-[#88e2bb] transition-all">
               {" "}
               <CalculatorIcon className="h-10 w-10" />
             </div>

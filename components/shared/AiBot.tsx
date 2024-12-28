@@ -21,6 +21,14 @@ import { useForm } from "react-hook-form";
 import { formSchema1 } from "@/lib/validator";
 import { generateGptResponse } from "@/lib/action/ai.action";
 export default function AibotCollapse() {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { sender: "AI Bot", text: "Hello! How can I help you?" },
+  ]);
+  const [submit, setSubmit] = useState(false);
+
+  const toggleOpen = () => setOpen((cur) => !cur);
+
   const form = useForm<z.infer<typeof formSchema1>>({
     resolver: zodResolver(formSchema1),
     defaultValues: {
@@ -29,52 +37,47 @@ export default function AibotCollapse() {
   });
 
   // Submit handler
-  const onSubmit = (values: z.infer<typeof formSchema1>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema1>) => {
+    const { message } = values;
     console.log(values); // Handle form submission
-  };
+    setSubmit(true);
 
-  const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { sender: "AI Bot", text: "Hello! How can I help you?" },
-  ]);
-  const [userInput, setUserInput] = useState("");
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { sender: "You", text: message },
+    ]);
 
-  const toggleOpen = () => setOpen((cur) => !cur);
+    form.reset({ message: "" });
 
-  const handleSend = async () => {
-    if (userInput.trim()) {
-      setMessages([...messages, { sender: "You", text: userInput }]);
-      const inputMessage = userInput; // Capture the input
-      setUserInput(""); // Clear input field
+    try {
+      const response = await generateGptResponse({
+        userInput: message,
+      }); // Pass as an object
 
-      try {
-        const response = await generateGptResponse({
-          userInput: inputMessage,
-        }); // Pass as an object
-
-        if (response) {
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            { sender: "AI Bot", text: response },
-          ]);
-        } else {
-          toast({
-            title: "Content Warning",
-
-            duration: 2000,
-            className: "error-toast",
-          });
-        }
-      } catch (error) {
-        console.error("Error:", error);
+      if (response) {
+        console.log(response);
         setMessages((prevMessages) => [
           ...prevMessages,
-          { sender: "AI Bot", text: "Sorry, something went wrong!" },
+          { sender: "AI Bot", text: response },
         ]);
+      } else {
+        toast({
+          title: "Content Warning",
+
+          duration: 2000,
+          className: "error-toast",
+        });
       }
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: "AI Bot", text: "Sorry, something went wrong!" },
+      ]);
+    } finally {
+      setSubmit(false);
     }
   };
-
   const restartChat = () => {
     setMessages([{ sender: "AI Bot", text: "Hello! How can I help you?" }]);
   };
@@ -83,7 +86,7 @@ export default function AibotCollapse() {
     <div className="h-auto w-auto flex flex-col">
       {/* Floating Button */}
       <div
-        className={`fixed bottom-4 right-4 bg-[#55edab] text-white rounded-full shadow-lg p-3 z-40 hover:bg-n-5 transition ${
+        className={`fixed bottom-4 right-4 bg-[#88e2bb] text-white rounded-full shadow-lg p-3 z-40 hover:bg-n-5 transition ${
           open ? "hidden" : "inline-block"
         } `}
       >
@@ -186,13 +189,22 @@ export default function AibotCollapse() {
               />
 
               {/* Submit Button */}
-              <Button
-                type="submit"
-                className="px-4 py-2 text-base md:text-xl hover:bg-indigo-600 bg-indigo-700 text-white "
-                onClick={handleSend}
-              >
-                Send
-              </Button>
+
+              {submit ? (
+                <Button
+                  type="submit"
+                  className="pl-1 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
+                >
+                  Sending..
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  className="px-4 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
+                >
+                  Send
+                </Button>
+              )}
             </form>
           </Form>
         </div>

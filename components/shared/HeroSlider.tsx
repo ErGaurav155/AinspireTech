@@ -6,12 +6,12 @@ export const HeroSlider = () => {
   return (
     <section className=" flex flex-col md:flex-row items-center justify-center gap-2   w-full">
       <div className="flex flex-col gap-3 items-center md:items-start justify-center w-full md:w-1/2">
-        <div className="flex items-center justify-center gap-3 p-2 shadow-inner   rounded-3xl text- text-[#55edab] bg-[#55edab]  bg-opacity-20">
+        <div className="flex items-center justify-center gap-3 p-2 shadow-inner   rounded-3xl text- bg-[#88e2bb]   text-[#55edab]  bg-opacity-20">
           <StarIcon color="#55edab" className="size-5" />
 
           <span>N°1 in AI SOLUTIONS</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl  lg:text-6xl font-bold text-[#55edab]  leading-tight">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl  lg:text-6xl font-bold text-[#88e2bb]    leading-tight">
           Smart Ai Solutions, <br />
           <span className=" text-white">Smarter Businesses.</span>
         </h1>
@@ -20,16 +20,16 @@ export const HeroSlider = () => {
           No delays, no surprises, no hidden fees. Cancel anytime.
         </span>
         <div className="flex gap-2 items-center justify-center">
-          <div className="p-1 border border-opacity-10 border-[#55edab] shadow-inner shadow-[#38bd83]   rounded-full">
-            <div className="p-2 border border-opacity-10 border-[#55edab] shadow-inner shadow-[#38bd83]  rounded-full">
-              <button className="p-1   md:py-2 md:px-6   text-center font-medium transition bg-[#55edab] text-black rounded-full ring-2   ring-[#55edab] hover:ring-[#38bd83]    shadow-lg shadow-[#38bd83]-500/50 ">
+          <div className="p-1 border border-opacity-10 border-[#88e2bb] shadow-inner shadow-[#88e2bb]   rounded-full">
+            <div className="p-2 border border-opacity-10 border-[#55edab] shadow-inner shadow-[#88e2bb]  rounded-full">
+              <button className="p-1   md:py-2 md:px-6   text-center font-medium transition bg-[#88e2bb] text-black rounded-full ring-2   ring-[#88e2bb] hover:ring-[#88e2bb]    shadow-lg shadow-[#88e2bb]-500/50 ">
                 Lets Talk
               </button>
             </div>
           </div>
-          <div className="p-1 border border-opacity-10 border-[#55edab] shadow shadow-[#38bd83]   rounded-full">
-            <div className="p-1 border border-opacity-10 border-[#55edab] shadow shadow-[#38bd83]  rounded-full">
-              <button className="p-1   md:py-2 md:px-6   text-center font-medium transition bg-[#55edab] text-black rounded-full ring-2   ring-[#55edab] hover:ring-[#38bd83]    shadow shadow-[#38bd83]-500/50 ">
+          <div className="p-1 border border-opacity-10 border-[#88e2bb] shadow shadow-[#88e2bb]   rounded-full">
+            <div className="p-1 border border-opacity-10 border-[#88e2bb] shadow shadow-[#88e2bb] rounded-full">
+              <button className="p-1   md:py-2 md:px-6   text-center font-medium transition bg-[#88e2bb] text-black rounded-full ring-2   ring-[#88e2bb] hover:ring-[#88e2bb]    shadow shadow-[#88e2bb]-500/50 ">
                 Our Services
               </button>
             </div>
@@ -39,7 +39,7 @@ export const HeroSlider = () => {
         <div className=" flex flex-col md:flex-row items-center justify-center gap-2 text-white">
           <span>4.6 out of 5</span>
           <div className="flex items-center justify-center gap-1">
-            <div className="bg-[#55edab] ">
+            <div className="bg-[#88e2bb] ">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -55,7 +55,7 @@ export const HeroSlider = () => {
                 />
               </svg>
             </div>
-            <div className="bg-[#55edab] ">
+            <div className="bg-[#88e2bb] ">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -71,7 +71,7 @@ export const HeroSlider = () => {
                 />
               </svg>
             </div>
-            <div className="bg-[#55edab] ">
+            <div className="bg-[#88e2bb] ">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -87,7 +87,7 @@ export const HeroSlider = () => {
                 />
               </svg>
             </div>
-            <div className="bg-[#55edab] ">
+            <div className="bg-[#88e2bb] ">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -121,7 +121,7 @@ export const HeroSlider = () => {
                 </svg>
               </div>
 
-              <div className="absolute inset-0 w-1/2 h-full bg-[#55edab]"></div>
+              <div className="absolute inset-0 w-1/2 h-full bg-[#88e2bb]"></div>
 
               <div className="absolute inset-0 left-1/2 w-1/2 h-full bg-gray-500"></div>
             </div>
@@ -132,7 +132,7 @@ export const HeroSlider = () => {
               viewBox="0 0 24 24"
               fill="currentColor"
               strokeWidth="2"
-              className="w-8 h-8 text-[#55edab]  "
+              className="w-8 h-8 text-[#88e2bb]  "
             >
               <path
                 fillRule="evenodd"

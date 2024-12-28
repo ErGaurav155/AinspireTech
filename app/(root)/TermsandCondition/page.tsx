@@ -16,7 +16,7 @@ const TermsOfService = () => {
             1. Introduction
           </h3>
           <p className="mb-5">
-            Welcome to MorningsideAI. These Terms of Service (“Terms”) govern
+            Welcome to AinspireTechAI. These Terms of Service (“Terms”) govern
             your access to and use of our website and services. By accessing or
             using the service, you agree to be bound by these Terms.
           </p>
@@ -25,7 +25,7 @@ const TermsOfService = () => {
             2. Services Provided
           </h3>
           <p className="mb-5">
-            MorningsideAI provides Autonomous Agent Development, Enterprise
+            AinspireTechAI provides Autonomous Agent Development, Enterprise
             Consulting, and Chatbot Development. These services are subject to
             the terms and conditions outlined in this document.
           </p>
@@ -71,7 +71,7 @@ const TermsOfService = () => {
           </h3>
           <p className="mb-5">
             All intellectual property rights in the service and its content are
-            the exclusive property of MorningsideAI or its licensors.
+            the exclusive property of AinspireTechAI or its licensors.
           </p>
 
           <h3 className="font-bold text-2xl text-white mb-4">
@@ -79,7 +79,7 @@ const TermsOfService = () => {
           </h3>
           <p className="mb-5">
             Our service may contain links to third-party websites or services
-            that are not owned or controlled by MorningsideAI. We have no
+            that are not owned or controlled by AinspireTechAI. We have no
             control over, and assume no responsibility for, the content or
             practices of any third-party websites or services.
           </p>
@@ -114,7 +114,7 @@ const TermsOfService = () => {
           </h3>
           <p className="mb-5">
             The service and its content are provided “as is” without warranty of
-            any kind. In no event will MorningsideAI, nor its directors,
+            any kind. In no event will AinspireTechAI, nor its directors,
             employees, partners, agents, suppliers, or affiliates, be liable for
             any indirect, incidental, special, consequential, or punitive
             damages, including without limitation, loss of profits, data, use,

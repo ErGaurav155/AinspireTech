@@ -12,7 +12,7 @@ const PrivacyPolicy = () => {
             Privacy Policy
           </h2>
           <p className="mb-5">
-            Welcome to MorningsideAI. Your privacy is paramount to us, and we
+            Welcome to AinspireTechAI. Your privacy is paramount to us, and we
             are committed to protecting your personal data. This privacy policy
             explains how we handle your personal information in accordance with
             IND law when you visit our website and informs you of your privacy
@@ -23,7 +23,7 @@ const PrivacyPolicy = () => {
             Important Information and Who We Are
           </h2>
           <p className="mb-5">
-            MorningsideAI operates in accordance with the INDs data protection
+            AinspireTechAI operates in accordance with the INDs data protection
             regulations. We are the controller and are responsible for your
             personal data.
           </p>
