@@ -12,7 +12,7 @@ const Service = () => {
         Our Services
       </h1>
       <div className="flex flex-row flex-wrap  gap-4 items-center justify-center w-full h-full text-white">
-        <div className="flex flex-col gap-4 flex-auto w-full md:w-1/3 lg:w-1/4 bg-gray-100  bg-opacity-90  rounded-md p-5">
+        <div className="flex flex-col gap-4 flex-auto w-full md:w-1/3 lg:w-1/4 bg-gray-100  bg-opacity-90  rounded-md p-5 transition-transform duration-300 hover:scale-105">
           <h1 className="p-2  text-xl font-normal   text-black  bg-opacity-20">
             CHATBOT DEVELOPMENT
           </h1>
@@ -59,7 +59,7 @@ const Service = () => {
             </Button>
           </div>
         </div>
-        <div className="flex flex-col gap-4 flex-auto w-full md:w-1/3 lg:w-1/4 bg-[#88e2bb]  bg-opacity-50  rounded-md p-5">
+        <div className="flex flex-col gap-4 flex-auto w-full md:w-1/3 lg:w-1/4 bg-[#88e2bb]  bg-opacity-50  rounded-md p-5 transition-transform duration-300 hover:scale-105">
           <h1 className="p-2  text-xl font-normal   text-black  bg-opacity-20">
             AI AGENT DEVELOPMENT
           </h1>
@@ -106,7 +106,7 @@ const Service = () => {
             </Button>
           </div>
         </div>
-        <div className="flex flex-col gap-4 flex-auto w-full md:w-1/3 lg:w-1/4 bg-gray-100 bg-opacity-90 rounded-md p-5">
+        <div className="flex flex-col gap-4 flex-auto w-full md:w-1/3 lg:w-1/4 bg-gray-100 bg-opacity-90 rounded-md p-5  transition-transform duration-300 hover:scale-105">
           <h1 className="p-2  text-xl font-normal   text-black  bg-opacity-20">
             WEBSITE DEVELOPMENT
           </h1>

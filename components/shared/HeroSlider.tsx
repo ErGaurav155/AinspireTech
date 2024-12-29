@@ -1,8 +1,12 @@
+"use client";
+
 import React from "react";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { OurClient, OurClient2 } from "./corousel";
+import { useRouter } from "next/navigation";
 
 export const HeroSlider = () => {
+  const router = useRouter();
   return (
     <section className=" flex flex-col md:flex-row items-center justify-center gap-2   w-full">
       <div className="flex flex-col gap-3 items-center md:items-start justify-center w-full md:w-1/2">
@@ -22,14 +26,20 @@ export const HeroSlider = () => {
         <div className="flex gap-2 items-center justify-center">
           <div className="p-1 border border-opacity-10 border-[#88e2bb] shadow-inner shadow-[#88e2bb]   rounded-full">
             <div className="p-2 border border-opacity-10 border-[#55edab] shadow-inner shadow-[#88e2bb]  rounded-full">
-              <button className="p-1   md:py-2 md:px-6   text-center font-medium transition bg-[#88e2bb] text-black rounded-full ring-2   ring-[#88e2bb] hover:ring-[#88e2bb]    shadow-lg shadow-[#88e2bb]-500/50 ">
+              <button
+                className="p-1   md:py-2 md:px-6   text-center font-medium transition bg-[#88e2bb] text-black rounded-full ring-2   ring-[#88e2bb] hover:ring-[#88e2bb]    shadow-lg shadow-[#88e2bb]-500/50 "
+                onClick={() => router.push("/contactUs")}
+              >
                 Lets Talk
               </button>
             </div>
           </div>
           <div className="p-1 border border-opacity-10 border-[#88e2bb] shadow shadow-[#88e2bb]   rounded-full">
             <div className="p-1 border border-opacity-10 border-[#88e2bb] shadow shadow-[#88e2bb] rounded-full">
-              <button className="p-1   md:py-2 md:px-6   text-center font-medium transition bg-[#88e2bb] text-black rounded-full ring-2   ring-[#88e2bb] hover:ring-[#88e2bb]    shadow shadow-[#88e2bb]-500/50 ">
+              <button
+                className="p-1   md:py-2 md:px-6   text-center font-medium transition bg-[#88e2bb] text-black rounded-full ring-2   ring-[#88e2bb] hover:ring-[#88e2bb]    shadow shadow-[#88e2bb]-500/50 "
+                onClick={() => router.push("/OurService")}
+              >
                 Our Services
               </button>
             </div>
