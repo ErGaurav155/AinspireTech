@@ -67,15 +67,15 @@ export function Footer() {
           </div>
           <div>
             <div className="flex items-center justify-center gap-3">
-              <InboxArrowDownIcon className="h-5 w-5" />{" "}
+              <InboxArrowDownIcon className="h-5 w-5" />
               <span className="font-bold text-base">Contact</span>
             </div>
             <div>
               <a
-                href="mailto:info@mywebsite.com"
+                href="mailto:gauravgkhaire@gmail.com"
                 className="cursor-pointer hover:text-[#20704d]  font-thin  text-xs md:font-light md:text-base "
               >
-                info@mywebsite.com
+                gauravgkhaire@gmail.com
               </a>
             </div>
           </div>
