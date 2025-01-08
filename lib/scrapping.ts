@@ -1,5 +1,6 @@
 import puppeteer from "puppeteer";
 import fs from "fs/promises";
+import chromium from "@sparticuz/chromium";
 
 // Your sitemap data (this is from the Next.js `sitemap.ts` file you provided)
 const sitemapData = [
@@ -76,7 +77,11 @@ const urls = sitemapData.map((page) => page.url);
 
 // Function to scrape data from a page
 const scrapePage = async (url: string) => {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    executablePath: await chromium.executablePath(),
+    args: chromium.args,
+    headless: chromium.headless,
+  });
   const page = await browser.newPage();
 
   await page.goto(url, { waitUntil: "domcontentloaded" });
