@@ -2,8 +2,6 @@
 /* eslint-disable no-prototype-builtins */
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import axios from "axios";
-import xml2js from "xml2js";
 
 import { toast } from "@/components/ui/use-toast";
 
