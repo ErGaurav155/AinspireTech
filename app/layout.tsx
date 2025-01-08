@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import { scrapeSitemapPages } from "@/lib/scrapping";
 
 const IBMPlex = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -22,8 +21,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  await scrapeSitemapPages();
-
   return (
     <ClerkProvider
       appearance={{
