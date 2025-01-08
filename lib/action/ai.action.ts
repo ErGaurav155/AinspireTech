@@ -1,7 +1,7 @@
 "use server";
 
 import OpenAI from "openai";
-import fs from "fs/promises";
+import { scrapedData } from "@/constant";
 
 const openai = setupOpenAI();
 function setupOpenAI() {
@@ -10,10 +10,6 @@ function setupOpenAI() {
   }
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
-const loadWebsiteData = async () => {
-  const data = await fs.readFile("scrapedData.json", "utf-8");
-  return JSON.parse(data);
-};
 
 export const generateGptResponse = async ({
   userInput,
@@ -23,10 +19,9 @@ export const generateGptResponse = async ({
   if (openai instanceof Error) {
     throw openai;
   }
-  const siteData = await loadWebsiteData();
 
   // Extract the relevant website content (you may customize this)
-  const context = siteData
+  const context = scrapedData
     .map((page: any) => {
       return `
       Website Page URL: ${page.url}
