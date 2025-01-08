@@ -82,7 +82,6 @@ export default function AibotCollapse() {
 
   return (
     <div className="h-auto w-auto flex flex-col">
-      {/* Floating Button */}
       <div
         className={`fixed bottom-4 right-4 bg-[#88e2bb] text-white rounded-full shadow-lg p-3 z-40 hover:bg-n-5 transition ${
           open ? "hidden" : "inline-block"
@@ -95,14 +94,12 @@ export default function AibotCollapse() {
         </Button>
       </div>
 
-      {/* Chat Box */}
       <Collapse
         open={open}
         className={`fixed bottom-4 right-5 w-[90vw] ${
           open ? "border" : "border-none"
         }   sm:w-96 h-[90vh] max-h-[90vh] bg-gray-50 flex flex-col gap-4 rounded-xl shadow-xl shadow-gray-700 z-20 `}
       >
-        {/* Header */}
         <div className="flex p-4 items-center justify-between gap-2 w-full border-b">
           <div className="pl-3 w-full flex items-center text-nowrap justify-start gap-4">
             <div className="border w-14 h-14 p-3 rounded-full bg-gray-200">
@@ -140,7 +137,6 @@ export default function AibotCollapse() {
           </div>
         </div>
 
-        {/* Chat Messages */}
         <div className="flex flex-col p-4 flex-1 min-h-[50vh] z-10 overflow-y-auto no-scrollbar">
           {messages.map((msg, index) => (
             <div
@@ -162,7 +158,6 @@ export default function AibotCollapse() {
           ))}
         </div>
 
-        {/* Input Box */}
         <div className="flex items-center gap-2 p-4 border-t">
           <Form {...form}>
             <form
