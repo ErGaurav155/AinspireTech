@@ -78,7 +78,8 @@ const urls = sitemapData.map((page) => page.url);
 // Function to scrape data from a page
 const scrapePage = async (url: string) => {
   const browser = await puppeteer.launch({
-    executablePath: await chromium.executablePath(),
+    executablePath:
+      (await chromium.executablePath()) || "/usr/bin/chromium-browser",
     args: chromium.args,
     headless: chromium.headless,
   });
