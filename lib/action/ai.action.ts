@@ -1,6 +1,7 @@
 "use server";
 
 import OpenAI from "openai";
+import fs from "fs/promises";
 
 const openai = setupOpenAI();
 function setupOpenAI() {
@@ -9,6 +10,10 @@ function setupOpenAI() {
   }
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
+const loadWebsiteData = async () => {
+  const data = await fs.readFile("scrapedData.json", "utf-8");
+  return JSON.parse(data);
+};
 
 export const generateGptResponse = async ({
   userInput,
@@ -18,6 +23,20 @@ export const generateGptResponse = async ({
   if (openai instanceof Error) {
     throw openai;
   }
+  const siteData = await loadWebsiteData();
+
+  // Extract the relevant website content (you may customize this)
+  const context = siteData
+    .map((page: any) => {
+      return `
+      Website Page URL: ${page.url}
+      Title: ${page.title}
+      Description: ${page.description || "No description"}
+      Headings: ${page.headings.join(", ")}
+      Content Summary: ${page.content.slice(0, 500)}...
+    `;
+    })
+    .join("\n\n");
 
   const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
@@ -25,13 +44,15 @@ export const generateGptResponse = async ({
       {
         role: "system",
         content:
-          "You are a professional assistant representing AinspireTech.AI, an advanced AI and chatbot development agency. Your role is to provide expert advice on the agency's services, including AI agent development, chatbot solutions, and website development. You will assist users by answering questions, explaining the agency's offerings, and guiding them to the best solutions for their needs. Always maintain a friendly, professional, and knowledgeable tone.",
+          "You are an AI assistant that helps users by providing information based on the stored website content. Only respond based on the provided content.",
       },
+      { role: "user", content: context },
       {
         role: "user",
         content: userInput,
       },
     ],
+    max_tokens: 500,
 
     temperature: 1,
   });

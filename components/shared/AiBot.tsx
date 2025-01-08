@@ -39,7 +39,6 @@ export default function AibotCollapse() {
   // Submit handler
   const onSubmit = async (values: z.infer<typeof formSchema1>) => {
     const { message } = values;
-    console.log(values); // Handle form submission
     setSubmit(true);
 
     setMessages((prevMessages) => [
@@ -55,7 +54,6 @@ export default function AibotCollapse() {
       }); // Pass as an object
 
       if (response) {
-        console.log(response);
         setMessages((prevMessages) => [
           ...prevMessages,
           { sender: "AI Bot", text: response },
