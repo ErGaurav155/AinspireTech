@@ -169,6 +169,163 @@ export const topics = [
   },
 ];
 
+export const productDetails: Record<
+  string,
+  {
+    productId: string; // Add productId here
+    name: string;
+    video: string;
+    icon: string;
+    description: { bgcolor: string; heading: string; subheading: string };
+  }
+> = {
+  // Chatbots
+  "chatbot-customer-support": {
+    productId: "chatbot-customer-support", // Product ID
+    name: "Customer Support Chatbot",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/customer-support.png",
+    description: {
+      bgcolor: "bg-green-800",
+      heading: "Simplify customer queries with advanced AI.",
+      subheading:
+        "Deliver instant, intelligent, and in-app support with AI-powered support chatbots.",
+    },
+  },
+  "chatbot-e-commerce": {
+    productId: "chatbot-e-commerce", // Product ID
+    name: "E-Commerce Chatbot",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/e-commerce.png",
+    description: {
+      bgcolor: "bg-red-800",
+      heading: "Boost sales with intelligent e-commerce assistants.",
+      subheading:
+        "Engage customers with personalized shopping experiences and product recommendations.",
+    },
+  },
+  "chatbot-lead-generation": {
+    productId: "chatbot-lead-generation", // Product ID
+    name: "Lead Generation Chatbot",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/lead-generation.png",
+    description: {
+      bgcolor: "bg-blue-800",
+      heading: "Maximize lead capture with AI-driven chatbots.",
+      subheading:
+        "Automate interactions and nurture leads effectively to grow your business.",
+    },
+  },
+  "chatbot-education": {
+    productId: "chatbot-education", // Product ID
+    name: "Education Chatbot",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/education.png",
+    description: {
+      bgcolor: "bg-yellow-800",
+      heading: "Enhance learning experiences with AI tutors.",
+      subheading:
+        "Provide instant answers, resources, and support for students and educators.",
+    },
+  },
+
+  // AI Agents
+  "ai-agent-customer-support": {
+    productId: "ai-agent-customer-support", // Product ID
+    name: "Customer Support AI Agent",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/customer-support.png",
+    description: {
+      bgcolor: "bg-purple-800",
+      heading: "24/7 intelligent customer service solutions.",
+      subheading:
+        "Automate support and reduce response times to improve customer satisfaction.",
+    },
+  },
+  "ai-agent-e-commerce": {
+    productId: "ai-agent-e-commerce", // Product ID
+    name: "E-Commerce AI Agent",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/e-commerce.png",
+    description: {
+      bgcolor: "bg-pink-800",
+      heading: "Revolutionize online shopping with AI-powered agents.",
+      subheading:
+        "Guide customers through their journey and optimize conversions effortlessly.",
+    },
+  },
+  "ai-agent-lead-generation": {
+    productId: "ai-agent-lead-generation", // Product ID
+    name: "Lead Generation AI Agent",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/lead-generation.png",
+    description: {
+      bgcolor: "bg-orange-800",
+      heading: "Supercharge your sales pipeline with AI-driven agents.",
+      subheading: "Capture, qualify, and engage leads more efficiently.",
+    },
+  },
+  "ai-agent-education": {
+    productId: "ai-agent-education", // Product ID
+    name: "Education AI Agent",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/education.png",
+    description: {
+      bgcolor: "bg-teal-800",
+      heading: "Empower educators and learners with AI.",
+      subheading: "Offer tailored educational content and on-demand support.",
+    },
+  },
+
+  // Website Templates
+  "template-pathology": {
+    productId: "template-pathology", // Product ID
+    name: "Pathology Website Template",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/pathology.png",
+    description: {
+      bgcolor: "bg-indigo-800",
+      heading: "Modern solutions for medical professionals.",
+      subheading:
+        "Streamline appointment booking and provide valuable resources for patients.",
+    },
+  },
+  "template-e-commerce": {
+    productId: "template-e-commerce", // Product ID
+    name: "E-Commerce Website Template",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/e-commerce.png",
+    description: {
+      bgcolor: "bg-gray-800",
+      heading: "Create stunning online stores effortlessly.",
+      subheading:
+        "Offer a seamless shopping experience with responsive and customizable templates.",
+    },
+  },
+  "template-business": {
+    productId: "template-business", // Product ID
+    name: "Business Website Template",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/business.png",
+    description: {
+      bgcolor: "bg-cyan-800",
+      heading: "Elevate your business with a professional online presence.",
+      subheading: "Showcase your services and attract more clients with ease.",
+    },
+  },
+  "template-saas": {
+    productId: "template-saas", // Product ID
+    name: "SaaS Website Template",
+    video: "/assets/congratulation.webm",
+    icon: "/icons/saas.png",
+    description: {
+      bgcolor: "bg-lime-800",
+      heading: "Launch your SaaS product with style.",
+      subheading:
+        "Highlight features and drive subscriptions with purpose-built templates.",
+    },
+  },
+};
 export const scrapedData = [
   {
     url: "https://pathology-pink.vercel.app/",

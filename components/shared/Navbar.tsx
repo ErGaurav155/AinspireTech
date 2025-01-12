@@ -181,7 +181,10 @@ export function NavBar() {
               Dashboard
             </Button>
           )}
-          <UserButton afterSignOutUrl="/" />
+          <div className="flex items-center justify-center">
+            {" "}
+            <UserButton afterSignOutUrl="/" />
+          </div>
         </SignedIn>
         <SignedOut>
           <Button
