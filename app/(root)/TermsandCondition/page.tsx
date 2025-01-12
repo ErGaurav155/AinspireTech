@@ -125,8 +125,15 @@ const TermsOfService = () => {
             goodwill, or other intangible losses, resulting from your access to
             or use of or inability to access or use the service.
           </p>
+          <h3 className="font-bold text-2xl text-white mb-4">
+            13. Refunds/Cancellations
+          </h3>
+          <p className="mb-5">
+            For now we do not provide any refund policies. No Refunds for the
+            Service will be given of purchase.We might think in future.
+          </p>
 
-          <h3 className="font-bold text-2xl text-white mb-4">13. Contact Us</h3>
+          <h3 className="font-bold text-2xl text-white mb-4">14. Contact Us</h3>
           <p className="mb-5">
             For any questions about these Terms, please contact us using the
             following information:
