@@ -23,7 +23,6 @@ export async function getAllAppointments() {
   try {
     await connectToDatabase();
 
-    // Fetch all appointments from the database
     const appointments = await Appointment.find({});
     const formattedAppointments = appointments.map((appointment) => {
       return {
