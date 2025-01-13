@@ -1,7 +1,7 @@
 (function () {
   // The client doesn't need to modify this part
-  const userId = "USER_ID"; // Replace with actual user ID
-  const agentId = "AGENT_ID"; // Replace with actual agent ID
+  const userId = "678382af7dcf8cebae580bec"; // Replace with actual user ID
+  const agentId = "ai-agent-e-commerce"; // Replace with actual agent ID
 
   // Create the container for the widget
   const container = document.createElement("div");
