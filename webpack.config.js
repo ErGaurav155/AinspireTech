@@ -1,10 +1,10 @@
 const path = require("path");
 
 module.exports = {
-  entry: "./components/shared/widget.ts", // Your widget component
+  entry: "./components/widget.ts",
   output: {
     path: path.resolve(__dirname, "public"),
-    filename: "widget.bundle.js", // Bundle the widget into this file
+    filename: "widget.bundle.js",
     library: "Widget",
     libraryTarget: "umd",
   },
@@ -14,8 +14,8 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(ts|tsx)$/i,
-        use: "babel-loader",
+        test: /\.(ts|tsx)$/,
+        use: "swc-loader", // Use SWC instead of Babel
         exclude: /node_modules/,
       },
     ],
