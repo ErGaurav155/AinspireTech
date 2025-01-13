@@ -36,8 +36,6 @@
     "openai": "^4.28.4",
     "qs": "^6.11.2",
     "razorpay": "^2.9.5",
-    "react": "^18",
-    "react-dom": "^18",
     "react-hook-form": "^7.51.0",
     "react-just-parallax": "^3.1.16",
     "svix": "^1.17.0",
@@ -46,14 +44,22 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-react": "^7.26.3",
+    "@babel/preset-typescript": "^7.26.0",
     "@types/node": "20.17.12",
     "@types/react": "18.2.19",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
+    "babel-loader": "^9.2.1",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
   }
 }
