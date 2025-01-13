@@ -13,7 +13,7 @@ const EmbedCode: React.FC<EmbedCodeProps> = ({ userId, agentId }) => {
       <h3>Embed Code:</h3>
       <textarea
         readOnly
-        className="w-full p-2 border text-black min-h-max max-h-min rounded-xl"
+        className="w-full p-2  border text-black min-h-max max-h-min rounded-xl"
         value={embedCode}
         rows={4}
       />
