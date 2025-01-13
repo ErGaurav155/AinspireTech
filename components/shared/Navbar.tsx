@@ -91,7 +91,7 @@ export function NavBar() {
 
   return (
     <Navbar
-      className={`m-auto sticky top-0 z-10 px-0 transition-all duration-300  border-black bg-black  ${
+      className={`m-auto  sticky top-0 z-10 px-0 transition-all duration-300  border-black bg-black  ${
         isScrolled ? "rounded-lg shadow-md" : "rounded-none"
       }`}
     >
@@ -113,7 +113,7 @@ export function NavBar() {
           <div className="  w-8/12  lg:w-6/12">{navList}</div>
 
           <SignedIn>
-            {isOwn && (
+            {isOwn ? (
               <Button
                 size="lg"
                 color="white"
@@ -121,6 +121,17 @@ export function NavBar() {
                 onClick={() => router.push("/admin")}
                 className="text-black 
                 w-2/12 py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
+              >
+                Dashboard
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                color="white"
+                variant="gradient"
+                onClick={() => router.push("/UserDashboard")}
+                className="text-black 
+            w-2/12 py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
               >
                 Dashboard
               </Button>
@@ -147,7 +158,7 @@ export function NavBar() {
            
                w-2/12  py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800 "
             >
-              Admin
+              Login
             </Button>
           </SignedOut>
         </div>

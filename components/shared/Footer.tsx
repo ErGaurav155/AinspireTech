@@ -55,19 +55,19 @@ export function Footer() {
             </Link>
           </li>
         </ul>
-        <div className=" flex  w-full items-center justify-end  gap-5 p-4  md:p-10 pr-5 md:pr-10  bg-gray-900 text-white">
-          <div>
-            <div className="flex items-center justify-center gap-3">
-              <MapPin className="size-6" />
-              <span className="font-bold text-base ">Address</span>
+        <div className=" flex w-full items-center justify-end  gap-5 p-4  md:p-10 pr-5 md:pr-10  bg-gray-900 text-white">
+          <div className="">
+            <div className="flex items-center  justify-center gap-1 md:gap-3">
+              <MapPin className="size-3 md:size-6" />
+              <span className="font-bold text-sm md:text-md ">Address</span>
             </div>
             <div className="flex flex-col items-start justify-center ">
-              <span className="text-sm md:text-md font-light">Nashik,IND</span>
+              <span className="text-xs md:text-md font-light">Nashik,IND</span>
             </div>
           </div>
           <div>
             <div className="flex items-center justify-center gap-3">
-              <InboxArrowDownIcon className="h-5 w-5" />
+              <InboxArrowDownIcon className="size-3 md:size-6" />
               <span className="font-bold text-base">Contact</span>
             </div>
             <div>

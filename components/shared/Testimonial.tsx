@@ -25,7 +25,7 @@ export function TestimonialSection() {
   }
 
   return (
-    <section className="w-screen py-16">
+    <section className="w-[90vw] py-16">
       <div className="container mx-auto ">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-semibold text-white">
