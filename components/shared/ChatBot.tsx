@@ -15,6 +15,7 @@ export default function ChatBot({
   ]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [apiKey, setApiKey] = useState();
 
   useEffect(() => {
     // Fetch API key and agent details based on userId and agentId when the component mounts
@@ -23,10 +24,10 @@ export default function ChatBot({
         `/api/agent?data-user-id=${userId}&data-agent-id=${agentId}`
       );
       const data = await response.json();
-      if (data.apiKey) {
-        // Set the API key or any necessary data
-        console.log("API Key:", data.apiKey);
+      if (!data.apiKey) {
+        return;
       }
+      setApiKey(data.apiKey);
     };
 
     fetchAgentData();

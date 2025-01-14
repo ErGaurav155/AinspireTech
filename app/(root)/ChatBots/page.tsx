@@ -1,4 +1,5 @@
 "use client";
+import AibotCollapse from "@/components/shared/AiBot";
 import ChatBot from "@/components/shared/ChatBot";
 
 import React from "react";
@@ -9,7 +10,7 @@ const ChatBots = () => {
   if (!userId || !agentId) {
     return;
   }
-  return <ChatBot userId={userId} agentId={agentId} />;
+  return <AibotCollapse />;
 };
 
 export default ChatBots;

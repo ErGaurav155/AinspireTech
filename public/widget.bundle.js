@@ -28,7 +28,7 @@
 
       // Create and append the iframe
       const iframe = document.createElement("iframe");
-      iframe.src = `https://ainspire-tech.vercel.app/ChatBots?userId=${userId}&agentId=${agentId}`;
+      iframe.src = `https://ainspire-tech.vercel.app/ChatBots`;
       iframe.style.width = "100%";
       iframe.style.height = "500px";
       iframe.style.border = "none";
