@@ -3,6 +3,7 @@ import { authMiddleware } from "@clerk/nextjs";
 export default authMiddleware({
   ignoredRoutes: [
     "/",
+    "/ChatBots",
     "/Aboutus",
     "/contactUs",
     "/OurService",
