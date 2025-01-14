@@ -15,6 +15,33 @@
       ]
     },
     {
+      "source": "https://ainspire-tech.vercel.app/",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors *;"
+        }
+      ]
+    },
+    {
+      "source": "/widget.js",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors *;"
+        }
+      ]
+    },
+    {
+      "source": "/ChatBots",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors *;"
+        }
+      ]
+    },
+    {
       "source": "/widget.bundle.js",
       "headers": [
         {
