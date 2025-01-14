@@ -1,7 +1,7 @@
 const path = require("path");
 
 module.exports = {
-  entry: "./components/widget.ts",
+  entry: "./components/shared/widget.js",
   output: {
     path: path.resolve(__dirname, "public"),
     filename: "widget.bundle.js",
