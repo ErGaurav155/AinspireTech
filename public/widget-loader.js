@@ -38,8 +38,8 @@
 
     if (window.Widget && typeof window.Widget.init === "function") {
       window.Widget.init({
-        userId: userId,
-        agentId: agentId,
+        userId: "ai-agent-e-commerce",
+        agentId: "678382af7dcf8cebae580bec",
         containerId: "chatbot-widget-container",
       });
     } else {
