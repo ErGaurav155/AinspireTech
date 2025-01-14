@@ -1,14 +1,4 @@
 (async function () {
-  // Replace these with actual values
-  const userId = "678382af7dcf8cebae580bec";
-  const agentId = "ai-agent-e-commerce";
-
-  // Create the container for the widget
-  const container = document.createElement("div");
-  container.id = "chatbot-widget-container";
-  document.body.appendChild(container);
-
-  // Load the widget script
   const loadScript = (src) => {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
@@ -21,17 +11,17 @@
 
   try {
     await loadScript("https://ainspire-tech.vercel.app/widget.bundle.js");
+
     if (window.Widget && typeof window.Widget.init === "function") {
-      // Initialize the widget
       window.Widget.init({
-        userId: userId,
-        agentId: agentId,
+        userId: "678382af7dcf8cebae580bec",
+        agentId: "ai-agent-e-commerce",
         containerId: "chatbot-widget-container",
       });
     } else {
-      console.error("Widget.init is not available on window.Widget");
+      console.error("Widget.init is not defined.");
     }
   } catch (error) {
-    console.error("Failed to load the widget script:", error);
+    console.error("Error loading the widget script:", error);
   }
 })();

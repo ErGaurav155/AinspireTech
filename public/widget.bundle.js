@@ -1,39 +1,50 @@
-!(function (e, t) {
-  "object" == typeof exports && "object" == typeof module
-    ? (module.exports = t())
-    : "function" == typeof define && define.amd
-    ? define([], t)
-    : "object" == typeof exports
-    ? (exports.Widget = t())
-    : (e.Widget = t());
-})(self, () => {
-  return (
-    (window.initAiBotWidget = function (e) {
-      var t = e.userId,
-        o = e.agentId,
-        n = document.getElementById("ai-bot-widget");
-      if (n) {
-        var d = document.createElement("iframe");
-        (d.src = "https://ainspire-tech.vercel.app/ChatBots?userId="
-          .concat(t, "&agentId=")
-          .concat(o)),
-          (d.style.width = "100%"),
-          (d.style.height = "500px"),
-          (d.style.border = "none"),
-          n.appendChild(d);
+(function (global, factory) {
+  if (typeof exports === "object" && typeof module !== "undefined") {
+    module.exports = factory();
+  } else if (typeof define === "function" && define.amd) {
+    define([], factory);
+  } else if (typeof exports === "object") {
+    exports.Widget = factory();
+  } else {
+    global.Widget = factory();
+  }
+})(this, function () {
+  // Define the Widget object
+  const Widget = {
+    init: function ({ userId, agentId, containerId }) {
+      if (!userId || !agentId || !containerId) {
+        console.error(
+          "Missing required parameters: userId, agentId, containerId"
+        );
+        return;
       }
-    }),
-    ((e = document.createElement("script")).src =
-      "https://ainspire-tech.vercel.app/widget.js"),
-    (e.async = !0),
-    (e.onload = function () {
-      window.initAiBotWidget({
-        userId: "USER_ID_FROM_EMBED",
-        agentId: "AGENT_ID_FROM_EMBED",
-      });
-    }),
-    document.body.appendChild(e),
-    {}
-  );
-  var e;
+
+      // Find the container element
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.error(`Container with ID "${containerId}" not found.`);
+        return;
+      }
+
+      // Create and append the iframe
+      const iframe = document.createElement("iframe");
+      iframe.src = `https://ainspire-tech.vercel.app/ChatBots?userId=${userId}&agentId=${agentId}`;
+      iframe.style.width = "100%";
+      iframe.style.height = "500px";
+      iframe.style.border = "none";
+      container.appendChild(iframe);
+    },
+  };
+
+  // Load additional script if necessary
+  const script = document.createElement("script");
+  script.src = "https://ainspire-tech.vercel.app/widget.js";
+  script.async = true;
+  script.onload = function () {
+    console.log("Additional script loaded");
+  };
+  document.body.appendChild(script);
+
+  // Return the Widget object for external use
+  return Widget;
 });
