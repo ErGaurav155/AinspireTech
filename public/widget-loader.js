@@ -1,7 +1,7 @@
-(function () {
-  // The client doesn't need to modify this part
-  const userId = "678382af7dcf8cebae580bec"; // Replace with actual user ID
-  const agentId = "ai-agent-e-commerce"; // Replace with actual agent ID
+(async function () {
+  // Replace these with actual values
+  const userId = "678382af7dcf8cebae580bec";
+  const agentId = "ai-agent-e-commerce";
 
   // Create the container for the widget
   const container = document.createElement("div");
@@ -9,19 +9,29 @@
   document.body.appendChild(container);
 
   // Load the widget script
-  const script = document.createElement("script");
-  script.src = "https://ainspire-tech.vercel.app/widget.bundle.js"; // Replace with your actual widget URL
-  script.onload = function () {
-    // Initialize the widget once the script is loaded
-    if (window.Widget) {
+  const loadScript = (src) => {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  };
+
+  try {
+    await loadScript("https://ainspire-tech.vercel.app/widget.bundle.js");
+    if (window.Widget && typeof window.Widget.init === "function") {
+      // Initialize the widget
       window.Widget.init({
         userId: userId,
         agentId: agentId,
         containerId: "chatbot-widget-container",
       });
+    } else {
+      console.error("Widget.init is not available on window.Widget");
     }
-  };
-
-  // Append the script to the document's head
-  document.head.appendChild(script);
+  } catch (error) {
+    console.error("Failed to load the widget script:", error);
+  }
 })();
