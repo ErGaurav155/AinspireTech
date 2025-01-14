@@ -6,7 +6,7 @@
   },
   "headers": [
     {
-      "source": "/widget-loader.js",
+      "source": ["/widget-loader.js", "/widget.bundle.js"],
       "headers": [
         {
           "key": "Content-Security-Policy",
