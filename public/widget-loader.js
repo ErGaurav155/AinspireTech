@@ -2,6 +2,11 @@
   const urlParams = new URLSearchParams(window.location.search);
   const agentId = urlParams.get("agentId");
   const userId = urlParams.get("userId");
+  if (!agentId || !userId) {
+    console.error("Missing agentId or userId in the URL.");
+    return;
+  }
+
   // const isValid = await fetch(
   //   "https://ainspire-tech.vercel.app/api/validate-widget",
   //   {
