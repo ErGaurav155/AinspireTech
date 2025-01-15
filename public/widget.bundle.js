@@ -29,7 +29,7 @@
       // Create and append the iframe
       const iframe = document.createElement("iframe");
       iframe.src = `https://ainspire-tech.vercel.app/ChatBots?userId=${userId}&agentId=${agentId}`;
-      iframe.className = "h-[90vh] w-[90vw] bg-transparent";
+      iframe.className = "h-full w-full bg-transparent";
 
       container.appendChild(iframe);
     },
