@@ -1,15 +1,23 @@
 import { getAgentSubscriptionInfo } from "@/lib/action/subscription.action";
-
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
-  // Allow cross-origin requests from your localhost during development
-  const headers = new Headers();
+const SECRET_KEY = "your-secret-key"; // Store this securely
 
-  headers.set(
-    "Access-Control-Allow-Origin",
-    "https://pathology-pink.vercel.app"
-  ); // Allow all domains (change to specific domains if needed)
+export async function POST(req: NextRequest) {
+  // Check for the secret key in the headers
+  const secretKey = req.headers.get("X-Secret-Key");
+
+  // If the key is missing or incorrect, return a 403 Forbidden response
+  if (secretKey !== SECRET_KEY) {
+    return NextResponse.json(
+      { error: "Forbidden: Invalid secret key" },
+      { status: 403 }
+    );
+  }
+
+  // Allow cross-origin requests from your trusted domain
+  const headers = new Headers();
+  headers.set("Access-Control-Allow-Origin", "*");
   headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
