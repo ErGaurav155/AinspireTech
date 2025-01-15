@@ -1,27 +1,30 @@
 (async function () {
-  // const urlParams = new URLSearchParams(window.location.search);
-  // const agentId = urlParams.get("agentId");
-  // const userId = urlParams.get("userId");
-  // const isValid = await fetch("https://your-domain.com/api/validate-widget", {
-  //   method: "POST",
-  //   headers: {
-  //     "Content-Type": "application/json",
-  //   },
-  //   body: JSON.stringify({ agentId, userId }),
-  // })
-  //   .then((res) => res.json())
-  //   .then((data) => {
-  //     // Check if the response is valid
-  //     return data.isValid === "true"; // Check if isValid is 'true'
-  //   })
-  //   .catch((error) => {
-  //     console.error("Error validating the subscription:", error);
-  //     return false; // If there's an error, return false
-  //   });
-  // if (!isValid) {
-  //   console.error("Invalid agentId or userId. Widget will not load.");
-  //   return;
-  // }
+  const urlParams = new URLSearchParams(window.location.search);
+  const agentId = urlParams.get("agentId");
+  const userId = urlParams.get("userId");
+  const isValid = await fetch(
+    "https://ainspire-tech.vercel.app/api/validate-widget",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ agentId, userId }),
+    }
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      // Check if the response is valid
+      return data.isValid === "true"; // Check if isValid is 'true'
+    })
+    .catch((error) => {
+      console.error("Error validating the subscription:", error);
+      return false; // If there's an error, return false
+    });
+  if (!isValid) {
+    console.error("Invalid agentId or userId. Widget will not load.");
+    return;
+  }
 
   const loadScript = (src) => {
     return new Promise((resolve, reject) => {
@@ -38,8 +41,8 @@
 
     if (window.Widget && typeof window.Widget.init === "function") {
       window.Widget.init({
-        userId: "ai-agent-e-commerce",
-        agentId: "678382af7dcf8cebae580bec",
+        userId: userId,
+        agentId: agentId,
         containerId: "chatbot-widget-container",
       });
     } else {
