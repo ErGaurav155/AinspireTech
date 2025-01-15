@@ -25,13 +25,13 @@
         console.error(`Container with ID "${containerId}" not found.`);
         return;
       }
-      container.src = `https://ainspire-tech.vercel.app/ChatBots?userId=${userId}&agentId=${agentId}`;
-      // Create and append the iframe
-      // const iframe = document.createElement("iframe");
-      // iframe.src = `https://ainspire-tech.vercel.app/ChatBots?userId=${userId}&agentId=${agentId}`;
-      // iframe.className = "h-[90vh] w-[90vw] bg-transparent";
 
-      // container.appendChild(iframe);
+      // Create and append the iframe
+      const iframe = document.createElement("iframe");
+      iframe.src = `https://ainspire-tech.vercel.app/ChatBots?userId=${userId}&agentId=${agentId}`;
+      iframe.className = "h-[90vh] w-[90vw] bg-transparent";
+
+      container.appendChild(iframe);
     },
   };
 
