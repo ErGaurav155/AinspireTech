@@ -81,7 +81,7 @@ export default function AibotCollapse() {
   };
 
   return (
-    <div className="h-auto w-auto flex flex-col">
+    <div className="h-auto w-auto flex flex-col ">
       <div
         className={`fixed bottom-4 right-4 bg-[#88e2bb] text-white rounded-full shadow-lg p-3 z-40 hover:bg-n-5 transition ${
           open ? "hidden" : "inline-block"
