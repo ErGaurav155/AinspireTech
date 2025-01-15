@@ -2,6 +2,7 @@
   const urlParams = new URLSearchParams(window.location.search);
   const agentId = urlParams.get("agentId");
   const userId = urlParams.get("userId");
+  console.log(userId, agentId);
   if (!agentId || !userId) {
     console.error("Missing agentId or userId in the URL.");
     return;
