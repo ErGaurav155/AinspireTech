@@ -1,10 +1,14 @@
 (async function () {
-  const urlParams = new URLSearchParams(window.location.search);
-  console.log(urlParams);
-  const agentId = urlParams.get("agentId");
-  const userId = urlParams.get("userId");
-  console.log(userId, agentId);
-  if (!agentId || !userId) {
+  const scriptSrc = document.currentScript.src;
+  console.log(scriptSrc);
+  // Create a URLSearchParams object from the script src query string
+  const params = new URLSearchParams(scriptSrc.split("?")[1]);
+  console.log(params);
+  // Extract userId and agentId from the URL parameters
+  const userId = params.get("userId");
+  const agentId = params.get("agentId");
+
+  if (!userId || !agentId) {
     console.error("Missing agentId or userId in the URL.");
     return;
   }
