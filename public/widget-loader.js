@@ -1,5 +1,6 @@
 (async function () {
   const urlParams = new URLSearchParams(window.location.search);
+  console.log(urlParams);
   const agentId = urlParams.get("agentId");
   const userId = urlParams.get("userId");
   console.log(userId, agentId);
