@@ -11,6 +11,7 @@ export default authMiddleware({
     "/privacy-policy",
     "/TermsandCondition",
     "/api/webhooks/clerk",
+    "/api/validate-widget",
     "/product/:path*",
   ],
 });
