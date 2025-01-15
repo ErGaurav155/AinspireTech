@@ -5,8 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   // Allow cross-origin requests from your localhost during development
   const headers = new Headers();
-  headers.set("Access-Control-Allow-Origin", "http://localhost:3000");
 
+  headers.set("Access-Control-Allow-Origin", "*"); // Allow all domains (change to specific domains if needed)
   headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
