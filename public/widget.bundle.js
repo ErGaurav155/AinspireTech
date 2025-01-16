@@ -30,8 +30,21 @@
       const iframe = document.createElement("iframe");
       iframe.src = `https://ainspire-tech.vercel.app/ChatBots?userId=${userId}&agentId=${agentId}`;
       iframe.className = "h-full w-full min-h-max bg-transparent";
-
       container.appendChild(iframe);
+
+      // Monitor iframe.src for changes
+      const observer = new MutationObserver(() => {
+        if (
+          iframe.src !==
+          `https://ainspire-tech.vercel.app/ChatBots?userId=${userId}&agentId=${agentId}`
+        ) {
+          console.error("Unauthorized iframe src modification detected!");
+          return;
+        }
+        iframe.src = `https://ainspire-tech.vercel.app/ChatBots?userId=${userId}&agentId=${agentId}`;
+      });
+
+      observer.observe(iframe, { attributes: true, attributeFilter: ["src"] });
     },
   };
 
