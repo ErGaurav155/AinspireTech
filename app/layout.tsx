@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import { createPlans } from "@/lib/action/plan.action";
 
 const IBMPlex = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -29,7 +28,12 @@ export default async function RootLayout({
       }}
     >
       <html suppressHydrationWarning lang="en">
-        <body className={cn("font-IBMPlex antialiased ", IBMPlex.variable)}>
+        <body
+          className={cn(
+            "font-IBMPlex antialiased bg-transparent !important",
+            IBMPlex.variable
+          )}
+        >
           {children}
         </body>
       </html>
