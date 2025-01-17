@@ -13,31 +13,6 @@
     return;
   }
 
-  // const isValid = await fetch(
-  //   "https://ainspire-tech.vercel.app/api/validate-widget",
-  //   {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       "X-Secret-Key": "your-secret-key", // Include your secret key here
-  //     },
-  //     body: JSON.stringify({ agentId, userId }),
-  //   }
-  // )
-  //   .then((res) => res.json())
-  //   .then((data) => {
-  //     // Check if the response is valid
-  //     return data.isValid === "true"; // Check if isValid is 'true'
-  //   })
-  //   .catch((error) => {
-  //     console.error("Error validating the subscription:", error);
-  //     return false; // If there's an error, return false
-  //   });
-  // if (!isValid) {
-  //   console.error("Invalid agentId or userId. Widget will not load.");
-  //   return;
-  // }
-
   const loadScript = (src) => {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");

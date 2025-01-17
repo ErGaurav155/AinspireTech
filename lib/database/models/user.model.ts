@@ -1,4 +1,5 @@
 import { Schema, model, models } from "mongoose";
+import { string } from "zod";
 
 const UserSchema = new Schema({
   clerkId: {
@@ -13,6 +14,9 @@ const UserSchema = new Schema({
   },
   username: {
     type: String,
+  },
+  websiteUrl: {
+    type: string,
   },
   photo: {
     type: String,

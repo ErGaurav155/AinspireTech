@@ -20,7 +20,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { formSchema1 } from "@/lib/validator";
 import { generateGptResponse } from "@/lib/action/ai.action";
-export default function AibotCollapse() {
+import Link from "next/link";
+
+interface AibotCollapseProps {
+  authorised: boolean;
+}
+
+export default function AibotCollapse({ authorised }: AibotCollapseProps) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     { sender: "AI Bot", text: "Hello! How can I help you?" },
@@ -51,7 +57,7 @@ export default function AibotCollapse() {
     try {
       const response = await generateGptResponse({
         userInput: message,
-      }); // Pass as an object
+      });
 
       if (response) {
         setMessages((prevMessages) => [
@@ -61,7 +67,6 @@ export default function AibotCollapse() {
       } else {
         toast({
           title: "Content Warning",
-
           duration: 2000,
           className: "error-toast",
         });
@@ -76,6 +81,7 @@ export default function AibotCollapse() {
       setSubmit(false);
     }
   };
+
   const restartChat = () => {
     setMessages([{ sender: "AI Bot", text: "Hello! How can I help you?" }]);
   };
@@ -98,7 +104,7 @@ export default function AibotCollapse() {
         open={open}
         className={`fixed bottom-4 right-5 w-[90vw] ${
           open ? "border" : "border-none"
-        }   sm:w-96 h-[90vh] max-h-[90vh] bg-gray-50 flex flex-col gap-4 rounded-xl shadow-xl shadow-gray-700 z-20 `}
+        } sm:w-96 h-[90vh] max-h-[90vh] bg-gray-50 flex flex-col gap-4 rounded-xl shadow-xl shadow-gray-700 z-20 `}
       >
         <div className="flex p-4 items-center justify-between gap-2 w-full border-b">
           <div className="pl-3 w-full flex items-center text-nowrap justify-start gap-4">
@@ -119,7 +125,7 @@ export default function AibotCollapse() {
                   {word}
                 </span>
               ))}
-            </span>{" "}
+            </span>
           </div>
           <div className="w-full flex items-center justify-center gap-4">
             <button
@@ -136,71 +142,82 @@ export default function AibotCollapse() {
             </button>
           </div>
         </div>
-
-        <div className="flex flex-col p-4 flex-1 min-h-[50vh] z-10 overflow-y-auto no-scrollbar">
-          {messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                msg.sender === "You" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`p-3 my-1 rounded-lg ${
-                  msg.sender === "You"
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                <span>{msg.text}</span>
-              </div>
+        {authorised ? (
+          <div>
+            <div className="flex flex-col p-4 flex-1 min-h-[50vh] z-10 overflow-y-auto no-scrollbar">
+              {messages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`flex ${
+                    msg.sender === "You" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`p-3 my-1 rounded-lg ${
+                      msg.sender === "You"
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    <span>{msg.text}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className="flex items-center gap-2 p-4 border-t">
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className=" flex items-center justify-between gap-3 w-full"
+            <div className="flex items-center gap-2 p-4 border-t">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="flex items-center justify-between gap-3 w-full"
+                >
+                  <FormField
+                    control={form.control}
+                    name="message"
+                    render={({ field }) => (
+                      <FormItem className="w-full ">
+                        <FormControl>
+                          <input
+                            className="select-field w-full"
+                            placeholder="Your Message"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {submit ? (
+                    <Button
+                      type="submit"
+                      className="pl-1 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
+                    >
+                      Sending..
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      className="px-4 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
+                    >
+                      Send
+                    </Button>
+                  )}
+                </form>
+              </Form>
+            </div>
+          </div>
+        ) : (
+          // Render subscription check UI if not authorised
+          <div className="flex flex-col p-4 flex-1 min-h-[50vh] z-10 overflow-y-auto no-scrollbar">
+            Unauthorized access. Please check your monthly subscription.
+            <Link
+              className="px-4 rounded text-center mt-4 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
+              href={`https://ainspire-tech.vercel.app/UserDashboard`}
             >
-              <FormField
-                control={form.control}
-                name="message"
-                render={({ field }) => (
-                  <FormItem className="w-full ">
-                    <FormControl>
-                      <input
-                        className="select-field w-full"
-                        placeholder="Your Message"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Submit Button */}
-
-              {submit ? (
-                <Button
-                  type="submit"
-                  className="pl-1 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
-                >
-                  Sending..
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  className="px-4 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
-                >
-                  Send
-                </Button>
-              )}
-            </form>
-          </Form>
-        </div>
+              Check Subscription
+            </Link>
+          </div>
+        )}
       </Collapse>
     </div>
   );

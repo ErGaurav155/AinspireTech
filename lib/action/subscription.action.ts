@@ -40,7 +40,6 @@ export const getAgentSubscriptionInfo = async (
     });
 
     if (!subscriptions || subscriptions.length === 0) {
-      console.log("No active subscriptions found");
       return []; // Return an empty array if no active subscriptions
     }
 

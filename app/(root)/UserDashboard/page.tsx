@@ -66,7 +66,11 @@ export default function Dashboard() {
   }, [userId, router]);
 
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <div className="flex items-center justify-center text-white font-bold text-xl">
+        Loading...
+      </div>
+    );
   }
 
   return (

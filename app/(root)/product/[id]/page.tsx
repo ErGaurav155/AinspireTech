@@ -7,7 +7,7 @@ import Image from "next/image";
 import { HeadsetIcon } from "lucide-react";
 import { Footer } from "@/components/shared/Footer";
 import { useAuth } from "@clerk/nextjs";
-import Checkout from "@/components/shared/Checkout";
+import { Checkout } from "@/components/shared/Checkout";
 import { getPlanInfo } from "@/lib/action/plan.action";
 import { getUserById } from "@/lib/action/user.actions";
 import { productDetails } from "@/constant";
@@ -21,6 +21,7 @@ interface ProductParams {
 const ProductDetail = ({ params }: { params: ProductParams }) => {
   const router = useRouter();
   const { userId } = useAuth();
+  const [url, serUrl] = useState<boolean>(false);
 
   const [product, setProduct] = useState<{
     productId: string;
@@ -108,6 +109,17 @@ const ProductDetail = ({ params }: { params: ProductParams }) => {
                 Buy Now
               </Button>
             ) : (
+              <Button
+                size="lg"
+                color="green"
+                variant="gradient"
+                className="px-3"
+                onClick={() => serUrl(true)}
+              >
+                Buy Now
+              </Button>
+            )}
+            {url && buyerInfo && (
               <Checkout
                 amount={planInfo.amount}
                 planId={planInfo.planId}
@@ -115,7 +127,6 @@ const ProductDetail = ({ params }: { params: ProductParams }) => {
                 productId={product.productId}
               />
             )}
-
             <Button
               size="lg"
               color="blue"
