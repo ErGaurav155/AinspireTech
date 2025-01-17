@@ -16,7 +16,8 @@ import {
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import Script from "next/script";
 import { createTransaction } from "@/lib/action/transaction.action";
-import { updateUserByDbId } from "@/lib/action/user.actions";
+import { getUserByDbId, updateUserByDbId } from "@/lib/action/user.actions";
+import { scrapeSitemapPages } from "@/lib/scrapping";
 
 // Define validation schema using Zod
 const formSchema = z.object({
@@ -133,8 +134,8 @@ export const Checkout = ({
 
           if (res.isOk) {
             toast({
-              title: "Order placed!",
-              description: "Credits are added to your account",
+              title: "Payment Successful!",
+              description: "Code are added to your Dashoboard",
               duration: 3000,
               className: "success-toast",
             });
@@ -147,6 +148,10 @@ export const Checkout = ({
             };
 
             await createTransaction(transaction1);
+            const user = await getUserByDbId(buyerId);
+            const scappedUrls = await scrapeSitemapPages(user.websiteUrl);
+            console.log(scappedUrls);
+            router.push("/UserDashboard");
           } else {
             toast({
               title: "Order canceled!",

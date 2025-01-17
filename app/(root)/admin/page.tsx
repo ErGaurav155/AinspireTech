@@ -84,7 +84,11 @@ const AppointmentTable = () => {
   });
 
   if (data.length === 0) {
-    return <div>No appointments found</div>;
+    return (
+      <div className="flex items-center justify-center text-white font-bold text-xl">
+        No appointments found
+      </div>
+    );
   }
 
   return (

@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { link } from "fs";
 import Link from "next/link";
 import { LockClosedIcon } from "@heroicons/react/24/outline";
+import { scrapeSitemapPages } from "@/lib/scrapping";
 
 interface Subscription {
   productId: string;
@@ -47,6 +48,8 @@ export default function Dashboard() {
       try {
         const user = await getUserById(userId);
         const response = await getSubscriptionInfo(user._id);
+        const scappedUrls = await scrapeSitemapPages(user.websiteUrl);
+        console.log(scappedUrls);
 
         const filteredSubscriptions = response.map((sub: any) => ({
           productId: sub.productId,
