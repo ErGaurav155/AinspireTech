@@ -16,7 +16,7 @@ import {
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import Script from "next/script";
 import { createTransaction } from "@/lib/action/transaction.action";
-import { getUserByDbId } from "@/lib/action/user.actions";
+import { updateUserByDbId } from "@/lib/action/user.actions";
 
 // Define validation schema using Zod
 const formSchema = z.object({
@@ -54,9 +54,8 @@ export const Checkout = ({
     setIsSubmitting(true);
     try {
       // Call API to save the URL to the database (replace with your actual API call)
-      const response = await getUserByDbId(buyerId, data.websiteUrl);
-
-      if (response.ok) {
+      const response = await updateUserByDbId(buyerId, data.websiteUrl);
+      if (response) {
         setIsSubmitted(true);
         await runCheckout();
         toast({

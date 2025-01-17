@@ -12,6 +12,7 @@ export interface CreateUserParams {
   clerkId: string;
   email: string;
   username: string | null;
+  websiteUrl: string | null;
   firstName: string;
   lastName: string;
   photo: string;

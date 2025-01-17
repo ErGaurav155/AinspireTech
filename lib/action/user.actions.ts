@@ -35,24 +35,20 @@ export async function getUserById(userId: string) {
   revalidateTag("users");
 }
 
-export async function getUserByDbId(userId: string, newUrl: string) {
+export async function updateUserByDbId(userId: string, newUrl: string) {
   try {
     await connectToDatabase();
 
-    // Find the user by ID
-    const user = await User.findOne({ _id: userId });
+    const user = await User.findOneAndUpdate(
+      { _id: userId },
+      { $set: { websiteUrl: newUrl } },
+      { new: true }
+    );
 
     if (!user) {
       throw new Error("User not found");
     }
 
-    // Update the user's website URL
-    user.websiteUrl = newUrl;
-
-    // Save the updated user document
-    await user.save();
-
-    // Return the updated user as a JSON object
     return JSON.parse(JSON.stringify(user));
   } catch (error) {
     handleError(error);
