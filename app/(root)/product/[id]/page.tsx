@@ -139,7 +139,6 @@ const ProductDetail = ({ params }: { params: ProductParams }) => {
           </div>
         </div>
 
-        {/* Right Side: Video */}
         <div className="flex-1 w-full md:w-1/2">
           <video
             src={product.video}
