@@ -10,7 +10,7 @@ import { scrapeSitemapPages } from "@/lib/scrapping";
 const WebsiteOnboard = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     // Extract search parameters from the URL
     const userId = searchParams.get("userId");
@@ -40,14 +40,19 @@ const WebsiteOnboard = () => {
       };
 
       fetchSubscriptionInfo();
+      setLoading(false);
     } else {
-      setIsLoading(false);
-      router.push("/UserDashboard");
+      router.push("/");
     }
   }, [searchParams, router]);
-  if (isLoading) {
-    return <WebScapping />;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center text-black text-2xl font-bold">
+        Loading...
+      </div>
+    );
   }
+  return <WebScapping />;
 };
 
 export default WebsiteOnboard;
