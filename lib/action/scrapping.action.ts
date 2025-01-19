@@ -1,4 +1,3 @@
-"use server";
 import puppeteer from "puppeteer";
 
 export const scrapePage = async (url: string) => {
