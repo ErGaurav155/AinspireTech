@@ -1,15 +1,10 @@
-import puppeteer from "puppeteer";
+import chromium from "chrome-aws-lambda";
 
 export const scrapePage = async (url: string) => {
-  const browser = await puppeteer.launch({
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--single-process",
-      "--no-zygote",
-    ],
-    headless: true,
+  const browser = await chromium.puppeteer.launch({
+    executablePath: await chromium.executablePath,
+    args: chromium.args,
+    headless: chromium.headless,
   });
   const page = await browser.newPage();
 
