@@ -35,6 +35,7 @@ const WebsiteOnboard = () => {
         const scappedUrls = await scrapeSitemapPages(user.websiteUrl);
         if (scappedUrls) {
           await setWebsiteScrapped(userId);
+          router.push("/UserDashboard");
         }
       };
 

@@ -39,7 +39,6 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
     const urlsString = convertUrlsToString(urls);
 
     const impUrls = await generateUrls(urlsString);
-
     let validUrls: string[] = [];
     if (typeof impUrls === "string") {
       try {

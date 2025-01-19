@@ -74,7 +74,7 @@ export const generateUrls = async (userInput: string) => {
       {
         role: "system",
         content:
-          "You are an AI web page scrapping expert some webpage urls send to you.you have check them and urls that are not more informative to user which are gettng customer support form website chatbot like terms and condition url ,privacy-policy urls ,etc remove them and send remaining urls back in array of string urls ",
+          "You are an AI web page scrapping expert some webpage urls send to you.you have check them and urls that are not more informative to user which are gettng customer support form website chatbot like terms and condition url ,privacy-policy urls ,etc remove them and send remaining urls back in array of string urls must follow output formate ['url','url','url'] likewise only ",
       },
 
       {
@@ -91,6 +91,19 @@ export const generateUrls = async (userInput: string) => {
   if (!gptArgs) {
     throw new Error("Bad response from OpenAI");
   }
+  // Preprocess the response to ensure valid JSON format
+  let fixedResponse = gptArgs.trim();
 
-  return JSON.parse(JSON.stringify(gptArgs));
+  // Fix any issues with the string format, ensuring double quotes and valid array
+  fixedResponse = fixedResponse.replace(/'/g, '"'); // Replace single quotes with double quotes
+  fixedResponse = fixedResponse.replace(/,\s*}/g, "}"); // Remove unnecessary commas before closing curly braces
+
+  try {
+    // Parse the fixed response as JSON
+    const parsedUrls = JSON.parse(fixedResponse);
+    return parsedUrls;
+  } catch (error) {
+    console.error("Error parsing impUrls:", error);
+    throw new Error("`impUrls` is not in a valid format.");
+  }
 };
