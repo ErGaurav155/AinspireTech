@@ -1,3 +1,5 @@
+"use server";
+
 import { parseStringPromise } from "xml2js";
 import { scrapePage } from "./action/scrapping.action";
 import { promises as fs } from "fs";
