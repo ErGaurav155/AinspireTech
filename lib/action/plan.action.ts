@@ -9,6 +9,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET!,
 });
 
+// Plan details for each product
 const plans: Record<
   string,
   {
