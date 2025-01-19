@@ -99,7 +99,7 @@ const ContactForm = () => {
             <p className="p-20-regular text-white mt-4">
               Got a burning AI idea, question, or just want to chat about what
               we do? We are all ears! Reach out, and our friendly team at
-              Morningside AI will be right there to guide, assist, or simply
+              AinspireTech AI will be right there to guide, assist, or simply
               share in your excitement. Lets make your AI journey memorable
               together!
             </p>
