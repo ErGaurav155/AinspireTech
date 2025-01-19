@@ -1,35 +1,25 @@
-import { scrapedData } from "@/constant";
 import { parseStringPromise } from "xml2js";
 import { scrapePage } from "./action/scrapping.action";
-// Scraped data storage
+import { promises as fs } from "fs";
+import { scrapedData } from "@/constant";
+import { generateUrls } from "./action/ai.action";
 
-// Function to get the sitemap URL or fallback to the domain URL
 const getScrapingUrl = async (inputUrl: string): Promise<string[]> => {
   try {
-    console.log(inputUrl);
-    const url = new URL(inputUrl); // Parse the input URL
-    console.log(url);
-    const domain = `${url.protocol}//${url.hostname}`; // Get the domain
-    console.log(domain);
+    const url = new URL(inputUrl);
+    const domain = `${url.protocol}//${url.hostname}`;
 
     const sitemapUrl = `${domain}/sitemap.xml`;
-    console.log(sitemapUrl);
-    // Use fetch to check if sitemap exists
     const response = await fetch(sitemapUrl, { method: "HEAD" });
-    console.log(response);
     if (response.ok) {
-      // If sitemap.xml exists, fetch the XML and parse it
       const sitemapResponse = await fetch(sitemapUrl);
       const xmlData = await sitemapResponse.text();
 
-      // Parse the sitemap XML to extract all the URLs
       const parsedData = await parseStringPromise(xmlData);
-      console.log(parsedData);
-
       return parsedData.urlset.url.map((urlObj: any) => urlObj.loc[0]);
     } else {
       console.warn(`Sitemap not found. Falling back to domain: ${domain}`);
-      return [domain]; // If sitemap doesn't exist, return the domain URL
+      return [domain];
     }
   } catch (error) {
     console.error("Error fetching sitemap:", error);
@@ -37,35 +27,58 @@ const getScrapingUrl = async (inputUrl: string): Promise<string[]> => {
   }
 };
 
-// Function to scrape data from a page
-
-// Function to scrape all pages dynamically
 export const scrapeSitemapPages = async (inputUrl: string) => {
   try {
-    // Get the dynamic URLs from the sitemap or domain
+    const url = new URL(inputUrl);
+    const domainName = url.hostname.replace("www.", "");
+
     const urls = await getScrapingUrl(inputUrl);
 
-    // Loop through each URL and scrape the page content
-    for (const url of urls) {
-      const pageContent = await scrapePage(url);
+    const urlsString = convertUrlsToString(urls);
 
-      // Extract domain name from URL and store data under the domain name
-      const domain = new URL(url).hostname;
-      const existingDomain = scrapedData.find(
-        (entry) => entry.domain === domain
-      );
+    const impUrls = await generateUrls(urlsString);
 
-      if (existingDomain) {
-        // If the domain entry already exists, push the new data
-        existingDomain.data.push(pageContent);
-      } else {
-        // Otherwise, create a new entry for the domain
-        scrapedData.push({ domain, data: [pageContent] });
+    let validUrls: string[] = [];
+    if (typeof impUrls === "string") {
+      try {
+        const parsed = JSON.parse(impUrls);
+        if (Array.isArray(parsed)) {
+          validUrls = parsed
+            .map((url: string) => url.trim())
+            .filter((url: string) => url);
+        } else {
+          throw new Error("Parsed `impUrls` is not an array");
+        }
+      } catch (error) {
+        console.error("Error parsing impUrls:", error);
+        throw new Error("`impUrls` is not in a valid format.");
       }
+    } else if (Array.isArray(impUrls)) {
+      validUrls = impUrls
+        .map((url: string) => url.trim())
+        .filter((url: string) => url);
+    } else {
+      throw new Error("`impUrls` is neither an array nor a JSON string.");
     }
 
-    console.log("Scraping completed. Data stored in scrapedData:", scrapedData);
+    const scrapedUrls = new Set();
+
+    for (const url of validUrls) {
+      if (scrapedUrls.has(url)) {
+        continue;
+      }
+      const pageContent = await scrapePage(url);
+      scrapedData.push(pageContent);
+      scrapedUrls.add(url);
+    }
+
+    const fileName = `${domainName}.json`;
+    await fs.writeFile(fileName, JSON.stringify(scrapedData, null, 2));
+    return true;
   } catch (error) {
     console.error("Error during scraping:", error);
   }
+};
+const convertUrlsToString = (urls: string[]): string => {
+  return urls.join(", ");
 };

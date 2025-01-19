@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "TermsandCondition",
   description: "Create Website,ai agent,chatbots in best quality",
 };
-const TermsOfService = () => {
+const TermsOfService = async () => {
   return (
     <div>
       <div className="wrapper2">

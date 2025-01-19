@@ -17,6 +17,10 @@ const UserSchema = new Schema({
   websiteUrl: {
     type: String,
   },
+  isScrapped: {
+    type: Boolean,
+    default: false,
+  },
   photo: {
     type: String,
   },

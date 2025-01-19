@@ -299,6 +299,21 @@ const ContactForm = () => {
             </Form>
           </div>
         </div>
+        <div className="mt-10">
+          <h1 className="text-white text-3xl font-bold ">Owner Details :</h1>
+          <p className="text-white text-sm font-normal mt-4 ">
+            Owner- Mr. GAURAV KHIARE
+          </p>
+          <p className="text-white text-sm font-normal mt-2">
+            Business Name-GK Services
+          </p>
+          <p className="text-white text-sm font-normal mt-2">
+            Email-gauravgkhaire@gmail.com
+          </p>
+          <p className="text-white text-sm font-normal mt-2">
+            Address-Chandwad, Nashik, Maharashtra - 423104
+          </p>
+        </div>
       </div>
     </section>
   );

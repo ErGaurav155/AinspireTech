@@ -13,6 +13,7 @@ export interface CreateUserParams {
   email: string;
   username: string | null;
   websiteUrl: string | null;
+  isScrapped: boolean;
   firstName: string;
   lastName: string;
   photo: string;

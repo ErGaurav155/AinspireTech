@@ -70,6 +70,27 @@ export async function updateUserByDbId(userId: string, newUrl: string) {
 
   revalidateTag("users");
 }
+export async function setWebsiteScrapped(userId: string) {
+  try {
+    await connectToDatabase();
+
+    const user = await User.findOneAndUpdate(
+      { _id: userId },
+      { $set: { isScapped: true } },
+      { new: true }
+    );
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return JSON.parse(JSON.stringify(user));
+  } catch (error) {
+    handleError(error);
+  }
+
+  revalidateTag("users");
+}
 
 // UPDATE
 export async function updateUser(clerkId: string, user: UpdateUserParams) {

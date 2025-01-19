@@ -16,8 +16,8 @@ import {
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import Script from "next/script";
 import { createTransaction } from "@/lib/action/transaction.action";
-import { getUserByDbId, updateUserByDbId } from "@/lib/action/user.actions";
-import { scrapeSitemapPages } from "@/lib/scrapping";
+import { updateUserByDbId } from "@/lib/action/user.actions";
+import { setSubscriptionActive } from "@/lib/action/subscription.action";
 
 // Define validation schema using Zod
 const formSchema = z.object({
@@ -146,12 +146,12 @@ export const Checkout = ({
               buyerId: buyerId,
               createdAt: new Date(),
             };
-
+            await setSubscriptionActive(transaction1.customerId);
             await createTransaction(transaction1);
-            const user = await getUserByDbId(buyerId);
-            const scappedUrls = await scrapeSitemapPages(user.websiteUrl);
-            console.log(scappedUrls);
-            router.push("/UserDashboard");
+
+            router.push(
+              `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}`
+            );
           } else {
             toast({
               title: "Order canceled!",

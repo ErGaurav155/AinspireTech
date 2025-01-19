@@ -60,3 +60,37 @@ export const generateGptResponse = async ({
 
   return JSON.parse(JSON.stringify(gptArgs));
 };
+
+export const generateUrls = async (userInput: string) => {
+  if (openai instanceof Error) {
+    throw openai;
+  }
+
+  // Extract the relevant website content (you may customize this)
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are an AI web page scrapping expert some webpage urls send to you.you have check them and urls that are not more informative to user which are gettng customer support form website chatbot like terms and condition url ,privacy-policy urls ,etc remove them and send remaining urls back in array of string urls ",
+      },
+
+      {
+        role: "user",
+        content: userInput,
+      },
+    ],
+    max_tokens: 500,
+
+    temperature: 1,
+  });
+
+  const gptArgs = completion?.choices[0]?.message?.content;
+  if (!gptArgs) {
+    throw new Error("Bad response from OpenAI");
+  }
+
+  return JSON.parse(JSON.stringify(gptArgs));
+};

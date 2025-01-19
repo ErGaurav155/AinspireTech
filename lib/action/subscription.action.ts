@@ -2,6 +2,8 @@
 
 import Subscription from "@/lib/database/models/subscription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
+import { handleError } from "../utils";
+import { revalidateTag } from "next/cache";
 
 export const getSubscriptionInfo = async (userId: string) => {
   try {
@@ -49,3 +51,24 @@ export const getAgentSubscriptionInfo = async (
     throw new Error("Failed to retrieve subscription info.");
   }
 };
+export async function setSubscriptionActive(orderCreationId: string) {
+  try {
+    await connectToDatabase();
+
+    const Subs = await Subscription.findOneAndUpdate(
+      { subscriptionId: orderCreationId },
+      { $set: { isScapped: true } },
+      { new: true }
+    );
+
+    if (!Subs) {
+      throw new Error("User not found");
+    }
+
+    return JSON.parse(JSON.stringify(Subs));
+  } catch (error) {
+    handleError(error);
+  }
+
+  revalidateTag("users");
+}

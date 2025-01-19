@@ -48,8 +48,6 @@ export default function Dashboard() {
       try {
         const user = await getUserById(userId);
         const response = await getSubscriptionInfo(user._id);
-        const scappedUrls = await scrapeSitemapPages(user.websiteUrl);
-        console.log(scappedUrls);
 
         const filteredSubscriptions = response.map((sub: any) => ({
           productId: sub.productId,

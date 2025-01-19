@@ -66,13 +66,16 @@ export async function POST(req: Request) {
       public_metadata,
     } = evt.data;
     const websiteUrl = (public_metadata?.websiteUrl as string) || null;
+    const isScrapped = public_metadata?.isScrapped as boolean;
+
     const user = {
       clerkId: id,
       email: email_addresses[0].email_address,
       username: username,
       firstName: first_name,
       lastName: last_name,
-      websiteUrl: websiteUrl, // Assign the extracted websiteUrl
+      websiteUrl: websiteUrl,
+      isScrapped: isScrapped,
       photo: image_url,
     };
     const newUser = await createUser(user);
