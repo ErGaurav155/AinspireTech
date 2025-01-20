@@ -1,13 +1,6 @@
 "use server";
+import puppeteer from "puppeteer";
 import chromium from "@sparticuz/chromium";
-
-// Conditionally import puppeteer or puppeteer-core based on the environment
-let puppeteer;
-if (process.env.NODE_ENV === "development") {
-  puppeteer = require("puppeteer");
-} else {
-  puppeteer = require("puppeteer-core");
-}
 
 export const scrapePage = async (url: string) => {
   let browser = null;
@@ -24,9 +17,7 @@ export const scrapePage = async (url: string) => {
     browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath:
-        (await chromium.executablePath()) ||
-        "/opt/nodejs/node_modules/@sparticuz/chromium/bin",
+      executablePath: await chromium.executablePath(),
       headless: chromium.headless,
     });
   }
@@ -46,19 +37,17 @@ export const scrapePage = async (url: string) => {
   const description = descriptionElement
     ? await descriptionElement
         .getProperty("content")
-        .then((content: any) => content.jsonValue())
+        .then((content) => content.jsonValue())
     : null;
 
   const headingElements = await page.$$("h1, h2, h3");
   const headings = [];
   for (let element of headingElements) {
-    const text = await element.evaluate(
-      (el: any) => el.textContent?.trim() || ""
-    );
+    const text = await element.evaluate((el) => el.textContent?.trim() || "");
     headings.push(text);
   }
 
-  const content = await page.$eval("body", (body: any) => body.innerText);
+  const content = await page.$eval("body", (body) => body.innerText);
 
   // Close the browser once scraping is done
   await browser.close();
