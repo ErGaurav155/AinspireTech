@@ -69,6 +69,9 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
         continue;
       }
       const pageContent = await scrapePage(url);
+      if (!pageContent) {
+        continue;
+      }
       scrapedData.push(pageContent);
       scrapedUrls.add(url);
     }

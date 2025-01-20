@@ -1,32 +1,66 @@
 "use server";
-import chrome from "chrome-aws-lambda";
-import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
+
+// Conditionally import puppeteer or puppeteer-core based on the environment
+let puppeteer;
+if (process.env.NODE_ENV === "development") {
+  puppeteer = require("puppeteer");
+} else {
+  puppeteer = require("puppeteer-core");
+}
 
 export const scrapePage = async (url: string) => {
-  const browser = await puppeteer.launch({
-    args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
-    defaultViewport: chrome.defaultViewport,
-    executablePath: await chrome.executablePath,
-    headless: true,
-    ignoreHTTPSErrors: true,
-  });
+  let browser = null;
+
+  // Choose the browser based on the environment (development or production)
+  if (process.env.NODE_ENV === "development") {
+    console.log("Development browser: ");
+    browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: true,
+    });
+  } else if (process.env.NODE_ENV === "production") {
+    console.log("Production browser: ");
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
+  }
+
+  if (!browser) {
+    return;
+  }
+
   const page = await browser.newPage();
 
+  // Navigate to the page and wait for the DOM to load
   await page.goto(url, { waitUntil: "domcontentloaded" });
 
-  const scrapedData = await page.evaluate(() => {
-    const title = document.title;
-    const description = document
-      .querySelector("meta[name='description']")
-      ?.getAttribute("content");
-    const headings = Array.from(document.querySelectorAll("h1, h2, h3")).map(
-      (h) => h.textContent
+  // Scrape data using Puppeteer's query selectors and direct element interaction
+  const title = await page.title();
+  const descriptionElement = await page.$("meta[name='description']");
+  const description = descriptionElement
+    ? await descriptionElement
+        .getProperty("content")
+        .then((content: any) => content.jsonValue())
+    : null;
+
+  const headingElements = await page.$$("h1, h2, h3");
+  const headings = [];
+  for (let element of headingElements) {
+    const text = await element.evaluate(
+      (el: any) => el.textContent?.trim() || ""
     );
-    const content = document.body.innerText;
+    headings.push(text);
+  }
 
-    return { title, description, headings, content };
-  });
+  const content = await page.$eval("body", (body: any) => body.innerText);
 
+  // Close the browser once scraping is done
   await browser.close();
-  return { url, ...scrapedData };
+
+  // Return the scraped data
+  return { url, title, description, headings, content };
 };
