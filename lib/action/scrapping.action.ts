@@ -14,7 +14,7 @@ export const scrapePage = async (url: string) => {
   } else if (process.env.NODE_ENV === "production") {
     console.log("Production browser: ");
     browser = await puppeteer.connect({
-      browserWSEndpoint: `wss://chrome.browserless.io/`,
+      browserWSEndpoint: "ws://localhost:3000",
     });
   }
 
