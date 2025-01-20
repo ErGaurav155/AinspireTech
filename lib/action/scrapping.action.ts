@@ -24,7 +24,9 @@ export const scrapePage = async (url: string) => {
     browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath(
+        "/var/task/.next/server/app/(embedcode)/bin"
+      ),
       headless: chromium.headless,
     });
   }
