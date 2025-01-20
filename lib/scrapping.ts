@@ -35,10 +35,13 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
     const domainName = url.hostname.replace("www.", "");
 
     const urls = await getScrapingUrl(inputUrl);
-
+    console.log("urls", urls);
     const urlsString = convertUrlsToString(urls);
+    console.log("urlsString", urlsString);
 
     const impUrls = await generateUrls(urlsString);
+    console.log("impUrls", impUrls);
+
     let validUrls: string[] = [];
     if (typeof impUrls === "string") {
       try {
@@ -61,6 +64,7 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
     } else {
       throw new Error("`impUrls` is neither an array nor a JSON string.");
     }
+    console.log("urls", urls);
 
     const scrapedUrls = new Set();
 
@@ -69,6 +73,8 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
         continue;
       }
       const pageContent = await scrapePage(url);
+      console.log("pageContent", pageContent);
+
       if (!pageContent) {
         continue;
       }
