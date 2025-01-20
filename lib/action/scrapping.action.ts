@@ -23,6 +23,7 @@ export const scrapePage = async (url: string) => {
   }
 
   if (!browser) {
+    console.log("no browser");
     return;
   }
 
