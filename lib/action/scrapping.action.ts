@@ -26,9 +26,9 @@ export const scrapePage = async (url: string) => {
     console.log("no browser");
     return;
   }
-
+  console.log(browser);
   const page = await browser.newPage();
-
+  console.log(page);
   // Navigate to the page and wait for the DOM to load
   await page.goto(url, { waitUntil: "domcontentloaded" });
 
