@@ -1,6 +1,5 @@
 "use server";
 import puppeteer from "puppeteer";
-import { getChrome } from "@/lib/chrome-script"; // Adjust path as needed
 
 export const scrapePage = async (url: string) => {
   let browser = null;
@@ -14,9 +13,8 @@ export const scrapePage = async (url: string) => {
     });
   } else if (process.env.NODE_ENV === "production") {
     console.log("Production browser: ");
-    const chrome = await getChrome();
     browser = await puppeteer.connect({
-      browserWSEndpoint: chrome.endpoint,
+      browserWSEndpoint: `wss://chrome.browserless.io/`,
     });
   }
 
