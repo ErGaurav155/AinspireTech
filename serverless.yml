@@ -1,0 +1,21 @@
+service: scraping-service # Name of your service
+
+provider:
+  name: aws # Cloud provider (e.g., AWS)
+  runtime: nodejs18.x # Node.js runtime version
+  region: us-east-1 # AWS region
+
+plugins:
+  - serverless-plugin-chrome
+
+package:
+  exclude:
+    - node_modules/puppeteer/.local-chromium/**
+
+functions:
+  scrapePage:
+    handler: handler.scrapePage # Path to your handler function
+    events:
+      - http:
+          path: scrape
+          method: get
