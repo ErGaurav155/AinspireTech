@@ -15,10 +15,8 @@ export const scrapePage = async (url: string) => {
   } else if (process.env.NODE_ENV === "production") {
     console.log("Production browser: ");
     browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: true,
     });
   }
 
