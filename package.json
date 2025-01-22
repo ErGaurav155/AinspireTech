@@ -1,6 +1,7 @@
 {
   "name": "ainspiretech",
   "version": "0.1.0",
+  "sideEffects": false,
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -23,6 +24,7 @@
     "@react-google-maps/api": "^2.20.3",
     "@tanstack/react-table": "^8.20.6",
     "add": "^2.0.6",
+    "chrome-aws-lambda": "^1.6.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "embla-carousel-auto-scroll": "^8.5.1",
@@ -36,6 +38,7 @@
     "next": "14.1.0",
     "openai": "^4.28.4",
     "puppeteer": "^24.1.0",
+    "puppeteer-core": "^10.1.0",
     "qs": "^6.11.2",
     "razorpay": "^2.9.5",
     "react-hook-form": "^7.51.0",

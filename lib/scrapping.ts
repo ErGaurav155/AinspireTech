@@ -1,7 +1,4 @@
-"use server";
-
 import { parseStringPromise } from "xml2js";
-import { scrapePage } from "./action/scrapping.action";
 import { promises as fs } from "fs";
 import { scrapedData } from "@/constant";
 import { generateUrls } from "./action/ai.action";
@@ -35,12 +32,10 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
     const domainName = url.hostname.replace("www.", "");
 
     const urls = await getScrapingUrl(inputUrl);
-    console.log("urls", urls);
+
     const urlsString = convertUrlsToString(urls);
-    console.log("urlsString", urlsString);
 
     const impUrls = await generateUrls(urlsString);
-    console.log("impUrls", impUrls);
 
     let validUrls: string[] = [];
     if (typeof impUrls === "string") {
@@ -72,13 +67,19 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
       if (scrapedUrls.has(url)) {
         continue;
       }
-      const pageContent = await scrapePage(url);
-      console.log("pageContent", pageContent);
+      const response = await fetch("/api/scrapping", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url }),
+      });
 
-      if (!pageContent) {
-        continue;
+      const data = await response.json();
+      if (response.ok) {
+        scrapedData.push(data);
       }
-      scrapedData.push(pageContent);
+
       scrapedUrls.add(url);
     }
 
