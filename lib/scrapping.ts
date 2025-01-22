@@ -1,3 +1,4 @@
+"use server";
 import { parseStringPromise } from "xml2js";
 import { promises as fs } from "fs";
 import { scrapedData } from "@/constant";
