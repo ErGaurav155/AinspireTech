@@ -1,12 +1,14 @@
 import puppeteer from "puppeteer-core";
+
 import chromium from "chrome-aws-lambda";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("hi hello");
     // Parse the request body to get the URL to scrape
-    const { url } = (await request.json()) as { url: string };
-
+    const { url } = await request.json();
+    console.log(url);
     if (!url) {
       return NextResponse.json(
         { error: "Missing 'url' in request body" },
@@ -74,6 +76,7 @@ export async function POST(request: NextRequest) {
       }
     }
   } catch (error: any) {
+    console.log("hello", "url");
     console.error("Error scraping page:", error.message);
     return NextResponse.json(
       { error: "Failed to scrape page", details: error.message },

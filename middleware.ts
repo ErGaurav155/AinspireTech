@@ -12,6 +12,7 @@ export default authMiddleware({
     "/TermsandCondition",
     "/api/webhooks/clerk",
     "/api/validate-widget",
+    "/api/scrapping",
     "/product/:path*",
   ],
 });

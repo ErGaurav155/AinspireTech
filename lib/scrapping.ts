@@ -33,10 +33,13 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
     const domainName = url.hostname.replace("www.", "");
 
     const urls = await getScrapingUrl(inputUrl);
+    console.log("urls", urls);
 
     const urlsString = convertUrlsToString(urls);
+    console.log("urlsString", urlsString);
 
     const impUrls = await generateUrls(urlsString);
+    console.log("impUrls", impUrls);
 
     let validUrls: string[] = [];
     if (typeof impUrls === "string") {
@@ -60,7 +63,7 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
     } else {
       throw new Error("`impUrls` is neither an array nor a JSON string.");
     }
-    console.log("urls", urls);
+    console.log("validUrls", validUrls);
 
     const scrapedUrls = new Set();
 
@@ -68,6 +71,7 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
       if (scrapedUrls.has(url)) {
         continue;
       }
+      console.log(url);
       const response = await fetch("/api/scrapping", {
         method: "POST",
         headers: {
@@ -75,8 +79,9 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
         },
         body: JSON.stringify({ url }),
       });
-
+      console.log(response);
       const data = await response.json();
+      console.log(data);
       if (response.ok) {
         scrapedData.push(data);
       }
