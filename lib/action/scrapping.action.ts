@@ -1,5 +1,5 @@
 "use server";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
 import chromium from "chrome-aws-lambda";
 
 export const scrapePage = async (url: string) => {
@@ -15,7 +15,7 @@ export const scrapePage = async (url: string) => {
   } else if (process.env.NODE_ENV === "production") {
     console.log("Production browser: ");
     const executablePath = await chromium.executablePath;
-
+    console.log(executablePath);
     browser = await puppeteer.launch({
       args: chromium.args,
       executablePath,
@@ -38,7 +38,7 @@ export const scrapePage = async (url: string) => {
   const description = descriptionElement
     ? await descriptionElement
         .getProperty("content")
-        .then((content) => content.jsonValue())
+        .then((content: any) => content.jsonValue())
     : null;
 
   const headingElements = await page.$$("h1, h2, h3");
@@ -48,7 +48,7 @@ export const scrapePage = async (url: string) => {
     headings.push(text);
   }
 
-  const content = await page.$eval("body", (body) => body.innerText);
+  const content = await page.$eval("body", (body: any) => body.innerText);
 
   // Close the browser once scraping is done
   await browser.close();
