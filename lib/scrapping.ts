@@ -73,32 +73,32 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
         continue;
       }
       console.log(url);
-      const response = await fetch("https://ainspiretech.com/api/scrapping", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url }),
-      });
-      console.log(response);
-      const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        scrapedData.push(data);
+      //   const response = await fetch("https://ainspiretech.com/api/scrapping", {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     body: JSON.stringify({ url }),
+      //   });
+      //   console.log(response);
+      //   const data = await response.json();
+      //   console.log(data);
+      //   if (response.ok) {
+      //     scrapedData.push(data);
+      //   }
+      //   scrapedUrls.add(url);
+      // }
+      const pageContent = await scrapePage(url);
+      console.log("pageContent", pageContent);
+
+      if (!pageContent) {
+        continue;
       }
+      scrapedData.push(pageContent);
       scrapedUrls.add(url);
     }
-    //   const pageContent = await scrapePage(url);
-    //   console.log("pageContent", pageContent);
 
-    //   if (!pageContent) {
-    //     continue;
-    //   }
-    //   scrapedData.push(pageContent);
-    //   scrapedUrls.add(url);
-    // }
-
-    // scrapedUrls.add(url);
+    scrapedUrls.add(url);
 
     const fileName = `${domainName}.json`;
     await fs.writeFile(fileName, JSON.stringify(scrapedData, null, 2));
