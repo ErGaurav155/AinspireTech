@@ -3,6 +3,7 @@ import { parseStringPromise } from "xml2js";
 import { promises as fs } from "fs";
 import { scrapedData } from "@/constant";
 import { generateUrls } from "./action/ai.action";
+import { scrapePage } from "./action/scrapping.action";
 
 const getScrapingUrl = async (inputUrl: string): Promise<string[]> => {
   try {
@@ -72,7 +73,7 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
         continue;
       }
       console.log(url);
-      const response = await fetch("https://ainspiretech.com/api/scrapping", {
+      const response = await fetch("http://localhost:3000/api/scrapping", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -85,9 +86,19 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
       if (response.ok) {
         scrapedData.push(data);
       }
-
       scrapedUrls.add(url);
     }
+    //   const pageContent = await scrapePage(url);
+    //   console.log("pageContent", pageContent);
+
+    //   if (!pageContent) {
+    //     continue;
+    //   }
+    //   scrapedData.push(pageContent);
+    //   scrapedUrls.add(url);
+    // }
+
+    // scrapedUrls.add(url);
 
     const fileName = `${domainName}.json`;
     await fs.writeFile(fileName, JSON.stringify(scrapedData, null, 2));

@@ -1,53 +1,58 @@
-// "use server";
-// import puppeteer from "puppeteer";
+"use server";
+import puppeteer from "puppeteer";
+import chromium from "chrome-aws-lambda";
 
-// export const scrapePage = async (url: string) => {
-//   let browser = null;
+export const scrapePage = async (url: string) => {
+  let browser = null;
 
-//   // Choose the browser based on the environment (development or production)
-//   if (process.env.NODE_ENV === "development") {
-//     console.log("Development browser: ");
-//     browser = await puppeteer.launch({
-//       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-//       headless: true,
-//     });
-//   } else if (process.env.NODE_ENV === "production") {
-//     console.log("Production browser: ");
-//     browser = await puppeteer.connect({
-//       browserWSEndpoint: "ws://localhost:3000",
-//     });
-//   }
+  // Choose the browser based on the environment (development or production)
+  if (process.env.NODE_ENV === "development") {
+    console.log("Development browser: ");
+    browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: true,
+    });
+  } else if (process.env.NODE_ENV === "production") {
+    console.log("Production browser: ");
+    const executablePath = await chromium.executablePath;
 
-//   if (!browser) {
-//     return;
-//   }
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath,
+      headless: chromium.headless,
+    });
+  }
 
-//   const page = await browser.newPage();
+  if (!browser) {
+    return;
+  }
 
-//   // Navigate to the page and wait for the DOM to load
-//   await page.goto(url, { waitUntil: "domcontentloaded" });
+  const page = await browser.newPage();
 
-//   // Scrape data using Puppeteer's query selectors and direct element interaction
-//   const title = await page.title();
-//   const descriptionElement = await page.$("meta[name='description']");
-//   const description = descriptionElement
-//     ? await descriptionElement
-//         .getProperty("content")
-//         .then((content) => content.jsonValue())
-//     : null;
+  // Navigate to the page and wait for the DOM to load
+  await page.goto(url, { waitUntil: "domcontentloaded" });
 
-//   const headingElements = await page.$$("h1, h2, h3");
-//   const headings = [];
-//   for (let element of headingElements) {
-//     const text = await element.evaluate((el) => el.textContent?.trim() || "");
-//     headings.push(text);
-//   }
+  // Scrape data using Puppeteer's query selectors and direct element interaction
+  const title = await page.title();
+  const descriptionElement = await page.$("meta[name='description']");
+  const description = descriptionElement
+    ? await descriptionElement
+        .getProperty("content")
+        .then((content) => content.jsonValue())
+    : null;
 
-//   const content = await page.$eval("body", (body) => body.innerText);
+  const headingElements = await page.$$("h1, h2, h3");
+  const headings = [];
+  for (let element of headingElements) {
+    const text = await element.evaluate((el) => el.textContent?.trim() || "");
+    headings.push(text);
+  }
 
-//   // Close the browser once scraping is done
-//   await browser.close();
+  const content = await page.$eval("body", (body) => body.innerText);
 
-//   // Return the scraped data
-//   return { url, title, description, headings, content };
-// };
+  // Close the browser once scraping is done
+  await browser.close();
+
+  // Return the scraped data
+  return { url, title, description, headings, content };
+};
