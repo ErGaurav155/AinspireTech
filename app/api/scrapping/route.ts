@@ -1,13 +1,13 @@
-import puppeteer from "puppeteer-core";
+import puppeteer from "puppeteer";
 
 import chromium from "chrome-aws-lambda";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const { url } = await request.json();
     console.log("hi hello");
     // Parse the request body to get the URL to scrape
-    const { url } = await request.json();
     console.log(url);
     if (!url) {
       return NextResponse.json(
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       // Choose the browser configuration based on the environment
       if (process.env.NODE_ENV === "development") {
         console.log("Launching browser in development environment...");
-        browser = await puppeteer.launch({});
+        browser = await puppeteer.launch();
       } else if (process.env.NODE_ENV === "production") {
         console.log("Launching browser in production environment...");
         const executablePath = await chromium.executablePath;
