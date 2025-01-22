@@ -72,7 +72,7 @@ export const scrapeSitemapPages = async (inputUrl: string) => {
         continue;
       }
       console.log(url);
-      const response = await fetch("/api/scrapping", {
+      const response = await fetch("https://ainspiretech.com/api/scrapping", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

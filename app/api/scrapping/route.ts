@@ -22,10 +22,7 @@ export async function POST(request: NextRequest) {
       // Choose the browser configuration based on the environment
       if (process.env.NODE_ENV === "development") {
         console.log("Launching browser in development environment...");
-        browser = await puppeteer.launch({
-          args: ["--no-sandbox", "--disable-setuid-sandbox"],
-          headless: true,
-        });
+        browser = await puppeteer.launch({});
       } else if (process.env.NODE_ENV === "production") {
         console.log("Launching browser in production environment...");
         const executablePath = await chromium.executablePath;
