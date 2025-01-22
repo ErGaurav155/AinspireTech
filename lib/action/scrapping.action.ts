@@ -1,5 +1,5 @@
 "use server";
-import puppeteer from "puppeteer-core";
+import puppeteerCore from "puppeteer-core";
 import chromium from "chrome-aws-lambda";
 
 export const scrapePage = async (url: string) => {
@@ -8,18 +8,16 @@ export const scrapePage = async (url: string) => {
   // Choose the browser based on the environment (development or production)
   if (process.env.NODE_ENV === "development") {
     console.log("Development browser: ");
-    browser = await puppeteer.launch({
+    browser = await puppeteerCore.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
       headless: true,
     });
   } else if (process.env.NODE_ENV === "production") {
     console.log("Production browser: ");
-    const executablePath = await chromium.executablePath;
-    console.log(executablePath);
-    browser = await puppeteer.launch({
+    browser = await chromium.puppeteer.launch({
+      executablePath: await chromium.executablePath,
+      headless: true,
       args: chromium.args,
-      executablePath,
-      headless: chromium.headless,
     });
   }
 
@@ -44,7 +42,9 @@ export const scrapePage = async (url: string) => {
   const headingElements = await page.$$("h1, h2, h3");
   const headings = [];
   for (let element of headingElements) {
-    const text = await element.evaluate((el) => el.textContent?.trim() || "");
+    const text = await element.evaluate(
+      (el: any) => el.textContent?.trim() || ""
+    );
     headings.push(text);
   }
 
