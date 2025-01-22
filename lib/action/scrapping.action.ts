@@ -17,7 +17,11 @@ export const scrapePage = async (url: string) => {
     browser = await chromium.puppeteer.launch({
       executablePath: await chromium.executablePath,
       headless: true,
-      args: chromium.args,
+      args: [
+        "--disable-dev-shm-usage",
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+      ],
     });
   }
 
