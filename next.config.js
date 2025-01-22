@@ -1,6 +1,8 @@
 const path = require("path");
 
 module.exports = {
+  output: "standalone",
+
   webpack(config, { isServer }) {
     // Add custom webpack configuration only for the server-side (because the error occurs on the server side)
     if (isServer) {
@@ -13,7 +15,4 @@ module.exports = {
 
     return config;
   },
-};
-module.exports = {
-  output: "standalone",
 };
