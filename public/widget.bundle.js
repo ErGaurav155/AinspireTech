@@ -25,7 +25,8 @@
         console.error(`Container with ID "${containerId}" not found.`);
         return;
       }
-      container.className = "z-50 fixed bottom-4 right-4 w-[25vw] h-[90vh]";
+      container.className =
+        "z-50 fixed bottom-4 right-4 w-[90vw] sm:w-96 h-[93vh] max-h-[94vh]";
       // Create and append the iframe
       const iframe = document.createElement("iframe");
       const validSrc = `https://ainspiretech.com/ChatBots?userId=${userId}&agentId=${agentId}`;

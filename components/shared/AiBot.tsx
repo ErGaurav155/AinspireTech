@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Collapse, Button } from "@material-tailwind/react";
 import {
   ArrowPathIcon,
@@ -28,7 +28,6 @@ interface AibotCollapseProps {
 
 export default function AibotCollapse({ authorised }: AibotCollapseProps) {
   const [open, setOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const [messages, setMessages] = useState([
     { sender: "AI Bot", text: "Hello! How can I help you?" },
@@ -36,20 +35,6 @@ export default function AibotCollapse({ authorised }: AibotCollapseProps) {
   const [submit, setSubmit] = useState(false);
 
   const toggleOpen = () => setOpen((cur) => !cur);
-  useEffect(() => {
-    const checkDarkMode = () => {
-      const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      setIsDarkMode(darkModeQuery.matches);
-
-      darkModeQuery.addEventListener("change", (e) => {
-        setIsDarkMode(e.matches);
-      });
-
-      return () => darkModeQuery.removeEventListener("change", (e) => {});
-    };
-
-    checkDarkMode();
-  }, []);
 
   const form = useForm<z.infer<typeof formSchema1>>({
     resolver: zodResolver(formSchema1),
@@ -118,13 +103,7 @@ export default function AibotCollapse({ authorised }: AibotCollapseProps) {
             </div>
           </Button>
         </div>
-        <h1
-          className={`font-semibold text-base ${
-            isDarkMode ? "text-white" : "text-black"
-          }`}
-        >
-          Help
-        </h1>{" "}
+        <h1 className={`font-semibold text-base text-green-500`}>Help</h1>
       </div>
 
       <Collapse
