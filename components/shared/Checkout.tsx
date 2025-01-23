@@ -150,7 +150,7 @@ export const Checkout = ({
             await createTransaction(transaction1);
 
             router.push(
-              `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}`
+              `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subscription}`
             );
           } else {
             toast({

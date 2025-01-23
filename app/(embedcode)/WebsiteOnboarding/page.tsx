@@ -5,7 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getAgentSubscriptionInfo } from "@/lib/action/subscription.action";
 import { WebScapping } from "@/components/shared/WebScapping";
 import { getUserByDbId, setWebsiteScrapped } from "@/lib/action/user.actions";
-import { scrapeSitemapPages } from "@/lib/scrapping";
+import {
+  sendSubscriptionEmailToOwner,
+  sendSubscriptionEmailToUser,
+} from "@/lib/action/sendEmail.action";
+// import { scrapeSitemapPages } from "@/lib/scrapping";
 
 const WebsiteOnboard = () => {
   const searchParams = useSearchParams();
@@ -15,7 +19,9 @@ const WebsiteOnboard = () => {
     // Extract search parameters from the URL
     const userId = searchParams.get("userId");
     const agentId = searchParams.get("agentId");
-    if (userId && agentId) {
+    const subscriptionId = searchParams.get("subscriptionId");
+
+    if (userId && agentId && subscriptionId) {
       const fetchSubscriptionInfo = async () => {
         const agentSubscriptions = await getAgentSubscriptionInfo(
           String(userId),
@@ -32,11 +38,26 @@ const WebsiteOnboard = () => {
 
           return;
         }
-        const scappedUrls = await scrapeSitemapPages(user.websiteUrl);
-        if (scappedUrls) {
-          await setWebsiteScrapped(userId);
-          router.push("/UserDashboard");
-        }
+        const sendMailToOwner = await sendSubscriptionEmailToOwner({
+          email: "gauravgkhaire155@gmail.com",
+          userId: user._id,
+          subscriptionId: subscriptionId,
+        });
+        console.log(sendMailToOwner);
+        const sendMailToUser = await sendSubscriptionEmailToUser({
+          email: user.email,
+          userId: user._id,
+          agentId: agentId,
+          subscriptionId: subscriptionId,
+        });
+        console.log(sendMailToUser);
+        await setWebsiteScrapped(userId);
+        router.push("/UserDashboard");
+        // const scappedUrls = await scrapeSitemapPages(user.websiteUrl);
+        // if (scappedUrls) {
+        //   await setWebsiteScrapped(userId);
+        //   router.push("/UserDashboard");
+        // }
       };
 
       fetchSubscriptionInfo();

@@ -468,8 +468,8 @@ export const scrapedData1 = [
 ];
 export const scrapedData: {
   title: string;
-  description: string | null;
-  headings: string[];
+  description: string | null | undefined;
+  headings: (string | null)[];
   content: string;
   url: string;
 }[] = [];

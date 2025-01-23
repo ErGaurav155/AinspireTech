@@ -1,11 +1,7 @@
 {
   "functions": {
     "app/**/*": {
-      "memory": 1024,
       "maxDuration": 60
-    },
-    "app/WebsiteOnboarding": {
-      "includeFiles": "node_modules/chrome-aws-lambda/**/*"
     }
   },
   "headers": [

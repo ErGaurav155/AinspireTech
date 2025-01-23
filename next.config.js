@@ -1,5 +1,14 @@
-const path = require("path");
-
-module.exports = {
-  externals: ["chrome-aws-lambda"],
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "oaidalleapiprodscus.blob.core.windows.net",
+        port: "",
+      },
+    ],
+  },
 };
+
+module.exports = nextConfig;
