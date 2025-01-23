@@ -24,7 +24,7 @@
   };
 
   try {
-    await loadScript("https://ainspire-tech.vercel.app/widget.bundle.js");
+    await loadScript("https://ainspiretech.com/widget.bundle.js");
 
     if (window.Widget && typeof window.Widget.init === "function") {
       window.Widget.init({

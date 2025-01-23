@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Collapse, Button } from "@material-tailwind/react";
 import {
   ArrowPathIcon,
@@ -28,12 +28,28 @@ interface AibotCollapseProps {
 
 export default function AibotCollapse({ authorised }: AibotCollapseProps) {
   const [open, setOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const [messages, setMessages] = useState([
     { sender: "AI Bot", text: "Hello! How can I help you?" },
   ]);
   const [submit, setSubmit] = useState(false);
 
   const toggleOpen = () => setOpen((cur) => !cur);
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      setIsDarkMode(darkModeQuery.matches);
+
+      darkModeQuery.addEventListener("change", (e) => {
+        setIsDarkMode(e.matches);
+      });
+
+      return () => darkModeQuery.removeEventListener("change", (e) => {});
+    };
+
+    checkDarkMode();
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema1>>({
     resolver: zodResolver(formSchema1),
@@ -89,15 +105,26 @@ export default function AibotCollapse({ authorised }: AibotCollapseProps) {
   return (
     <div className="h-auto w-auto flex flex-col ">
       <div
-        className={`fixed bottom-4 right-4 bg-[#88e2bb] text-white rounded-full shadow-lg p-3 z-40 hover:bg-n-5 transition ${
+        className={` fixed bottom-4 right-4 z-40 text-center  ${
           open ? "hidden" : "inline-block"
-        } `}
+        }  `}
       >
-        <Button className="bg-transparent p-0" onClick={toggleOpen}>
-          <div className="border w-8 h-8 md:w-14 md:h-14 p-1 md:p-3 rounded-full bg-gray-200">
-            <SparklesIcon className="text-gray-700" />
-          </div>
-        </Button>
+        <div
+          className={` bg-[#88e2bb] text-white rounded-full shadow-lg p-3  hover:bg-n-5 transition`}
+        >
+          <Button className="bg-transparent p-0" onClick={toggleOpen}>
+            <div className="border w-8 h-8 md:w-14 md:h-14 p-1 md:p-3 rounded-full bg-gray-200">
+              <SparklesIcon className="text-gray-700" />
+            </div>
+          </Button>
+        </div>
+        <h1
+          className={`font-semibold text-base ${
+            isDarkMode ? "text-white" : "text-black"
+          }`}
+        >
+          Help
+        </h1>{" "}
       </div>
 
       <Collapse
@@ -144,7 +171,7 @@ export default function AibotCollapse({ authorised }: AibotCollapseProps) {
         </div>
         {authorised ? (
           <div>
-            <div className="flex flex-col p-4 flex-1 min-h-[50vh] z-10 overflow-y-auto no-scrollbar">
+            <div className="flex flex-col p-4 flex-1 min-h-[50vh] max-h-[50vh] z-10 overflow-y-auto no-scrollbar">
               {messages.map((msg, index) => (
                 <div
                   key={index}
