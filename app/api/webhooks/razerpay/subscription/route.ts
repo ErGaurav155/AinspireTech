@@ -15,7 +15,6 @@ export async function POST(request: NextRequest) {
       buyerId: string;
       productId: string;
     };
-
     const options = {
       plan_id: planId, // Use the pre-created plan ID
       total_count: 12, // Number of billing cycles (e.g., 12 for yearly)
