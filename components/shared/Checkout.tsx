@@ -1,257 +1,180 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { z } from "zod";
-import { toast } from "@/components/ui/use-toast"; // Assuming you have a toast utility
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth } from "@clerk/nextjs";
+
 import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import Script from "next/script";
-import { createTransaction } from "@/lib/action/transaction.action";
-import { updateUserByDbId } from "@/lib/action/user.actions";
-import { setSubscriptionActive } from "@/lib/action/subscription.action";
 
-// Define validation schema using Zod
-const formSchema = z.object({
-  websiteUrl: z.string().url("Invalid URL").min(1, "Website URL is required"),
-});
+import CartPay from "./CartPay";
+import RazerPay from "./RazorPay";
+import { Button } from "@material-tailwind/react";
+import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
+import { getUserById } from "@/lib/action/user.actions";
 
-type FormData = z.infer<typeof formSchema>;
-
-interface WebUrlProps {
+interface CheckoutProps {
   amount: number;
-  planId: string;
-  buyerId: string;
   productId: string;
+  billingCycle: string;
 }
 
 export const Checkout = ({
   amount,
-  planId,
-  buyerId,
   productId,
-}: WebUrlProps) => {
+  billingCycle,
+}: CheckoutProps) => {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const { userId } = useAuth();
 
-  const {
-    handleSubmit,
-    register,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-  });
+  if (!userId) {
+    router.push("/sign-in");
+  }
 
-  const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true);
+  const [isActive, setIsActive] = useState(false);
+  const locationRef = useRef<string>("india"); // Store location without causing re-renders
+  const razorpaymonthlyplanId = useRef<string | null>(null);
+  const paypalmonthlyplanId = useRef<string | null>(null);
+  const razorpayyearlyplanId = useRef<string | null>(null);
+  const paypalyearlyplanId = useRef<string | null>(null);
+  const razorpayplanId = useRef<string | null>(null);
+  const paypalplanId = useRef<string | null>(null);
+
+  const buyerIdRef = useRef<string | null>(null);
+
+  const fetchPlanInfo = async () => {
     try {
-      // Call API to save the URL to the database (replace with your actual API call)
-      const response = await updateUserByDbId(buyerId, data.websiteUrl);
-      if (response) {
-        setIsSubmitted(true);
-        await runCheckout();
-        toast({
-          title: "URL successfully submitted!",
-          duration: 2000,
-          className: "success-toast",
-        });
-      } else {
-        toast({
-          title: "Failed to submit the URL",
-          duration: 2000,
-          className: "error-toast",
-        });
+      // Fetch plan data
+      const info = await getRazerpayPlanInfo(productId);
+      if (
+        !info.razorpaymonthlyplanId ||
+        !info.paypalmonthlyplanId ||
+        !info.razorpayyearlyplanId ||
+        !info.paypalyearlyplanId
+      ) {
+        router.push("/");
+        throw new Error("Plan not found");
       }
+
+      razorpaymonthlyplanId.current = info.razorpaymonthlyplanId;
+      paypalmonthlyplanId.current = info.paypalmonthlyplanId;
+      razorpayyearlyplanId.current = info.razorpayyearlyplanId;
+      paypalyearlyplanId.current = info.paypalyearlyplanId;
     } catch (error) {
-      console.error("Error submitting the URL:", error);
-      toast({
-        title: "Error submitting the URL",
-        duration: 2000,
-        className: "error-toast",
-      });
-    } finally {
-      setIsSubmitting(false);
+      console.error("Error fetching plan info:", error);
+      return false;
     }
-  };
 
-  const runCheckout = async () => {
-    toast({
-      title: "For International Users Use Paypal",
-      description: "Buy Credits > Wallet > Paypal",
-      duration: 3000,
-      className: "success-toast z-55",
-    });
-
-    try {
-      const response = await fetch("/api/webhooks/razerpay/subscription", {
-        method: "POST",
-        body: JSON.stringify({ planId, buyerId, productId }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const subscriptionCreate = await response.json();
-
-      if (!subscriptionCreate.subscription) {
-        throw new Error("Purchase Order is not created");
+    // Fetch user data
+    if (userId) {
+      try {
+        const buyer = await getUserById(userId);
+        if (!buyer) {
+          router.push("/sign-in");
+          throw new Error("User not found");
+        }
+        buyerIdRef.current = buyer._id;
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+        return false;
       }
-
-      const paymentOptions = {
-        key_id: process.env.RAZORPAY_KEY_ID!,
-        amount: amount * 100,
-        currency: "INR",
-        name: "GK Services",
-        description: "Thanks For Taking Our Services",
-        subscription_id: subscriptionCreate.subscription,
-        notes: {
-          plan: planId,
-          buyerId: buyerId,
-          amount: amount,
-        },
-        handler: async function (response: any) {
-          const data = {
-            orderCreationId: subscriptionCreate.subscription,
-            razorpayPaymentId: response.razorpay_payment_id,
-            razorpayOrderId: response.razorpay_order_id,
-            razorpaySignature: response.razorpay_signature,
-          };
-
-          const result = await fetch("/api/webhooks/razerpay/verify", {
-            method: "POST",
-            body: JSON.stringify(data),
-            headers: { "Content-Type": "application/json" },
-          });
-
-          const res = await result.json();
-
-          if (res.isOk) {
-            toast({
-              title: "Payment Successful!",
-              description: "Code are added to your Dashoboard",
-              duration: 3000,
-              className: "success-toast",
-            });
-            const transaction1 = {
-              customerId: subscriptionCreate.subscription,
-              amount: amount,
-              plan: planId,
-              buyerId: buyerId,
-              createdAt: new Date(),
-            };
-            await setSubscriptionActive(transaction1.customerId);
-            await createTransaction(transaction1);
-
-            router.push(
-              `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subscription}`
-            );
-          } else {
-            toast({
-              title: "Order canceled!",
-              description: res.message,
-              duration: 3000,
-              className: "error-toast",
-            });
-          }
-        },
-        theme: {
-          color: "#3399cc",
-        },
-      };
-
-      const paymentObject = new (window as any).Razorpay(paymentOptions);
-      paymentObject.on("payment.failed", function (response: any) {
-        toast({
-          title: "Order failed!",
-          description: response.error.description,
-          duration: 3000,
-          className: "error-toast",
-        });
-      });
-
-      paymentObject.open();
-    } catch (error: any) {
-      console.error("Checkout Error:", error);
-      toast({
-        title: "Checkout Error",
-        description: error.message,
-        duration: 3000,
-        className: "error-toast",
-      });
     }
+
+    // Fetch location
+    // try {
+    //   const res = await fetch("/api/location");
+    //   const locData = await res.json();
+    //   locationRef.current = locData.location.country || "india"; // Default to India if not found
+    // } catch (error) {
+    //   console.error("Error fetching location:", error);
+    //   locationRef.current = "india"; // Default to India
+    // }
+
+    return true;
   };
 
+  const onCheckout = async (event: React.FormEvent) => {
+    event.preventDefault(); // Prevent default form submission
+
+    const isDataFetched = await fetchPlanInfo();
+    if (isDataFetched) {
+      if (billingCycle === "monthly") {
+        razorpayplanId.current = razorpaymonthlyplanId.current;
+        paypalplanId.current = paypalmonthlyplanId.current;
+      } else if (billingCycle === "yearly") {
+        razorpayplanId.current = razorpayyearlyplanId.current;
+        paypalplanId.current = paypalyearlyplanId.current;
+      } else {
+        router.push("/");
+        return false;
+      }
+      setIsActive(true);
+    }
+  };
   return (
     <>
-      {!isSubmitted ? (
-        <div>
+      <form className="w-full" onSubmit={onCheckout}>
+        <section className="w-full">
+          <Button
+            type="submit"
+            role="link"
+            className="w-full rounded-md text-base text-white bg-cover bg-indigo-900"
+          >
+            Get The Plan
+          </Button>
+        </section>
+      </form>
+
+      {isActive &&
+        razorpaymonthlyplanId.current &&
+        paypalmonthlyplanId.current &&
+        razorpayyearlyplanId.current &&
+        paypalyearlyplanId.current &&
+        razorpayplanId.current &&
+        paypalplanId.current &&
+        buyerIdRef.current &&
+        (locationRef.current === "india" ? (
+          <RazerPay
+            amount={amount}
+            razorpayplanId={razorpayplanId.current ?? ""}
+            buyerId={buyerIdRef.current ?? ""}
+            productId={productId}
+          />
+        ) : (
           <AlertDialog defaultOpen>
             <AlertDialogContent>
               <AlertDialogHeader>
+                <AlertDialogTitle className="sr-only">
+                  Enter Website URL
+                </AlertDialogTitle>
                 <div className="flex justify-between items-center">
                   <p className="p-16-semibold text-black">
-                    PLEASE ENTER YOUR WEBSITE URL/LINK
+                    Proceed To Take Monthly Subscription
                   </p>
-                  <AlertDialogCancel className="border-0 p-0 hover:bg-transparent">
-                    <XMarkIcon
-                      onClick={() => router.push(`/product/${productId}`)}
-                      className="size-6 cursor-pointer"
-                    />
+                  <AlertDialogCancel
+                    onClick={() => router.push(`/`)}
+                    className="border-0 p-0 hover:bg-transparent"
+                  >
+                    <XMarkIcon className="size-6 cursor-pointer" />
                   </AlertDialogCancel>
                 </div>
               </AlertDialogHeader>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="w-full">
-                  <label
-                    htmlFor="websiteUrl"
-                    className="block text-lg font-semibold"
-                  >
-                    Website URL
-                  </label>
-                  <input
-                    id="websiteUrl"
-                    type="url"
-                    {...register("websiteUrl")}
-                    className="input-field mt-2 w-full"
-                  />
-                  {errors.websiteUrl && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors.websiteUrl.message}
-                    </p>
-                  )}
-                </div>
-                <div className="flex justify-between items-center">
-                  <button
-                    type="submit"
-                    className="bg-green-500 text-white p-2 w-1/2 rounded-md"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Payment Processing..." : "Pay Now"}
-                  </button>
-                </div>
-              </form>
 
-              <AlertDialogDescription className="p-16-regular py-3 text-green-500">
-                IT WILL HELP US TO PROVIDE BETTER SERVICES
-              </AlertDialogDescription>
+              <CartPay
+                paypalplanId={paypalplanId.current ?? ""}
+                buyerId={buyerIdRef.current ?? ""}
+                amount={amount}
+                productId={productId}
+              />
             </AlertDialogContent>
           </AlertDialog>
-        </div>
-      ) : (
-        <div>
-          <Script
-            id="razorpay-checkout-js"
-            src="https://checkout.razorpay.com/v1/checkout.js"
-          />
-        </div>
-      )}
+        ))}
     </>
   );
 };

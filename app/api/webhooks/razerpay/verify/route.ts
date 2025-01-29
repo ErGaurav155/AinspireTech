@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import Subscription from "@/lib/database/models/subscription.model";
+import { setSubsciptionActive } from "@/lib/action/subscription.action";
 
 const generatedSignature = (
   razorpayOrderId: string,
@@ -31,23 +32,7 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
-  const subscriptionEndDate = new Date();
-  subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1); // One month subscription
-  await connectToDatabase;
-
-  const updateSubscription = await Subscription.updateOne({
-    subscriptionId: orderCreationId,
-
-    $set: {
-      subscriptionStatus: "active",
-      subscriptionEndDate: subscriptionEndDate,
-    },
-  });
-
-  if (!updateSubscription.matchedCount) {
-    throw new Error("No matching subscription found to update.");
-  }
-
+  const isActive = await setSubsciptionActive(orderCreationId);
   return NextResponse.json(
     { message: "payment verified successfully", isOk: true },
     { status: 200 }

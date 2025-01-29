@@ -13,6 +13,8 @@
     "@heroicons/react": "^2.1.1",
     "@hookform/resolvers": "^3.3.4",
     "@material-tailwind/react": "^2.1.9",
+    "@paypal/paypal-server-sdk": "^0.5.1",
+    "@paypal/react-paypal-js": "^8.8.1",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-label": "^2.0.2",

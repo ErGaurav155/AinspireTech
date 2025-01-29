@@ -139,7 +139,7 @@ const TermsOfService = async () => {
             following information:
           </p>
           <ul className="list-disc list-inside mb-5">
-            <li>Email address:info@mywebsite.com</li>
+            <li>Email address:gauravgkhaire@gmail.com</li>
             <li>Postal address: Address:Nashik,Maharastra 423101,india</li>
           </ul>
         </div>

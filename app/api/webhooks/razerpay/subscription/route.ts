@@ -1,7 +1,7 @@
 import Razorpay from "razorpay";
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/database/mongoose";
-import Subscription from "@/lib/database/models/subscription.model";
+
+import { createRazerPaySubscription } from "@/lib/action/subscription.action";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
@@ -10,36 +10,29 @@ const razorpay = new Razorpay({
 
 export async function POST(request: NextRequest) {
   try {
-    const { planId, buyerId, productId } = (await request.json()) as {
-      planId: string;
+    const { razorpayplanId, buyerId, productId } = (await request.json()) as {
+      razorpayplanId: string;
       buyerId: string;
       productId: string;
     };
     const options = {
-      plan_id: planId, // Use the pre-created plan ID
+      plan_id: razorpayplanId, // Use the pre-created plan ID
       total_count: 12, // Number of billing cycles (e.g., 12 for yearly)
       customer_notify: 1 as 0 | 1,
       notes: {
         buyerId: buyerId,
       },
     };
-
     const subscription = await razorpay.subscriptions.create(options);
-    // Store order ID and other details in your database
-    await connectToDatabase();
+    if (!subscription) {
+      throw new Error("Subscription creation Failed");
+    }
 
-    const newSubscription = new Subscription({
-      userId: buyerId,
-      productId,
-      subscriptionId: subscription.id,
-      subscriptionStatus: "pending",
-    });
-    await newSubscription.save();
+    const subscriptionId = subscription.id;
 
-    return NextResponse.json(
-      { subscription: subscription.id },
-      { status: 200 }
-    );
+    await createRazerPaySubscription(buyerId, productId, subscriptionId);
+
+    return NextResponse.json({ isOk: true, subsId: subscriptionId });
   } catch (error: any) {
     console.error("Error creating subscription:", error.message);
     return NextResponse.json(

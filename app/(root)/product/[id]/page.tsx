@@ -8,7 +8,7 @@ import { HeadsetIcon } from "lucide-react";
 import { Footer } from "@/components/shared/Footer";
 import { useAuth } from "@clerk/nextjs";
 import { Checkout } from "@/components/shared/Checkout";
-import { getPlanInfo } from "@/lib/action/plan.action";
+import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { getUserById } from "@/lib/action/user.actions";
 import { productDetails } from "@/constant";
 
@@ -20,8 +20,7 @@ interface ProductParams {
 
 const ProductDetail = ({ params }: { params: ProductParams }) => {
   const router = useRouter();
-  const { userId } = useAuth();
-  const [url, serUrl] = useState<boolean>(false);
+  const { id } = params;
 
   const [product, setProduct] = useState<{
     productId: string;
@@ -30,48 +29,17 @@ const ProductDetail = ({ params }: { params: ProductParams }) => {
     icon: string;
     description: { bgcolor: string; heading: string; subheading: string };
   } | null>(null);
-  const [planInfo, setPlanInfo] = useState<{
-    planId: string;
-    name: string;
-    amount: number;
-  } | null>(null);
-  const [buyerInfo, setBuyerInfo] = useState<string>();
 
   useEffect(() => {
-    const { id } = params;
     const detail = productDetails[id];
     if (detail) {
       setProduct(detail);
     } else {
       router.push("/404");
     }
-  }, [params, router]);
-  useEffect(() => {
-    const fetchPlanInfo = async () => {
-      if (product) {
-        try {
-          const info = await getPlanInfo(product.productId);
-          setPlanInfo(info);
-        } catch (error) {
-          console.error("Error fetching plan info:", error);
-        }
-      }
-      if (userId) {
-        try {
-          const buyer = await getUserById(userId);
-          if (!buyer) {
-            router.push("/sign-in");
-          }
-          setBuyerInfo(buyer._id);
-        } catch (error) {
-          console.error("Error fetching plan info:", error);
-        }
-      }
-    };
+  }, [id, router]);
 
-    fetchPlanInfo();
-  }, [product, router, userId]);
-  if (!product || !planInfo)
+  if (!product)
     return (
       <div className="flex items-center justify-center text-white font-bold text-xl">
         Loading...
@@ -98,35 +66,16 @@ const ProductDetail = ({ params }: { params: ProductParams }) => {
             {product.description.subheading}
           </h4>
           <div className="flex gap-3">
-            {!userId || !buyerInfo ? (
-              <Button
-                size="lg"
-                color="green"
-                variant="gradient"
-                className="px-3"
-                onClick={() => router.push("/sign-in")}
-              >
-                Buy Now
-              </Button>
-            ) : (
-              <Button
-                size="lg"
-                color="green"
-                variant="gradient"
-                className="px-3"
-                onClick={() => serUrl(true)}
-              >
-                Buy Now
-              </Button>
-            )}
-            {url && buyerInfo && (
-              <Checkout
-                amount={planInfo.amount}
-                planId={planInfo.planId}
-                buyerId={buyerInfo}
-                productId={product.productId}
-              />
-            )}
+            <Button
+              size="lg"
+              color="green"
+              variant="gradient"
+              className="px-3"
+              onClick={() => router.push(`/pricing?id=${id}`)}
+            >
+              Buy Now
+            </Button>
+
             <Button
               size="lg"
               color="blue"

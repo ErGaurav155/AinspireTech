@@ -15,6 +15,11 @@ const SubscriptionSchema = new mongoose.Schema(
       required: true,
       unique: true, // Ensure the order ID is unique
     },
+    mode: {
+      type: String,
+      enum: ["PayPal", "RazorPay"],
+      reuired: true,
+    },
     subscriptionStatus: {
       type: String,
       enum: ["pending", "active", "expired"],

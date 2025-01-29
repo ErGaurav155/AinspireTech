@@ -319,3 +319,286 @@ return NextResponse.redirect('/sign-in');
 }
 },
 });
+
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { z } from "zod";
+import { toast } from "@/components/ui/use-toast"; // Assuming you have a toast utility
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+AlertDialog,
+AlertDialogCancel,
+AlertDialogContent,
+AlertDialogDescription,
+AlertDialogHeader,
+AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import Script from "next/script";
+
+const formSchema = z.object({
+websiteUrl: z.string().url("Invalid URL").min(1, "Website URL is required"),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+interface CheckoutProps {
+amount: number;
+razorpayplanId: string;
+paypalplanId: string;
+buyerId: string;
+productId: string;
+}
+const NEXT_PUBLIC_PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
+
+export const Checkout = ({
+amount,
+razorpayplanId,
+paypalplanId,
+buyerId,
+productId,
+}: CheckoutProps) => {
+const router = useRouter();
+const [isSubmitting, setIsSubmitting] = useState(false);
+const [isSubmitted, setIsSubmitted] = useState(false);
+const [location, setLocation] = useState<string>("");
+
+const paypalButtonRef = useRef<HTMLDivElement | null>(null); // Ref for PayPal container
+
+const {
+handleSubmit,
+register,
+formState: { errors },
+} = useForm<FormData>({
+resolver: zodResolver(formSchema),
+});
+
+useEffect(() => {
+const fetchLocation = async () => {
+try {
+const res = await fetch("/api/location");
+const locData = await res.json();
+setLocation(locData.location.country || "US");
+} catch (error) {
+console.error("Error fetching location:", error);
+setLocation("US");
+}
+};
+
+    fetchLocation();
+
+}, []);
+
+// Memoize handlePayPalPayment with useCallback
+const handlePayPalPayment = async () => {
+if (
+paypalButtonRef.current &&
+typeof window !== "undefined" &&
+window.paypal
+) {
+window.paypal
+.Buttons({
+createSubscription: (data: any, actions: any) => {
+return actions.subscription.create({ plan_id: paypalplanId });
+},
+onApprove: (data: any) => {
+toast({
+title: "Payment Successful",
+description: `Subscription ID: ${data.subscriptionID}`,
+duration: 3000,
+});
+router.push(`/thank-you?subscriptionId=${data.subscriptionID}`);
+},
+})
+.render(paypalButtonRef.current);
+} else {
+console.error(
+"PayPal button container not found in DOM or PayPal SDK not loaded."
+);
+}
+};
+
+// Load PayPal script dynamically when needed
+// useEffect(() => {
+// if (
+// typeof window !== "undefined" &&
+// !document.getElementById("paypal-sdk")
+// ) {
+// const script = document.createElement("script");
+// script.id = "paypal-sdk";
+// script.src = `https://www.paypal.com/sdk/js?client-id=${NEXT_PUBLIC_PAYPAL_CLIENT_ID}&vault=true&intent=subscription`;
+// script.onload = () => handlePayPalPayment();
+// document.body.appendChild(script);
+// }
+// }, [handlePayPalPayment]);
+
+const handleRazorpayPayment = async () => {
+try {
+const response = await fetch("/api/webhooks/razerpay/subscription", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ razorpayplanId, buyerId, productId }),
+});
+
+      const subscriptionData = await response.json();
+      if (!subscriptionData.subscription) {
+        throw new Error("Failed to create Razorpay subscription.");
+      }
+
+      const options = {
+        key: process.env.RAZORPAY_KEY_ID!,
+        subscription_id: subscriptionData.subscription,
+        amount: amount * 100,
+        currency: "INR",
+        name: "GK Services",
+        description: "Thanks for subscribing!",
+        notes: {
+          buyerId,
+          razorpayplanId,
+        },
+        handler: async (response: any) => {
+          const verificationResponse = await fetch(
+            "/api/webhooks/razerpay/verify",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_subscription_id: response.razorpay_subscription_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            }
+          );
+
+          const result = await verificationResponse.json();
+          if (result.isOk) {
+            toast({
+              title: "Payment Successful",
+              description: "Subscription activated successfully.",
+              duration: 3000,
+            });
+            router.push(`/thank-you?subscriptionId=${result.subscriptionId}`);
+          } else {
+            throw new Error(result.message);
+          }
+        },
+        theme: { color: "#3399cc" },
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.open();
+    } catch (error: any) {
+      console.error("Razorpay Error:", error);
+      toast({
+        title: "Payment Failed",
+        description: error.message,
+        duration: 3000,
+        className: "error-toast",
+      });
+    }
+
+};
+
+const onSubmit = async (data: FormData) => {
+setIsSubmitting(true);
+try {
+handleRazorpayPayment();
+setIsSubmitted(true);
+} catch (error: any) {
+console.error("Checkout Error:", error);
+toast({
+title: "Checkout Error",
+description: error.message,
+duration: 3000,
+className: "error-toast",
+});
+} finally {
+setIsSubmitting(false);
+}
+};
+
+return (
+<>
+{!isSubmitted ? (
+<AlertDialog defaultOpen>
+<AlertDialogContent>
+<AlertDialogHeader>
+<AlertDialogTitle className="sr-only">
+Enter Website URL
+</AlertDialogTitle>
+
+<div className="flex justify-between items-center">
+<p className="text-lg font-bold">Enter Website URL</p>
+<AlertDialogCancel>
+<XMarkIcon
+onClick={() => router.push(`/`)}
+className="h-6 w-6 cursor-pointer"
+/>
+</AlertDialogCancel>
+</div>
+</AlertDialogHeader>
+<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+<div>
+<label htmlFor="websiteUrl" className="block text-sm">
+Website URL
+</label>
+<input
+id="websiteUrl"
+type="url"
+{...register("websiteUrl")}
+className="input-field mt-2 w-full"
+/>
+{errors.websiteUrl && (
+<p className="text-red-500 text-sm mt-1">
+{errors.websiteUrl.message}
+</p>
+)}
+</div>
+<button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-green-500 text-white py-2 px-4 rounded"
+              >
+{isSubmitting ? "Processing..." : "Proceed to Pay"}
+</button>
+</form>
+<AlertDialogDescription>
+Your payment method will be selected based on your location.
+</AlertDialogDescription>
+</AlertDialogContent>
+</AlertDialog>
+) : location.toLowerCase() === "india" ? (
+<Script
+          id="razorpay-checkout-js"
+          src="https://checkout.razorpay.com/v1/checkout.js"
+        />
+) : (
+<>
+<AlertDialog defaultOpen>
+<AlertDialogContent>
+<AlertDialogHeader className="flex flex-row items-center  justify-between">
+<AlertDialogTitle className="text-lg font-bold">
+PayPal Checkout
+</AlertDialogTitle>
+<AlertDialogCancel onClick={() => router.push(`/`)}>
+<XMarkIcon className="h-6 w-6 cursor-pointer" />
+</AlertDialogCancel>
+</AlertDialogHeader>
+<AlertDialogDescription className="text-sm text-gray-600">
+Complete your checkout using PayPal by following the
+instructions below.
+</AlertDialogDescription>
+<Script
+id="paypal-sdk"
+src={`https://www.paypal.com/sdk/js?client-id=${NEXT_PUBLIC_PAYPAL_CLIENT_ID}&vault=true&intent=subscription`}
+/>
+</AlertDialogContent>
+</AlertDialog>
+</>
+)}
+</>
+);
+};

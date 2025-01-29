@@ -21,6 +21,7 @@ import { useForm } from "react-hook-form";
 import { formSchema1 } from "@/lib/validator";
 import { generateGptResponse } from "@/lib/action/ai.action";
 import Link from "next/link";
+import { createAllProducts } from "@/lib/action/plan.action";
 
 interface AibotCollapseProps {
   authorised: boolean;
@@ -215,10 +216,11 @@ export default function AibotCollapse({ authorised }: AibotCollapseProps) {
         ) : (
           // Render subscription check UI if not authorised
           <div className="flex flex-col p-4 flex-1 min-h-[50vh] z-10 overflow-y-auto no-scrollbar">
-            Unauthorized access. Please check your monthly subscription.
+            Unauthorized access. Please check your monthly subscription.If You
+            Are User Tell The Owner.
             <Link
               className="px-4 rounded text-center mt-4 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
-              href={`https://ainspire-tech.vercel.app/UserDashboard`}
+              href={`https://ainspiretech.com/UserDashboard`}
             >
               Check Subscription
             </Link>
