@@ -43,23 +43,6 @@ const Pricing = () => {
     setBillingCycle(cycle);
   };
 
-  // useEffect(() => {
-  //   const id = searchParams.get("userId");
-
-  //   if (id) {
-  //   }
-
-  //   setId(id);
-  // }, [searchParams, router]);
-
-  // if (!userId || !agentId || !subscriptionId) {
-  //   return (
-  //     <div className="flex items-center justify-center text-black text-2xl font-bold">
-  //       Loading...
-  //     </div>
-  //   );
-  // }
-
   return (
     <div className="">
       <div className="wrapper2">

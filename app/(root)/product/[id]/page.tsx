@@ -27,6 +27,7 @@ const ProductDetail = ({ params }: { params: ProductParams }) => {
     name: string;
     video: string;
     icon: string;
+    available: boolean;
     description: { bgcolor: string; heading: string; subheading: string };
   } | null>(null);
 
@@ -66,22 +67,33 @@ const ProductDetail = ({ params }: { params: ProductParams }) => {
             {product.description.subheading}
           </h4>
           <div className="flex gap-3">
-            <Button
-              size="lg"
-              color="green"
-              variant="gradient"
-              className="px-3"
-              onClick={() => router.push(`/pricing?id=${id}`)}
-            >
-              Buy Now
-            </Button>
+            {product.available ? (
+              <Button
+                size="lg"
+                color="green"
+                variant="gradient"
+                className="px-3"
+                onClick={() => router.push(`/pricing?id=${id}`)}
+              >
+                Buy Now
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                color="green"
+                variant="gradient"
+                className="px-3"
+              >
+                Coming Soon...
+              </Button>
+            )}
 
             <Button
               size="lg"
               color="blue"
               variant="gradient"
               className="px-3"
-              onClick={() => alert("Redirect to Request a Demo page!")}
+              onClick={() => router.push("/contactUs")}
             >
               Request To Setup
             </Button>

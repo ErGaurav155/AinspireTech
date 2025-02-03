@@ -17,7 +17,7 @@ export async function createRazerPaySubscription(
       userId: buyerId,
       productId,
       subscriptionId,
-      subscriptionStatus: "pending",
+      subscriptionStatus: "active",
       mode: "RazorPay",
     });
     if (!newSubscription) {
@@ -41,7 +41,7 @@ export async function createPayPalSubscription(
       userId: buyerId,
       productId,
       subscriptionId,
-      subscriptionStatus: "pending",
+      subscriptionStatus: "active",
       mode: "PayPal",
     });
     await newSubscription.save();
@@ -121,29 +121,29 @@ export async function setIsScrapped(orderCreationId: string) {
   }
 }
 
-export async function setSubsciptionActive(orderCreationId: string) {
-  try {
-    const subscriptionEndDate = new Date();
-    subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1); // One month subscription
-    await connectToDatabase();
+// export async function setSubsciptionActive(orderCreationId: string) {
+//   try {
+//     const subscriptionEndDate = new Date();
+//     subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1); // One month subscription
+//     await connectToDatabase();
 
-    const Subs = await Subscription.findOneAndUpdate(
-      { subscriptionId: orderCreationId },
-      {
-        $set: {
-          subscriptionStatus: "active",
-          subscriptionEndDate: subscriptionEndDate,
-        },
-      },
-      { new: true }
-    );
+//     const Subs = await Subscription.findOneAndUpdate(
+//       { subscriptionId: orderCreationId },
+//       {
+//         $set: {
+//           subscriptionStatus: "active",
+//           subscriptionEndDate: subscriptionEndDate,
+//         },
+//       },
+//       { new: true }
+//     );
 
-    if (!Subs) {
-      throw new Error("No matching subscription found to update.");
-    }
+//     if (!Subs) {
+//       throw new Error("No matching subscription found to update.");
+//     }
 
-    return JSON.parse(JSON.stringify(Subs));
-  } catch (error) {
-    handleError(error);
-  }
-}
+//     return JSON.parse(JSON.stringify(Subs));
+//   } catch (error) {
+//     handleError(error);
+//   }
+// }

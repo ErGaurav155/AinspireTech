@@ -20,11 +20,8 @@
       }
 
       // Find the container element
-      const container = document.getElementById(containerId);
-      if (!container) {
-        console.error(`Container with ID "${containerId}" not found.`);
-        return;
-      }
+      const container = document.createElementById(containerId);
+
       container.className =
         "z-50 fixed bottom-4 right-4 w-[90vw] sm:w-96 h-[93vh] max-h-[94vh]";
       // Create and append the iframe

@@ -1,6 +1,6 @@
+// app/api/webhooks/razerpay/subscription/route.ts
 import Razorpay from "razorpay";
 import { NextRequest, NextResponse } from "next/server";
-
 import { createRazerPaySubscription } from "@/lib/action/subscription.action";
 
 const razorpay = new Razorpay({
@@ -10,31 +10,50 @@ const razorpay = new Razorpay({
 
 export async function POST(request: NextRequest) {
   try {
-    const { razorpayplanId, buyerId, productId } = (await request.json()) as {
+    const {
+      razorpayplanId,
+      buyerId,
+      productId,
+
+      amount,
+    } = (await request.json()) as {
       razorpayplanId: string;
       buyerId: string;
       productId: string;
+
+      amount: number;
     };
-    const options = {
-      plan_id: razorpayplanId, // Use the pre-created plan ID
-      total_count: 12, // Number of billing cycles (e.g., 12 for yearly)
+
+    if (!buyerId || !productId || !razorpayplanId || !amount) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const subscription = await razorpay.subscriptions.create({
+      plan_id: razorpayplanId,
+      total_count: 12,
       customer_notify: 1 as 0 | 1,
+
       notes: {
         buyerId: buyerId,
+        productId: productId,
       },
-    };
-    const subscription = await razorpay.subscriptions.create(options);
+    });
+
     if (!subscription) {
-      throw new Error("Subscription creation Failed");
+      throw new Error("Subscription creation failed");
     }
 
     const subscriptionId = subscription.id;
 
-    await createRazerPaySubscription(buyerId, productId, subscriptionId);
-
-    return NextResponse.json({ isOk: true, subsId: subscriptionId });
+    return NextResponse.json({
+      isOk: true,
+      subsId: subscriptionId,
+    });
   } catch (error: any) {
-    console.error("Error creating subscription:", error.message);
+    console.error("Error creating subscription:", error);
     return NextResponse.json(
       { error: "Failed to create subscription", details: error.message },
       { status: 500 }

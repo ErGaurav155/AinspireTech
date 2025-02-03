@@ -176,6 +176,8 @@ export const productDetails: Record<
     name: string;
     video: string;
     icon: string;
+    available: boolean;
+
     description: { bgcolor: string; heading: string; subheading: string };
   }
 > = {
@@ -185,6 +187,7 @@ export const productDetails: Record<
     name: "Customer Support Chatbot",
     video: "/assets/congratulation.webm",
     icon: "/icons/customer-support.png",
+    available: true,
     description: {
       bgcolor: "bg-green-800",
       heading: "Simplify customer queries with advanced AI.",
@@ -197,6 +200,8 @@ export const productDetails: Record<
     name: "E-Commerce Chatbot",
     video: "/assets/congratulation.webm",
     icon: "/icons/e-commerce.png",
+    available: false,
+
     description: {
       bgcolor: "bg-red-800",
       heading: "Boost sales with intelligent e-commerce assistants.",
@@ -209,6 +214,8 @@ export const productDetails: Record<
     name: "Lead Generation Chatbot",
     video: "/assets/congratulation.webm",
     icon: "/icons/lead-generation.png",
+    available: false,
+
     description: {
       bgcolor: "bg-blue-800",
       heading: "Maximize lead capture with AI-driven chatbots.",
@@ -221,6 +228,8 @@ export const productDetails: Record<
     name: "Education Chatbot",
     video: "/assets/congratulation.webm",
     icon: "/icons/education.png",
+    available: true,
+
     description: {
       bgcolor: "bg-yellow-800",
       heading: "Enhance learning experiences with AI tutors.",
@@ -235,6 +244,8 @@ export const productDetails: Record<
     name: "Customer Support AI Agent",
     video: "/assets/congratulation.webm",
     icon: "/icons/customer-support.png",
+    available: true,
+
     description: {
       bgcolor: "bg-purple-800",
       heading: "24/7 intelligent customer service solutions.",
@@ -247,6 +258,8 @@ export const productDetails: Record<
     name: "E-Commerce AI Agent",
     video: "/assets/congratulation.webm",
     icon: "/icons/e-commerce.png",
+    available: false,
+
     description: {
       bgcolor: "bg-pink-800",
       heading: "Revolutionize online shopping with AI-powered agents.",
@@ -259,6 +272,8 @@ export const productDetails: Record<
     name: "Lead Generation AI Agent",
     video: "/assets/congratulation.webm",
     icon: "/icons/lead-generation.png",
+    available: false,
+
     description: {
       bgcolor: "bg-orange-800",
       heading: "Supercharge your sales pipeline with AI-driven agents.",
@@ -269,6 +284,8 @@ export const productDetails: Record<
     productId: "ai-agent-education", // Product ID
     name: "Education AI Agent",
     video: "/assets/congratulation.webm",
+    available: false,
+
     icon: "/icons/education.png",
     description: {
       bgcolor: "bg-teal-800",
@@ -283,6 +300,8 @@ export const productDetails: Record<
     name: "Pathology Website Template",
     video: "/assets/congratulation.webm",
     icon: "/icons/pathology.png",
+    available: false,
+
     description: {
       bgcolor: "bg-indigo-800",
       heading: "Modern solutions for medical professionals.",
@@ -295,6 +314,8 @@ export const productDetails: Record<
     name: "E-Commerce Website Template",
     video: "/assets/congratulation.webm",
     icon: "/icons/e-commerce.png",
+    available: false,
+
     description: {
       bgcolor: "bg-gray-800",
       heading: "Create stunning online stores effortlessly.",
@@ -307,6 +328,8 @@ export const productDetails: Record<
     name: "Business Website Template",
     video: "/assets/congratulation.webm",
     icon: "/icons/business.png",
+    available: false,
+
     description: {
       bgcolor: "bg-cyan-800",
       heading: "Elevate your business with a professional online presence.",
@@ -318,6 +341,8 @@ export const productDetails: Record<
     name: "SaaS Website Template",
     video: "/assets/congratulation.webm",
     icon: "/icons/saas.png",
+    available: false,
+
     description: {
       bgcolor: "bg-lime-800",
       heading: "Launch your SaaS product with style.",
@@ -450,7 +475,7 @@ export const productSubscriptionDetails: Record<
     name: "Customer Support AI Agent",
     video: "/assets/congratulation.webm",
     icon: "Bot",
-    price: 1999,
+    price: 1200,
     original: 2499,
     credits: 1000,
     tier: "Enterprise",

@@ -1,15 +1,18 @@
 "use client";
 import Script from "next/script";
-import React, { useEffect } from "react";
-import { toast } from "@/components/ui/use-toast"; // Assuming you have a toast utility
+import React, { useEffect, useRef } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { createTransaction } from "@/lib/action/transaction.action";
+import { createRazerPaySubscription } from "@/lib/action/subscription.action";
+
 interface CheckoutProps {
   amount: number;
   razorpayplanId: string;
   buyerId: string;
   productId: string;
 }
+
 const RazerPay = ({
   amount,
   razorpayplanId,
@@ -17,6 +20,8 @@ const RazerPay = ({
   productId,
 }: CheckoutProps) => {
   const router = useRouter();
+  const hasRun = useRef(false); // ✅ Track if runCheckout has executed
+
   const runCheckout = async () => {
     toast({
       title: "For International Users Use Paypal",
@@ -28,18 +33,24 @@ const RazerPay = ({
     try {
       const response = await fetch("/api/webhooks/razerpay/subscription", {
         method: "POST",
-        body: JSON.stringify({ razorpayplanId, buyerId, productId }),
+        body: JSON.stringify({
+          razorpayplanId,
+          buyerId,
+          productId,
+          amount,
+        }),
         headers: { "Content-Type": "application/json" },
       });
 
       const subscriptionCreate = await response.json();
+
       if (!subscriptionCreate.isOk) {
         throw new Error("Purchase Order is not created");
       }
 
       const paymentOptions = {
         key_id: process.env.RAZORPAY_KEY_ID!,
-        amount: amount * 100,
+        amount: amount * 100, // Amount in paise
         currency: "INR",
         name: "GK Services",
         description: "Thanks For Taking Our Services",
@@ -49,18 +60,21 @@ const RazerPay = ({
           buyerId: buyerId,
           amount: amount,
         },
-        method: "upi", // Enable UPI as the default payment method
+        method: {
+          upi: true,
+          card: true,
+          netbanking: true,
+        },
         upi: {
-          recurring: "true", // Enables UPI AutoPay
+          recurring: true,
         },
         handler: async function (response: any) {
           const data = {
-            orderCreationId: subscriptionCreate.subsId,
-            razorpayPaymentId: response.razorpay_payment_id,
-            razorpayOrderId: response.razorpay_order_id,
-            razorpaySignature: response.razorpay_signature,
+            razorpay_order_id: subscriptionCreate.subsId,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
           };
-
+          console.log("data", data);
           const result = await fetch("/api/webhooks/razerpay/verify", {
             method: "POST",
             body: JSON.stringify(data),
@@ -69,21 +83,28 @@ const RazerPay = ({
 
           const res = await result.json();
 
-          if (res.isOk) {
+          if (res.success) {
             toast({
               title: "Payment Successful!",
-              description: "Code are added to your Dashoboard",
+              description: "Code added to your Dashboard",
               duration: 3000,
               className: "success-toast",
             });
-            const transaction1 = {
+
+            await createRazerPaySubscription(
+              buyerId,
+              productId,
+              subscriptionCreate.subsId
+            );
+
+            await createTransaction({
               customerId: subscriptionCreate.subsId,
-              amount: amount,
+              amount,
               plan: razorpayplanId,
-              buyerId: buyerId,
+              buyerId,
               createdAt: new Date(),
-            };
-            await createTransaction(transaction1);
+            });
+
             router.push(
               `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
             );
@@ -96,9 +117,7 @@ const RazerPay = ({
             });
           }
         },
-        theme: {
-          color: "#3399cc",
-        },
+        theme: { color: "#3399cc" },
       };
 
       const paymentObject = new (window as any).Razorpay(paymentOptions);
@@ -124,17 +143,18 @@ const RazerPay = ({
   };
 
   useEffect(() => {
-    console.log(razorpayplanId);
-    runCheckout();
+    if (!hasRun.current) {
+      hasRun.current = true; // ✅ Mark as executed
+      runCheckout(); // ✅ Runs only once
+    }
   });
+
   return (
     <div>
-      <div>
-        <Script
-          id="razorpay-checkout-js"
-          src="https://checkout.razorpay.com/v1/checkout.js"
-        />
-      </div>
+      <Script
+        id="razorpay-checkout-js"
+        src="https://checkout.razorpay.com/v1/checkout.js"
+      />
     </div>
   );
 };

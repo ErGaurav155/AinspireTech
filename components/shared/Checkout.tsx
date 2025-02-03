@@ -79,6 +79,7 @@ export const Checkout = ({
           router.push("/sign-in");
           throw new Error("User not found");
         }
+
         buyerIdRef.current = buyer._id;
       } catch (error) {
         console.error("Error fetching user info:", error);
@@ -139,7 +140,7 @@ export const Checkout = ({
         razorpayplanId.current &&
         paypalplanId.current &&
         buyerIdRef.current &&
-        (locationRef.current === "india" ? (
+        (locationRef.current !== "india" ? (
           <RazerPay
             amount={amount}
             razorpayplanId={razorpayplanId.current ?? ""}
@@ -169,7 +170,6 @@ export const Checkout = ({
               <CartPay
                 paypalplanId={paypalplanId.current ?? ""}
                 buyerId={buyerIdRef.current ?? ""}
-                amount={amount}
                 productId={productId}
               />
             </AlertDialogContent>

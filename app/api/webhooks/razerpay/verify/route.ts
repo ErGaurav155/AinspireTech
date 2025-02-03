@@ -1,40 +1,56 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { connectToDatabase } from "@/lib/database/mongoose";
-import Subscription from "@/lib/database/models/subscription.model";
-import { setSubsciptionActive } from "@/lib/action/subscription.action";
 
-const generatedSignature = (
-  razorpayOrderId: string,
-  razorpayPaymentId: string
-) => {
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-  if (!keySecret) {
-    throw new Error(
-      "Razorpay key secret is not defined in environment variables."
-    );
-  }
-  const sig = crypto
-    .createHmac("sha256", keySecret)
-    .update(razorpayOrderId + "|" + razorpayPaymentId)
-    .digest("hex");
-  return sig;
-};
+export interface VerifyBody {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
 
 export async function POST(request: NextRequest) {
-  const { orderCreationId, razorpayPaymentId, razorpaySignature } =
-    await request.json();
+  try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    }: VerifyBody = await request.json();
 
-  const signature = generatedSignature(orderCreationId, razorpayPaymentId);
-  if (signature !== razorpaySignature) {
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return NextResponse.json(
+        { error: "Missing required parameters", success: false },
+        { status: 400 }
+      );
+    }
+
+    const secret = process.env.RAZORPAY_KEY_SECRET as string;
+    if (!secret) {
+      return NextResponse.json(
+        { error: "Razorpay secret not found" },
+        { status: 400 }
+      );
+    }
+
+    const HMAC = crypto.createHmac("sha256", secret);
+    HMAC.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+    const generatedSignature = HMAC.digest("hex");
+    console.log("generatedSignature", generatedSignature);
+    console.log("razorpay_signature", razorpay_signature);
+
+    if (generatedSignature === razorpay_signature) {
+      return NextResponse.json({
+        message: "Payment verified successfully",
+        success: true,
+      });
+    } else {
+      return NextResponse.json(
+        { error: "Invalid signature", success: false },
+        { status: 400 }
+      );
+    }
+  } catch (error) {
     return NextResponse.json(
-      { message: "payment verification failed", isOk: false },
-      { status: 400 }
+      { error: "An error occurred", success: false },
+      { status: 500 }
     );
   }
-  const isActive = await setSubsciptionActive(orderCreationId);
-  return NextResponse.json(
-    { message: "payment verified successfully", isOk: true },
-    { status: 200 }
-  );
 }

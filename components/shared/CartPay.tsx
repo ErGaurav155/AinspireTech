@@ -1,30 +1,22 @@
 "use client";
-import React, { useState } from "react";
-
+import React from "react";
 import {
   PayPalButtons,
   PayPalButtonsComponentProps,
   PayPalScriptProvider,
   ReactPayPalScriptOptions,
 } from "@paypal/react-paypal-js";
-import {
-  createPayPalSubscription,
-  setSubsciptionActive,
-} from "@/lib/action/subscription.action";
+import { createPayPalSubscription } from "@/lib/action/subscription.action";
+
 interface CartPayProps {
   paypalplanId: string;
   productId: string;
-  amount: number;
   buyerId: string;
 }
+
 const NEXT_PUBLIC_PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 
-const CartPay = ({
-  paypalplanId,
-  productId,
-
-  buyerId,
-}: CartPayProps) => {
+const CartPay = ({ paypalplanId, productId, buyerId }: CartPayProps) => {
   const initialOptions: ReactPayPalScriptOptions = {
     clientId: NEXT_PUBLIC_PAYPAL_CLIENT_ID,
     vault: true,
@@ -33,33 +25,38 @@ const CartPay = ({
 
   const createSubscription: PayPalButtonsComponentProps["createSubscription"] =
     async (data, actions) => {
-      const createSubscription = await actions.subscription.create({
+      const subscription = await actions.subscription.create({
         plan_id: paypalplanId,
         custom_id: buyerId,
       });
-      if (!createSubscription) {
-        throw new Error("Subscription Creation Failed");
-      }
-      const subscriptionId = createSubscription;
-      await createPayPalSubscription(buyerId, productId, subscriptionId);
-      return createSubscription;
+
+      return subscription;
     };
 
   const onApprove: PayPalButtonsComponentProps["onApprove"] = async (data) => {
-    if (!data.subscriptionID) {
+    try {
+      if (!data.subscriptionID) {
+        throw new Error("Subscription ID not found");
+      }
+
+      await createPayPalSubscription(buyerId, productId, data.subscriptionID);
+
+      window.location.assign("/UserDashboard");
+    } catch (error) {
+      console.error("Error approving subscription:", error);
       window.location.assign("/");
-      return;
     }
-    await setSubsciptionActive(data.subscriptionID);
-    window.location.assign("/UserDashboard");
   };
-  const onCancel: PayPalButtonsComponentProps["onCancel"] = (data) => {
+
+  const onCancel: PayPalButtonsComponentProps["onCancel"] = () => {
     window.location.assign("/");
   };
+
   const onError: PayPalButtonsComponentProps["onError"] = (err) => {
+    console.error("PayPal error:", err);
     window.location.assign("/");
   };
-  console.log(paypalplanId);
+
   return (
     <PayPalScriptProvider options={initialOptions}>
       <PayPalButtons
