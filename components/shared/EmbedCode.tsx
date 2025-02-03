@@ -6,11 +6,8 @@ interface EmbedCodeProps {
 }
 
 const EmbedCode: React.FC<EmbedCodeProps> = ({ userId, agentId }) => {
-  const embedCode = ` <div
-        className="z-50 fixed bottom-4 right-4 w-[90vw] sm:w-96 h-[93vh] max-h-[94vh]"
-        id="chatbot-widget-containe"
-      ></div>
-<script src="https://ainspiretech.com/widget-loader.js?userId=${userId}&agentId=${agentId}" ></script>`;
+  const embedCode = ` <div id="chatbot-widget-containe" ></div>
+<script strategy="afterInteractive" src="https://ainspiretech.com/widget-loader.js?userId=${userId}&agentId=${agentId}" ></script>`;
 
   return (
     <div>
