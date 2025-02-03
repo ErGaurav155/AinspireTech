@@ -6,7 +6,7 @@ interface EmbedCodeProps {
 }
 
 const EmbedCode: React.FC<EmbedCodeProps> = ({ userId, agentId }) => {
-  const embedCode = `      
+  const embedCode = ` 
 <script src="https://ainspiretech.com/widget-loader.js?userId=${userId}&agentId=${agentId}" ></script>`;
 
   return (
