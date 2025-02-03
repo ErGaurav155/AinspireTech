@@ -33,10 +33,7 @@
       container.style.maxWidth = "400px";
       container.style.height = "93vh";
       container.style.maxHeight = "94vh";
-      container.style.border = "1px solid #ccc";
-      container.style.borderRadius = "10px";
-      container.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
-      container.style.backgroundColor = "#fff";
+
       container.style.overflow = "hidden";
       container.style.zIndex = "9999"; // Ensures it appears above other elements
       // Create and append the iframe
