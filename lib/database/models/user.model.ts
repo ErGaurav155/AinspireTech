@@ -17,6 +17,9 @@ const UserSchema = new Schema({
   websiteUrl: {
     type: String,
   },
+  scrappedFile: {
+    type: String,
+  },
   isScrapped: {
     type: Boolean,
     default: false,

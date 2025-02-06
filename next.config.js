@@ -1,14 +1,13 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  images: {
-    remotePatterns: [
+module.exports = {
+  async headers() {
+    return [
       {
-        protocol: "https",
-        hostname: "oaidalleapiprodscus.blob.core.windows.net",
-        port: "",
+        source: "/api/scrape-anu",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET" },
+        ],
       },
-    ],
+    ];
   },
 };
-
-module.exports = nextConfig;

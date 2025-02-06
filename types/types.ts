@@ -25,3 +25,17 @@ export interface UpdateUserParams {
   username: string | null;
   photo: string;
 }
+// types/scrape.d.ts
+export interface ANUScrapedData {
+  url: string;
+  title: string;
+  content: string;
+  lastModified?: string;
+  links: string[];
+}
+
+export interface ScrapeResponse {
+  data: ANUScrapedData[];
+  error?: string;
+  message?: string;
+}

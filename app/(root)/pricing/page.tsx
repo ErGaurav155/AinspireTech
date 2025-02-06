@@ -1,10 +1,8 @@
 "use client";
 
 import { Footer } from "@/components/shared/Footer";
-
-import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { productSubscriptionDetails } from "@/constant";
-
 import Link from "next/link";
 import {
   HeadsetIcon,
@@ -15,9 +13,13 @@ import {
   Building2Icon,
   Bot,
 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import { Checkout } from "@/components/shared/Checkout";
+import { getSubscriptionInfo } from "@/lib/action/subscription.action";
+import { getUserById } from "@/lib/action/user.actions";
+import { Button } from "@material-tailwind/react";
+
 const iconMapping: Record<string, any> = {
   HeadsetIcon: HeadsetIcon,
   AmbulanceIcon: AmbulanceIcon,
@@ -27,11 +29,19 @@ const iconMapping: Record<string, any> = {
   ShoppingCartIcon: ShoppingCartIcon,
   Building2Icon: Building2Icon,
 };
-// export const metadata: Metadata = {
-//   title: "privacy-policy",
-//   description: "Create Website,ai agent,chatbots in best quality",
-// };
+
+interface Subscription {
+  productId: string;
+  userId: string;
+  subscriptionStatus: string;
+}
+
 const Pricing = () => {
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [login, setLogin] = useState(true);
+  const router = useRouter();
+  const { userId } = useAuth();
   const searchParams = useSearchParams();
   const activeProductId = searchParams.get("id");
 
@@ -39,12 +49,45 @@ const Pricing = () => {
     "monthly"
   );
 
+  useEffect(() => {
+    async function fetchSubscriptions() {
+      if (!userId) {
+        setLogin(false);
+      } else {
+        try {
+          const user = await getUserById(userId);
+          const response = await getSubscriptionInfo(user._id);
+
+          const filteredSubscriptions = response.map((sub: any) => ({
+            productId: sub.productId,
+            userId: sub.userId,
+            subscriptionStatus: sub.subscriptionStatus,
+          }));
+
+          setSubscriptions(filteredSubscriptions || []);
+        } catch (error: any) {
+          console.error("Error fetching subscriptions:", error.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchSubscriptions();
+  }, [userId]);
+
   const toggleBillingCycle = (cycle: "monthly" | "yearly") => {
     setBillingCycle(cycle);
   };
-
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center text-white font-bold text-xl">
+        Loading...
+      </div>
+    );
+  }
   return (
-    <div className="">
+    <div>
       <div className="wrapper2">
         <div className="py-10">
           <div className="text-center my-8 px-4">
@@ -75,6 +118,7 @@ const Pricing = () => {
               .
             </p>
           </div>
+
           {/* Billing cycle toggle */}
           <div className="flex justify-center mb-8">
             <div className="flex bg-gray-200 p-2 rounded-lg">
@@ -110,6 +154,14 @@ const Pricing = () => {
               const displayedPrice =
                 billingCycle === "monthly" ? monthlyPrice : yearlyPrice;
               const productId = product.productId;
+
+              // Check if user has an active subscription for this product
+              const isSubscribed = subscriptions.some(
+                (sub) =>
+                  sub.productId === productId &&
+                  sub.subscriptionStatus === "active"
+              );
+
               return (
                 <div
                   key={product.productId}
@@ -117,7 +169,7 @@ const Pricing = () => {
                     product.productId === activeProductId
                       ? " bg-gray-800 border border-green-600 "
                       : "bg-gray-900 "
-                  } rounded-2xl shadow-lg text-center flex flex-col items-center justify-between gap-6`}
+                  } rounded-2xl shadow-lg text-center flex flex-col items-center justify-between gap-6 transition-transform duration-300 hover:scale-105`}
                 >
                   <div className="flex flex-col items-center">
                     {Icon && (
@@ -162,17 +214,30 @@ const Pricing = () => {
                       </li>
                     ))}
                   </ul>
-                  <SignedOut>
-                    <Link href={"/sigh-in"} className="credits-btn">
-                      Login
-                    </Link>
-                  </SignedOut>
+
+                  {!login && (
+                    <SignedOut>
+                      <Button
+                        onClick={() => router.push("/sign-in")}
+                        className="w-full rounded-md text-base text-white bg-cover bg-green-700"
+                      >
+                        Login
+                      </Button>
+                    </SignedOut>
+                  )}
+
                   <SignedIn>
-                    <Checkout
-                      productId={productId}
-                      billingCycle={billingCycle}
-                      amount={displayedPrice}
-                    />
+                    {isSubscribed ? (
+                      <Button className="w-full rounded-md text-base text-white bg-cover bg-green-700">
+                        Subscribed
+                      </Button>
+                    ) : (
+                      <Checkout
+                        productId={productId}
+                        billingCycle={billingCycle}
+                        amount={displayedPrice}
+                      />
+                    )}
                   </SignedIn>
                 </div>
               );

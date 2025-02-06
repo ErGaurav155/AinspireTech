@@ -32,7 +32,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <NavBar />
 
         {children}
-        <AibotCollapse authorised={true} />
+        <AibotCollapse userId={null} authorised={true} />
         <Toaster />
       </MotionDiv>
     </main>

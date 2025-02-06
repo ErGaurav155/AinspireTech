@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Collapse, Button } from "@material-tailwind/react";
 import {
   ArrowPathIcon,
@@ -22,18 +22,24 @@ import { formSchema1 } from "@/lib/validator";
 import { generateGptResponse } from "@/lib/action/ai.action";
 import Link from "next/link";
 import { createAllProducts } from "@/lib/action/plan.action";
+import { getUserByDbId } from "@/lib/action/user.actions";
 
 interface AibotCollapseProps {
   authorised: boolean;
+  userId: string | null;
 }
 
-export default function AibotCollapse({ authorised }: AibotCollapseProps) {
+export default function AibotCollapse({
+  authorised,
+  userId,
+}: AibotCollapseProps) {
   const [open, setOpen] = useState(false);
 
   const [messages, setMessages] = useState([
     { sender: "AI Bot", text: "Hello! How can I help you?" },
   ]);
   const [submit, setSubmit] = useState(false);
+  const [userfileName, setUserFileName] = useState("");
 
   const toggleOpen = () => setOpen((cur) => !cur);
 
@@ -59,6 +65,7 @@ export default function AibotCollapse({ authorised }: AibotCollapseProps) {
     try {
       const response = await generateGptResponse({
         userInput: message,
+        userfileName: userfileName,
       });
 
       if (response) {
@@ -87,6 +94,25 @@ export default function AibotCollapse({ authorised }: AibotCollapseProps) {
   const restartChat = () => {
     setMessages([{ sender: "AI Bot", text: "Hello! How can I help you?" }]);
   };
+  useEffect(() => {
+    const getFileName = async () => {
+      try {
+        if (!userId) {
+          authorised === false;
+          return;
+        }
+        const user = await getUserByDbId(userId);
+
+        if (user) {
+          setUserFileName(user.fileName);
+        }
+      } catch (error) {
+        console.error("Error fetching file name:", error);
+      }
+    };
+
+    getFileName();
+  }, [userId, authorised]); // Add userId as a dependency
 
   return (
     <div className="h-auto w-auto flex flex-col ">

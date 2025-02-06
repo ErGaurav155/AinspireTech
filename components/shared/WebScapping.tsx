@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   getUserByDbId,
+  setScrappedFile,
   setWebsiteScrapped,
   updateUserByDbId,
 } from "@/lib/action/user.actions";
@@ -36,14 +37,13 @@ type FormData = z.infer<typeof formSchema>;
 export const WebScapping = ({
   userId,
   agentId,
-  subscriptionId,
 }: {
   userId: string;
   agentId: string;
-  subscriptionId: string;
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const router = useRouter();
@@ -66,23 +66,38 @@ export const WebScapping = ({
       }
 
       const user = await getUserByDbId(userId);
+      const mainUrl = user.websiteUrl;
+
       if (user.isScrapped) {
         router.push("/");
         return;
       }
-
-      await sendSubscriptionEmailToOwner({
-        email: "gauravgkhaire155@gmail.com",
-        userDbId: user._id,
-        subscriptionId: subscriptionId,
+      const response = await fetch("/api/scrape-anu", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mainUrl }),
       });
 
-      await sendSubscriptionEmailToUser({
-        email: user.email,
-        userDbId: user._id,
-        agentId: agentId,
-        subscriptionId: subscriptionId,
-      });
+      const data = await response.json();
+      if (data.success) {
+        await setScrappedFile(userId, data.fileName);
+      } else {
+        console.error("Error:", data.message);
+      }
+      // await sendSubscriptionEmailToOwner({
+      //   email: "gauravgkhaire155@gmail.com",
+      //   userDbId: user._id,
+      //   subscriptionId: subscriptionId,
+      // });
+
+      // await sendSubscriptionEmailToUser({
+      //   email: user.email,
+      //   userDbId: user._id,
+      //   agentId: agentId,
+      //   subscriptionId: subscriptionId,
+      // });
 
       await setWebsiteScrapped(userId);
       router.push("/UserDashboard");

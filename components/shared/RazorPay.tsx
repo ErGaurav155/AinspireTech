@@ -104,10 +104,16 @@ const RazerPay = ({
               buyerId,
               createdAt: new Date(),
             });
-
-            router.push(
-              `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
-            );
+            if (
+              productId === "chatbot-customer-support" ||
+              "chatbot-education"
+            ) {
+              router.push(
+                `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
+              );
+            } else {
+              router.push("/UserDashboard");
+            }
           } else {
             toast({
               title: "Order canceled!",

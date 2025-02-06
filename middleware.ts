@@ -5,6 +5,7 @@ export default authMiddleware({
     "/",
     "/ChatBots",
     "/Aboutus",
+    "/pricing",
     "/contactUs",
     "/OurService",
     "/Review",

@@ -2,6 +2,7 @@
 
 import OpenAI from "openai";
 import { scrapedData } from "@/constant";
+import fs from "fs";
 
 const openai = setupOpenAI();
 function setupOpenAI() {
@@ -13,26 +14,17 @@ function setupOpenAI() {
 
 export const generateGptResponse = async ({
   userInput,
+  userfileName,
 }: {
   userInput: string;
+  userfileName: string;
 }) => {
   if (openai instanceof Error) {
     throw openai;
   }
 
   // Extract the relevant website content (you may customize this)
-  const context = scrapedData
-    .map((page: any) => {
-      return `
-      Website Page URL: ${page.url}
-      Title: ${page.title}
-      Description: ${page.description || "No description"}
-      Headings: ${page.headings.join(", ")}
-      Content Summary: ${page.content.slice(0, 500)}...
-    `;
-    })
-    .join("\n\n");
-
+  const context = fs.readFileSync(userfileName, "utf-8");
   const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
