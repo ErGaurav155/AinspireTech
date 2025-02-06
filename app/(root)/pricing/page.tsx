@@ -53,6 +53,7 @@ const Pricing = () => {
     async function fetchSubscriptions() {
       if (!userId) {
         setLogin(false);
+        setLoading(false);
       } else {
         try {
           const user = await getUserById(userId);
