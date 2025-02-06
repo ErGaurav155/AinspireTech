@@ -9,10 +9,6 @@ const client = new ApifyClient({
   token: process.env.APIFY_API_TOKEN!,
 });
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
-
 export async function POST(req: NextRequest, res: NextResponse) {
   try {
     const { mainUrl } = await req.json();
@@ -34,6 +30,48 @@ export async function POST(req: NextRequest, res: NextResponse) {
         useApifyProxy: true,
         apifyProxyGroups: ["RESIDENTIAL"], // Optional
       },
+
+      useSitemaps: true,
+      crawlerType: "playwright:adaptive",
+      includeUrlGlobs: [],
+      excludeUrlGlobs: [],
+      keepUrlFragments: false,
+
+      initialConcurrency: 0,
+      maxConcurrency: 200,
+      initialCookies: [],
+
+      maxSessionRotations: 10,
+      maxRequestRetries: 5,
+      requestTimeoutSecs: 60,
+      minFileDownloadSpeedKBps: 128,
+      dynamicContentWaitSecs: 10,
+      waitForSelector: "",
+      maxScrollHeightPixels: 5000,
+      keepElementsCssSelector: "",
+      removeElementsCssSelector: `nav, footer, script, style, noscript, svg, img[src^='data:'],
+        [role="alert"],
+        [role="banner"],
+        [role="dialog"],
+        [role="alertdialog"],
+        [role="region"][aria-label*="skip" i],
+        [aria-modal="true"]`,
+      removeCookieWarnings: true,
+      expandIframes: true,
+      clickElementsCssSelector: '[aria-expanded="false"]',
+      htmlTransformer: "readableText",
+      readableTextCharThreshold: 100,
+      aggressivePrune: false,
+      debugMode: false,
+      debugLog: false,
+      saveHtml: false,
+      saveHtmlAsFile: false,
+      saveMarkdown: true,
+      saveFiles: false,
+      saveScreenshots: false,
+      maxResults: 9999999,
+      clientSideMinChangePercentage: 15,
+      renderingTypeDetectionPercentage: 10,
     };
 
     // Start and wait for scraping to complete
@@ -51,14 +89,13 @@ export async function POST(req: NextRequest, res: NextResponse) {
     }
 
     // Call OpenAI to clean and structure the scraped data
-    const cleanedData = await refineContentWithOpenAI(items);
 
     // Define file path
     const filePath = path.join(process.cwd(), "public/data", `${domain}.json`);
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
     // Save the improved data
-    fs.writeFileSync(filePath, JSON.stringify(cleanedData, null, 2));
+    fs.writeFileSync(filePath, JSON.stringify(items, null, 2));
 
     return NextResponse.json(
       { success: true, fileName: `${domain}.json` },
@@ -70,39 +107,5 @@ export async function POST(req: NextRequest, res: NextResponse) {
       { success: false, message: error.message },
       { status: 500 }
     );
-  }
-}
-
-// Function to clean and structure scraped data using OpenAI
-async function refineContentWithOpenAI(data: any[]) {
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an AI that restructures and enhances raw website data. Remove duplicates, improve clarity, and structure the information professionally. Aim to provide as much content as possible while ensuring that there is no repeated or redundant information.",
-        },
-        {
-          role: "user",
-          content: `Here is some raw scraped website data: ${JSON.stringify(
-            data
-          )}. Clean it up, remove repeated content, and return a structured summary. Ensure the response is as detailed and long as possible while avoiding unnecessary repetition.`,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 4096, // Maximizing the token count for maximum output
-    });
-
-    const refinedContent = response.choices[0]?.message?.content;
-    if (!refinedContent) {
-      return "No refined data returned.";
-    }
-
-    return refinedContent;
-  } catch (error) {
-    console.error("OpenAI API error:", error);
-    return "Error in refining content.";
   }
 }

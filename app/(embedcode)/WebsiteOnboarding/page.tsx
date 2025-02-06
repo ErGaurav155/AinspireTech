@@ -10,21 +10,25 @@ const WebsiteOnboard = () => {
 
   const [userId, setUserId] = useState<string | null>(null);
   const [agentId, setAgentId] = useState<string | null>(null);
+  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
 
   useEffect(() => {
     const userId = searchParams.get("userId");
     const agentId = searchParams.get("agentId");
+    const subscriptionId = searchParams.get("subscriptionId");
+
     console.log(userId, agentId);
-    if (!userId || !agentId) {
+    if (!userId || !agentId || !subscriptionId) {
       router.push("/");
       return;
     }
 
     setUserId(userId);
     setAgentId(agentId);
+    setSubscriptionId(subscriptionId);
   }, [searchParams, router]);
 
-  if (!userId || !agentId) {
+  if (!userId || !agentId || !subscriptionId) {
     return (
       <div className="flex items-center justify-center text-black text-2xl font-bold">
         Loading...
@@ -34,7 +38,11 @@ const WebsiteOnboard = () => {
 
   return (
     <div>
-      <WebScapping userId={userId} agentId={agentId} />
+      <WebScapping
+        subscriptionId={subscriptionId}
+        userId={userId}
+        agentId={agentId}
+      />
     </div>
   );
 };

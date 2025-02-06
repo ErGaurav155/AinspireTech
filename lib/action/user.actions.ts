@@ -76,7 +76,7 @@ export async function setWebsiteScrapped(userId: string) {
 
     const user = await User.findOneAndUpdate(
       { _id: userId },
-      { $set: { isScapped: true } },
+      { $set: { isScrapped: true } },
       { new: true }
     );
 
@@ -88,6 +88,7 @@ export async function setWebsiteScrapped(userId: string) {
   } catch (error) {
     handleError(error);
   }
+  revalidateTag("users");
 }
 export async function setScrappedFile(userId: string, fileName: string) {
   try {

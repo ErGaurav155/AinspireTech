@@ -37,9 +37,11 @@ type FormData = z.infer<typeof formSchema>;
 export const WebScapping = ({
   userId,
   agentId,
+  subscriptionId,
 }: {
   userId: string;
   agentId: string;
+  subscriptionId: string;
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -86,18 +88,18 @@ export const WebScapping = ({
       } else {
         console.error("Error:", data.message);
       }
-      // await sendSubscriptionEmailToOwner({
-      //   email: "gauravgkhaire155@gmail.com",
-      //   userDbId: user._id,
-      //   subscriptionId: subscriptionId,
-      // });
+      await sendSubscriptionEmailToOwner({
+        email: "gauravgkhaire155@gmail.com",
+        userDbId: user._id,
+        subscriptionId: subscriptionId,
+      });
 
-      // await sendSubscriptionEmailToUser({
-      //   email: user.email,
-      //   userDbId: user._id,
-      //   agentId: agentId,
-      //   subscriptionId: subscriptionId,
-      // });
+      await sendSubscriptionEmailToUser({
+        email: user.email,
+        userDbId: user._id,
+        agentId: agentId,
+        subscriptionId: subscriptionId,
+      });
 
       await setWebsiteScrapped(userId);
       router.push("/UserDashboard");
@@ -217,11 +219,12 @@ export const WebScapping = ({
                 </div>
 
                 <AlertDialogTitle className="p-24-bold text-green-600">
-                  Your Website is being Scrapped...Might Take 24 Hours.
+                  Your Website is being Scrapped...Might Take Few Minutes.
                 </AlertDialogTitle>
 
                 <AlertDialogDescription className="p-16-regular py-3 text-green-500">
-                  Go To UserDashoboard.Copy Green Box URL Add To Your Website.
+                  PLz Do Not Close.When Redirected To UserDashboard Copy Green
+                  Box URL Add To Your Website.
                 </AlertDialogDescription>
               </AlertDialogHeader>
             </AlertDialogContent>
