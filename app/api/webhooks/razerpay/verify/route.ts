@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
 export interface VerifyBody {
-  razorpay_order_id: string;
+  subscription_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
 }
@@ -10,18 +10,18 @@ export interface VerifyBody {
 export async function POST(request: NextRequest) {
   try {
     const {
-      razorpay_order_id,
+      subscription_id,
       razorpay_payment_id,
       razorpay_signature,
     }: VerifyBody = await request.json();
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    if (!subscription_id || !razorpay_payment_id || !razorpay_signature) {
       return NextResponse.json(
         { error: "Missing required parameters", success: false },
         { status: 400 }
       );
     }
-    console.log("razorpay_order_id", razorpay_order_id);
+    console.log("razorpay_order_id", subscription_id);
     console.log("razorpay_payment_id", razorpay_payment_id);
     console.log("razorpay_signature", razorpay_signature);
 
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
     const HMAC = crypto.createHmac("sha256", secret);
     console.log("Secret Key:", secret);
 
-    HMAC.update(`${razorpay_order_id}|${razorpay_payment_id}`, "utf8");
-    const data = `${razorpay_order_id}|${razorpay_payment_id}`;
+    HMAC.update(`${subscription_id}|${razorpay_payment_id}`, "utf8");
+    const data = `${subscription_id}|${razorpay_payment_id}`;
     console.log("Data to hash:", data);
     const generatedSignature = HMAC.digest("hex");
     console.log("generatedSignature", generatedSignature);

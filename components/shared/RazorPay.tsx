@@ -70,7 +70,7 @@ const RazerPay = ({
         },
         handler: async function (response: any) {
           const data = {
-            razorpay_order_id: response.razorpay_subscription_id,
+            subscription_id: subscriptionCreate.subsId,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
           };

@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Metadata } from "next";
 
 import { MotionDiv } from "@/components/shared/Motion";
-import AibotCollapse from "@/components/shared/AiBot";
+import AIChatBot from "@/components/shared/ChatBot";
 const stagger = 0.25;
 
 const variants = {
@@ -32,7 +32,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <NavBar />
 
         {children}
-        <AibotCollapse userId={null} authorised={true} />
+        <AIChatBot />
         <Toaster />
       </MotionDiv>
     </main>
