@@ -28,9 +28,9 @@ export const HeroSlider = () => {
             <div className="p-2 border border-opacity-10 border-[#55edab] shadow-inner shadow-[#88e2bb]  rounded-full">
               <button
                 className="p-1   md:py-2 md:px-6   text-center font-medium transition bg-[#88e2bb] text-black rounded-full ring-2   ring-[#88e2bb] hover:ring-[#88e2bb]    shadow-lg shadow-[#88e2bb]-500/50 "
-                onClick={() => router.push("/contactUs")}
+                onClick={() => router.push("/product")}
               >
-                Lets Talk
+                Our Products
               </button>
             </div>
           </div>
@@ -155,7 +155,7 @@ export const HeroSlider = () => {
         </div>
       </div>
       <div className="w-full md:w-1/2  relative">
-        <div className="absolute top-0 left-0 w-full h-full shadow-left-right-blur  rounded-md z-10"></div>
+        <div className="absolute top-0 left-0 w-full h-full shadow-left-right-blur  rounded-md z-5"></div>
 
         <OurClient />
         <OurClient2 />

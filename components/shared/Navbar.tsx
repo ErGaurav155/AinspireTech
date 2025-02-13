@@ -52,7 +52,7 @@ export function NavBar() {
     isOwner();
   }, [router, userId]);
   const navList = (
-    <ul className="mb-4 mt-2 flex flex-col gap-1 sm:mb-2 sm:mt-2 lg:mb-0  lg:mt-0 sm:flex-row items-center justify-center sm:gap-1 md:gap-2 lg:gap-6 border shadow-inner-glow rounded-md  text-white w-full ">
+    <ul className="mb-4 mt-2 flex flex-col gap-1 sm:mb-2 sm:mt-2 lg:mb-0  lg:mt-0 md:flex-row items-center justify-center sm:gap-1 md:gap-2 lg:gap-6 border shadow-inner-glow rounded-md  text-white w-full ">
       <li className="flex-auto p-[1px]">
         <a
           href="/"
@@ -68,6 +68,14 @@ export function NavBar() {
           className="    flex   hover:text-black hover:bg-gray-300 active:text-black active:bg-white  font-thin  text-md md:font-light md:text-lg p-1 justify-center w-full  rounded-md"
         >
           Services
+        </a>
+      </li>
+      <li className="flex-auto  p-[1px]">
+        <a
+          href="/product"
+          className="    flex   hover:text-black hover:bg-gray-300 active:text-black active:bg-white  font-thin  text-md md:font-light md:text-lg p-1 justify-center w-full  rounded-md"
+        >
+          Products
         </a>
       </li>
       <li className="flex-auto  p-[1px]">
@@ -98,7 +106,7 @@ export function NavBar() {
       <div className="flex items-center w-full justify-between text-white">
         <Link
           href="/"
-          className="w-1/2   sm:w-1/6  cursor-pointer py-1.5 font-bold text-xl"
+          className="w-1/2   md:w-1/6  cursor-pointer py-1.5 font-bold text-xl"
         >
           <Image
             alt="image"
@@ -109,8 +117,8 @@ export function NavBar() {
             priority
           />
         </Link>
-        <div className="hidden sm:flex   w-1/2  sm:w-5/6  items-center gap-3 justify-end ">
-          <div className="  w-8/12  lg:w-6/12">{navList}</div>
+        <div className="hidden md:flex   w-1/2  md:w-5/6  items-center gap-3 justify-end ">
+          <div className="  w-9/12  lg:w-8/12">{navList}</div>
 
           <SignedIn>
             {isOwn ? (
@@ -136,7 +144,9 @@ export function NavBar() {
                 Dashboard
               </Button>
             )}
-            <UserButton afterSignOutUrl="/" />
+            <div className="">
+              <UserButton afterSignOutUrl="/" />
+            </div>
           </SignedIn>
           <SignedOut>
             <Button
@@ -165,7 +175,7 @@ export function NavBar() {
 
         <IconButton
           variant="text"
-          className="w-6/12  sm:hidden "
+          className="w-6/12 text-white md:hidden "
           onClick={() => setOpenNav(!openNav)}
         >
           {openNav ? (
@@ -179,22 +189,33 @@ export function NavBar() {
         {navList}
 
         <SignedIn>
-          {isOwn && (
-            <Button
-              fullWidth
-              size="lg"
-              color="white"
-              variant="gradient"
-              onClick={() => router.push("/admin")}
-              className="text-black 
-                py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
-            >
-              Dashboard
-            </Button>
-          )}
-          <div className="flex items-center justify-center">
-            {" "}
-            <UserButton afterSignOutUrl="/" />
+          <div className="flex items-center justify-center gap-2">
+            {isOwn ? (
+              <Button
+                size="lg"
+                color="white"
+                variant="gradient"
+                onClick={() => router.push("/admin")}
+                className="text-black 
+               w-full py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
+              >
+                Dashboard
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                color="white"
+                variant="gradient"
+                onClick={() => router.push("/UserDashboard")}
+                className="text-black 
+            w-full py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
+              >
+                Dashboard
+              </Button>
+            )}
+            <div className="flex items-center justify-center bg-white rounded p-[3px]">
+              <UserButton afterSignOutUrl="/" />
+            </div>
           </div>
         </SignedIn>
         <SignedOut>

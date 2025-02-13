@@ -189,7 +189,7 @@ export const productDetails: Record<
     icon: "/icons/customer-support.png",
     available: true,
     description: {
-      bgcolor: "bg-green-800",
+      bgcolor: "bg-red-800",
       heading: "Simplify customer queries with advanced AI.",
       subheading:
         "Deliver instant, intelligent, and in-app support with AI-powered support chatbots.",
@@ -203,7 +203,7 @@ export const productDetails: Record<
     available: false,
 
     description: {
-      bgcolor: "bg-red-800",
+      bgcolor: "bg-green-700",
       heading: "Boost sales with intelligent e-commerce assistants.",
       subheading:
         "Engage customers with personalized shopping experiences and product recommendations.",
@@ -217,7 +217,7 @@ export const productDetails: Record<
     available: false,
 
     description: {
-      bgcolor: "bg-blue-800",
+      bgcolor: "bg-blue-600",
       heading: "Maximize lead capture with AI-driven chatbots.",
       subheading:
         "Automate interactions and nurture leads effectively to grow your business.",
@@ -231,7 +231,7 @@ export const productDetails: Record<
     available: true,
 
     description: {
-      bgcolor: "bg-yellow-800",
+      bgcolor: "bg-yellow-500",
       heading: "Enhance learning experiences with AI tutors.",
       subheading:
         "Provide instant answers, resources, and support for students and educators.",
@@ -247,7 +247,7 @@ export const productDetails: Record<
     available: true,
 
     description: {
-      bgcolor: "bg-purple-800",
+      bgcolor: "bg-purple-500",
       heading: "24/7 intelligent customer service solutions.",
       subheading:
         "Automate support and reduce response times to improve customer satisfaction.",
@@ -261,7 +261,7 @@ export const productDetails: Record<
     available: false,
 
     description: {
-      bgcolor: "bg-pink-800",
+      bgcolor: "bg-pink-500",
       heading: "Revolutionize online shopping with AI-powered agents.",
       subheading:
         "Guide customers through their journey and optimize conversions effortlessly.",
@@ -275,7 +275,7 @@ export const productDetails: Record<
     available: false,
 
     description: {
-      bgcolor: "bg-orange-800",
+      bgcolor: "bg-orange-500",
       heading: "Supercharge your sales pipeline with AI-driven agents.",
       subheading: "Capture, qualify, and engage leads more efficiently.",
     },
@@ -288,7 +288,7 @@ export const productDetails: Record<
 
     icon: "/icons/education.png",
     description: {
-      bgcolor: "bg-teal-800",
+      bgcolor: "bg-teal-500",
       heading: "Empower educators and learners with AI.",
       subheading: "Offer tailored educational content and on-demand support.",
     },
@@ -303,7 +303,7 @@ export const productDetails: Record<
     available: false,
 
     description: {
-      bgcolor: "bg-indigo-800",
+      bgcolor: "bg-indigo-700",
       heading: "Modern solutions for medical professionals.",
       subheading:
         "Streamline appointment booking and provide valuable resources for patients.",
@@ -317,7 +317,7 @@ export const productDetails: Record<
     available: false,
 
     description: {
-      bgcolor: "bg-gray-800",
+      bgcolor: "bg-gray-500",
       heading: "Create stunning online stores effortlessly.",
       subheading:
         "Offer a seamless shopping experience with responsive and customizable templates.",
@@ -331,7 +331,7 @@ export const productDetails: Record<
     available: false,
 
     description: {
-      bgcolor: "bg-cyan-800",
+      bgcolor: "bg-cyan-500",
       heading: "Elevate your business with a professional online presence.",
       subheading: "Showcase your services and attract more clients with ease.",
     },
@@ -344,7 +344,7 @@ export const productDetails: Record<
     available: false,
 
     description: {
-      bgcolor: "bg-lime-800",
+      bgcolor: "bg-lime-500",
       heading: "Launch your SaaS product with style.",
       subheading:
         "Highlight features and drive subscriptions with purpose-built templates.",
