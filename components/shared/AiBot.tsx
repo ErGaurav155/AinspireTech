@@ -104,7 +104,7 @@ export default function AibotCollapse({
         const user = await getUserByDbId(userId);
 
         if (user) {
-          setUserFileName(user.fileName);
+          setUserFileName(user.scrappedFile);
         }
       } catch (error) {
         console.error("Error fetching file name:", error);
