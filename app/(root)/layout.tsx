@@ -33,8 +33,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <NavBar />
 
         {children}
-        {/* <AIChatBot /> */}
-        <McqbotCollapse authorised={true} userId={"67922c11cf6a3854412928c3"} />
+        <AIChatBot />
+        {/* <McqbotCollapse authorised={true} userId={"67922c11cf6a3854412928c3"} /> */}
         <Toaster />
       </MotionDiv>
     </main>
