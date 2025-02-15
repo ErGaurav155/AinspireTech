@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import {
   PayPalButtons,
@@ -61,9 +60,9 @@ const CartPay = ({ paypalplanId, productId, buyerId }: CartPayProps) => {
     <PayPalScriptProvider options={initialOptions}>
       <PayPalButtons
         createSubscription={createSubscription}
-        onApprove={onApprove}
-        onCancel={onCancel}
-        onError={onError}
+        // onApprove={onApprove}
+        // onCancel={onCancel}
+        // onError={onError}
       />
     </PayPalScriptProvider>
   );

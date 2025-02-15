@@ -1,8 +1,10 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AibotCollapse from "@/components/shared/AiBot";
 import { getAgentSubscriptionInfo } from "@/lib/action/subscription.action";
+import McqbotCollapse from "@/components/shared/McqBot";
 
 const ChatBots = () => {
   const searchParams = useSearchParams();
@@ -10,7 +12,7 @@ const ChatBots = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Extracting userId and agentId from the search params outside useEffect
+  // Extracting userId and agentId from the search params
   const userId = searchParams.get("userId");
   const agentId = searchParams.get("agentId");
 
@@ -22,24 +24,20 @@ const ChatBots = () => {
             String(userId),
             String(agentId)
           );
-          if (!agentSubscriptions.length) {
-            setIsAuthorized(false);
-          } else {
-            setIsAuthorized(true);
-          }
+          setIsAuthorized(agentSubscriptions.length > 0);
         } catch (error) {
           console.error("Error fetching subscription info:", error);
-          setIsAuthorized(false); // Handle error case
+          setIsAuthorized(false);
         }
         setIsLoading(false);
       };
 
       fetchSubscriptionInfo();
     } else {
-      setIsLoading(false); // No parameters found
+      setIsLoading(false);
       setIsAuthorized(false);
     }
-  }, [userId, agentId]); // Dependency on userId and agentId
+  }, [userId, agentId]);
 
   if (isLoading) {
     return (
@@ -49,7 +47,17 @@ const ChatBots = () => {
     );
   }
 
-  return <AibotCollapse userId={userId} authorised={isAuthorized} />;
+  if (agentId === "chatbot-customer-support") {
+    return <AibotCollapse userId={userId} authorised={isAuthorized} />;
+  } else if (agentId === "ai-agent-education") {
+    return <McqbotCollapse userId={userId} authorised={isAuthorized} />;
+  } else {
+    return (
+      <div className="flex items-center justify-center text-white font-bold text-xl">
+        Invalid agent id.
+      </div>
+    );
+  }
 };
 
 export default ChatBots;

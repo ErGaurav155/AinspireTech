@@ -15,6 +15,7 @@ export default authMiddleware({
     "/api/validate-widget",
     "/api/scrapping",
     "/product/:path*",
+    "/product",
   ],
 });
 
