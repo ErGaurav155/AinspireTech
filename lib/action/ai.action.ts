@@ -24,7 +24,7 @@ export const generateGptResponse = async ({
   }
 
   // Extract the relevant website content (you may customize this)
-  const context = fs.readFileSync(`public/data/${userfileName}`, "utf-8");
+  const context = fs.readFileSync(`public/${userfileName}`, "utf-8");
   const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
