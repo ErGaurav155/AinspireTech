@@ -3,6 +3,7 @@
 import OpenAI from "openai";
 import { scrapedData } from "@/constant";
 import fs from "fs";
+import path from "path";
 
 const openai = setupOpenAI();
 function setupOpenAI() {
@@ -11,6 +12,17 @@ function setupOpenAI() {
   }
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
+const getFileContext = (userfileName: string) => {
+  // Construct the absolute file path using process.cwd() which returns the project root
+  const filePath = path.join(process.cwd(), "public", userfileName);
+
+  // Optionally, you can add a check to ensure the file exists
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`File ${userfileName} not found at ${filePath}`);
+  }
+
+  return fs.readFileSync(filePath, "utf8");
+};
 
 export const generateGptResponse = async ({
   userInput,
@@ -24,7 +36,7 @@ export const generateGptResponse = async ({
   }
 
   // Extract the relevant website content (you may customize this)
-  const context = fs.readFileSync(`public/${userfileName}`, "utf-8");
+  const context = await getFileContext(userfileName);
   const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
