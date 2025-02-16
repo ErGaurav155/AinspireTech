@@ -18,6 +18,7 @@ import RazerPay from "./RazorPay";
 import { Button } from "@material-tailwind/react";
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { getUserById } from "@/lib/action/user.actions";
+import PayPalSubscriptionButton from "./CartPay";
 
 interface CheckoutProps {
   amount: number;
@@ -140,7 +141,7 @@ export const Checkout = ({
         razorpayplanId.current &&
         paypalplanId.current &&
         buyerIdRef.current &&
-        (locationRef.current === "india" ? (
+        (locationRef.current !== "india" ? (
           <RazerPay
             amount={amount}
             razorpayplanId={razorpayplanId.current ?? ""}
@@ -166,7 +167,6 @@ export const Checkout = ({
                   </AlertDialogCancel>
                 </div>
               </AlertDialogHeader>
-
               <CartPay
                 paypalplanId={paypalplanId.current ?? ""}
                 buyerId={buyerIdRef.current ?? ""}
