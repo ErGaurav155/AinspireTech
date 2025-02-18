@@ -14,7 +14,7 @@ function setupOpenAI() {
 }
 const getFileContext = (userfileName: string) => {
   // Construct the absolute file path using process.cwd() which returns the project root
-  const filePath = path.join(process.cwd(), "public", "assets", userfileName);
+  const filePath = path.join(process.cwd(), "constant", "data", userfileName);
 
   // Optionally, you can add a check to ensure the file exists
   if (!fs.existsSync(filePath)) {

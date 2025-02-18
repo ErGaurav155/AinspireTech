@@ -214,7 +214,7 @@ export const productDetails: Record<
     name: "Lead Generation Chatbot",
     video: "/assets/congratulation.webm",
     icon: "/icons/lead-generation.png",
-    available: true,
+    available: false,
 
     description: {
       bgcolor: "bg-blue-600",
@@ -424,28 +424,28 @@ export const productSubscriptionDetails: Record<
   //     { label: "Third-party integrations", isIncluded: false },
   //   ],
   // },
-  "chatbot-lead-generation": {
-    productId: "ai-agent-lead-generation",
-    name: "ai-agent-lead-generation",
-    video: "/assets/congratulation.webm",
-    icon: "BotIcon",
-    price: 12,
-    original: 12,
-    credits: 550,
-    tier: "Pro",
-    description: {
-      bgcolor: "bg-blue-800",
-      heading: "Maximize lead capture with AI-driven chatbots.",
-      subheading:
-        "Automate interactions and nurture leads effectively to grow your business.",
-    },
-    inclusions: [
-      { label: "Lead qualification", isIncluded: true },
-      { label: "Data export", isIncluded: true },
-      { label: "Multi-platform integration", isIncluded: true },
-      { label: "Priority support", isIncluded: false },
-    ],
-  },
+  // "chatbot-lead-generation": {
+  //   productId: "chatbot-lead-generation",
+  //   name: "chatbot-lead-generation",
+  //   video: "/assets/congratulation.webm",
+  //   icon: "BotIcon",
+  //   price: 1200,
+  //   original: 12,
+  //   credits: 550,
+  //   tier: "Pro",
+  //   description: {
+  //     bgcolor: "bg-blue-800",
+  //     heading: "Maximize lead capture with AI-driven chatbots.",
+  //     subheading:
+  //       "Automate interactions and nurture leads effectively to grow your business.",
+  //   },
+  //   inclusions: [
+  //     { label: "Lead qualification", isIncluded: true },
+  //     { label: "Data export", isIncluded: true },
+  //     { label: "Multi-platform integration", isIncluded: true },
+  //     { label: "Priority support", isIncluded: false },
+  //   ],
+  // },
   "chatbot-education": {
     productId: "chatbot-education",
     name: "Education Chatbot",
