@@ -17,7 +17,6 @@ const WebsiteOnboard = () => {
     const agentId = searchParams.get("agentId");
     const subscriptionId = searchParams.get("subscriptionId");
 
-    console.log(userId, agentId);
     if (!userId || !agentId || !subscriptionId) {
       router.push("/");
       return;
@@ -48,9 +47,3 @@ const WebsiteOnboard = () => {
 };
 
 export default WebsiteOnboard;
-
-// const scappedUrls = await scrapeSitemapPages(user.websiteUrl);
-// if (scappedUrls) {
-//   await setWebsiteScrapped(userId);
-//   router.push("/UserDashboard");
-// }

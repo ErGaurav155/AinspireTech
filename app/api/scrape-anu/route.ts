@@ -33,27 +33,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
       maxCrawlPages: 10,
       proxyConfiguration: {
         useApifyProxy: true,
-        apifyProxyGroups: ["RESIDENTIAL"], // Optional
+        apifyProxyGroups: ["RESIDENTIAL"],
       },
-
       useSitemaps: true,
       crawlerType: "playwright:adaptive",
-      includeUrlGlobs: [],
-      excludeUrlGlobs: [],
-      keepUrlFragments: false,
-
-      initialConcurrency: 0,
-      maxConcurrency: 200,
-      initialCookies: [],
-
-      maxSessionRotations: 10,
-      maxRequestRetries: 5,
-      requestTimeoutSecs: 60,
-      minFileDownloadSpeedKBps: 128,
-      dynamicContentWaitSecs: 10,
-      waitForSelector: "",
-      maxScrollHeightPixels: 5000,
-      keepElementsCssSelector: "",
       removeElementsCssSelector: `nav, footer, script, style, noscript, svg, img[src^='data:'],
         [role="alert"],
         [role="banner"],
@@ -62,23 +45,12 @@ export async function POST(req: NextRequest, res: NextResponse) {
         [role="region"][aria-label*="skip" i],
         [aria-modal="true"]`,
       removeCookieWarnings: true,
-      expandIframes: true,
-      clickElementsCssSelector: '[aria-expanded="false"]',
-      htmlTransformer: "readableText",
-      readableTextCharThreshold: 100,
-      aggressivePrune: false,
-      debugMode: false,
-      debugLog: false,
-      saveHtml: false,
-      saveHtmlAsFile: false,
-      saveMarkdown: true,
-      saveFiles: false,
-      saveScreenshots: false,
+      htmlTransformer: "none", // Disable HTML-to-text transformation
+      saveHtml: false, // Don't save raw HTML
+      saveMarkdown: false, // Disable markdown output
+      saveFiles: false, // Avoid saving files/screenshots
       maxResults: 9999999,
-      clientSideMinChangePercentage: 15,
-      renderingTypeDetectionPercentage: 10,
     };
-
     // Start and wait for scraping to complete
     const run = await client.actor(scraperConfig.actorId).start(scraperConfig);
     await client.run(run.id).waitForFinish();
@@ -92,19 +64,26 @@ export async function POST(req: NextRequest, res: NextResponse) {
         { status: 400 }
       );
     }
+    const extractedData = items.map((item) => ({
+      url: item.url,
+      title: item.title,
+      description: item.description || "",
+      text: item.text, // From meta tags
+    }));
+
     const existingFile = await File.findOne({
       fileName: `${domain}.json`,
     });
 
     if (existingFile) {
       // Update existing record
-      existingFile.content = items;
+      existingFile.content = extractedData;
       await existingFile.save();
     } else {
       // Create new record
       await File.create({
         fileName: `${domain}.json`,
-        content: items,
+        content: extractedData,
         domain,
       });
     }
