@@ -105,7 +105,7 @@ export const WebScapping = ({
       router.push("/UserDashboard");
     } catch (error) {
       console.error("Error during subscription process:", error);
-      router.push("/");
+      router.push("/UserDashboard");
     } finally {
       setLoading(false);
     }
