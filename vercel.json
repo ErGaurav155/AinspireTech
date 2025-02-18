@@ -1,7 +1,7 @@
 {
   "functions": {
     "app/**/*": {
-      "maxDuration": 90
+      "maxDuration": 80
     }
   },
   "headers": [
