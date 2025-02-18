@@ -57,7 +57,7 @@ export default function AIChatBot() {
     try {
       const response = await generateGptResponse({
         userInput: message,
-        userfileName: "ainspiretech.com.json",
+        userfileName: "public/ainspiretech.com.json",
       });
 
       if (response) {
