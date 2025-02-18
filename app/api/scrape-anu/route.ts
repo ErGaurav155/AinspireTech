@@ -92,7 +92,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
         { status: 400 }
       );
     }
-    console.log("items", items);
     const existingFile = await File.findOne({
       fileName: `${domain}.json`,
     });

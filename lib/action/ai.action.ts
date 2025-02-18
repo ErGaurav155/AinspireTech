@@ -43,7 +43,6 @@ export const generateGptResponse = async ({
   } else {
     context = "You are an AI assistant that helps users";
   }
-  console.log("context", context);
   const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
