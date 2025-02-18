@@ -31,7 +31,6 @@ export default function AIChatBot() {
     { sender: "AI Bot", text: "Hello! How can I help you?" },
   ]);
   const [submit, setSubmit] = useState(false);
-  const [userfileName, setUserFileName] = useState("");
 
   const toggleOpen = () => setOpen((cur) => !cur);
 
@@ -57,7 +56,7 @@ export default function AIChatBot() {
     try {
       const response = await generateGptResponse({
         userInput: message,
-        userfileName: "public/ainspiretech.com.json",
+        userfileName: "ainspiretech.com.json",
       });
 
       if (response) {

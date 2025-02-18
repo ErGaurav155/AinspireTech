@@ -1,9 +1,10 @@
 "use server";
 
 import OpenAI from "openai";
-import { scrapedData } from "@/constant";
 import fs from "fs";
 import path from "path";
+import { connectToDatabase } from "../database/mongoose";
+import File from "@/lib/database/models/scrappeddata.model";
 
 const openai = setupOpenAI();
 function setupOpenAI() {
@@ -12,17 +13,6 @@ function setupOpenAI() {
   }
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
-// const getFileContext = (userfileName: string) => {
-//   // Construct the absolute file path using process.cwd() which returns the project root
-//   const filePath = path.join(process.cwd(), "public", "assets", userfileName);
-
-//   // Optionally, you can add a check to ensure the file exists
-//   if (!fs.existsSync(filePath)) {
-//     throw new Error(`File ${userfileName} not found at ${filePath}`);
-//   }
-
-//   return fs.readFileSync(filePath, "utf8");
-// };
 
 export const generateGptResponse = async ({
   userInput,
@@ -34,11 +24,26 @@ export const generateGptResponse = async ({
   if (openai instanceof Error) {
     throw openai;
   }
-
-  // Extract the relevant website content (you may customize this)
-  // const context = await getFileContext(userfileName);
-  const context = fs.readFileSync(userfileName, "utf8");
-
+  await connectToDatabase();
+  const existingFile = await File.findOne({
+    fileName: userfileName,
+  });
+  let context;
+  if (existingFile) {
+    context = existingFile.content
+      .map((page: any) => {
+        return `
+      Website Page URL: ${page.url}
+      Title: ${page.metadata?.title}
+      Description: ${page.metadata?.description || "No description"}
+      text: ${page.text}
+    `;
+      })
+      .join("\n\n");
+  } else {
+    context = "You are an AI assistant that helps users";
+  }
+  console.log("context", context);
   const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
@@ -106,50 +111,3 @@ export const generateMcqResponse = async ({
 
   return completion.choices[0]?.message?.content || "";
 };
-
-// export const generateUrls = async (userInput: string) => {
-//   if (openai instanceof Error) {
-//     throw openai;
-//   }
-
-//   // Extract the relevant website content (you may customize this)
-
-//   const completion = await openai.chat.completions.create({
-//     model: "gpt-3.5-turbo",
-//     messages: [
-//       {
-//         role: "system",
-//         content:
-//           "You are an AI web page scrapping expert some webpage urls send to you.you have check them and urls that are not more informative to user which are gettng customer support form website chatbot like terms and condition url ,privacy-policy urls ,etc remove them and send remaining urls back in array of string urls must follow output formate ['url','url','url'] likewise only ",
-//       },
-
-//       {
-//         role: "user",
-//         content: userInput,
-//       },
-//     ],
-//     max_tokens: 500,
-
-//     temperature: 1,
-//   });
-
-//   const gptArgs = completion?.choices[0]?.message?.content;
-//   if (!gptArgs) {
-//     throw new Error("Bad response from OpenAI");
-//   }
-//   // Preprocess the response to ensure valid JSON format
-//   let fixedResponse = gptArgs.trim();
-
-//   // Fix any issues with the string format, ensuring double quotes and valid array
-//   fixedResponse = fixedResponse.replace(/'/g, '"'); // Replace single quotes with double quotes
-//   fixedResponse = fixedResponse.replace(/,\s*}/g, "}"); // Remove unnecessary commas before closing curly braces
-
-//   try {
-//     // Parse the fixed response as JSON
-//     const parsedUrls = JSON.parse(fixedResponse);
-//     return parsedUrls;
-//   } catch (error) {
-//     console.error("Error parsing impUrls:", error);
-//     throw new Error("`impUrls` is not in a valid format.");
-//   }
-// };

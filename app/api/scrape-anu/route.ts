@@ -3,7 +3,10 @@ import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import File from "@/lib/database/models/scrappeddata.model";
+
 import { URL } from "url";
+import { connectToDatabase } from "@/lib/database/mongoose";
 
 const client = new ApifyClient({
   token: process.env.APIFY_API_TOKEN!,
@@ -11,6 +14,8 @@ const client = new ApifyClient({
 
 export async function POST(req: NextRequest, res: NextResponse) {
   try {
+    await connectToDatabase();
+
     const { mainUrl } = await req.json();
     if (!mainUrl) {
       return NextResponse.json(
@@ -87,15 +92,23 @@ export async function POST(req: NextRequest, res: NextResponse) {
         { status: 400 }
       );
     }
+    console.log("items", items);
+    const existingFile = await File.findOne({
+      fileName: `${domain}.json`,
+    });
 
-    // Call OpenAI to clean and structure the scraped data
-
-    // Define file path
-    const filePath = path.join(process.cwd(), "public/data", `${domain}.json`);
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-
-    // Save the improved data
-    fs.writeFileSync(filePath, JSON.stringify(items, null, 2));
+    if (existingFile) {
+      // Update existing record
+      existingFile.content = items;
+      await existingFile.save();
+    } else {
+      // Create new record
+      await File.create({
+        fileName: `${domain}.json`,
+        content: items,
+        domain,
+      });
+    }
 
     return NextResponse.json(
       { success: true, fileName: `${domain}.json` },
