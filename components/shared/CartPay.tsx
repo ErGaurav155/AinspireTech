@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   PayPalButtons,
@@ -6,6 +8,7 @@ import {
   ReactPayPalScriptOptions,
 } from "@paypal/react-paypal-js";
 import { createPayPalSubscription } from "@/lib/action/subscription.action";
+import { useRouter } from "next/navigation";
 
 interface CartPayProps {
   paypalplanId: string;
@@ -16,6 +19,7 @@ interface CartPayProps {
 const NEXT_PUBLIC_PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 
 const CartPay = ({ paypalplanId, productId, buyerId }: CartPayProps) => {
+  const router = useRouter();
   const initialOptions: ReactPayPalScriptOptions = {
     clientId: NEXT_PUBLIC_PAYPAL_CLIENT_ID,
     vault: true,
@@ -39,7 +43,13 @@ const CartPay = ({ paypalplanId, productId, buyerId }: CartPayProps) => {
       }
 
       await createPayPalSubscription(buyerId, productId, data.subscriptionID);
-
+      if (productId === "chatbot-customer-support" || "chatbot-education") {
+        router.push(
+          `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${data.subscriptionID}`
+        );
+      } else {
+        router.push("/UserDashboard");
+      }
       window.location.assign("/UserDashboard");
     } catch (error) {
       console.error("Error approving subscription:", error);

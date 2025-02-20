@@ -17,6 +17,10 @@ const UserSchema = new Schema({
   websiteUrl: {
     type: String,
   },
+  phone: {
+    type: String,
+    unique: true,
+  },
   scrappedFile: {
     type: String,
   },

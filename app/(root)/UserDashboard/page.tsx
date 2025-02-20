@@ -15,6 +15,20 @@ import { Button } from "@material-tailwind/react";
 import { CrossIcon } from "lucide-react";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { toast, useToast } from "@/components/ui/use-toast";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { countryCodes } from "@/constant";
+import OTPVerification from "@/components/shared/OTPVerification";
 
 interface Subscription {
   productId: string;
@@ -22,6 +36,13 @@ interface Subscription {
   subscriptionId: string;
   subscriptionStatus: string;
 }
+const phoneFormSchema = z.object({
+  MobileNumber: z
+    .string()
+    .min(10, "MOBILE number is required")
+    .regex(/^\d+$/, "invalid number"),
+});
+type PhoneFormData = z.infer<typeof phoneFormSchema>;
 
 const agentIds = [
   "ai-agent-customer-support",
@@ -40,15 +61,61 @@ const agentIds = [
 
 export default function Dashboard() {
   const router = useRouter();
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([
+    {
+      productId: "",
+      userId: "",
+      subscriptionId: "",
+      subscriptionStatus: "",
+    },
+  ]);
+  const [userPhone, setUserPhone] = useState<string | null>(null);
+  const [isOtpSubmitting, setIsOtpSubmitting] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [buyer, setBuyer] = useState("");
+
+  const [countryCode, setCountryCode] = useState("+1"); // Default to US
+  const [step, setStep] = useState<"phone" | "otp" | "payment">("payment");
   const [loading, setLoading] = useState(true);
   const { userId } = useAuth();
 
   const [open, setOpen] = useState(false);
   const [selectedSubscriptionId, setSelectedSubscriptionId] = useState<
     string | null
-  >("sub_PmtjWk8A9ftqn1");
+  >("");
+  const {
+    handleSubmit: handlePhoneSubmit,
+    register: registerPhone,
+    formState: { errors: phoneErrors },
+  } = useForm<PhoneFormData>({
+    resolver: zodResolver(phoneFormSchema),
+  });
+  const handlePhoneSubmission = async (data: PhoneFormData) => {
+    setIsOtpSubmitting(true);
+    try {
+      const fullPhoneNumber = `${countryCode}${data.MobileNumber}`;
 
+      const res = await fetch("/api/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullPhoneNumber }),
+      });
+      if (res.ok) {
+        setPhone(fullPhoneNumber);
+        setStep("otp");
+      } else {
+        console.error("Failed to send OTP:", res.statusText);
+      }
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+    } finally {
+      setIsOtpSubmitting(false);
+    }
+  };
+  const handleOTPVerified = () => {
+    setStep("payment");
+  };
   useEffect(() => {
     async function fetchSubscriptions() {
       if (!userId) {
@@ -58,6 +125,8 @@ export default function Dashboard() {
 
       try {
         const user = await getUserById(userId);
+        setBuyer(user._id);
+        setUserPhone(user.phone);
         const response = await getSubscriptionInfo(user._id);
 
         setSubscriptions(
@@ -154,16 +223,40 @@ export default function Dashboard() {
               </Link>
               {isSubscribed ? (
                 <div className="mt-2 md:w-2/3">
-                  <EmbedCode
-                    userId={subscription?.userId || ""}
-                    agentId={agentId}
-                  />
+                  {agentId === "ai-agent-education" ||
+                  agentId === "ai-agent-customer-support" ||
+                  agentId === "ai-agent-lead-generation" ||
+                  agentId === "ai-agent-e-commerce" ? (
+                    <div className="flex items-center justify-start gap-5 ">
+                      <div className="flex items-center justify-center gap-2 bg-gray-200  border rounded-md">
+                        <label className="block text-lg font-semibold text-black">
+                          Register Number:
+                        </label>
+                        <span className="flex items-center justify-center text-lg md:text-xl font-bold text-black  p-2">
+                          {userPhone}
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          setStep("phone");
+                        }}
+                        className="w-auto rounded-md text-base text-white bg-blue-900 hover:bg-blue-600 "
+                      >
+                        Change Number
+                      </Button>
+                    </div>
+                  ) : (
+                    <EmbedCode
+                      userId={subscription?.userId || ""}
+                      agentId={agentId}
+                    />
+                  )}
                   <Button
                     onClick={() => {
-                      // setSelectedSubscriptionId(subscription.subscriptionId);
+                      setSelectedSubscriptionId(subscription.subscriptionId);
                       setOpen(true);
                     }}
-                    className="w-full rounded-md text-base text-white bg-red-900 hover:bg-red-600"
+                    className="w-full rounded-md mt-2 text-base text-white bg-red-900 hover:bg-red-600"
                   >
                     Cancel Subscription
                   </Button>
@@ -216,6 +309,92 @@ export default function Dashboard() {
             </form>
           </div>
         </div>
+      )}
+      {step === "phone" && (
+        <AlertDialog defaultOpen>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="sr-only">
+                Enter Your Phone Number
+              </AlertDialogTitle>
+              <div className="flex justify-between items-center">
+                <p className="p-16-semibold text-black">
+                  PLEASE ENTER YOUR NEW MOBILE NUMBER HERE
+                </p>
+                <AlertDialogCancel
+                  onClick={() => {
+                    setStep("payment");
+                    router.push(`/UserDashboard`);
+                  }}
+                  className="border-0 p-0 hover:bg-transparent"
+                >
+                  <XMarkIcon className="size-6 cursor-pointer" />
+                </AlertDialogCancel>
+              </div>
+            </AlertDialogHeader>
+            <form
+              onSubmit={handlePhoneSubmit(handlePhoneSubmission)}
+              className="space-y-4"
+            >
+              <div className="w-full">
+                <label
+                  htmlFor="MobileNumber"
+                  className="block text-lg font-semibold"
+                >
+                  Enter Your New Phone Number
+                </label>
+                <div className="flex items-center justify-start input-field mt-2 w-full">
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className="max-w-max border-none  active:border-none no-scrollbar   p-2"
+                  >
+                    {countryCodes.map((countryCode, index) => (
+                      <option
+                        key={index}
+                        className="bg-white text-gray-700 text-lg font-xs  mb-4 w-[10vw]  flex items-center justify-center    "
+                        value={countryCode.code}
+                      >
+                        {countryCode.code}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    id="MobileNumber"
+                    type="text"
+                    {...registerPhone("MobileNumber")}
+                    className="input-field  w-full"
+                  />
+                </div>
+                {phoneErrors.MobileNumber && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {phoneErrors.MobileNumber.message}
+                  </p>
+                )}
+              </div>
+              <div className="flex justify-between items-center">
+                <button
+                  type="submit"
+                  className="bg-green-500 text-white p-2 w-1/2 rounded-md"
+                  disabled={isOtpSubmitting}
+                >
+                  {isOtpSubmitting ? "Sending OTP" : "Send OTP"}
+                </button>
+              </div>
+            </form>
+
+            <AlertDialogDescription className="p-16-regular py-3 text-green-500">
+              IT WILL HELP US TO PROVIDE BETTER SERVICES
+            </AlertDialogDescription>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+      {step === "otp" && (
+        <OTPVerification
+          phone={phone}
+          onVerified={handleOTPVerified}
+          buyerId={buyer}
+        />
       )}
     </div>
   );

@@ -48,7 +48,27 @@ export async function getUserByDbId(userId: string) {
   }
   revalidateTag("users");
 }
+export async function updateNumberByDbId(buyerId: string, newNumber: string) {
+  try {
+    await connectToDatabase();
 
+    const user = await User.findOneAndUpdate(
+      { _id: buyerId },
+      { $set: { phone: newNumber } },
+      { new: true }
+    );
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return JSON.parse(JSON.stringify(user));
+  } catch (error) {
+    handleError(error);
+  }
+
+  revalidateTag("users");
+}
 export async function updateUserByDbId(userId: string, newUrl: string) {
   try {
     await connectToDatabase();
