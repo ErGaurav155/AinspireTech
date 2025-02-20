@@ -8,7 +8,7 @@ const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN!;
 const TWILIO_SID = process.env.TWILIO_SID!;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-export async function processCall(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const { RecordingUrl, From } = await req.json();
     const transcription = await axios.post(
