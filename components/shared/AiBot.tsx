@@ -47,9 +47,6 @@ export default function AibotCollapse({
   ]);
   const [submit, setSubmit] = useState(false);
   const [userfileName, setUserFileName] = useState("");
-  const [feedbackVisible, setFeedbackVisible] = useState(false);
-
-  const [appointment, setAppointment] = useState(false);
 
   const toggleOpen = () => setOpen((cur) => !cur);
 
@@ -138,7 +135,11 @@ export default function AibotCollapse({
       if (!response) {
         handleError;
       }
-      setAppointment(true);
+      toast({
+        title: "Form Submmitted Successfully,We will contact you soon",
+        duration: 2000,
+        className: "success-toast",
+      });
     } catch (error) {
       console.error("Error sending WhatsApp message:", error);
       // Optionally display an error message to the user here
@@ -227,11 +228,6 @@ export default function AibotCollapse({
                   </div>
                   {index === 6 && count > 2 && (
                     <FeedbackForm onSubmit={handleFeedbackSubmit} />
-                  )}
-                  {appointment && (
-                    <h4 className="text-green-800 font-semibold text-base">
-                      Form Submmitted Successfully,We will contact you soon.
-                    </h4>
                   )}
                 </div>
               ))}
