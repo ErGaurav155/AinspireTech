@@ -96,11 +96,18 @@ const ProductsPage = () => {
                     onClick={() =>
                       router.push(`/pricing?id=${product.productId}`)
                     }
+                    className="text-base font-bold"
                   >
                     Buy Now
                   </Button>
                 ) : (
-                  <Button fullWidth color="green" variant="gradient" disabled>
+                  <Button
+                    fullWidth
+                    color="green"
+                    variant="gradient"
+                    disabled
+                    className="text-base font-bold"
+                  >
                     Coming Soon...
                   </Button>
                 )}

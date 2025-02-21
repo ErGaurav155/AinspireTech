@@ -19,10 +19,16 @@ import { toast } from "../ui/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { formSchema1 } from "@/lib/validator";
-import { generateGptResponse } from "@/lib/action/ai.action";
+import {
+  generateGptResponse,
+  generateMcqResponse,
+} from "@/lib/action/ai.action";
 import Link from "next/link";
 import { createAllProducts } from "@/lib/action/plan.action";
 import { getUserByDbId } from "@/lib/action/user.actions";
+import { sendWhatsAppInfo } from "@/lib/action/sendEmail.action";
+import FeedbackForm from "./FeedBack";
+import { handleError } from "@/lib/utils";
 
 interface AibotCollapseProps {
   authorised: boolean;
@@ -34,12 +40,16 @@ export default function AibotCollapse({
   userId,
 }: AibotCollapseProps) {
   const [open, setOpen] = useState(false);
+  const [count, setCount] = useState<number>(0);
 
   const [messages, setMessages] = useState([
     { sender: "AI Bot", text: "Hello! How can I help you?" },
   ]);
   const [submit, setSubmit] = useState(false);
   const [userfileName, setUserFileName] = useState("");
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
+
+  const [appointment, setAppointment] = useState(false);
 
   const toggleOpen = () => setOpen((cur) => !cur);
 
@@ -69,6 +79,7 @@ export default function AibotCollapse({
       });
 
       if (response) {
+        setCount((pre: number) => pre + 1);
         setMessages((prevMessages) => [
           ...prevMessages,
           { sender: "AI Bot", text: response },
@@ -92,6 +103,7 @@ export default function AibotCollapse({
   };
 
   const restartChat = () => {
+    setCount(0);
     setMessages([{ sender: "AI Bot", text: "Hello! How can I help you?" }]);
   };
   useEffect(() => {
@@ -114,6 +126,24 @@ export default function AibotCollapse({
     getFileName();
   }, [userId, authorised]); // Add userId as a dependency
 
+  async function handleFeedbackSubmit(data: {
+    name: string;
+    email: string;
+    phone?: string;
+    message?: string;
+  }) {
+    try {
+      setCount(-999);
+      const response = await sendWhatsAppInfo(data);
+      if (!response) {
+        handleError;
+      }
+      setAppointment(true);
+    } catch (error) {
+      console.error("Error sending WhatsApp message:", error);
+      // Optionally display an error message to the user here
+    }
+  }
   return (
     <div className="h-auto w-auto flex flex-col ">
       <div
@@ -179,25 +209,33 @@ export default function AibotCollapse({
           <div>
             <div className="flex flex-col p-4 flex-1 min-h-[50vh] max-h-[50vh] z-10 overflow-y-auto no-scrollbar">
               {messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`flex ${
-                    msg.sender === "You" ? "justify-end" : "justify-start"
-                  }`}
-                >
+                <div key={index}>
                   <div
-                    className={`p-3 my-1 rounded-lg ${
-                      msg.sender === "You"
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-200 text-gray-700"
+                    className={`flex ${
+                      msg.sender === "You" ? "justify-end" : "justify-start"
                     }`}
                   >
-                    <span>{msg.text}</span>
+                    <div
+                      className={`p-3 my-1 rounded-lg ${
+                        msg.sender === "You"
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      <span>{msg.text}</span>
+                    </div>
                   </div>
+                  {index === 6 && count > 2 && (
+                    <FeedbackForm onSubmit={handleFeedbackSubmit} />
+                  )}
+                  {appointment && (
+                    <h4 className="text-green-800 font-semibold text-base">
+                      Form Submmitted Successfully,We will contact you soon.
+                    </h4>
+                  )}
                 </div>
               ))}
             </div>
-
             <div className="flex items-center gap-2 p-4 border-t">
               <Form {...form}>
                 <form

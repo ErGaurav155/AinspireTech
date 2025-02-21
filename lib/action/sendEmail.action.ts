@@ -1,6 +1,7 @@
 "use server";
 
 import nodemailer from "nodemailer";
+import twilio from "twilio";
 
 export const sendSubscriptionEmailToOwner = async ({
   email,
@@ -57,3 +58,46 @@ export const sendSubscriptionEmailToUser = async ({
 
   await transporter.sendMail(mailOptions);
 };
+
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+
+if (!accountSid || !authToken) {
+  throw new Error("Twilio credentials are not set in .env");
+}
+
+const client = twilio(accountSid, authToken);
+
+export async function sendWhatsAppInfo({
+  name,
+  email,
+  phone,
+  message,
+}: {
+  name: string;
+  email: string;
+  phone?: string;
+  message?: string;
+}) {
+  const whatsappNumber = process.env.WHATSAPP_NUMBER!; // Destination WhatsApp number
+
+  // Construct the message text
+  const msg = `New Feedback Submission:
+Name: ${name}
+Email: ${email}
+Phone: ${phone}
+Message: ${message}`;
+
+  try {
+    const result = await client.messages.create({
+      body: msg,
+      from: process.env.NEXT_PUBLIC_TWILIO_NUMBER, // Your Twilio WhatsApp-enabled number
+      to: whatsappNumber,
+    });
+
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("WhatsApp send error:", error);
+    throw new Error("Failed to send WhatsApp message");
+  }
+}

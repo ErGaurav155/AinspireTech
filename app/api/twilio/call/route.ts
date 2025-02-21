@@ -7,8 +7,9 @@ import User from "@/lib/database/models/user.model";
 export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
-    const { From, To } = await req.json();
-
+    const formData = await req.formData();
+    const From = formData.get("From");
+    const To = formData.get("To");
     const user = await User.findOne({ phone: To });
     if (!user) {
       return NextResponse.json({ message: "User Not Found " }, { status: 403 });
@@ -25,12 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
     const response = new twiml.VoiceResponse();
-    response.say("Hello, I am your AI assistant. Please describe your issue.");
-    response.record({
-      transcribe: true,
-      maxLength: 60,
-      action: `/api/twilio/process?userId=${user._id}`,
-    });
+    startQuestionnaire(response, From as string, To as string);
 
     return new NextResponse(response.toString(), {
       headers: { "Content-Type": "text/xml" },
@@ -38,4 +34,15 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+}
+
+function startQuestionnaire(response: any, caller: string, To: string) {
+  const gather = response.gather({
+    input: "speech",
+    action: `/api/twilio/next-question?step=1&caller=${caller}&to=${To}`,
+    method: "POST",
+  });
+  gather.say(
+    "Hello, I am your AI plumbing assistant. What plumbing issue are you experiencing?"
+  );
 }

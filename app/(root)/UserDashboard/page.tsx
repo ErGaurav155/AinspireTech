@@ -11,7 +11,6 @@ import { getUserById } from "@/lib/action/user.actions";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LockClosedIcon } from "@heroicons/react/24/outline";
-import { Button } from "@material-tailwind/react";
 import { CrossIcon } from "lucide-react";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { toast, useToast } from "@/components/ui/use-toast";
@@ -199,7 +198,7 @@ export default function Dashboard() {
       <h1 className="text-2xl font-bold text-white text-center mb-4">
         Your Subscriptions
       </h1>
-      <div className="flex flex-col w-full gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         {agentIds.map((agentId) => {
           const subscription = subscriptions.find(
             (sub) => sub.productId === agentId
@@ -209,11 +208,11 @@ export default function Dashboard() {
           return (
             <div
               key={agentId}
-              className="flex flex-col md:flex-row w-full gap-4 bg-gray-800 p-1 rounded-xl text-white"
+              className="flex flex-col w-full min-h-max gap-4 bg-gray-800 p-2 rounded-xl text-white"
             >
               <Link
                 href={`/product/${agentId}`}
-                className={`p-4 md:w-1/3 rounded-lg ${
+                className={`p-4 mt-2 w-full rounded-lg ${
                   isSubscribed ? "bg-green-500" : "bg-red-500"
                 }`}
               >
@@ -222,28 +221,20 @@ export default function Dashboard() {
                 </h2>
               </Link>
               {isSubscribed ? (
-                <div className="mt-2 md:w-2/3">
+                <div className="mt-4  space-y-4">
                   {agentId === "ai-agent-education" ||
                   agentId === "ai-agent-customer-support" ||
                   agentId === "ai-agent-lead-generation" ||
                   agentId === "ai-agent-e-commerce" ? (
-                    <div className="flex items-center justify-start gap-5 ">
-                      <div className="flex items-center justify-center gap-2 bg-gray-200  border rounded-md">
-                        <label className="block text-lg font-semibold text-black">
-                          Register Number:
+                    <div className="flex flex-col items-center justify-between gap-5 bg-gray-100 p-4 rounded-lg shadow-md w-full">
+                      <div className="flex flex-row items-center gap-2 w-full">
+                        <label className="text-sm lg:text-base  text-nowrap font-semibold text-gray-700">
+                          Linked Number:
                         </label>
-                        <span className="flex items-center justify-center text-lg md:text-xl font-bold text-black  p-2">
+                        <span className="text-base lg:text-base font-bold text-gray-900">
                           {userPhone}
                         </span>
                       </div>
-                      <Button
-                        onClick={() => {
-                          setStep("phone");
-                        }}
-                        className="w-auto rounded-md text-base text-white bg-blue-900 hover:bg-blue-600 "
-                      >
-                        Change Number
-                      </Button>
                     </div>
                   ) : (
                     <EmbedCode
@@ -251,18 +242,33 @@ export default function Dashboard() {
                       agentId={agentId}
                     />
                   )}
-                  <Button
-                    onClick={() => {
-                      setSelectedSubscriptionId(subscription.subscriptionId);
-                      setOpen(true);
-                    }}
-                    className="w-full rounded-md mt-2 text-base text-white bg-red-900 hover:bg-red-600"
-                  >
-                    Cancel Subscription
-                  </Button>
+                  <div className="flex items-center justify-center gap-3 w-full">
+                    <button
+                      onClick={() => setStep("phone")}
+                      className={`flex-1 ${
+                        agentId === "ai-agent-education" ||
+                        agentId === "ai-agent-customer-support" ||
+                        agentId === "ai-agent-lead-generation" ||
+                        agentId === "ai-agent-e-commerce"
+                          ? "block"
+                          : "hidden"
+                      }  bg-blue-700 text-white text-base lg:text-base text-center  text-nowrap py-2 px-2 md:px-3 rounded-md transition duration-300 hover:bg-blue-600 `}
+                    >
+                      Change Number
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedSubscriptionId(subscription.subscriptionId);
+                        setOpen(true);
+                      }}
+                      className="flex-1 bg-red-700 text-white text-nowrap text-base lg:text-base  py-2 px-2 md:px-3 rounded-md transition duration-300 hover:bg-red-600"
+                    >
+                      Cancel Subscription
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <div className="mt-2 md:w-2/3 flex gap-2 items-center justify-center">
+                <div className="mt-2 w-auto  flex gap-2 items-center justify-center">
                   <Link
                     href={`/product/${agentId}`}
                     className="flex items-center gap-2"
