@@ -108,7 +108,7 @@ export async function sendWhatsAppInfo({
     PhoneNumber = user.phone;
     const result = await client.messages.create({
       body: msg,
-      from: process.env.NEXT_PUBLIC_TWILIO_NUMBER as string,
+      from: `whatsapp:${process.env.NEXT_PUBLIC_TWILIO_NUMBER}` as string,
       to: `whatsapp:${PhoneNumber}`,
     });
 
