@@ -134,7 +134,7 @@ export default function AibotCollapse({
   }) {
     try {
       setCount(-999);
-      const response = await sendWhatsAppInfo(data);
+      const response = await sendWhatsAppInfo({ data, userId });
       if (!response) {
         handleError;
       }

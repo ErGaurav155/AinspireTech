@@ -2,6 +2,9 @@
 
 import nodemailer from "nodemailer";
 import twilio from "twilio";
+import User from "../database/models/user.model";
+import { connectToDatabase } from "../database/mongoose";
+import { Twilio } from "twilio";
 
 export const sendSubscriptionEmailToOwner = async ({
   email,
@@ -59,45 +62,62 @@ export const sendSubscriptionEmailToUser = async ({
   await transporter.sendMail(mailOptions);
 };
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-
-if (!accountSid || !authToken) {
-  throw new Error("Twilio credentials are not set in .env");
-}
-
-const client = twilio(accountSid, authToken);
-
-export async function sendWhatsAppInfo({
-  name,
-  email,
-  phone,
-  message,
-}: {
+interface DataTypes {
   name: string;
   email: string;
   phone?: string;
   message?: string;
-}) {
-  const whatsappNumber = process.env.WHATSAPP_NUMBER!; // Destination WhatsApp number
+}
 
-  // Construct the message text
-  const msg = `New Feedback Submission:
-Name: ${name}
-Email: ${email}
-Phone: ${phone}
-Message: ${message}`;
+interface SendWhatsAppInfoParams {
+  data: DataTypes;
+  userId: string | null;
+}
 
+const client = new Twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
+export async function sendWhatsAppInfo({
+  data,
+  userId,
+}: SendWhatsAppInfoParams): Promise<{ success: boolean; data?: any }> {
   try {
+    const { name, email, phone, message } = data;
+    await connectToDatabase();
+
+    const msg = `New Feedback Submission:
+                 Name: ${name}
+                 Email: ${email}
+                 Phone: ${phone || "N/A"}
+                 Message: ${message || "No message provided"}`;
+    let PhoneNumber;
+    if (!userId) {
+      PhoneNumber = process.env.WHATSAPP_NUMBER;
+    }
+    const user = await User.findOne({ _id: userId }).exec();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (!user.phone) {
+      throw new Error("User phone number not available");
+    }
+    PhoneNumber = user.phone;
     const result = await client.messages.create({
       body: msg,
-      from: process.env.NEXT_PUBLIC_TWILIO_NUMBER, // Your Twilio WhatsApp-enabled number
-      to: whatsappNumber,
+      from: process.env.NEXT_PUBLIC_TWILIO_NUMBER as string,
+      to: `whatsapp:${PhoneNumber}`,
     });
 
     return { success: true, data: result };
   } catch (error) {
     console.error("WhatsApp send error:", error);
-    throw new Error("Failed to send WhatsApp message");
+    return {
+      success: false,
+      data: error instanceof Error ? error.message : "Unknown error occurred",
+    };
   }
 }
