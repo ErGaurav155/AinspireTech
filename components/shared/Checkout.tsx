@@ -131,15 +131,14 @@ export const Checkout = ({
       }
     }
 
-    // Fetch location
-    // try {
-    //   const res = await fetch("/api/location");
-    //   const locData = await res.json();
-    //   locationRef.current = locData.location.country || "india"; // Default to India if not found
-    // } catch (error) {
-    //   console.error("Error fetching location:", error);
-    //   locationRef.current = "india"; // Default to India
-    // }
+    try {
+      const res = await fetch("/api/location");
+      const locData = await res.json();
+      locationRef.current = locData.location.country || "india";
+    } catch (error) {
+      console.error("Error fetching location:", error);
+      locationRef.current = "india";
+    }
 
     return true;
   };
@@ -398,12 +397,13 @@ export const Checkout = ({
         paypalplanId.current &&
         buyerIdRef.current &&
         step === "payment" &&
-        (locationRef.current !== "india" ? (
+        (locationRef.current === "india" ? (
           <RazerPay
             amount={amount}
             razorpayplanId={razorpayplanId.current ?? ""}
             buyerId={buyerIdRef.current ?? ""}
             productId={productId}
+            billingCycle={billingCycle}
           />
         ) : (
           <AlertDialog defaultOpen>
@@ -428,6 +428,7 @@ export const Checkout = ({
                 paypalplanId={paypalplanId.current ?? ""}
                 buyerId={buyerIdRef.current ?? ""}
                 productId={productId}
+                billingCycle={billingCycle}
               />
             </AlertDialogContent>
           </AlertDialog>

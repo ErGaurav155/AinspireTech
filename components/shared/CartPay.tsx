@@ -14,11 +14,17 @@ interface CartPayProps {
   paypalplanId: string;
   productId: string;
   buyerId: string;
+  billingCycle: string;
 }
 
 const NEXT_PUBLIC_PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 
-const CartPay = ({ paypalplanId, productId, buyerId }: CartPayProps) => {
+const CartPay = ({
+  paypalplanId,
+  productId,
+  buyerId,
+  billingCycle,
+}: CartPayProps) => {
   const router = useRouter();
   const initialOptions: ReactPayPalScriptOptions = {
     clientId: NEXT_PUBLIC_PAYPAL_CLIENT_ID,
@@ -42,7 +48,12 @@ const CartPay = ({ paypalplanId, productId, buyerId }: CartPayProps) => {
         throw new Error("Subscription ID not found");
       }
 
-      await createPayPalSubscription(buyerId, productId, data.subscriptionID);
+      await createPayPalSubscription(
+        buyerId,
+        productId,
+        data.subscriptionID,
+        billingCycle
+      );
       if (productId === "chatbot-customer-support" || "chatbot-education") {
         router.push(
           `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${data.subscriptionID}`

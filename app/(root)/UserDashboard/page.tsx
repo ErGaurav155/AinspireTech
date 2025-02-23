@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import EmbedCode from "@/components/shared/EmbedCode";
 import {
   cancelPayPalSubscription,
+  cancelRazorPaySubscription,
+  getSubscription,
   getSubscriptionInfo,
 } from "@/lib/action/subscription.action";
 import { useAuth } from "@clerk/nextjs";
@@ -73,6 +75,7 @@ export default function Dashboard() {
   const [isOtpSubmitting, setIsOtpSubmitting] = useState(false);
   const [phone, setPhone] = useState("");
   const [buyer, setBuyer] = useState("");
+  const [mode, setMode] = useState<"Immediate" | "End-of-term">("End-of-term");
 
   const [countryCode, setCountryCode] = useState("+1"); // Default to US
   const [step, setStep] = useState<"phone" | "otp" | "payment">("payment");
@@ -157,10 +160,25 @@ export default function Dashboard() {
     const reason = formData.get("reason") as string;
 
     try {
-      const result = await cancelPayPalSubscription(
-        selectedSubscriptionId,
-        reason
-      );
+      const getSub = await getSubscription(selectedSubscriptionId);
+      if (!getSub) {
+        router.push("/");
+        return;
+      }
+      let result;
+      if (getSub.mode === "paypal") {
+        result = await cancelPayPalSubscription(
+          selectedSubscriptionId,
+          reason,
+          mode
+        );
+      } else {
+        result = await cancelRazorPaySubscription(
+          selectedSubscriptionId,
+          reason,
+          mode
+        );
+      }
 
       if (result.success) {
         toast({
@@ -169,16 +187,15 @@ export default function Dashboard() {
           duration: 3000,
           className: "success-toast",
         });
-        setSubscriptions((prev) =>
-          prev.map((sub) =>
-            sub.subscriptionId === selectedSubscriptionId
-              ? { ...sub, subscriptionStatus: "cancelled" }
-              : sub
-          )
-        );
+        router.refresh();
         setOpen(false);
       } else {
-        alert(`Error: ${result.message}`);
+        toast({
+          title: "Subscription cancelled Failed!",
+          description: result.message,
+          duration: 3000,
+          className: "error-toast",
+        });
       }
     } catch (error) {
       console.error("Error cancelling subscription:", error);
@@ -226,8 +243,17 @@ export default function Dashboard() {
                   agentId === "ai-agent-customer-support" ||
                   agentId === "ai-agent-lead-generation" ||
                   agentId === "ai-agent-e-commerce" ? (
-                    <div className="flex flex-col items-center justify-between gap-5 bg-gray-100 p-4 rounded-lg shadow-md w-full">
-                      <div className="flex flex-row items-center gap-2 w-full">
+                    <div className="flex flex-col items-center justify-between gap-2 w-full ">
+                      <div className="flex flex-row items-center  w-full bg-gray-100 gap-2  p-2 rounded-lg shadow-md">
+                        <label className="text-sm  font-semibold text-gray-700">
+                          Add number in your mobile call forwading option.Choose
+                          unanswered option.
+                        </label>
+                        <span className="text-base lg:text-base font-bold text-gray-900">
+                          {process.env.NEXT_PUBLIC_TWILIO_NUMBER}
+                        </span>
+                      </div>
+                      <div className="flex flex-row items-center justify-between  w-full bg-gray-100 gap-2  p-2 rounded-lg shadow-md">
                         <label className="text-sm lg:text-base  text-nowrap font-semibold text-gray-700">
                           Linked Number:
                         </label>
@@ -304,12 +330,20 @@ export default function Dashboard() {
                 placeholder="Cancellation reason"
                 required
               />
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-center gap-2">
                 <button
                   type="submit"
+                  onClick={() => setMode("Immediate")}
                   className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                 >
-                  Cancel Subscription
+                  Immediate
+                </button>
+                <button
+                  type="submit"
+                  onClick={() => setMode("End-of-term")}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  End-of-term
                 </button>
               </div>
             </form>

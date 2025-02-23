@@ -15,6 +15,11 @@ const SubscriptionSchema = new mongoose.Schema(
       required: true,
       unique: true, // Ensure the order ID is unique
     },
+    billingMode: {
+      type: String,
+      enum: ["monthly", "yearly"],
+      reuired: true,
+    },
     mode: {
       type: String,
       enum: ["PayPal", "RazorPay"],
@@ -23,15 +28,18 @@ const SubscriptionSchema = new mongoose.Schema(
     subscriptionStatus: {
       type: String,
       enum: ["pending", "active", "expired", "cancelled"],
-      default: "pending", // Default status is pending
+      default: "pending",
+    },
+    cancelReason: {
+      type: String,
     },
     subscriptionEndDate: {
       type: Date,
-      default: null, // Null until payment is confirmed
+      default: null,
     },
     createdAt: {
       type: Date,
-      default: Date.now, // Automatically set to the current date
+      default: Date.now,
     },
   },
   {

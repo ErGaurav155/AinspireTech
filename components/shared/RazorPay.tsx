@@ -11,6 +11,7 @@ interface CheckoutProps {
   razorpayplanId: string;
   buyerId: string;
   productId: string;
+  billingCycle: string;
 }
 
 const RazerPay = ({
@@ -18,6 +19,7 @@ const RazerPay = ({
   razorpayplanId,
   buyerId,
   productId,
+  billingCycle,
 }: CheckoutProps) => {
   const router = useRouter();
   const hasRun = useRef(false); // ✅ Track if runCheckout has executed
@@ -60,21 +62,13 @@ const RazerPay = ({
           buyerId: buyerId,
           amount: amount,
         },
-        method: {
-          upi: true,
-          card: true,
-          netbanking: true,
-        },
-        upi: {
-          recurring: true,
-        },
+
         handler: async function (response: any) {
           const data = {
             subscription_id: subscriptionCreate.subsId,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
           };
-          console.log("data", data);
           const result = await fetch("/api/webhooks/razerpay/verify", {
             method: "POST",
             body: JSON.stringify(data),
@@ -94,7 +88,8 @@ const RazerPay = ({
             await createRazerPaySubscription(
               buyerId,
               productId,
-              subscriptionCreate.subsId
+              subscriptionCreate.subsId,
+              billingCycle
             );
 
             await createTransaction({
@@ -106,7 +101,7 @@ const RazerPay = ({
             });
             if (
               productId === "chatbot-customer-support" ||
-              "chatbot-education"
+              productId === "chatbot-education"
             ) {
               router.push(
                 `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`

@@ -28,46 +28,52 @@ const questionFlow = [
 ];
 
 export async function POST(req: NextRequest) {
-  const response = new twiml.VoiceResponse();
-  const params = new URL(req.url).searchParams;
-  const step = parseInt(params.get("step") || "1");
-  const caller = params.get("caller") || ""; // Fix error 2: Handle null case
-  const To = params.get("to") || ""; // Fix error 2: Handle null case
+  try {
+    const response = new twiml.VoiceResponse();
+    const params = new URL(req.url).searchParams;
+    const step = parseInt(params.get("step") || "1");
+    const caller = params.get("caller") || ""; // Fix error 2: Handle null case
+    const To = params.get("to") || ""; // Fix error 2: Handle null case
 
-  // Collect previous answers
-  const formData = await req.formData();
-  const speechResult = formData.get("SpeechResult")?.toString().trim() || ""; // Fix error 1: Convert to string
-  if (step > 1 && speechResult === "") {
-    response.say("No input received. Ending call.");
-    response.hangup();
+    // Collect previous answers
+    const formData = await req.formData();
+    const speechResult = formData.get("SpeechResult")?.toString().trim() || ""; // Fix error 1: Convert to string
+    if (step > 1 && speechResult === "") {
+      response.say("No input received. Ending call.");
+      response.hangup();
+      return twimlResponse(response);
+    }
+    const answers = Object.fromEntries(params.entries());
+
+    // Store current answer
+    const currentQuestion = questionFlow[step - 2];
+    if (currentQuestion) {
+      answers[currentQuestion.key] = speechResult;
+    }
+
+    if (step > questionFlow.length) {
+      await finalizeServiceRequest(answers, caller, To);
+      response.say(
+        "Thank you for the information. We will contact you shortly."
+      );
+      response.hangup();
+      return twimlResponse(response);
+    }
+
+    const gather = response.gather({
+      input: ["speech"],
+      timeout: 15,
+      action: `/api/twilio/next-question?step=${step + 1}&${new URLSearchParams(
+        answers as Record<string, string>
+      )}&caller=${caller}&to=${To}`,
+      method: "POST",
+    });
+
+    gather.say(questionFlow[step - 1].question);
     return twimlResponse(response);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  const answers = Object.fromEntries(params.entries());
-
-  // Store current answer
-  const currentQuestion = questionFlow[step - 2];
-  if (currentQuestion) {
-    answers[currentQuestion.key] = speechResult;
-  }
-
-  if (step > questionFlow.length) {
-    await finalizeServiceRequest(answers, caller, To);
-    response.say("Thank you for the information. We will contact you shortly.");
-    response.hangup();
-    return twimlResponse(response);
-  }
-
-  const gather = response.gather({
-    input: ["speech"],
-    timeout: 15,
-    action: `/api/twilio/next-question?step=${step + 1}&${new URLSearchParams(
-      answers as Record<string, string>
-    )}&caller=${caller}&to=${To}`,
-    method: "POST",
-  });
-
-  gather.say(questionFlow[step - 1].question);
-  return twimlResponse(response);
 }
 
 async function finalizeServiceRequest(

@@ -21,9 +21,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    console.log("razorpay_order_id", subscription_id);
-    console.log("razorpay_payment_id", razorpay_payment_id);
-    console.log("razorpay_signature", razorpay_signature);
 
     const secret = process.env.RAZORPAY_KEY_SECRET as string;
     if (!secret) {
@@ -34,14 +31,10 @@ export async function POST(request: NextRequest) {
     }
 
     const HMAC = crypto.createHmac("sha256", secret);
-    console.log("Secret Key:", secret);
 
-    HMAC.update(`${subscription_id}|${razorpay_payment_id}`, "utf8");
-    const data = `${subscription_id}|${razorpay_payment_id}`;
-    console.log("Data to hash:", data);
+    HMAC.update(`${razorpay_payment_id}|${subscription_id}`, "utf8");
+    const data = `${razorpay_payment_id}|${subscription_id}`;
     const generatedSignature = HMAC.digest("hex");
-    console.log("generatedSignature", generatedSignature);
-    console.log("razorpay_signature", razorpay_signature);
 
     if (generatedSignature === razorpay_signature) {
       return NextResponse.json({

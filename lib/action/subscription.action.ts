@@ -4,11 +4,21 @@ import Subscription from "@/lib/database/models/subscription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { handleError } from "../utils";
 import { NextResponse } from "next/server";
+import Razorpay from "razorpay";
+if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+  throw new Error("Razorpay credentials are not set in .env");
+}
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 export async function createRazerPaySubscription(
   buyerId: string,
   productId: string,
-  subscriptionId: string
+  subscriptionId: string,
+  billingCycle: string
 ) {
   try {
     await connectToDatabase();
@@ -17,6 +27,7 @@ export async function createRazerPaySubscription(
       userId: buyerId,
       productId,
       subscriptionId,
+      billingMode: billingCycle,
       subscriptionStatus: "active",
       mode: "RazorPay",
     });
@@ -32,7 +43,8 @@ export async function createRazerPaySubscription(
 export async function createPayPalSubscription(
   buyerId: string,
   productId: string,
-  subscriptionId: string
+  subscriptionId: string,
+  billingCycle: string
 ) {
   try {
     await connectToDatabase();
@@ -41,6 +53,7 @@ export async function createPayPalSubscription(
       userId: buyerId,
       productId,
       subscriptionId,
+      billingMode: billingCycle,
       subscriptionStatus: "active",
       mode: "PayPal",
     });
@@ -55,6 +68,25 @@ export async function createPayPalSubscription(
   }
 }
 
+export const getSubscription = async (selectedSubscriptionId: string) => {
+  try {
+    await connectToDatabase(); // Ensure database connection
+
+    // Filter subscriptions by userId and subscriptionStatus
+    const subscriptions = await Subscription.findOne({
+      subscriptionId: selectedSubscriptionId,
+    });
+
+    if (!subscriptions || subscriptions.length === 0) {
+      throw new Error("No matching subscription found.");
+    }
+
+    return JSON.parse(JSON.stringify(subscriptions)); // Serialize the response for frontend
+  } catch (error: any) {
+    console.error("Error retrieving subscription info:", error.message);
+    throw new Error("Failed to retrieve subscription info.");
+  }
+};
 export const getSubscriptionInfo = async (userId: string) => {
   try {
     await connectToDatabase(); // Ensure database connection
@@ -67,7 +99,6 @@ export const getSubscriptionInfo = async (userId: string) => {
     });
 
     if (!subscriptions || subscriptions.length === 0) {
-      console.log("No active subscriptions found");
       return []; // Return an empty array if no active subscriptions
     }
 
@@ -121,10 +152,11 @@ export async function setIsScrapped(orderCreationId: string) {
   }
 }
 
-export async function setSubsciptionActive(orderCreationId: string) {
+export async function setSubsciptionActive(
+  orderCreationId: string,
+  nextBillingDate: Date
+) {
   try {
-    const subscriptionEndDate = new Date();
-    subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1); // One month subscription
     await connectToDatabase();
 
     const Subs = await Subscription.findOneAndUpdate(
@@ -132,7 +164,7 @@ export async function setSubsciptionActive(orderCreationId: string) {
       {
         $set: {
           subscriptionStatus: "active",
-          subscriptionEndDate: subscriptionEndDate,
+          subscriptionEndDate: nextBillingDate,
         },
       },
       { new: true }
@@ -171,7 +203,8 @@ async function getAccessToken() {
 }
 export const cancelPayPalSubscription = async (
   subscriptionId: string,
-  reason: string
+  reason: string,
+  mode: string
 ) => {
   try {
     // Get PayPal access token from environment variables
@@ -180,25 +213,45 @@ export const cancelPayPalSubscription = async (
     if (!accessToken) {
       throw new Error("Missing PayPal access token");
     }
+    let res;
+    if (mode === "Immediate") {
+      res = await fetch(
+        `https://api-m.paypal.com/v1/billing/subscriptions/${subscriptionId}/cancel`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ reason }),
+        }
+      );
+    } else {
+      res = await fetch(
+        `https://api-m.paypal.com/v1/billing/subscriptions/${subscriptionId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify([
+            {
+              op: "replace",
+              path: "/auto_renewal",
+              value: false,
+            },
+          ]),
+        }
+      );
+    }
 
-    const response = await fetch(
-      `https://api-m.paypal.com/v1/billing/subscriptions/${subscriptionId}/cancel`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ reason }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
+    if (!res.ok) {
+      const errorData = await res.json();
       throw new Error(errorData.message || "Failed to cancel subscription");
     }
-    const isOk = await setSubsciptionCanceled(subscriptionId);
+    const isOk = await setSubsciptionCanceled(subscriptionId, reason);
     if (!isOk) {
       throw new Error("Can not cancelled subscription.");
     }
@@ -212,7 +265,35 @@ export const cancelPayPalSubscription = async (
     };
   }
 };
-export async function setSubsciptionCanceled(subscriptionId: string) {
+export async function cancelRazorPaySubscription(
+  subscriptionId: string,
+  reason: string,
+  mode: string
+) {
+  try {
+    let response;
+    if (mode === "Immediate") {
+      response = await razorpay.subscriptions.cancel(subscriptionId, false);
+    } else {
+      response = await razorpay.subscriptions.cancel(subscriptionId, true);
+    }
+    if (!response) {
+      throw new Error("Failed to cancel subscription");
+    }
+
+    return { success: true, message: "Subscription cancelled successfully" };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "An unknown error occurred",
+    };
+  }
+}
+export async function setSubsciptionCanceled(
+  subscriptionId: string,
+  reason: string
+) {
   try {
     await connectToDatabase();
 
@@ -221,6 +302,7 @@ export async function setSubsciptionCanceled(subscriptionId: string) {
       {
         $set: {
           subscriptionStatus: "cancelled",
+          cancelReason: reason,
         },
       },
       { new: true }
