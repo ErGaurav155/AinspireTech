@@ -1,12 +1,9 @@
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 import { twiml } from "twilio";
-const TWILIO_NUMBER = process.env.TWILIO_NUMBER;
-const WHATSAPP_NUMBER = process.env.WHATSAPP_NUMBER;
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN!;
 const TWILIO_SID = process.env.TWILIO_SID!;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const NEXT_PUBLIC_TWILIO_NUMBER = process.env.NEXT_PUBLIC_TWILIO_NUMBER;
 const questionFlow = [
   {

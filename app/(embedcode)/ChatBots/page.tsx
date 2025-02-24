@@ -12,7 +12,6 @@ const ChatBots = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Extracting userId and agentId from the search params
   const userId = searchParams.get("userId");
   const agentId = searchParams.get("agentId");
 
@@ -26,7 +25,6 @@ const ChatBots = () => {
           );
           setIsAuthorized(agentSubscriptions.length > 0);
         } catch (error) {
-          console.error("Error fetching subscription info:", error);
           setIsAuthorized(false);
         }
         setIsLoading(false);

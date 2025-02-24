@@ -7,6 +7,7 @@ import Image from "next/image";
 import { HeadsetIcon } from "lucide-react";
 import { Footer } from "@/components/shared/Footer";
 import { productDetails } from "@/constant";
+import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
 // Define the structure of product details
 interface Product {
@@ -43,7 +44,9 @@ const ProductsPage = () => {
   }
 
   return (
-    <>
+    <div className="flex flex-col items-center justify-center ">
+      <BreadcrumbsDefault />
+
       <div className="wrapper2 min-h-[80vh] w-full p-8">
         <h1 className="text-4xl font-bold text-white mb-12 text-center">
           All Products
@@ -117,7 +120,7 @@ const ProductsPage = () => {
         </div>
       </div>
       <Footer />
-    </>
+    </div>
   );
 };
 

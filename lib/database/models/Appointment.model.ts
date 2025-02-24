@@ -20,7 +20,7 @@ const AppointmentSchema = new Schema({
     required: true,
   },
   budget: {
-    type: String, // Time in string format (e.g., "10:30 AM")
+    type: String,
     required: true,
   },
   subject: {

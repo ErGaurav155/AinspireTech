@@ -3,14 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@material-tailwind/react";
-import Image from "next/image";
 import { HeadsetIcon } from "lucide-react";
 import { Footer } from "@/components/shared/Footer";
-import { useAuth } from "@clerk/nextjs";
-import { Checkout } from "@/components/shared/Checkout";
-import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
-import { getUserById } from "@/lib/action/user.actions";
+
 import { productDetails } from "@/constant";
+import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
 // Define the structure of product details
 
@@ -48,7 +45,9 @@ const ProductDetail = ({ params }: { params: ProductParams }) => {
     );
 
   return (
-    <>
+    <div className="flex flex-col items-center justify-center">
+      <BreadcrumbsDefault />
+
       <div className="wrapper2 flex flex-col md:flex-row items-center justify-center gap-10 min-h-[80vh] w-full">
         {/* Left Side: Product Icon and Buttons */}
         <div className="flex-1 flex flex-col items-start justify-start gap-4">
@@ -109,7 +108,7 @@ const ProductDetail = ({ params }: { params: ProductParams }) => {
         </div>
       </div>
       <Footer />
-    </>
+    </div>
   );
 };
 

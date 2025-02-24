@@ -22,14 +22,3 @@ export const handleError = (error: unknown) => {
     throw new Error(`Unknown error: ${JSON.stringify(error)}`);
   }
 };
-// export async function sendToWhatsApp(data: CustomerData) {
-//   const message = await twilio.messages.create({
-//     body: `New Customer Inquiry:
-//     Name: ${data.name}
-//     Email: ${data.email}
-//     Reason: ${data.reason}`,
-//     from: "whatsapp:+14155238886",
-//     to: `whatsapp:${process.env.RECIPIENT_PHONE}`,
-//   });
-//   return message.sid;
-// }

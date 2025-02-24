@@ -3,7 +3,6 @@
 import { Footer } from "@/components/shared/Footer";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { productSubscriptionDetails } from "@/constant";
-import Link from "next/link";
 import {
   HeadsetIcon,
   AmbulanceIcon,
@@ -19,6 +18,7 @@ import { Checkout } from "@/components/shared/Checkout";
 import { getSubscriptionInfo } from "@/lib/action/subscription.action";
 import { getUserById } from "@/lib/action/user.actions";
 import { Button } from "@material-tailwind/react";
+import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
 const iconMapping: Record<string, any> = {
   HeadsetIcon: HeadsetIcon,
@@ -88,7 +88,8 @@ const Pricing = () => {
     );
   }
   return (
-    <div>
+    <div className="flex flex-col justify-center items-center">
+      <BreadcrumbsDefault />
       <div className="wrapper2">
         <div className="py-10">
           <div className="text-center my-8 px-4">

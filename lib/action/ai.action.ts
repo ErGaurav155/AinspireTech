@@ -1,8 +1,6 @@
 "use server";
 
 import OpenAI from "openai";
-import fs from "fs";
-import path from "path";
 import { connectToDatabase } from "../database/mongoose";
 import File from "@/lib/database/models/scrappeddata.model";
 
@@ -71,8 +69,6 @@ export const generateGptResponse = async ({
   return JSON.parse(JSON.stringify(gptArgs));
 };
 
-// lib/action/ai.action.ts
-
 export const generateMcqResponse = async ({
   userInput,
 }: {
@@ -105,7 +101,6 @@ export const generateMcqResponse = async ({
       { role: "system", content: systemMessage },
       { role: "user", content: userInput },
     ],
-    // ... rest of config ...
   });
 
   return completion.choices[0]?.message?.content || "";

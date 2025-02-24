@@ -9,7 +9,6 @@ export async function createAppointment(Appointmentdata: AppointmentParams) {
   try {
     await connectToDatabase();
 
-    // Create a new transaction with a buyerId
     const newTransaction = await Appointment.create({
       ...Appointmentdata,
     });

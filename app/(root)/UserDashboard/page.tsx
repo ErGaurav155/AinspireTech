@@ -30,6 +30,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { countryCodes } from "@/constant";
 import OTPVerification from "@/components/shared/OTPVerification";
+import { Footer } from "@/components/shared/Footer";
+import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
 interface Subscription {
   productId: string;
@@ -211,231 +213,238 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="wrapper2">
-      <h1 className="text-2xl font-bold text-white text-center mb-4">
-        Your Subscriptions
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        {agentIds.map((agentId) => {
-          const subscription = subscriptions.find(
-            (sub) => sub.productId === agentId
-          );
-          const isSubscribed = subscription?.subscriptionStatus === "active";
+    <div className="flex flex-col items-center justify-center">
+      <BreadcrumbsDefault />
 
-          return (
-            <div
-              key={agentId}
-              className="flex flex-col w-full min-h-max gap-4 bg-gray-800 p-2 rounded-xl text-white"
-            >
-              <Link
-                href={`/product/${agentId}`}
-                className={`p-4 mt-2 w-full rounded-lg ${
-                  isSubscribed ? "bg-green-500" : "bg-red-500"
-                }`}
+      <div className="wrapper2">
+        <h1 className="text-2xl font-bold text-white text-center mb-4 mt-4">
+          Your Subscriptions
+        </h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+          {agentIds.map((agentId) => {
+            const subscription = subscriptions.find(
+              (sub) => sub.productId === agentId
+            );
+            const isSubscribed = subscription?.subscriptionStatus === "active";
+
+            return (
+              <div
+                key={agentId}
+                className="flex flex-col w-full min-h-max gap-4 bg-gray-800 p-2 rounded-xl text-white"
               >
-                <h2 className="flex text-lg items-center justify-center font-bold">
-                  {agentId}
-                </h2>
-              </Link>
-              {isSubscribed ? (
-                <div className="mt-4  space-y-4">
-                  {agentId === "ai-agent-education" ||
-                  agentId === "ai-agent-customer-support" ||
-                  agentId === "ai-agent-lead-generation" ||
-                  agentId === "ai-agent-e-commerce" ? (
-                    <div className="flex flex-col items-center justify-between gap-2 w-full ">
-                      <div className="flex flex-row items-center  w-full bg-gray-100 gap-2  p-2 rounded-lg shadow-md">
-                        <label className="text-sm  font-semibold text-gray-700">
-                          Add number in your mobile call forwading option.Choose
-                          unanswered option.
-                        </label>
-                        <span className="text-base lg:text-base font-bold text-gray-900">
-                          {process.env.NEXT_PUBLIC_TWILIO_NUMBER}
-                        </span>
+                <Link
+                  href={`/product/${agentId}`}
+                  className={`p-4 mt-2 w-full rounded-lg ${
+                    isSubscribed ? "bg-green-500" : "bg-red-500"
+                  }`}
+                >
+                  <h2 className="flex text-lg items-center justify-center font-bold">
+                    {agentId}
+                  </h2>
+                </Link>
+                {isSubscribed ? (
+                  <div className="mt-4  space-y-4">
+                    {agentId === "ai-agent-education" ||
+                    agentId === "ai-agent-customer-support" ||
+                    agentId === "ai-agent-lead-generation" ||
+                    agentId === "ai-agent-e-commerce" ? (
+                      <div className="flex flex-col items-center justify-between gap-2 w-full ">
+                        <div className="flex flex-row items-center  w-full bg-gray-100 gap-2  p-2 rounded-lg shadow-md">
+                          <label className="text-sm  font-semibold text-gray-700">
+                            Add number in your mobile call forwading
+                            option.Choose unanswered option.
+                          </label>
+                          <span className="text-base lg:text-base font-bold text-gray-900">
+                            {process.env.NEXT_PUBLIC_TWILIO_NUMBER}
+                          </span>
+                        </div>
+                        <div className="flex flex-row items-center justify-between  w-full bg-gray-100 gap-2  p-2 rounded-lg shadow-md">
+                          <label className="text-sm lg:text-base  text-nowrap font-semibold text-gray-700">
+                            Linked Number:
+                          </label>
+                          <span className="text-base lg:text-base font-bold text-gray-900">
+                            {userPhone}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-row items-center justify-between  w-full bg-gray-100 gap-2  p-2 rounded-lg shadow-md">
-                        <label className="text-sm lg:text-base  text-nowrap font-semibold text-gray-700">
-                          Linked Number:
-                        </label>
-                        <span className="text-base lg:text-base font-bold text-gray-900">
-                          {userPhone}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <EmbedCode
-                      userId={subscription?.userId || ""}
-                      agentId={agentId}
-                    />
-                  )}
-                  <div className="flex items-center justify-center gap-3 w-full">
-                    <button
-                      onClick={() => setStep("phone")}
-                      className={`flex-1 ${
-                        agentId === "ai-agent-education" ||
-                        agentId === "ai-agent-customer-support" ||
-                        agentId === "ai-agent-lead-generation" ||
-                        agentId === "ai-agent-e-commerce"
-                          ? "block"
-                          : "hidden"
-                      }  bg-blue-700 text-white text-base lg:text-base text-center  text-nowrap py-2 px-2 md:px-3 rounded-md transition duration-300 hover:bg-blue-600 `}
-                    >
-                      Change Number
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedSubscriptionId(subscription.subscriptionId);
-                        setOpen(true);
-                      }}
-                      className="flex-1 bg-red-700 text-white text-nowrap text-base lg:text-base  py-2 px-2 md:px-3 rounded-md transition duration-300 hover:bg-red-600"
-                    >
-                      Cancel Subscription
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-2 w-auto  flex gap-2 items-center justify-center">
-                  <Link
-                    href={`/product/${agentId}`}
-                    className="flex items-center gap-2"
-                  >
-                    <LockClosedIcon className="h-7 w-7" /> Locked
-                  </Link>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {open && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold  text-red-400">
-                Cancel Subscription
-              </h2>
-              <XMarkIcon
-                onClick={() => setOpen(false)}
-                className="text-black size-10 cursor-pointer"
-              />
-            </div>
-            <form onSubmit={handleCancelSubscription} className="space-y-4">
-              <label className="block text-lg font-semibold text-black">
-                Please Provide Reason
-              </label>
-              <textarea
-                name="reason"
-                className="w-full input-field"
-                placeholder="Cancellation reason"
-                required
-              />
-              <div className="flex justify-center gap-2">
-                <button
-                  type="submit"
-                  onClick={() => setMode("Immediate")}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                >
-                  Immediate
-                </button>
-                <button
-                  type="submit"
-                  onClick={() => setMode("End-of-term")}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                >
-                  End-of-term
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {step === "phone" && (
-        <AlertDialog defaultOpen>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="sr-only">
-                Enter Your Phone Number
-              </AlertDialogTitle>
-              <div className="flex justify-between items-center">
-                <p className="p-16-semibold text-black">
-                  PLEASE ENTER YOUR NEW MOBILE NUMBER HERE
-                </p>
-                <AlertDialogCancel
-                  onClick={() => {
-                    setStep("payment");
-                    router.push(`/UserDashboard`);
-                  }}
-                  className="border-0 p-0 hover:bg-transparent"
-                >
-                  <XMarkIcon className="size-6 cursor-pointer" />
-                </AlertDialogCancel>
-              </div>
-            </AlertDialogHeader>
-            <form
-              onSubmit={handlePhoneSubmit(handlePhoneSubmission)}
-              className="space-y-4"
-            >
-              <div className="w-full">
-                <label
-                  htmlFor="MobileNumber"
-                  className="block text-lg font-semibold"
-                >
-                  Enter Your New Phone Number
-                </label>
-                <div className="flex items-center justify-start input-field mt-2 w-full">
-                  <select
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
-                    className="max-w-max border-none  active:border-none no-scrollbar   p-2"
-                  >
-                    {countryCodes.map((countryCode, index) => (
-                      <option
-                        key={index}
-                        className="bg-white text-gray-700 text-lg font-xs  mb-4 w-[10vw]  flex items-center justify-center    "
-                        value={countryCode.code}
+                    ) : (
+                      <EmbedCode
+                        userId={subscription?.userId || ""}
+                        agentId={agentId}
+                      />
+                    )}
+                    <div className="flex items-center justify-center gap-3 w-full">
+                      <button
+                        onClick={() => setStep("phone")}
+                        className={`flex-1 ${
+                          agentId === "ai-agent-education" ||
+                          agentId === "ai-agent-customer-support" ||
+                          agentId === "ai-agent-lead-generation" ||
+                          agentId === "ai-agent-e-commerce"
+                            ? "block"
+                            : "hidden"
+                        }  bg-blue-700 text-white text-base lg:text-base text-center  text-nowrap py-2 px-2 md:px-3 rounded-md transition duration-300 hover:bg-blue-600 `}
                       >
-                        {countryCode.code}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    id="MobileNumber"
-                    type="text"
-                    {...registerPhone("MobileNumber")}
-                    className="input-field  w-full"
-                  />
-                </div>
-                {phoneErrors.MobileNumber && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {phoneErrors.MobileNumber.message}
-                  </p>
+                        Change Number
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedSubscriptionId(
+                            subscription.subscriptionId
+                          );
+                          setOpen(true);
+                        }}
+                        className="flex-1 bg-red-700 text-white text-nowrap text-base lg:text-base  py-2 px-2 md:px-3 rounded-md transition duration-300 hover:bg-red-600"
+                      >
+                        Cancel Subscription
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-2 w-auto  flex gap-2 items-center justify-center">
+                    <Link
+                      href={`/product/${agentId}`}
+                      className="flex items-center gap-2"
+                    >
+                      <LockClosedIcon className="h-7 w-7" /> Locked
+                    </Link>
+                  </div>
                 )}
               </div>
-              <div className="flex justify-between items-center">
-                <button
-                  type="submit"
-                  className="bg-green-500 text-white p-2 w-1/2 rounded-md"
-                  disabled={isOtpSubmitting}
-                >
-                  {isOtpSubmitting ? "Sending OTP" : "Send OTP"}
-                </button>
-              </div>
-            </form>
+            );
+          })}
+        </div>
 
-            <AlertDialogDescription className="p-16-regular py-3 text-green-500">
-              IT WILL HELP US TO PROVIDE BETTER SERVICES
-            </AlertDialogDescription>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-      {step === "otp" && (
-        <OTPVerification
-          phone={phone}
-          onVerified={handleOTPVerified}
-          buyerId={buyer}
-        />
-      )}
+        {open && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-lg font-semibold  text-red-400">
+                  Cancel Subscription
+                </h2>
+                <XMarkIcon
+                  onClick={() => setOpen(false)}
+                  className="text-black size-10 cursor-pointer"
+                />
+              </div>
+              <form onSubmit={handleCancelSubscription} className="space-y-4">
+                <label className="block text-lg font-semibold text-black">
+                  Please Provide Reason
+                </label>
+                <textarea
+                  name="reason"
+                  className="w-full input-field"
+                  placeholder="Cancellation reason"
+                  required
+                />
+                <div className="flex justify-center gap-2">
+                  <button
+                    type="submit"
+                    onClick={() => setMode("Immediate")}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    Immediate
+                  </button>
+                  <button
+                    type="submit"
+                    onClick={() => setMode("End-of-term")}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    End-of-term
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+        {step === "phone" && (
+          <AlertDialog defaultOpen>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="sr-only">
+                  Enter Your Phone Number
+                </AlertDialogTitle>
+                <div className="flex justify-between items-center">
+                  <p className="p-16-semibold text-black">
+                    PLEASE ENTER YOUR NEW MOBILE NUMBER HERE
+                  </p>
+                  <AlertDialogCancel
+                    onClick={() => {
+                      setStep("payment");
+                      router.push(`/UserDashboard`);
+                    }}
+                    className="border-0 p-0 hover:bg-transparent"
+                  >
+                    <XMarkIcon className="size-6 cursor-pointer" />
+                  </AlertDialogCancel>
+                </div>
+              </AlertDialogHeader>
+              <form
+                onSubmit={handlePhoneSubmit(handlePhoneSubmission)}
+                className="space-y-4"
+              >
+                <div className="w-full">
+                  <label
+                    htmlFor="MobileNumber"
+                    className="block text-lg font-semibold"
+                  >
+                    Enter Your New Phone Number
+                  </label>
+                  <div className="flex items-center justify-start input-field mt-2 w-full">
+                    <select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="max-w-max border-none  active:border-none no-scrollbar   p-2"
+                    >
+                      {countryCodes.map((countryCode, index) => (
+                        <option
+                          key={index}
+                          className="bg-white text-gray-700 text-lg font-xs  mb-4 w-[10vw]  flex items-center justify-center    "
+                          value={countryCode.code}
+                        >
+                          {countryCode.code}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      id="MobileNumber"
+                      type="text"
+                      {...registerPhone("MobileNumber")}
+                      className="input-field  w-full"
+                    />
+                  </div>
+                  {phoneErrors.MobileNumber && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {phoneErrors.MobileNumber.message}
+                    </p>
+                  )}
+                </div>
+                <div className="flex justify-between items-center">
+                  <button
+                    type="submit"
+                    className="bg-green-500 text-white p-2 w-1/2 rounded-md"
+                    disabled={isOtpSubmitting}
+                  >
+                    {isOtpSubmitting ? "Sending OTP" : "Send OTP"}
+                  </button>
+                </div>
+              </form>
+
+              <AlertDialogDescription className="p-16-regular py-3 text-green-500">
+                IT WILL HELP US TO PROVIDE BETTER SERVICES
+              </AlertDialogDescription>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+        {step === "otp" && (
+          <OTPVerification
+            phone={phone}
+            onVerified={handleOTPVerified}
+            buyerId={buyer}
+          />
+        )}
+      </div>
+      <Footer />
     </div>
   );
 }

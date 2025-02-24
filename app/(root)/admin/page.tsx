@@ -12,6 +12,7 @@ import { Footer } from "@/components/shared/Footer";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { getAllAppointments, getOwner } from "@/lib/action/appointment.actions";
+import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
 const columnHelper = createColumnHelper<AppointmentParams>();
 
@@ -69,7 +70,6 @@ const AppointmentTable = () => {
 
         setData(response.data);
       } catch (error) {
-        console.error("Error fetching appointments:", error);
         router.push("/");
       }
     };
@@ -93,6 +93,8 @@ const AppointmentTable = () => {
 
   return (
     <div className="w-full min-h-[100vh] flex flex-col justify-between items-center">
+      <BreadcrumbsDefault />
+
       <div className="max-w-7xl w-full p-2 data-table mt-4 md:mt-11 no-scrollbar">
         <table className="shad-table w-full">
           <thead className="bg-gray-300 text-center">

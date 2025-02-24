@@ -8,9 +8,9 @@ export const metadata: Metadata = {
 };
 const PrivacyPolicy = () => {
   return (
-    <div className="">
-      <div className="wrapper2">
-        <BreadcrumbsDefault />
+    <div className="flex flex-col items-center justify-center">
+      <BreadcrumbsDefault />
+      <div className="wrapper2 ">
         <div className="max-w-3xl mx-auto px-5 md:px-10 mt-5 md:mt-10 w-full text-white">
           <h2 className="font-black text-3xl text-white mb-5">
             Privacy Policy

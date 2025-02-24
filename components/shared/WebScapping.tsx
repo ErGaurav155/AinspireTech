@@ -2,13 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { z } from "zod";
-import { toast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
   AlertDialog,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogHeader,
@@ -18,7 +16,6 @@ import {
   getUserByDbId,
   setScrappedFile,
   setWebsiteScrapped,
-  updateUserByDbId,
 } from "@/lib/action/user.actions";
 import { getAgentSubscriptionInfo } from "@/lib/action/subscription.action";
 import {
@@ -26,7 +23,6 @@ import {
   sendSubscriptionEmailToUser,
 } from "@/lib/action/sendEmail.action";
 import { useRouter } from "next/navigation";
-import { XMarkIcon } from "@heroicons/react/24/solid";
 
 const formSchema = z.object({
   websiteUrl: z.string().url("Invalid URL").min(1, "Website URL is required"),
@@ -112,7 +108,6 @@ export const WebScapping = ({
   useEffect(() => {
     const executeProcess = async () => {
       if (!isSubmitted) {
-        // Ensure it only runs once
         setLoading(true);
         await processSubscription();
         setIsSubmitted(true);
@@ -120,7 +115,7 @@ export const WebScapping = ({
     };
 
     executeProcess();
-  }, []);
+  });
 
   return (
     <>

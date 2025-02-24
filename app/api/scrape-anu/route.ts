@@ -1,8 +1,6 @@
 import { ApifyClient } from "apify-client";
-import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+
 import File from "@/lib/database/models/scrappeddata.model";
 
 import { URL } from "url";
