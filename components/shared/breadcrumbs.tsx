@@ -12,25 +12,25 @@ export function BreadcrumbsDefault() {
   const pathSegments = pathname.split("/").filter((segment) => segment);
 
   return (
-    <Breadcrumbs className="mt-4 flex items-center justify-center w-full bg-white bg-opacity-90 ">
-      {/* Always include Home as the first breadcrumb */}
+    <Breadcrumbs className="mt-4 flex items-center justify-center text-wrap w-full bg-white bg-opacity-90 ">
       <Link
         href="/"
-        className="opacity-60 hover:opacity-100  text-xl font-thin"
+        className="opacity-60 hover:opacity-100 text-wrap text-sm md:text-xl font-thin"
       >
         Home
       </Link>
 
-      {/* Create breadcrumb links for other segments */}
       {pathSegments.map((segment, index) => {
-        // Build the URL for each breadcrumb
         const href = "/" + pathSegments.slice(0, index + 1).join("/");
 
-        // Format the segment for display
         const segmentName = segment.replace(/-/g, " ");
 
         return (
-          <Link className="text-xl font-thin" key={href} href={href}>
+          <Link
+            className="text-sm md:text-xl font-thin text-wrap w-full"
+            key={href}
+            href={href}
+          >
             {segmentName}
           </Link>
         );

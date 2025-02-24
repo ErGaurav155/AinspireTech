@@ -48,7 +48,7 @@ const ProductDetail = ({ params }: { params: ProductParams }) => {
     <div className="flex flex-col items-center justify-center">
       <BreadcrumbsDefault />
 
-      <div className="wrapper2 flex flex-col md:flex-row items-center justify-center gap-10 min-h-[80vh] w-full">
+      <div className="wrapper2 mt-2 flex flex-col md:flex-row items-center justify-center gap-10 min-h-[80vh] w-full">
         {/* Left Side: Product Icon and Buttons */}
         <div className="flex-1 flex flex-col items-start justify-start gap-4">
           <div

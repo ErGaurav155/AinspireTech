@@ -47,7 +47,7 @@ const ProductsPage = () => {
     <div className="flex flex-col items-center justify-center ">
       <BreadcrumbsDefault />
 
-      <div className="wrapper2 min-h-[80vh] w-full p-8">
+      <div className="md:wrapper2  w-full md:p-8">
         <h1 className="text-4xl font-bold text-white mb-12 text-center">
           All Products
         </h1>
