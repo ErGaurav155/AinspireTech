@@ -11,18 +11,16 @@ if (!IPSTACK_ACCESS_KEY) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Extract the user's IP address from headers (fallback for testing)
+    await request.body;
     const userIp =
-      request.headers.get("x-forwarded-for") || request.ip || "check"; // 'check' allows ipstack to detect the IP automatically
+      request.headers.get("x-forwarded-for") || request.ip || "check";
+    console.log("userIp", userIp);
 
-    // Query ipstack for geolocation data
     const response = await axios.get(
       `http://api.ipstack.com/${userIp}?access_key=${IPSTACK_ACCESS_KEY}`
     );
-
+    console.log(response);
     const data = response.data;
-
-    // If successful, return location data
     if (data) {
       return NextResponse.json(
         {

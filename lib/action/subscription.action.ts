@@ -3,7 +3,6 @@
 import Subscription from "@/lib/database/models/subscription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { handleError } from "../utils";
-import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
   throw new Error("Razorpay credentials are not set in .env");
@@ -13,7 +12,17 @@ const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
+function addMonths(date: Date, months: number): Date {
+  const newDate = new Date(date);
+  newDate.setMonth(newDate.getMonth() + months);
+  return newDate;
+}
 
+function addYears(date: Date, years: number): Date {
+  const newDate = new Date(date);
+  newDate.setFullYear(newDate.getFullYear() + years);
+  return newDate;
+}
 export async function createRazerPaySubscription(
   buyerId: string,
   productId: string,
@@ -22,7 +31,14 @@ export async function createRazerPaySubscription(
 ) {
   try {
     await connectToDatabase();
-
+    let endDate = new Date();
+    if (billingCycle === "monthly") {
+      endDate = addMonths(endDate, 1);
+    } else if (billingCycle === "yearly") {
+      endDate = addYears(endDate, 1);
+    } else {
+      throw new Error("Invalid billing cycle.");
+    }
     const newSubscription = await Subscription.create({
       userId: buyerId,
       productId,
@@ -30,6 +46,7 @@ export async function createRazerPaySubscription(
       billingMode: billingCycle,
       subscriptionStatus: "active",
       mode: "RazorPay",
+      subscriptionEndDate: endDate,
     });
     if (!newSubscription) {
       throw new Error("Failed to create subscription.");
@@ -48,7 +65,14 @@ export async function createPayPalSubscription(
 ) {
   try {
     await connectToDatabase();
-
+    let endDate = new Date();
+    if (billingCycle === "monthly") {
+      endDate = addMonths(endDate, 1);
+    } else if (billingCycle === "yearly") {
+      endDate = addYears(endDate, 1);
+    } else {
+      throw new Error("Invalid billing cycle.");
+    }
     const newSubscription = await Subscription.create({
       userId: buyerId,
       productId,
@@ -56,6 +80,7 @@ export async function createPayPalSubscription(
       billingMode: billingCycle,
       subscriptionStatus: "active",
       mode: "PayPal",
+      subscriptionEndDate: endDate,
     });
     await newSubscription.save();
     if (!newSubscription) {

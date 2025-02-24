@@ -1,7 +1,6 @@
 // app/api/webhooks/razerpay/subscription/route.ts
 import Razorpay from "razorpay";
 import { NextRequest, NextResponse } from "next/server";
-import { createRazerPaySubscription } from "@/lib/action/subscription.action";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
