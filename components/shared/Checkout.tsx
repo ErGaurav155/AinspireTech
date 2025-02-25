@@ -426,6 +426,7 @@ export const Checkout = ({
                 </div>
               </AlertDialogHeader>
               <CartPay
+                amount={amount}
                 paypalplanId={paypalplanId.current ?? ""}
                 buyerId={buyerIdRef.current ?? ""}
                 productId={productId}

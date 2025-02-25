@@ -9,12 +9,14 @@ import {
 } from "@paypal/react-paypal-js";
 import { createPayPalSubscription } from "@/lib/action/subscription.action";
 import { useRouter } from "next/navigation";
+import { createTransaction } from "@/lib/action/transaction.action";
 
 interface CartPayProps {
   paypalplanId: string;
   productId: string;
   buyerId: string;
   billingCycle: string;
+  amount: number;
 }
 
 const NEXT_PUBLIC_PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
@@ -24,6 +26,7 @@ const CartPay = ({
   productId,
   buyerId,
   billingCycle,
+  amount,
 }: CartPayProps) => {
   const router = useRouter();
   const initialOptions: ReactPayPalScriptOptions = {
@@ -54,6 +57,13 @@ const CartPay = ({
         data.subscriptionID,
         billingCycle
       );
+      await createTransaction({
+        customerId: data.subscriptionID,
+        amount,
+        plan: paypalplanId,
+        buyerId,
+        createdAt: new Date(),
+      });
       if (productId === "chatbot-customer-support" || "chatbot-education") {
         router.push(
           `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${data.subscriptionID}`
@@ -63,7 +73,6 @@ const CartPay = ({
       }
       window.location.assign("/UserDashboard");
     } catch (error) {
-      console.error("Error approving subscription:", error);
       window.location.assign("/");
     }
   };
@@ -73,7 +82,6 @@ const CartPay = ({
   };
 
   const onError: PayPalButtonsComponentProps["onError"] = (err) => {
-    console.error("PayPal error:", err);
     window.location.assign("/");
   };
 
