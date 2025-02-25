@@ -27,6 +27,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
+      url: "https://ainspiretech.com/pricing",
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+    {
       url: "https://ainspiretech.com/UserDashboard",
       lastModified: new Date(),
       changeFrequency: "weekly",
@@ -68,6 +74,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+    {
+      url: "https://ainspiretech.com/product",
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+
     {
       url: "https://ainspiretech.com/TermsandCondition",
       lastModified: new Date(),
