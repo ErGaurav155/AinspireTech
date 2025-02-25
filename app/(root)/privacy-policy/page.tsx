@@ -112,9 +112,12 @@ const PrivacyPolicy = () => {
           </p>
           <ul className="list-disc list-inside mb-5">
             <li>
-              Email:{" "}
-              <a href="mailto:info@mywebsite.com" className="text-blue-500">
-                info@mywebsite.com
+              Email:
+              <a
+                href="mailto:gauravgkhaire@gmail.com"
+                className="text-blue-500"
+              >
+                gauravgkhaire@gmail.com
               </a>
             </li>
             <li>Address:Nashik,Maharastra 423101,india</li>
