@@ -29,6 +29,7 @@
     "add": "^2.0.6",
     "apify-client": "^2.12.0",
     "axios": "^1.7.9",
+    "buffer-crc32": "^1.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "crypto": "^1.0.1",

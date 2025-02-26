@@ -13,7 +13,7 @@ const plans: Record<
   string,
   {
     amount: number;
-    currency: "INR"; // You can add more currencies if needed
+    currency: "INR";
     period: "monthly" | "daily" | "weekly" | "yearly"; // Restrict to allowed values
   }
 > = {
