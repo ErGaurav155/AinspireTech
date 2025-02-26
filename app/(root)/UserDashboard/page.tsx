@@ -75,6 +75,9 @@ export default function Dashboard() {
   ]);
   const [userPhone, setUserPhone] = useState<string | null>(null);
   const [isOtpSubmitting, setIsOtpSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isImmediateSubmitting, setIsImmediateSubmitting] = useState(false);
+
   const [phone, setPhone] = useState("");
   const [buyer, setBuyer] = useState("");
   const [mode, setMode] = useState<"Immediate" | "End-of-term">("End-of-term");
@@ -162,11 +165,17 @@ export default function Dashboard() {
     const reason = formData.get("reason") as string;
 
     try {
+      if (mode === "Immediate") {
+        setIsSubmitting(true);
+      } else {
+        setIsImmediateSubmitting(true);
+      }
       const getSub = await getSubscription(selectedSubscriptionId);
       if (!getSub) {
         router.push("/");
         return;
       }
+
       let result;
       if (getSub.mode === "paypal") {
         result = await cancelPayPalSubscription(
@@ -181,7 +190,6 @@ export default function Dashboard() {
           mode
         );
       }
-
       if (result.success) {
         toast({
           title: "Subscription cancelled successfully!",
@@ -201,6 +209,9 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Error cancelling subscription:", error);
+    } finally {
+      setIsSubmitting(false);
+      setIsImmediateSubmitting(false);
     }
   };
 
@@ -343,14 +354,14 @@ export default function Dashboard() {
                     onClick={() => setMode("Immediate")}
                     className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                   >
-                    Immediate
+                    {isSubmitting ? "Cancelling..." : "Immediate"}
                   </button>
                   <button
                     type="submit"
                     onClick={() => setMode("End-of-term")}
                     className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                   >
-                    End-of-term
+                    {isImmediateSubmitting ? "Cancelling..." : "End-of-term"}
                   </button>
                 </div>
               </form>

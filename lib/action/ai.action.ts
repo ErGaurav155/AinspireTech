@@ -47,7 +47,7 @@ export const generateGptResponse = async ({
       {
         role: "system",
         content:
-          "You are an AI assistant that helps users by providing information based context provided. Only respond based on the provided content.repsponse must be in 2-3 lines.if you dont kow about anything asked by user then fing the email from context and add it to this line-'i dont know about this you can email'.",
+          "You are an AI assistant that helps users by providing information based context provided and response must in plain html. Only respond based on the provided content.repsponse must be in 2-3 lines.if you dont kow about anything asked by user then fing the email from context and add it to this line-'i dont know about this you can email'.",
       },
       { role: "user", content: context },
       {

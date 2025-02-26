@@ -64,7 +64,10 @@ const CartPay = ({
         buyerId,
         createdAt: new Date(),
       });
-      if (productId === "chatbot-customer-support" || "chatbot-education") {
+      if (
+        productId === "chatbot-customer-support" ||
+        productId === "chatbot-education"
+      ) {
         router.push(
           `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${data.subscriptionID}`
         );
