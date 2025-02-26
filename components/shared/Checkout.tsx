@@ -398,7 +398,7 @@ export const Checkout = ({
         paypalplanId.current &&
         buyerIdRef.current &&
         step === "payment" &&
-        (locationRef.current === "India" ? (
+        (locationRef.current !== "India" ? (
           <RazerPay
             amount={amount}
             razorpayplanId={razorpayplanId.current ?? ""}
