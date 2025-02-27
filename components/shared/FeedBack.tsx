@@ -31,7 +31,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSubmit }) => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="p-4 bg-gray-100 rounded "
+      className="p-4 mt-1 bg-gray-100 rounded "
     >
       <p className="font-semibold text-base text-sky-600 mb-2">
         BOOK APPOINTMENT NOW / CONTACT US
@@ -40,7 +40,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSubmit }) => {
         <input
           {...register("name")}
           placeholder="Name"
-          className="border  p-2 w-full rounded shadow shadow-blue-800 border-sky-600"
+          className="border  p-2 w-full rounded shadow  border-gray-400 outline-none"
         />
         {errors.name && (
           <p className="text-red-500 text-sm">{errors.name.message}</p>
@@ -50,7 +50,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSubmit }) => {
         <input
           {...register("email")}
           placeholder="Email"
-          className="border p-2 w-full rounded shadow shadow-blue-800 border-sky-600"
+          className="border p-2 w-full rounded shadow border-gray-400 outline-none"
         />
         {errors.email && (
           <p className="text-red-500 text-sm">{errors.email.message}</p>
@@ -60,7 +60,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSubmit }) => {
         <input
           {...register("phone")}
           placeholder="Phone"
-          className="border p-2 w-full rounded shadow shadow-blue-800 border-sky-600"
+          className="border p-2 w-full rounded shadow border-gray-400 outline-none"
         />
         {errors.phone && (
           <p className="text-red-500 text-sm">{errors.phone.message}</p>
@@ -70,7 +70,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSubmit }) => {
         <textarea
           {...register("message")}
           placeholder="What is the issue?"
-          className="border p-2 w-full rounded shadow shadow-blue-800 border-sky-600"
+          className="border p-2 w-full rounded shadow border-gray-400 outline-none max-h-15"
         />
         {errors.message && (
           <p className="text-red-500 text-sm">{errors.message.message}</p>

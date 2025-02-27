@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Collapse, Button } from "@material-tailwind/react";
 import {
   ArrowPathIcon,
+  ChatBubbleLeftIcon,
   ChevronDoubleDownIcon,
   SparklesIcon,
 } from "@heroicons/react/24/solid";
@@ -94,15 +95,18 @@ export default function AIChatBot() {
         }  `}
       >
         <div
-          className={` bg-[#88e2bb] text-white rounded-full shadow-lg p-3  hover:bg-n-5 transition`}
+          className={` bg-[#143796] text-white rounded-full shadow-lg p-3  hover:bg-[#5372c0] transition`}
         >
-          <Button className="bg-transparent p-0" onClick={toggleOpen}>
-            <div className="border w-8 h-8 md:w-14 md:h-14 p-1 md:p-3 rounded-full bg-gray-200">
-              <SparklesIcon className="text-gray-700" />
-            </div>
-          </Button>
+          <ChatBubbleLeftIcon
+            onClick={toggleOpen}
+            className="text-white h-12 w-12"
+          />
         </div>
-        <h1 className={`font-semibold text-base text-green-500`}>Help</h1>
+        <h1
+          className={`font-semibold text-base text-[#0f1788]  hover:text-[#5372c0]`}
+        >
+          Help
+        </h1>
       </div>
 
       <Collapse
@@ -167,6 +171,16 @@ export default function AIChatBot() {
               </div>
             </div>
           ))}
+          <Link
+            target="_blank"
+            href="https://ainspiretech.com/"
+            className="absolute flex items-center justify-center gap-1 bottom-0 left-1/3 text-xs font-thin text-gray-400 mb-1"
+          >
+            <div className="relative w-4 h-2 overflow-hidden">
+              <div className="absolute w-4 h-8 bg-orange-300 rounded-full"></div>
+            </div>
+            Powered by AinspireTech
+          </Link>
         </div>
 
         <div className="flex items-center gap-2 p-4 border-t">
