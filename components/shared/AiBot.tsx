@@ -211,7 +211,7 @@ export default function AibotCollapse({
         </div>
         {authorised ? (
           <div>
-            <div className="  flex flex-col p-4 flex-1 min-h-[60vh] max-h-[60vh] z-10 overflow-y-auto no-scrollbar">
+            <div className="  flex flex-col p-4 flex-1  min-h-[60vh] max-h-[60vh] z-10 overflow-y-auto no-scrollbar">
               {messages.map((msg, index) => (
                 <div key={index}>
                   <div
@@ -234,56 +234,58 @@ export default function AibotCollapse({
                   )}
                 </div>
               ))}
+            </div>
+            <div className="border-t p-1">
+              <div className="flex items-center gap-2 pt-4 px-4">
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="flex items-center justify-between gap-3 w-full"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="message"
+                      render={({ field }) => (
+                        <FormItem className="w-full ">
+                          <FormControl>
+                            <input
+                              className="select-field w-full"
+                              placeholder="Your Message"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {submit ? (
+                      <Button
+                        type="submit"
+                        className="pl-1 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
+                      >
+                        Sending..
+                      </Button>
+                    ) : (
+                      <Button
+                        type="submit"
+                        className="px-4 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
+                      >
+                        Send
+                      </Button>
+                    )}
+                  </form>
+                </Form>
+              </div>
               <Link
                 target="_blank"
                 href="https://ainspiretech.com/"
-                className=" flex items-center justify-center gap-1 bottom-0 left-1/3 text-xs font-thin text-gray-400 mb-1"
+                className=" flex items-center justify-center gap-1 bottom-0 left-1/3 text-xs font-thin text-gray-400 mt-1"
               >
                 <div className="relative w-4 h-2 overflow-hidden">
                   <div className="absolute w-4 h-8 bg-orange-300 rounded-full"></div>
                 </div>
                 Powered by AinspireTech
               </Link>
-            </div>
-            <div className="flex items-center gap-2 p-4 border-t">
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="flex items-center justify-between gap-3 w-full"
-                >
-                  <FormField
-                    control={form.control}
-                    name="message"
-                    render={({ field }) => (
-                      <FormItem className="w-full ">
-                        <FormControl>
-                          <input
-                            className="select-field w-full"
-                            placeholder="Your Message"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {submit ? (
-                    <Button
-                      type="submit"
-                      className="pl-1 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
-                    >
-                      Sending..
-                    </Button>
-                  ) : (
-                    <Button
-                      type="submit"
-                      className="px-4 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
-                    >
-                      Send
-                    </Button>
-                  )}
-                </form>
-              </Form>
             </div>
           </div>
         ) : (
