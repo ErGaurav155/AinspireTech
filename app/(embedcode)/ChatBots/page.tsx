@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import AibotCollapse from "@/components/shared/AiBot";
 import { getAgentSubscriptionInfo } from "@/lib/action/subscription.action";
 import McqbotCollapse from "@/components/shared/McqBot";
+import SupportChatbot from "@/components/shared/SupportChatbot";
 
 const ChatBots = () => {
   const searchParams = useSearchParams();
@@ -49,6 +50,8 @@ const ChatBots = () => {
     return <AibotCollapse userId={userId} authorised={isAuthorized} />;
   } else if (agentId === "ai-agent-education") {
     return <McqbotCollapse userId={userId} authorised={isAuthorized} />;
+  } else if (agentId === "chatbot-lead-generation") {
+    return <SupportChatbot userId={userId} authorised={isAuthorized} />;
   } else {
     return (
       <div className="flex items-center justify-center text-white font-bold text-xl">
