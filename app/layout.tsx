@@ -14,6 +14,7 @@ const IBMPlex = IBM_Plex_Sans({
 export const metadata: Metadata = {
   title: "AinspireTech",
   description: "Ai-Agent,Web-Dev and Chatbot Agency",
+  keywords: ["a i", "a i chatbot"],
 };
 
 export default async function RootLayout({

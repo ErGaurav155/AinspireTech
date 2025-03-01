@@ -1,11 +1,7 @@
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { Footer } from "@/components/shared/Footer";
-import { Metadata } from "next";
 import React from "react";
-export const metadata: Metadata = {
-  title: "privacy-policy",
-  description: "Create Website,ai agent,chatbots in best quality",
-};
+
 const PrivacyPolicy = () => {
   return (
     <div className="flex flex-col items-center justify-center">

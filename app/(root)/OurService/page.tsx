@@ -6,6 +6,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "OurServices",
   description: "Create Website,ai agent,chatbots in best quality",
+  keywords: ["Best AI call agent software 2024"],
 };
 const Doctors = () => (
   <div className=" mt-10 mx-auto max-w-7xl w-full gap-5  flex flex-col justify-center items-center ">

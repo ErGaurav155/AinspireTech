@@ -7,6 +7,7 @@ import React from "react";
 export const metadata: Metadata = {
   title: "Client Review",
   description: "Create Website,ai agent,chatbots in best quality",
+  keywords: ["free a i chatbot"],
 };
 const Tesimonials = () => {
   return (

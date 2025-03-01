@@ -7,6 +7,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "About Us",
   description: "Create Website,ai agent,chatbots in best quality",
+  keywords: ["What is an AI phone agent?"],
 };
 const Galarries = () => {
   return (

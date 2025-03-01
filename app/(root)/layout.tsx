@@ -4,7 +4,6 @@ import { Metadata } from "next";
 
 import { MotionDiv } from "@/components/shared/Motion";
 import AIChatBot from "@/components/shared/ChatBot";
-import AibotCollapse from "@/components/shared/AiBot";
 
 const stagger = 0.25;
 
@@ -15,6 +14,7 @@ const variants = {
 export const metadata: Metadata = {
   title: "Best Ai Services studio",
   description: "Web dev,ai agent,chatbots in best quality",
+  keywords: ["AI Chatbots for Local Business,Local Business AI Solutions,"],
 };
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -34,8 +34,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <NavBar />
 
         {children}
-        {/* <AIChatBot /> */}
-        <AibotCollapse authorised={true} userId={"67922c11cf6a3854412928c3"} />
+        <AIChatBot />
 
         <Toaster />
       </MotionDiv>
