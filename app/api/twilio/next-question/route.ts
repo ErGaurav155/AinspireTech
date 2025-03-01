@@ -91,8 +91,8 @@ async function finalizeServiceRequest(
   await axios.post(
     `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`,
     new URLSearchParams({
-      To: `whatsapp:${To}`,
-      From: `whatsapp:${NEXT_PUBLIC_TWILIO_NUMBER}`,
+      To: `${To}`,
+      From: `${NEXT_PUBLIC_TWILIO_NUMBER}`,
       Body: summary,
     }),
     { auth: { username: TWILIO_SID, password: TWILIO_AUTH_TOKEN } }
