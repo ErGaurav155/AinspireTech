@@ -46,11 +46,11 @@ const ChatBots = () => {
     );
   }
 
-  if (agentId === "chatbot-customer-support") {
+  if (agentId === "chatbot-lead-generation") {
     return <AibotCollapse userId={userId} authorised={isAuthorized} />;
   } else if (agentId === "ai-agent-education") {
     return <McqbotCollapse userId={userId} authorised={isAuthorized} />;
-  } else if (agentId === "chatbot-lead-generation") {
+  } else if (agentId === "chatbot-customer-support") {
     return <SupportChatbot userId={userId} authorised={isAuthorized} />;
   } else {
     return (
