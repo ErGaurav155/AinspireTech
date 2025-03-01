@@ -15,7 +15,6 @@ export default authMiddleware({
     "/api/webhooks/paypal-subcancel",
     "/api/webhooks/razerpay/subscription-cancel",
     "/api/validate-widget",
-    "/api/scrapping",
     "/api/twilio/call",
     "/api/twilio/next-question",
     "/privacy-policy",

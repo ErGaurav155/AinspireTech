@@ -66,6 +66,9 @@ export async function POST(req: Request) {
       public_metadata,
     } = evt.data;
     const websiteUrl = (public_metadata?.websiteUrl as string) || null;
+    const scrappedFile = (public_metadata?.scrappedFile as string) || null;
+    const phone = (public_metadata?.phone as string) || null;
+
     const isScrapped = public_metadata?.isScrapped as boolean;
 
     const user = {
@@ -76,6 +79,8 @@ export async function POST(req: Request) {
       lastName: last_name,
       websiteUrl: websiteUrl,
       isScrapped: isScrapped,
+      scrappedFile,
+      phone,
       photo: image_url,
     };
     const newUser = await createUser(user);
