@@ -3,6 +3,8 @@
 import { Footer } from "@/components/shared/Footer";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { productSubscriptionDetails } from "@/constant";
+import Bestseller from "@/public/assets/bestseller1.png";
+
 import {
   HeadsetIcon,
   AmbulanceIcon,
@@ -19,6 +21,7 @@ import { getSubscriptionInfo } from "@/lib/action/subscription.action";
 import { getUserById } from "@/lib/action/user.actions";
 import { Button } from "@material-tailwind/react";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
+import Image from "next/image";
 
 const iconMapping: Record<string, any> = {
   HeadsetIcon: HeadsetIcon,
@@ -152,11 +155,16 @@ const Pricing = () => {
             {Object.values(productSubscriptionDetails).map((product) => {
               const Icon = iconMapping[product.icon];
               const monthlyPrice = product.price / 12;
-              const yearlyPrice = product.price;
+              const yearlyPrice = product.price * (9 / 10);
               const displayedPrice =
                 billingCycle === "monthly" ? monthlyPrice : yearlyPrice;
               const productId = product.productId;
-
+              const monthlyOriginalPrice = product.original / 12;
+              const yearlyOriginalPrice = product.original;
+              const originalPrice =
+                billingCycle === "monthly"
+                  ? monthlyOriginalPrice
+                  : yearlyOriginalPrice;
               // Check if user has an active subscription for this product
               const isSubscribed = subscriptions.some(
                 (sub) =>
@@ -179,18 +187,38 @@ const Pricing = () => {
                         <Icon className="h-12 w-12 text-white" />
                       </div>
                     )}
-                    <h3 className="text-2xl font-bold text-orange-400 mt-4">
+                    <h3 className="text-2xl font-bold text-orange-500 mt-4">
                       {product.name}
                     </h3>
+                    {product.productId === "chatbot-lead-generation" ||
+                    product.productId === "ai-agent-customer-support" ? (
+                      <div className="absolute -top-5 -right-0 flex ">
+                        <div className="flex-1">
+                          <Image
+                            src={Bestseller}
+                            alt="AinspireTech"
+                            width={100}
+                            height={200}
+                            priority
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      ""
+                    )}
                   </div>
                   <div>
-                    <p className="text-4xl font-extrabold text-white">
-                      ${displayedPrice.toFixed(2)}
-                      <span className="text-lg font-medium text-white">
-                        {" "}
-                        /{billingCycle === "monthly" ? "month" : "year"}
-                      </span>
-                    </p>
+                    <div className="flex items-center justify-center gap-2">
+                      <p className="text-2xl font-bold  self-end line-through ">
+                        ${originalPrice}
+                      </p>
+                      <p className="text-4xl font-extrabold text-orange-900">
+                        ${displayedPrice.toFixed(0)}
+                        <span className="text-lg font-medium text-white">
+                          /{billingCycle === "monthly" ? "month" : "year"}
+                        </span>
+                      </p>
+                    </div>
                     {billingCycle === "yearly" && (
                       <p className="text-sm text-white">(Billed annually)</p>
                     )}

@@ -1,4 +1,5 @@
 import { OurClientReviev } from "@/components/shared/corousel";
+import DiscountBanner from "@/components/shared/DiscountBanner";
 import Features from "@/components/shared/Feature";
 import { Footer } from "@/components/shared/Footer";
 import FunFacts from "@/components/shared/FunFact";
@@ -10,6 +11,7 @@ import TestimonialSection from "@/components/shared/Testimonial";
 const Home = async () => {
   return (
     <div className="flex wrapper2  flex-col gap-10 items-center justify-center">
+      <DiscountBanner />
       <HeroSlider />
       <FunFacts />
       <OutProduct />

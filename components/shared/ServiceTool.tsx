@@ -21,7 +21,7 @@ export default function ServicesTabs() {
       <TabsList className="flex flex-row flex-wrap   items-center justify-center w-full h-full text-white bg-black">
         {topics.map((topic, index) => (
           <TabsTrigger
-            className=" border border-black   "
+            className="   transition-transform duration-300 hover:scale-105 active:scale-105 "
             key={index}
             value={`tab-${index}`}
           >

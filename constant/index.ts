@@ -214,7 +214,7 @@ export const productDetails: Record<
     name: "Lead Generation Chatbot",
     video: "/assets/congratulation.webm",
     icon: "/icons/lead-generation.png",
-    available: false,
+    available: true,
 
     description: {
       bgcolor: "bg-blue-600",
@@ -248,7 +248,7 @@ export const productDetails: Record<
 
     description: {
       bgcolor: "bg-purple-500",
-      heading: "24/7 intelligent customer service solutions.",
+      heading: "24/7 customer service for incoming calls.",
       subheading:
         "Automate support and reduce response times to improve customer satisfaction.",
     },
@@ -378,7 +378,7 @@ export const productSubscriptionDetails: Record<
     video: "/assets/congratulation.webm",
     icon: "HeadsetIcon",
     price: 1188,
-    original: 1499,
+    original: 2388,
     credits: 500,
     tier: "Pro",
     description: {
@@ -422,7 +422,7 @@ export const productSubscriptionDetails: Record<
     video: "/assets/congratulation.webm",
     icon: "BotIcon",
     price: 2388,
-    original: 12,
+    original: 3588,
     credits: 550,
     tier: "Pro",
     description: {
@@ -445,7 +445,7 @@ export const productSubscriptionDetails: Record<
     video: "/assets/congratulation.webm",
     icon: "GraduationCapIcon",
     price: 1188,
-    original: 1999,
+    original: 2388,
     credits: 750,
     tier: "Enterprise",
     description: {
@@ -469,7 +469,7 @@ export const productSubscriptionDetails: Record<
     video: "/assets/congratulation.webm",
     icon: "Bot",
     price: 5988,
-    original: 2499,
+    original: 11988,
     credits: 1000,
     tier: "Enterprise",
     description: {
