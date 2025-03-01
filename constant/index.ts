@@ -183,7 +183,7 @@ export const productDetails: Record<
 > = {
   // Chatbots
   "chatbot-customer-support": {
-    productId: "chatbot-customer-support", // Product ID
+    productId: "chatbot-customer-support",
     name: "Customer Support Chatbot",
     video: "/assets/congratulation.webm",
     icon: "/icons/customer-support.png",
