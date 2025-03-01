@@ -101,7 +101,7 @@ export default function AibotCollapse({
   };
 
   const restartChat = () => {
-    setCount(0);
+    setCount(-10);
     setMessages([{ sender: "AI Bot", text: "Hello! How can I help you?" }]);
   };
   useEffect(() => {
@@ -229,7 +229,7 @@ export default function AibotCollapse({
                       <span>{msg.text}</span>
                     </div>
                   </div>
-                  {index === 6 && count === 2 && (
+                  {index === 6 && count > 2 && (
                     <FeedbackForm onSubmit={handleFeedbackSubmit} />
                   )}
                 </div>
