@@ -28,7 +28,16 @@ export const generateGptResponse = async ({
   });
   let context;
   if (existingFile) {
-    context = existingFile.content;
+    context = existingFile.content
+      .map((page: any) => {
+        return `
+      Website Page URL: ${page.url}
+      Title: ${page.metadata?.title}
+      Description: ${page.metadata?.description || "No description"}
+      text: ${page.text}
+    `;
+      })
+      .join("\n\n");
   } else {
     context = "You are an AI assistant that helps users";
   }
