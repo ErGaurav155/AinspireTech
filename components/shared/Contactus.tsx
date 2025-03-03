@@ -25,11 +25,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { formSchema } from "@/lib/validator";
 import { toast } from "../ui/use-toast";
 import { createAppointment } from "@/lib/action/appointment.actions";
-import { InsufficientCreditsModal } from "./InsufficientCreditsModal";
 
 const ContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [appointmentBooked, setAppointmentBooked] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -62,7 +60,12 @@ const ContactForm = () => {
       const response = await createAppointment(Appointmentdata);
 
       if (response) {
-        setAppointmentBooked(true);
+        toast({
+          title: "Appointment Booked Successfully",
+          description: `we Will Contact You Soon `,
+          duration: 2000,
+          className: "success-toast",
+        });
       } else {
         toast({
           title: "Appointment booking Failed",
@@ -82,9 +85,7 @@ const ContactForm = () => {
       setIsSubmitting(false);
     }
   };
-  if (appointmentBooked) {
-    return <InsufficientCreditsModal />;
-  }
+
   return (
     <section className=" w-full shadow-lg my-5 rounded-md py-16 bg-black">
       <div className="container  mx-auto px-4">
