@@ -240,7 +240,7 @@ export function NavBar() {
               
                 py-2 mt-1 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800 "
           >
-            Admin
+            Login
           </Button>
         </SignedOut>
       </Collapse>

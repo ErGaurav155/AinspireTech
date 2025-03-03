@@ -72,10 +72,13 @@ const ProductsPage = () => {
 
               {/* Product Video */}
               <div className="w-full aspect-video">
-                <video
+                <iframe
+                  className=" w-full h-full"
                   src={product.video}
-                  controls
-                  className="w-full h-full rounded-md"
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
                 />
               </div>
 

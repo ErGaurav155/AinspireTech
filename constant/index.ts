@@ -185,7 +185,7 @@ export const productDetails: Record<
   "chatbot-customer-support": {
     productId: "chatbot-customer-support",
     name: "Customer Support Chatbot",
-    video: "/assets/congratulation.webm",
+    video: "https://www.youtube.com/embed/0a-_PhsxoeI?si=Et53STN61GNxhXI6",
     icon: "/icons/customer-support.png",
     available: true,
     description: {
@@ -212,7 +212,7 @@ export const productDetails: Record<
   "chatbot-lead-generation": {
     productId: "chatbot-lead-generation", // Product ID
     name: "Lead Generation Chatbot",
-    video: "/assets/congratulation.webm",
+    video: "https://www.youtube.com/embed/dJUjHGDE6uo?si=ey9kgx36ms1-f6Zs",
     icon: "/icons/lead-generation.png",
     available: true,
 
@@ -226,7 +226,7 @@ export const productDetails: Record<
   "chatbot-education": {
     productId: "chatbot-education", // Product ID
     name: "Education Chatbot",
-    video: "/assets/congratulation.webm",
+    video: "https://www.youtube.com/embed/PtyhpXAN-Uk?si=TL-BftETIaeU6SbV",
     icon: "/icons/education.png",
     available: true,
 
