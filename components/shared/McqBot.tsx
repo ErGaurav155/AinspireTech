@@ -26,6 +26,8 @@ import {
 } from "@/lib/action/ai.action";
 import Link from "next/link";
 import { getUserByDbId } from "@/lib/action/user.actions";
+import McqFormPage from "./McqForm";
+import { handleError } from "@/lib/utils";
 
 interface AibotCollapseProps {
   authorised: boolean;
@@ -53,6 +55,8 @@ export default function McqbotCollapse({
     { sender: "AI Bot", text: "Hello! How can I help you?" },
     { sender: "You", text: "Eg.Generate mcq test for my neet exam" },
   ]);
+  const [send, setSend] = useState(false);
+
   const [submit, setSubmit] = useState(false);
   const [userfileName, setUserFileName] = useState("");
 
@@ -85,18 +89,6 @@ export default function McqbotCollapse({
       const response = await generateMcqResponse({
         userInput: message,
       });
-
-      // Attempt to parse the response as quiz data (MCQ JSON)
-      try {
-        const parsed = JSON.parse(response);
-        if (parsed.questions && Array.isArray(parsed.questions)) {
-          setQuizData(parsed);
-          setSelectedAnswers(new Array(parsed.questions.length).fill(-1));
-          return; // Exit early if quiz data is found
-        }
-      } catch (e) {
-        // If parsing fails, treat it as a regular chat message
-      }
 
       // Regular chat response handling
       if (response) {
@@ -147,10 +139,46 @@ export default function McqbotCollapse({
       { sender: "You", text: "Generate mcq test for my neet exam" },
     ]);
   };
+  async function handleFeedbackSubmit(data: {
+    Topic: string;
+    Level: string;
+    Exam?: string;
+    Info?: string;
+  }) {
+    try {
+      setSend(true);
+      const newMessage = `generate mcq test for ${data.Topic} based on ${data.Exam} syllabus.Toughness must be ${data.Level} Also consider ${data.Info}`;
+      form.reset();
 
+      const response = await generateMcqResponse({ userInput: newMessage });
+      // Attempt to parse the response as quiz data (MCQ JSON)
+      if (!response) {
+        handleError;
+      }
+      toast({
+        title: "Form Submmitted Successfully,We will contact you soon",
+        duration: 2000,
+        className: "success-toast",
+      });
+      try {
+        const parsed = JSON.parse(response);
+        if (parsed.questions && Array.isArray(parsed.questions)) {
+          setQuizData(parsed);
+          setSelectedAnswers(new Array(parsed.questions.length).fill(-1));
+          return; // Exit early if quiz data is found
+        }
+      } catch (e) {
+        // If parsing fails, treat it as a regular chat message
+      }
+    } catch (error) {
+      console.error("Error sending WhatsApp message:", error);
+    } finally {
+      setSend(false);
+    }
+  }
   const renderQuiz = () => (
     <div className="overflow-y-scroll h-[70vh] no-scrollbar">
-      <div className="flex flex-col p-4 flex-1 min-h-[50vh] max-h-[50vh] z-10 overflow-y-auto ">
+      <div className="flex flex-col p-4 flex-1 h-auto max-h-[50vh] z-10 overflow-y-auto no-scrollbar">
         {messages.map((msg, index) => (
           <div
             key={index}
@@ -198,7 +226,7 @@ export default function McqbotCollapse({
             </div>
             {isQuizSubmitted && (
               <div className="mt-2 text-sm">
-                <p className="text-green-600">{q.explanation}</p>
+                <p className="text-green-600">Solution:{q.explanation}</p>
               </div>
             )}
           </div>
@@ -208,7 +236,7 @@ export default function McqbotCollapse({
           {!isQuizSubmitted ? (
             <button
               onClick={handleQuizSubmit}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-2"
             >
               Submit Answers
             </button>
@@ -266,7 +294,7 @@ export default function McqbotCollapse({
         <h1
           className={`font-semibold text-base text-[#0f1788]  hover:text-[#5372c0]`}
         >
-          Help
+          Tutor
         </h1>
       </div>
 
@@ -275,7 +303,7 @@ export default function McqbotCollapse({
         open={open}
         className={`fixed bottom-4 right-5 w-[90vw] ${
           open ? "border" : "border-none"
-        } sm:w-96 h-[90vh] max-h-[90vh] bg-gray-50 flex flex-col gap-4 rounded-xl shadow-xl shadow-gray-700 z-20`}
+        } sm:w-[26rem] h-[100vh] max-h-[100vh] bg-gray-50 flex flex-col gap-4 rounded-xl shadow-xl shadow-gray-700 z-20`}
       >
         {/* Header */}
         <div className="flex p-4 items-center justify-between gap-2 w-full border-b">
@@ -284,7 +312,7 @@ export default function McqbotCollapse({
               <SparklesIcon className="text-gray-700" />
             </div>
             <span className="font-normal flex gap-1 md:gap-2 text-xl md:text-2xl">
-              {["Dev", "Ai"].map((word, index) => (
+              {["Tutor", "Ai"].map((word, index) => (
                 <span
                   key={index}
                   style={{
@@ -324,7 +352,8 @@ export default function McqbotCollapse({
             ) : (
               // Chat UI
               <div>
-                <div className="flex flex-col p-4 flex-1 min-h-[50vh] max-h-[50vh] z-10 overflow-y-auto no-scrollbar">
+                <div className="flex flex-col p-4 flex-1 min-h-[60vh] max-h-[60vh] z-10 overflow-y-auto no-scrollbar">
+                  <McqFormPage send={send} onSubmit={handleFeedbackSubmit} />
                   {messages.map((msg, index) => (
                     <div
                       key={index}
@@ -340,7 +369,7 @@ export default function McqbotCollapse({
                         }`}
                       >
                         <span>{msg.text}</span>
-                      </div>
+                      </div>{" "}
                     </div>
                   ))}
                   <Link
