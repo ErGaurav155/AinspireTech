@@ -48,7 +48,7 @@ const ChatBots = () => {
 
   if (agentId === "chatbot-lead-generation") {
     return <AibotCollapse userId={userId} authorised={isAuthorized} />;
-  } else if (agentId === "ai-agent-education") {
+  } else if (agentId === "chatbot-education") {
     return <McqbotCollapse userId={userId} authorised={isAuthorized} />;
   } else if (agentId === "chatbot-customer-support") {
     return <SupportChatbot userId={userId} authorised={isAuthorized} />;
