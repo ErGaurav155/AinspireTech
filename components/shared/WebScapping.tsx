@@ -127,12 +127,11 @@ export const WebScapping = ({
             </div>
 
             <AlertDialogTitle className="p-24-bold text-green-600">
-              Your Website is being Scrapped...Might Take 24 Hours.
+              Your Info On Website is Learn By Our Ai...Might Take 24 Hours.
             </AlertDialogTitle>
 
             <AlertDialogDescription className="p-16-regular py-3 text-green-500">
-              Plz Do Not Close.Redirected To UserDashboard Copy Green Box Code
-              Add To Your Website.
+              Redirect To UserDashboard Copy Green Box Code Add To Your Website.
             </AlertDialogDescription>
           </AlertDialogHeader>
         </AlertDialogContent>
