@@ -4,7 +4,6 @@ import { Metadata } from "next";
 
 import { MotionDiv } from "@/components/shared/Motion";
 import AIChatBot from "@/components/shared/ChatBot";
-import McqbotCollapse from "@/components/shared/McqBot";
 
 const stagger = 0.25;
 
@@ -35,8 +34,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <NavBar />
 
         {children}
-        {/* <AIChatBot /> */}
-        <McqbotCollapse authorised={true} userId={"67c30ef59e5ce95f800a7622"} />
+        <AIChatBot />
         <Toaster />
       </MotionDiv>
     </main>
