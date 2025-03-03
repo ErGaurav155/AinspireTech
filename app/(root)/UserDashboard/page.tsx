@@ -263,7 +263,8 @@ export default function Dashboard() {
                         <div className="flex flex-row items-center  w-full bg-gray-100 gap-2  p-2 rounded-lg shadow-md">
                           <label className="text-sm  font-semibold text-gray-700">
                             Add number in your mobile call forwading
-                            option.Choose unanswered option.
+                            option.Choose Busy,unanswered and unreachable
+                            option.
                           </label>
                           <span className="text-base lg:text-base font-bold text-gray-900">
                             {process.env.NEXT_PUBLIC_TWILIO_NUMBER}
