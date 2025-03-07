@@ -359,7 +359,8 @@ export const productSubscriptionDetails: Record<
     name: string; // Display name of the product
     video: string; // Video file path for showcasing the product
     icon: string; // Icon file path for representing the product visually
-    price: number; // Current price of the product
+    mprice: number; // Current price of the product
+    yprice: number; // Current price of the product
     original: number; // Original price (before discount)
     credits: number; // Credits provided in the plan
     tier: "Free" | "Basic" | "Pro" | "Enterprise"; // Plan tier
@@ -377,8 +378,9 @@ export const productSubscriptionDetails: Record<
     name: "Customer Support Chatbot",
     video: "/assets/congratulation.webm",
     icon: "HeadsetIcon",
-    price: 1188,
-    original: 2388,
+    mprice: 69,
+    yprice: 760,
+    original: 1788,
     credits: 500,
     tier: "Pro",
     description: {
@@ -418,11 +420,12 @@ export const productSubscriptionDetails: Record<
   // },
   "chatbot-lead-generation": {
     productId: "chatbot-lead-generation",
-    name: "chatbot-lead-generation",
+    name: "Lead generation chatbot",
     video: "/assets/congratulation.webm",
     icon: "BotIcon",
-    price: 2388,
-    original: 3588,
+    mprice: 99,
+    yprice: 1080,
+    original: 2388,
     credits: 550,
     tier: "Pro",
     description: {
@@ -441,11 +444,12 @@ export const productSubscriptionDetails: Record<
   },
   "chatbot-education": {
     productId: "chatbot-education",
-    name: "Education Chatbot",
+    name: "Educational Chatbot",
     video: "/assets/congratulation.webm",
     icon: "GraduationCapIcon",
-    price: 1188,
-    original: 2388,
+    mprice: 49,
+    yprice: 540,
+    original: 1188,
     credits: 750,
     tier: "Enterprise",
     description: {
@@ -468,7 +472,8 @@ export const productSubscriptionDetails: Record<
     name: "Customer Support AI Agent",
     video: "/assets/congratulation.webm",
     icon: "Bot",
-    price: 5988,
+    mprice: 499,
+    yprice: 5389,
     original: 11988,
     credits: 1000,
     tier: "Enterprise",

@@ -87,11 +87,6 @@ export async function sendWhatsAppInfo({
     const { name, email, phone, message } = data;
     await connectToDatabase();
 
-    const msg = `New Feedback Submission:
-                 Name: ${name}
-                 Email: ${email}
-                 Phone: ${phone || "N/A"}
-                 Message: ${message || "No message provided"}`;
     let PhoneNumber;
     if (!userId) {
       PhoneNumber = process.env.WHATSAPP_NUMBER;
@@ -107,10 +102,24 @@ export async function sendWhatsAppInfo({
     }
     PhoneNumber = user.phone;
     const result = await client.messages.create({
-      body: msg,
       from: `whatsapp:${process.env.NEXT_PUBLIC_TWILIO_NUMBER}` as string,
       to: `whatsapp:${PhoneNumber}`,
-    });
+      template: {
+        name: "feedback_form", // the approved template name
+        language: { policy: "deterministic", code: "en" },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: name },
+              { type: "text", text: email },
+              { type: "text", text: phone || "N/A" },
+              { type: "text", text: message || "No message provided" },
+            ],
+          },
+        ],
+      },
+    } as any);
 
     return { success: true, data: result };
   } catch (error) {

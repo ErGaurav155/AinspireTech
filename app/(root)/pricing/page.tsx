@@ -154,8 +154,8 @@ const Pricing = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {Object.values(productSubscriptionDetails).map((product) => {
               const Icon = iconMapping[product.icon];
-              const monthlyPrice = product.price / 12;
-              const yearlyPrice = product.price * (9 / 10);
+              const monthlyPrice = product.mprice;
+              const yearlyPrice = product.yprice;
               const displayedPrice =
                 billingCycle === "monthly" ? monthlyPrice : yearlyPrice;
               const productId = product.productId;

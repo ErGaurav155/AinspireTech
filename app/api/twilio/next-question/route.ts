@@ -1,13 +1,19 @@
+import { handleError } from "@/lib/utils";
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 import { twiml } from "twilio";
+import { Twilio } from "twilio";
 
+const client = new Twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN!;
 const TWILIO_SID = process.env.TWILIO_SID!;
 const NEXT_PUBLIC_TWILIO_NUMBER = process.env.NEXT_PUBLIC_TWILIO_NUMBER;
 const questionFlow = [
   {
-    question: "What is the exact problem you're facing with your plumbing?",
+    question: "Hello,How may i help you?",
     key: "issue",
   },
   {
@@ -78,25 +84,32 @@ async function finalizeServiceRequest(
   caller: string,
   To: string
 ) {
-  const summary = `
-    New Service Request:
-    Issue: ${answers.issue}
-    Address: ${answers.address}
-    Contact Number: ${answers.contactNumber}
-    Email: ${answers.email}
-    From: ${caller}
-  `;
-
   // Send to WhatsApp
-  await axios.post(
-    `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`,
-    new URLSearchParams({
-      To: `whatsapp:${To}`,
-      From: `whatsapp:${NEXT_PUBLIC_TWILIO_NUMBER}`,
-      Body: summary,
-    }),
-    { auth: { username: TWILIO_SID, password: TWILIO_AUTH_TOKEN } }
-  );
+  try {
+    const result = await client.messages.create({
+      from: `whatsapp:${process.env.NEXT_PUBLIC_TWILIO_NUMBER}` as string,
+      to: `whatsapp:${To}`,
+      template: {
+        name: "appointment_callinfo", // the approved template name
+        language: { policy: "deterministic", code: "en" },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: answers.issue },
+              { type: "text", text: answers.address },
+              { type: "text", text: answers.contactNumber || "N/A" },
+              { type: "text", text: answers.email || "No message provided" },
+              { type: "text", text: caller || "N/A" },
+            ],
+          },
+        ],
+      },
+    } as any);
+    return { success: true, data: result };
+  } catch (error) {
+    handleError(error);
+  }
 }
 
 function twimlResponse(response: any, status = 200) {
