@@ -91,13 +91,11 @@ async function finalizeServiceRequest(
       to: `whatsapp:${To}`,
       contentSid: process.env.YOUR_CALL_CONTENT_SID_HERE, // Replace with your template's Content SID
       contentVariables: JSON.stringify({
-        body: [
-          { type: "text", text: answers.issue },
-          { type: "text", text: answers.address },
-          { type: "text", text: answers.contactNumber || "N/A" },
-          { type: "text", text: answers.email || "No message provided" },
-          { type: "text", text: caller || "N/A" },
-        ],
+        "1": answers.issue,
+        "2": answers.address,
+        "3": answers.contactNumber || "N/A",
+        "4": answers.email || "No message provided",
+        "5": caller || "N/A",
       }),
     });
     return { success: true, data: result };

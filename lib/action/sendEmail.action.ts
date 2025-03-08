@@ -106,12 +106,10 @@ export async function sendWhatsAppInfo({
       to: `whatsapp:${PhoneNumber}`,
       contentSid: process.env.YOUR_MESSAGE_CONTENT_SID_HERE, // Replace with your template's Content SID
       contentVariables: JSON.stringify({
-        body: [
-          { type: "text", text: name },
-          { type: "text", text: email },
-          { type: "text", text: phone || "N/A" },
-          { type: "text", text: message || "No message provided" },
-        ],
+        "1": name,
+        "2": email,
+        "3": phone || "Not provided",
+        "4": message || "No message",
       }),
     });
 
