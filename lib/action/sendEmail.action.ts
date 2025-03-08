@@ -102,24 +102,18 @@ export async function sendWhatsAppInfo({
     }
     PhoneNumber = user.phone;
     const result = await client.messages.create({
-      from: `whatsapp:${process.env.NEXT_PUBLIC_TWILIO_NUMBER}` as string,
+      from: `whatsapp:${process.env.NEXT_PUBLIC_TWILIO_NUMBER}`,
       to: `whatsapp:${PhoneNumber}`,
-      template: {
-        name: "feedback_form", // the approved template name
-        language: { policy: "deterministic", code: "en" },
-        components: [
-          {
-            type: "body",
-            parameters: [
-              { type: "text", text: name },
-              { type: "text", text: email },
-              { type: "text", text: phone || "N/A" },
-              { type: "text", text: message || "No message provided" },
-            ],
-          },
+      contentSid: process.env.YOUR_MESSAGE_CONTENT_SID_HERE, // Replace with your template's Content SID
+      contentVariables: JSON.stringify({
+        body: [
+          { type: "text", text: name },
+          { type: "text", text: email },
+          { type: "text", text: phone || "N/A" },
+          { type: "text", text: message || "No message provided" },
         ],
-      },
-    } as any);
+      }),
+    });
 
     return { success: true, data: result };
   } catch (error) {

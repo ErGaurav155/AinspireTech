@@ -89,23 +89,17 @@ async function finalizeServiceRequest(
     const result = await client.messages.create({
       from: `whatsapp:${process.env.NEXT_PUBLIC_TWILIO_NUMBER}` as string,
       to: `whatsapp:${To}`,
-      template: {
-        name: "appointment_callinfo", // the approved template name
-        language: { policy: "deterministic", code: "en" },
-        components: [
-          {
-            type: "body",
-            parameters: [
-              { type: "text", text: answers.issue },
-              { type: "text", text: answers.address },
-              { type: "text", text: answers.contactNumber || "N/A" },
-              { type: "text", text: answers.email || "No message provided" },
-              { type: "text", text: caller || "N/A" },
-            ],
-          },
+      contentSid: process.env.YOUR_CALL_CONTENT_SID_HERE, // Replace with your template's Content SID
+      contentVariables: JSON.stringify({
+        body: [
+          { type: "text", text: answers.issue },
+          { type: "text", text: answers.address },
+          { type: "text", text: answers.contactNumber || "N/A" },
+          { type: "text", text: answers.email || "No message provided" },
+          { type: "text", text: caller || "N/A" },
         ],
-      },
-    } as any);
+      }),
+    });
     return { success: true, data: result };
   } catch (error) {
     handleError(error);
