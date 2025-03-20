@@ -9,8 +9,6 @@ import { Footer } from "@/components/shared/Footer";
 import { productDetails } from "@/constant";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
-// Define the structure of product details
-
 interface ProductParams {
   id: string;
 }

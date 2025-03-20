@@ -1,3 +1,4 @@
+import AvailableProduct from "@/components/shared/AvailableProduct";
 import { OurClientReviev } from "@/components/shared/corousel";
 import DiscountBanner from "@/components/shared/DiscountBanner";
 import Features from "@/components/shared/Feature";
@@ -14,8 +15,9 @@ const Home = async () => {
       <DiscountBanner />
       <HeroSlider />
       <FunFacts />
-      <OutProduct />
+      <AvailableProduct showAvailableOnly={true} />
       <Service />
+      <OutProduct />
       <Features />
       <OurClientReviev />
       <TestimonialSection />

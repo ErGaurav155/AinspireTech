@@ -14,7 +14,7 @@ const variants = {
 export const metadata: Metadata = {
   title: "Best Ai Services studio",
   description: "Web dev,ai agent,chatbots in best quality",
-  keywords: ["AI Chatbots for Local Business,Local Business AI Solutions,"],
+  keywords: ["Ai chatbots for local business,Local business ai solutions,"],
 };
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (

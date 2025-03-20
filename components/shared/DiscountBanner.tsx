@@ -68,14 +68,6 @@ const DiscountBanner = () => {
     return () => clearInterval(interval);
   }, [countdownDate, getNextCountdownDate]);
 
-  //   const handleClose = () => {
-  //     setIsVisible(false);
-  //   };
-
-  //   if (!isVisible) {
-  //     return null;
-  //   }
-
   return (
     <div className="relative rounded-md mt-1 lg:mt-5 top-0 left-0 flex flex-col lg:flex-row  gap-2 justify-center items-center w-full bg-gradient-to-r from-green-800 to-green-500 text-white font-sans p-2 lg:p-3">
       <div className="flex items-center justify-center gap-3">
@@ -132,16 +124,10 @@ const DiscountBanner = () => {
           <span className="text-green-800 font-extrabold">
             &nbsp;One Month &nbsp;
           </span>
-          Free For Yearly Subcription On all Products &nbsp;
+          Free For Yearly Subcription On all Ai Products &nbsp;
           <RocketIcon color="green" />
         </Link>
       </Button>
-      {/* <button
-        onClick={handleClose}
-        className="absolute lg:static top-1 right-2 p-1 self-center rounded-full bg-white bg-opacity-10 hover:bg-opacity-30 transition-all"
-      >
-        <XMarkIcon height={30} width={30} stroke="2" />
-      </button> */}
     </div>
   );
 };
