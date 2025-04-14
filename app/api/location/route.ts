@@ -14,12 +14,11 @@ export async function GET(request: NextRequest) {
     await request.body;
     const userIp =
       request.headers.get("x-forwarded-for") || request.ip || "check";
-    console.log("userIp", userIp);
 
     const response = await axios.get(
       `http://api.ipstack.com/${userIp}?access_key=${IPSTACK_ACCESS_KEY}`
     );
-    console.log(response);
+
     const data = response.data;
     if (data) {
       return NextResponse.json(

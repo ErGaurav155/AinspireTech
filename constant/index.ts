@@ -472,9 +472,9 @@ export const productSubscriptionDetails: Record<
     name: "Customer Support AI Agent",
     video: "/assets/congratulation.webm",
     icon: "Bot",
-    mprice: 499,
-    yprice: 5389,
-    original: 11988,
+    mprice: 299,
+    yprice: 2999,
+    original: 5999,
     credits: 1000,
     tier: "Enterprise",
     description: {
