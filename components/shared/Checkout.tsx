@@ -134,7 +134,7 @@ export const Checkout = ({
     try {
       const res = await fetch("/api/location");
       const locData = await res.json();
-      console.log(locData);
+
       locationRef.current = locData.location.country || "India";
     } catch (error) {
       console.error("Error fetching location:", error);
