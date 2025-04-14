@@ -210,7 +210,7 @@ const Pricing = () => {
                   <div>
                     <div className="flex items-center justify-center gap-2">
                       <p className="text-2xl font-bold  self-end line-through ">
-                        ${originalPrice}
+                        ${originalPrice.toFixed(0)}
                       </p>
                       <p className="text-4xl font-extrabold text-orange-900">
                         ${displayedPrice.toFixed(0)}
