@@ -1,6 +1,6 @@
 "use client";
 import Script from "next/script";
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { createTransaction } from "@/lib/action/transaction.action";
@@ -22,9 +22,10 @@ const RazerPay = ({
   billingCycle,
 }: CheckoutProps) => {
   const router = useRouter();
-  const hasRun = useRef(false); // ✅ Track if runCheckout has executed
+  const hasRun = useRef(false);
+  const [scriptLoaded, setScriptLoaded] = useState(false); // Track script load status
 
-  const runCheckout = async () => {
+  const runCheckout = useCallback(async () => {
     toast({
       title: "For International Users Use Paypal",
       description: "Buy Credits > Wallet > Paypal",
@@ -52,7 +53,7 @@ const RazerPay = ({
 
       const paymentOptions = {
         key_id: process.env.RAZORPAY_KEY_ID!,
-        amount: amount * 100, // Amount in paise
+        amount: amount * 100,
         currency: "INR",
         name: "GK Services",
         description: "Thanks For Taking Our Services",
@@ -62,7 +63,6 @@ const RazerPay = ({
           buyerId: buyerId,
           amount: amount,
         },
-
         handler: async function (response: any) {
           const data = {
             subscription_id: subscriptionCreate.subsId,
@@ -99,6 +99,7 @@ const RazerPay = ({
               buyerId,
               createdAt: new Date(),
             });
+
             if (
               productId === "chatbot-customer-support" ||
               productId === "chatbot-education"
@@ -121,6 +122,7 @@ const RazerPay = ({
         theme: { color: "#3399cc" },
       };
 
+      // Initialize Razorpay after script load
       const paymentObject = new (window as any).Razorpay(paymentOptions);
       paymentObject.on("payment.failed", function (response: any) {
         toast({
@@ -141,20 +143,20 @@ const RazerPay = ({
         className: "error-toast",
       });
     }
-  };
+  }, [amount, razorpayplanId, buyerId, productId, billingCycle, router]);
 
   useEffect(() => {
-    if (!hasRun.current) {
-      hasRun.current = true; // ✅ Mark as executed
-      runCheckout(); // ✅ Runs only once
+    if (scriptLoaded && !hasRun.current) {
+      hasRun.current = true;
+      runCheckout();
     }
-  });
-
+  }, [scriptLoaded, runCheckout]);
   return (
     <div>
       <Script
         id="razorpay-checkout-js"
         src="https://checkout.razorpay.com/v1/checkout.js"
+        onLoad={() => setScriptLoaded(true)} // Update state when script loads
       />
     </div>
   );
