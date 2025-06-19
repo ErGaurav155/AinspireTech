@@ -1,15 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button } from "@material-tailwind/react";
 
-// Define services dynamically
 const services = [
   {
     title: "CHATBOT DEVELOPMENT",
-    background: "bg-red-700",
-    cardBackground: "bg-gray-600 bg-opacity-50",
-    buttonBackground: "bg-gray-200 bg-opacity-50",
     items: [
       { id: "gpt-development", name: "GPT Development" },
       { id: "secure-solutions", name: "Secure Solutions" },
@@ -19,9 +14,6 @@ const services = [
   },
   {
     title: "AI AGENT DEVELOPMENT",
-    background: "bg-gray-100 bg-opacity-90",
-    cardBackground: "bg-gray-600 bg-opacity-50",
-    buttonBackground: "bg-gray-200 bg-opacity-50",
     items: [
       { id: "workflow-automation", name: "Workflow Automation" },
       { id: "natural-language-sql", name: "Natural Language to SQL" },
@@ -31,9 +23,6 @@ const services = [
   },
   {
     title: "WEBSITE DEVELOPMENT",
-    background: "bg-red-700",
-    cardBackground: "bg-gray-600 bg-opacity-30",
-    buttonBackground: "bg-gray-200 bg-opacity-50",
     items: [
       { id: "ui-ux-friendly", name: "Ui/Ux User-friendly" },
       { id: "media-responsive", name: "Media Responsive" },
@@ -47,37 +36,61 @@ const Service = () => {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center gap-5">
-      <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white leading-tight">
+    <div className="flex flex-col items-center justify-center gap-10 py-16 px-4 sm:px-6 lg:px-8 relative z-10 ">
+      <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
         Our Services
       </h1>
-      <div className="flex flex-row flex-wrap gap-4 items-center justify-center w-full h-full text-white">
-        {services.map((section) => (
-          <div
-            key={section.title}
-            className={`flex flex-col gap-4 flex-auto w-full md:w-1/3 lg:w-1/4 ${section.background} rounded-md p-5 transition-transform duration-300 hover:scale-105`}
-          >
-            <h1 className="p-2 text-xl font-normal text-black bg-opacity-20">
-              {section.title}
-            </h1>
-            <div
-              className={`flex flex-wrap items-center justify-center h-auto rounded ${section.cardBackground} p-5 gap-2`}
-            >
-              {section.items.map((item) => (
-                <Button
-                  key={item.id}
-                  size="md"
-                  color="white"
-                  variant="gradient"
-                  onClick={() => router.push(`/OurService`)}
-                  className={`w-full flex-auto ${section.buttonBackground} text-black text-xs font-normal md:text-sm md:font-semibold text-center overflow-hidden px-1`}
-                >
-                  <span>{item.name}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
-        ))}
+
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {services.map((service, index) => {
+            // Determine border colors based on index
+            const borderColor =
+              index === 0
+                ? "border-[#00F0FF]/20 hover:border-[#00F0FF]"
+                : index === 1
+                ? "border-[#B026FF]/30 hover:border-[#B026FF]"
+                : "border-[#FF2E9F]/20 hover:border-[#FF2E9F]";
+
+            // Determine hover background gradient based on index
+            const hoverBg =
+              index === 0
+                ? "from-[#00F0FF]/10"
+                : index === 1
+                ? "from-[#B026FF]/10"
+                : "from-[#FF2E9F]/10";
+
+            return (
+              <div
+                key={service.title}
+                className={`relative group rounded-lg backdrop-blur-sm border transition-all duration-300 ${borderColor}`}
+              >
+                {/* Hover effect background */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity ${hoverBg} to-transparent`}
+                ></div>
+
+                <div className="relative z-10 p-6">
+                  <h3 className="text-xl font-bold mb-6 text-white">
+                    {service.title}
+                  </h3>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {service.items.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => router.push(`/OurService`)}
+                        className="w-full text-xs md:text-sm font-medium bg-gray-900/60 backdrop-blur-sm border border-[#00F0FF]/30 text-white py-3 rounded-lg hover:bg-gradient-to-br hover:from-[#00F0FF]/10 hover:to-transparent transition-all duration-300"
+                      >
+                        {item.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

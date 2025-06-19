@@ -7,63 +7,59 @@ import Image from "next/image";
 import React from "react";
 
 const Features = () => {
+  const features = [
+    {
+      icon: <ChartBarIcon className="size-10" />,
+      title: "Research & Planning",
+      description: "Strategic analysis and roadmap development",
+    },
+    {
+      icon: <CodeBracketIcon className="size-10" />,
+      title: "Design & Development",
+      description: "Creative solutions with cutting-edge technology",
+    },
+    {
+      icon: <RocketLaunchIcon className="size-10" />,
+      title: "Launch & Optimize",
+      description: "Seamless deployment and continuous improvement",
+    },
+  ];
+
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto py-16 px-4 sm:px-6 lg:px-8 relative z-10">
       {/* Section Title */}
-      <div className="text-center mb-10">
-        <h2 className="text-2xl md:text-3xl font-semibold text-white">
+      <div className="text-center mb-16">
+        <h2 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
           We Are Always Ready to Help You & Your Business
         </h2>
-        <Image
-          src="/assets/img/section-img.png"
-          alt="Section decoration"
-          className="mx-auto my-4"
-          width={50}
-          height={50}
-        />
-        <p className=" text-white">Advanced Cutting edge tech For You.</p>
+        <div className="flex justify-center my-6">
+          <div className="w-20 h-1 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full"></div>
+        </div>
+        <p className="text-gray-300 max-w-2xl mx-auto">
+          Advanced Cutting edge tech For You
+        </p>
       </div>
 
       {/* Features */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2  md:gap-8">
-        {/* Feature 1 */}
-        <div className="text-center relative p-5">
-          <div className="relative">
-            <div className="flex items-center justify-center w-15 h-15 md:w-24 md:h-24 mx-auto border rounded-full border-none shadow-sm shadow-[#55edab] hover:text-[#55edab] text-white  transition-all">
-              <ChartBarIcon className=" size-10 md:size-15 " />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {features.map((feature, index) => (
+          <div
+            key={index}
+            className="text-center relative p-6 bg-[#0a0a0a] backdrop-blur-sm border border-[#00F0FF]/30 rounded-xl hover:border-[#B026FF] transition-all duration-300 group"
+          >
+            {/* Icon Container */}
+            <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20 border border-[#00F0FF]/30 group-hover:from-[#B026FF]/30 group-hover:to-[#FF2E9F]/30 transition-all">
+              <div className="flex items-center justify-center w-16 h-16 rounded-full text-[#FF2E9F] bg-[#0a0a0a]">
+                {feature.icon}
+              </div>
             </div>
-          </div>
-          <h3 className="text-lg font-semibold mt-5 md:mt-10 text-white">
-            Research & Planning
-          </h3>
-          <div className="hidden md:block absolute border-b-2 border-dotted border-[#55edab] w-20 lg:w-28 top-20 right-[-4rem]"></div>
-        </div>
 
-        {/* Feature 2 */}
-        <div className="text-center relative p-5">
-          <div className="relative">
-            <div className="flex items-center justify-center w-15 h-15 md:w-24 md:h-24 mx-auto border rounded-full border-none shadow-sm shadow-[#55edab] hover:text-[#55edab] text-white  transition-all">
-              <CodeBracketIcon className="size-10 md:size-15" />
-            </div>
+            <h3 className="text-xl font-bold mt-2 text-white">
+              {feature.title}
+            </h3>
+            <p className="text-gray-300 mt-2">{feature.description}</p>
           </div>
-          <h3 className="text-lg font-semibold mt-5 md:mt-10 text-white">
-            Design & Development
-          </h3>
-
-          <div className="hidden md:block absolute border-b-2 border-dotted border-[#55edab] w-20 lg:w-28 top-20 right-[-4rem]"></div>
-        </div>
-
-        {/* Feature 3 */}
-        <div className="text-center relative p-5">
-          <div className="relative">
-            <div className="flex items-center justify-center w-15 h-15 md:w-24 md:h-24 mx-auto border rounded-full border-none shadow-sm shadow-[#55edab] hover:text-[#55edab] text-white  transition-all">
-              <RocketLaunchIcon className="size-10 md:size-15" />
-            </div>
-          </div>
-          <h3 className="text-lg font-semibold mt-5 md:mt-10 text-white">
-            Launch & Optimize
-          </h3>
-        </div>
+        ))}
       </div>
     </div>
   );

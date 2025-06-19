@@ -49,7 +49,7 @@ export function OurClient() {
             key={index}
             className="flex-shrink-0 w-full sm:w-1/3 lg:w-1/3 p-2" // Slide width and padding
           >
-            <Card className="w-full p-0">
+            <Card className="w-full p-0 bg-[#0a0a0a]/20 backdrop-blur-sm">
               <CardContent className="flex flex-col p-0 w-full aspect-video items-center justify-center">
                 <Image
                   className="w-full h-full rounded-lg object-cover"
@@ -58,7 +58,7 @@ export function OurClient() {
                   loading="lazy"
                 />
                 <div className="p-2 flex w-full  items-center justify-between flex-nowrap">
-                  <h3 className="text-md font-bold text-gray-800 dark:text-white">
+                  <h3 className="text-md font-bold text-gray-100">
                     {item.title}
                   </h3>
 
@@ -119,7 +119,7 @@ export function OurClient2() {
             key={index}
             className="flex-shrink-0 w-full sm:w-1/3 lg:w-1/3 p-2" // Slide width and padding
           >
-            <Card className="w-full p-0">
+            <Card className="w-full p-0 bg-[#0a0a0a]/20 backdrop-blur-sm">
               <CardContent className="flex flex-col p-0 w-full aspect-video items-center justify-center">
                 <Image
                   className="w-full h-full rounded-lg object-cover"
@@ -128,7 +128,7 @@ export function OurClient2() {
                   loading="lazy"
                 />
                 <div className="p-2 flex w-full  items-center justify-between flex-nowrap">
-                  <h3 className="text-md font-bold text-gray-800 dark:text-white">
+                  <h3 className="text-md font-bold text-gray-100 ">
                     {item.title}
                   </h3>
 
@@ -167,9 +167,7 @@ export function OurClientReviev() {
   const [emblaRef] = useEmblaCarousel(
     {
       loop: true,
-      // Enable infinite looping
     },
-
     [
       Autoscroll({
         speed: 0.5,
@@ -178,46 +176,44 @@ export function OurClientReviev() {
   );
 
   return (
-    <div
-      ref={emblaRef}
-      className="overflow-hidden w-full opacity-80  " // Embla's parent container
-    >
-      <div className="flex ">
+    <div ref={emblaRef} className="overflow-hidden w-full py-8 relative z-10">
+      <div className="flex">
         {imagesWithTitles.map((item, index) => (
           <div
             key={index}
-            className="flex-shrink-0 w-full sm:w-1/3 lg:w-1/5 p-2" // Slide width and padding
+            className="flex-shrink-0 w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-4  aspect-video" // Slide width and padding
           >
-            <Card className="w-full p-0 bg-black border-none">
-              <CardContent className="flex  gap-3 w-full aspect-video items-center justify-center ">
-                {/* <Image
-                  className=" rounded-full object-cover"
-                  src=""
-                  width={45}
-                  height={45}
+            <Card className="w-full bg-[#0a0a0a] backdrop-blur-sm border border-[#00F0FF]/30 rounded-xl hover:border-[#B026FF] transition-all h-[300px] min-h-max">
+              <CardContent className="flex flex-col gap-4 p-6">
+                <Image
+                  className="w-full h-full rounded-lg object-cover"
+                  src={item.img}
                   alt={`Thumbnail ${index + 1}`}
                   loading="lazy"
-                /> */}
-                <User2Icon
-                  color="white"
-                  size={25}
-                  className=" rounded-full  border border-white p-1"
                 />
-                <div className=" flex flex-col w-full  items-start justify-between flex-nowrap">
-                  <h3 className="text-md font-bold text-gray-800 dark:text-white">
-                    {item.title}
-                  </h3>
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
+                    <div className="relative flex items-center justify-center w-12 h-12 rounded-full bg-[#0a0a0a]">
+                      <User2Icon size={20} className="text-[#00F0FF]" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">
+                      {item.title}
+                    </h3>
+                  </div>
+                </div>
 
-                  {/* Display rating */}
-                  <div className="flex items-center ">
-                    {/* Display stars */}
-                    {[...Array(5)].map((_, i) => (
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#FFD700] to-[#FFA500] rounded-sm opacity-80"></div>
                       <svg
-                        key={i}
                         xmlns="http://www.w3.org/2000/svg"
-                        className={`w-4 h-4 ${
-                          i < item.rating ? "text-yellow-400" : "text-gray-300"
-                        }`}
+                        className={`w-5 h-5 ${
+                          i < item.rating ? "text-yellow-400" : "text-gray-700"
+                        } relative z-10`}
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -227,8 +223,8 @@ export function OurClientReviev() {
                           clipRule="evenodd"
                         />
                       </svg>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>

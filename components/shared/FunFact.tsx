@@ -16,8 +16,8 @@ const AnimatedCounter = ({
   useEffect(() => {
     if (!isVisible) return;
 
-    const duration = 2000; // Animation duration in milliseconds
-    const increment = target / (duration / 10); // Increment per interval
+    const duration = 2000;
+    const increment = target / (duration / 10);
 
     const interval = setInterval(() => {
       setCount((prev) => {
@@ -30,12 +30,12 @@ const AnimatedCounter = ({
       });
     }, 10);
 
-    return () => clearInterval(interval); // Cleanup interval on unmount
+    return () => clearInterval(interval);
   }, [isVisible, target]);
 
   return (
-    <span className="counter text-white font-semibold text-3xl">
-      {Math.floor(count)}
+    <span className="counter text-transparent bg-clip-text bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] font-bold text-4xl">
+      {Math.floor(count)}+
     </span>
   );
 };
@@ -45,14 +45,14 @@ const FunFacts = () => {
   const sectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const currentRef = sectionRef.current; // Create a local copy of the ref
+    const currentRef = sectionRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
         }
       },
-      { threshold: 0.5 } // Trigger when 50% of the component is in view
+      { threshold: 0.5 }
     );
 
     if (currentRef) {
@@ -61,70 +61,54 @@ const FunFacts = () => {
 
     return () => {
       if (currentRef) {
-        observer.unobserve(currentRef); // Use the local copy in cleanup
+        observer.unobserve(currentRef);
       }
     };
   }, []);
 
+  const facts = [
+    {
+      icon: <BotIcon className="h-10 w-10" />,
+      target: 720,
+      label: "Build Website + Chatbot",
+    },
+    {
+      icon: <Users2Icon className="h-10 w-10" />,
+      target: 10,
+      label: "Specialist Team Member",
+    },
+    {
+      icon: <FaceSmileIcon className="h-10 w-10" />,
+      target: 705,
+      label: "Happy Customer",
+    },
+    {
+      icon: <CalculatorIcon className="h-10 w-10" />,
+      target: 10,
+      label: "Years of Experience",
+    },
+  ];
+
   return (
-    <div
-      ref={sectionRef}
-      className="w-full rounded-sm bg-cover bg-no-repeat bg-center"
-    >
-      <div className="py-28 w-full rounded-sm bg-n-8 shadow-left-right-blur bg-opacity-80 mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 w-full m-auto  p-5 items-center justify-center gap-8">
-          {/* Single Fun Fact */}
-          <div className="flex w-full  items-center justify-center text-center">
-            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#88e2bb] hover:text-[#88e2bb] transition-all">
-              <BotIcon className="h-10 w-10" />
+    <div ref={sectionRef} className="w-full relative  z-10 py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {facts.map((fact, index) => (
+            <div
+              key={index}
+              className="flex flex-col items-center justify-center text-center bg-[#0a0a0a]/60 backdrop-blur-sm border border-[#00F0FF]/20 rounded-xl p-6 hover:border-[#B026FF] transition-all duration-300 hover:shadow-[0_0_15px_5px_rgba(176,38,255,0.3)]"
+            >
+              <div className="flex items-center justify-center w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 border border-[#00F0FF]/20 mb-4">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full text-[#B026FF] bg-[#0a0a0a]">
+                  {fact.icon}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <AnimatedCounter target={fact.target} isVisible={isVisible} />
+                <p className="text-gray-300 text-base mt-2">{fact.label}</p>
+              </div>
             </div>
-            <div className="flex gap-2 flex-col w-full">
-              <AnimatedCounter target={720} isVisible={isVisible} />
-              <p className="text-white text-base text-center">
-                Build Website + Chatbot
-              </p>
-            </div>
-          </div>
-
-          {/* Single Fun Fact */}
-          <div className="flex  w-full   items-center justify-center text-center">
-            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#88e2bb] hover:text-[#88e2bb] transition-all">
-              {" "}
-              <Users2Icon className="h-10 w-10" />
-            </div>
-            <div className="flex gap-2 flex-col w-full">
-              <AnimatedCounter target={10} isVisible={isVisible} />
-              <p className="text-white text-base text-center">
-                Specialist Team Member
-              </p>
-            </div>
-          </div>
-
-          {/* Single Fun Fact */}
-          <div className="flex  w-full   items-center justify-center text-center">
-            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#88e2bb] hover:text-[#88e2bb] transition-all">
-              {" "}
-              <FaceSmileIcon className="h-10 w-10" />
-            </div>
-            <div className="flex  gap-2 flex-col w-full">
-              <AnimatedCounter target={705} isVisible={isVisible} />
-              <p className="text-white text-base text-center">Happy Customer</p>
-            </div>
-          </div>
-
-          {/* Single Fun Fact */}
-          <div className="flex  w-full   items-center justify-center text-center">
-            <div className="flex items-center justify-center w-24 h-24 mx-auto border border-gray-300 rounded-full hover:bg-white text-white bg-[#88e2bb] hover:text-[#88e2bb] transition-all">
-              {" "}
-              <CalculatorIcon className="h-10 w-10" />
-            </div>
-            <div className="flex flex-0 gap-2 flex-col w-full">
-              <AnimatedCounter target={10} isVisible={isVisible} />
-              <p className="text-white text-base text-center">
-                Years of Experience
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

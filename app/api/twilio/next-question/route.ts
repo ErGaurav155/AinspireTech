@@ -1,5 +1,4 @@
 import { handleError } from "@/lib/utils";
-import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 import { twiml } from "twilio";
 import { Twilio } from "twilio";
@@ -8,9 +7,7 @@ const client = new Twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
-const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN!;
-const TWILIO_SID = process.env.TWILIO_SID!;
-const NEXT_PUBLIC_TWILIO_NUMBER = process.env.NEXT_PUBLIC_TWILIO_NUMBER;
+
 const questionFlow = [
   {
     question: "Hello,How may i help you?",

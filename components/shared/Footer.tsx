@@ -1,84 +1,155 @@
 "use client";
 
-import { MapPin } from "lucide-react";
+import { MapPin, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { InboxArrowDownIcon } from "@heroicons/react/24/outline";
+import { useEffect } from "react";
 
 export function Footer() {
+  useEffect(() => {
+    // Simulate particles with random stars
+    const createStarParticles = () => {
+      const starsContainer = document.getElementById("stars-container");
+      if (!starsContainer) return;
+      starsContainer.innerHTML = "";
+      const numberOfStars = 150;
+      for (let i = 0; i < numberOfStars; i++) {
+        const star = document.createElement("div");
+        star.className = "absolute rounded-full";
+        // Random size
+        const size = Math.random() * 3;
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        // Random position
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        // Random color - use theme colors
+        const colors = ["#00F0FF", "#B026FF", "#FF2E9F", "#FFFFFF"];
+        star.style.backgroundColor =
+          colors[Math.floor(Math.random() * colors.length)];
+        // Random opacity
+        star.style.opacity = `${Math.random() * 0.8 + 0.2}`;
+        // Animation
+        star.style.animation = `twinkle ${Math.random() * 5 + 3}s infinite`;
+        starsContainer.appendChild(star);
+      }
+    };
+    createStarParticles();
+    // Add keyframes for twinkling animation
+    const style = document.createElement("style");
+    style.innerHTML = `
+            @keyframes twinkle {
+              0% { opacity: 0.2; }
+              50% { opacity: 1; }
+              100% { opacity: 0.2; }
+            }
+            @keyframes float {
+              0% { transform: translateY(0px); }
+              50% { transform: translateY(-10px); }
+              100% { transform: translateY(0px); }
+            }
+            @keyframes pulse {
+              0% { transform: scale(1); }
+              50% { transform: scale(1.05); }
+              100% { transform: scale(1); }
+            }
+          `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   return (
-    <footer className=" w-full max-w-7xl m-auto    ">
-      <div className=" mt-10     rounded-t-lg flex flex-row flex-wrap items-center justify-center gap-y-6 gap-x-12 bg-gray-900 text-center md:justify-between text-white p-4 md:p-10">
-        <Image
-          src="/assets/img/file.png"
-          alt="logo"
-          width={200}
-          height={200}
-          className=" rounded "
-        />
-        <ul className="flex flex-wrap items-center gap-y-2 gap-x-8">
-          <li>
-            <Link
-              href="/Aboutus"
-              color="white"
-              className="font-normal transition-colors hover:text-blue-500 focus:text-blue-500"
-            >
-              About Us
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/contactUs"
-              color="white"
-              className="font-normal transition-colors hover:text-blue-500 focus:text-blue-500"
-            >
-              Contact Us
-            </Link>
-          </li>
+    <footer className="w-full   border-t border-[#00F0FF]/30">
+      <div
+        id="stars-container"
+        className="fixed inset-0  pointer-events-none"
+      ></div>
+      <div className="fixed  min-h-screen  inset-0 bg-gradient-to-br from-[#0A0A0A] via-[#0A0A0A] to-[#0A0A0A]/95  pointer-events-none"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-[#0a0a0a]/60 backdrop-blur-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          {/* Logo and Navigation */}
+          <div className="flex flex-col items-center md:items-start">
+            <div className="mb-6">
+              <Image
+                src="/assets/img/file.png"
+                alt="logo"
+                width={200}
+                height={200}
+                className="rounded"
+              />
+            </div>
+            <ul className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6">
+              {[
+                { href: "/Aboutus", label: "About Us" },
+                { href: "/contactUs", label: "Contact Us" },
+                { href: "/privacy-policy", label: "Privacy Policy" },
+                { href: "/TermsandCondition", label: "Terms & Conditions" },
+              ].map((link, index) => (
+                <li key={index}>
+                  <Link
+                    href={link.href}
+                    className="font-normal text-gray-300 hover:text-[#00F0FF] transition-colors duration-300"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          <li>
-            <Link
-              href="/privacy-policy"
-              color="white"
-              className="font-normal transition-colors hover:text-blue-500 focus:text-blue-500"
-            >
-              Privacy Policy
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/TermsandCondition"
-              color="white"
-              className="font-normal transition-colors hover:text-blue-500 focus:text-blue-500"
-            >
-              Terms & Conditions
-            </Link>
-          </li>
-        </ul>
-        <div className=" flex w-full items-center justify-end  gap-5 p-4  md:p-10 pr-5 md:pr-10  bg-gray-900 text-white">
-          <div className="">
-            <div className="flex items-center  justify-center gap-1 md:gap-3">
-              <MapPin className="size-3 md:size-6" />
-              <span className="font-bold text-sm md:text-md ">Address</span>
+          {/* Contact Info */}
+          <div className="flex flex-col items-center md:items-start gap-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20">
+                <MapPin className="text-[#00F0FF] size-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white">Address</h3>
+                <p className="text-gray-300">Nashik, IND</p>
+              </div>
             </div>
-            <div className="flex flex-col items-start justify-center ">
-              <span className="text-xs md:text-md font-light">Nashik,IND</span>
+
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20">
+                <Mail className="text-[#00F0FF] size-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white">Contact</h3>
+                <a
+                  href="mailto:gauravgkhaire@gmail.com"
+                  className="text-gray-300 hover:text-[#00F0FF] transition-colors duration-300"
+                >
+                  gauravgkhaire@gmail.com
+                </a>
+              </div>
             </div>
           </div>
-          <div>
-            <div className="flex items-center justify-center gap-3">
-              <InboxArrowDownIcon className="size-3 md:size-6" />
-              <span className="font-bold text-base">Contact</span>
+
+          {/* Newsletter */}
+          <div className="flex flex-col items-center md:items-start">
+            <h3 className="text-xl font-bold text-white mb-4">Stay Updated</h3>
+            <div className="relative w-full max-w-md">
+              <input
+                type="email"
+                placeholder="Your email address"
+                className="w-full p-3 rounded-lg bg-[#0a0a0a]/60 backdrop-blur-sm border border-[#00F0FF]/30 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00F0FF]"
+              />
+              <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black px-4 py-1.5 rounded-md hover:opacity-90 transition-opacity">
+                Subscribe
+              </button>
             </div>
-            <div>
-              <a
-                href="mailto:gauravgkhaire@gmail.com"
-                className="cursor-pointer hover:text-[#20704d]  font-thin  text-xs md:font-light md:text-base "
-              >
-                gauravgkhaire@gmail.com
-              </a>
-            </div>
+            <p className="text-gray-400 text-sm mt-3">
+              Get the latest updates and offers
+            </p>
           </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="mt-10 pt-6 border-t border-[#00F0FF]/10 text-center">
+          <p className="text-gray-400">
+            © {new Date().getFullYear()} AInspireTech. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

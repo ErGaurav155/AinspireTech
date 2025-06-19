@@ -81,6 +81,7 @@ export async function POST(req: Request) {
       isScrapped: isScrapped,
       scrappedFile,
       phone,
+
       photo: image_url,
     };
     const newUser = await createUser(user);

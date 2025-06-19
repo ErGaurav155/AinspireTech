@@ -334,5 +334,154 @@ await fs.writeFile("scrapedData.json", JSON.stringify(allPageData, null, 2));
 // // await browser.close();
 
 // // // Return the scraped data
+
+//Api--> api/twilio/incomingcall
 // // return { url, title, description, headings, content };
 // // };
+// import { connectToDatabase } from "@/lib/database/mongoose";
+// import { NextRequest, NextResponse } from "next/server";
+
+// import { generateTwiML } from "@/lib/utils";
+// import Subscription from "@/lib/database/models/subscription.model";
+// import User from "@/lib/database/models/user.model";
+// export async function POST(request: Request) {
+// try {
+// await connectToDatabase();
+// const formData = await request.formData();
+// const From = formData.get("From");
+// const To = formData.get("To");
+// const user = await User.findOne({ twilio: From });
+// if (!user) {
+// return NextResponse.json({ message: "User Not Found " }, { status: 403 });
+// }
+// const SubscribedUser = await Subscription.findOne({
+// userId: user.\_id,
+// productId: "ai-agent-customer-support",
+// subscriptionStatus: "active",
+// });
+// if (!SubscribedUser) {
+// return NextResponse.json(
+// { message: "Subscription isExpired or Not Found " },
+// { status: 403 }
+// );
+// }
+// const twiml = `//     <Response>
+//       <Dial
+//         action="/api/twilio/status"
+//         timeout="20"
+//         record="record-from-answer"
+//       >
+//         <Number>${To}</Number>
+//       </Dial>
+//     </Response>
+//  `;
+
+// return generateTwiML(twiml);
+// } catch (error: any) {
+// return NextResponse.json({ error: error.message }, { status: 500 });
+// }
+// }
+//apoi-->api/twilio/procees-speech
+// import { generateTwiML } from "@/lib/utils";
+// import { getAIResponse } from "@/lib/utils";
+
+// export async function POST(request: Request) {
+// const formData = await request.formData();
+// const speechResult = formData.get("SpeechResult");
+// // const callSid = formData.get("CallSid");
+// // const recordingUrl = formData.get("RecordingUrl");
+
+// // // Handle voicemail recording
+// // if (recordingUrl) {
+// // await uploadRecording(recordingUrl as string, callSid as string);
+// // return generateTwiML("<Response><Hangup/></Response>");
+// // }
+
+// // Process speech input
+// if (speechResult) {
+// const aiResponse = await getAIResponse(speechResult as string);
+// const twiml = `//       <Response>
+//         <Gather
+//           input="speech"
+//           action="/api/twilio/process-speech"
+//           speechTimeout="auto"
+//         >
+//           <Say>${aiResponse}</Say>
+//         </Gather>
+//         <Redirect method="POST">/api/twilio/voicemail</Redirect>
+//       </Response>
+//    `;
+// return generateTwiML(twiml);
+// }
+
+// // Initial AI greeting
+// const twiml = `//     // <Response>
+//       <Gather
+//         input="speech"
+//         action="/api/twilio/process-speech"
+//         speechTimeout="auto"
+//       >
+//         <Say>
+//           Hello! Our team is unavailable. I'm your AI assistant.
+//           How can I help you today?
+//         </Say>
+//       </Gather>
+//       <Redirect method="POST">/api/twilio/voicemail</Redirect>
+//     </Response>
+//  `;
+
+// return generateTwiML(twiml);
+// }
+//api-->api/twilio/status
+// import { NextResponse } from "next/server";
+// import { generateTwiML } from "@/lib/utils";
+
+// export async function POST(request: Request) {
+// const formData = await request.formData();
+// const dialCallStatus = formData.get("DialCallStatus");
+// const callSid = formData.get("CallSid");
+
+// if (["busy", "no-answer", "failed"].includes(dialCallStatus as string)) {
+// const twiml = `//       <Response>
+//         <Redirect method="POST">/api/twilio/process-speech</Redirect>
+//       </Response>
+//    `;
+// return generateTwiML(twiml);
+// }
+
+// return generateTwiML("<Response><Hangup/></Response>");
+// }
+// export const twilioClient = twilio(
+// process.env.TWILIO_ACCOUNT_SID,
+// process.env.TWILIO_AUTH_TOKEN
+// );
+
+// export const generateTwiML = (xml: string) => {
+// return new Response(xml, {
+// headers: { "Content-Type": "text/xml" },
+// });
+// };
+
+// export const openai = new OpenAI({
+// apiKey: process.env.OPENAI_API_KEY,
+// });
+
+// export const getAIResponse = async (prompt: string) => {
+// const completion = await openai.chat.completions.create({
+// model: "gpt-3.5-turbo",
+// messages: [
+// {
+// role: "system",
+// content:
+// "You are a customer support assistant. Be helpful and concise.",
+// },
+// {
+// role: "user",
+// content: prompt,
+// },
+// ],
+// max_tokens: 100,
+// });
+
+// return completion.choices[0].message.content || "I didn't understand that.";
+// };

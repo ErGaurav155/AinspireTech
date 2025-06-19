@@ -1,30 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { twiml } from "twilio";
-import { connectToDatabase } from "@/lib/database/mongoose";
-import Subscription from "@/lib/database/models/subscription.model";
-import User from "@/lib/database/models/user.model";
+// import { connectToDatabase } from "@/lib/database/mongoose";
+// import Subscription from "@/lib/database/models/subscription.model";
+// import User from "@/lib/database/models/user.model";
 
 export async function POST(req: NextRequest) {
   try {
-    await connectToDatabase();
+    // await connectToDatabase();
     const formData = await req.formData();
     const From = formData.get("From");
     const To = formData.get("To");
-    const user = await User.findOne({ phone: To });
-    if (!user) {
-      return NextResponse.json({ message: "User Not Found " }, { status: 403 });
-    }
-    const SubscribedUser = await Subscription.findOne({
-      userId: user._id,
-      productId: "ai-agent-customer-support",
-      subscriptionStatus: "active",
-    });
-    if (!SubscribedUser) {
-      return NextResponse.json(
-        { message: "Subscription isExpired or Not Found " },
-        { status: 403 }
-      );
-    }
+    // const user = await User.findOne({ twilio: To });
+    // if (!user) {
+    //   return NextResponse.json({ message: "User Not Found " }, { status: 403 });
+    // }
+    // const SubscribedUser = await Subscription.findOne({
+    //   userId: user._id,
+    //   productId: "ai-agent-customer-support",
+    //   subscriptionStatus: "active",
+    // });
+    // if (!SubscribedUser) {
+    //   return NextResponse.json(
+    //     { message: "Subscription isExpired or Not Found " },
+    //     { status: 403 }
+    //   );
+    // }
     const response = new twiml.VoiceResponse();
     startQuestionnaire(response, From as string, To as string);
 

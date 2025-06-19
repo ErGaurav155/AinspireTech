@@ -4,128 +4,160 @@ import React from "react";
 
 const PrivacyPolicy = () => {
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black">
       <BreadcrumbsDefault />
-      <div className="wrapper2 ">
-        <div className="max-w-3xl mx-auto px-5 md:px-10 mt-5 md:mt-10 w-full text-white">
-          <h2 className="font-black text-3xl text-white mb-5">
+      <div className="wrapper2 w-full max-w-4xl px-4 py-12">
+        <div className="bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-xl p-8 md:p-12">
+          <h2 className="font-black text-4xl mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
             Privacy Policy
           </h2>
-          <p className="mb-5">
-            Welcome to AinspireTechAI. Your privacy is paramount to us, and we
-            are committed to protecting your personal data. This privacy policy
-            explains how we handle your personal information in accordance with
-            IND law when you visit our website and informs you of your privacy
-            rights.
-          </p>
 
-          <h2 className="font-black text-3xl text-white mb-5">
-            Important Information and Who We Are
-          </h2>
-          <p className="mb-5">
-            AinspireTechAI operates in accordance with the INDs data protection
-            regulations. We are the controller and are responsible for your
-            personal data.
-          </p>
+          <div className="space-y-10">
+            <section className="border-b border-gray-800 pb-8">
+              <p className="text-gray-300">
+                Welcome to AinspireTechAI. Your privacy is paramount to us, and
+                we are committed to protecting your personal data. This privacy
+                policy explains how we handle your personal information in
+                accordance with IND law when you visit our website and informs
+                you of your privacy rights.
+              </p>
+            </section>
 
-          <h2 className="font-black text-3xl text-white mb-5">
-            The Data We Collect About You
-          </h2>
-          <p className="mb-5">
-            The categories of personal data that we collect may include, but are
-            not limited to, Identity Data, Contact Data, Financial Data,
-            Transaction Data, and Technical Data.
-          </p>
+            <section className="border-b border-gray-800 pb-8">
+              <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                Important Information and Who We Are
+              </h2>
+              <p className="text-gray-300">
+                AinspireTechAI operates in accordance with the INDs data
+                protection regulations. We are the controller and are
+                responsible for your personal data.
+              </p>
+            </section>
 
-          <h2 className="font-black text-3xl text-white mb-5">
-            How Is Your Personal Data Collected?
-          </h2>
-          <p className="mb-5">
-            Data is collected through direct interactions with our website and
-            services, as well as through automated technologies that record your
-            interactions with our website.
-          </p>
+            <section className="border-b border-gray-800 pb-8">
+              <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                The Data We Collect About You
+              </h2>
+              <p className="text-gray-300">
+                The categories of personal data that we collect may include, but
+                are not limited to, Identity Data, Contact Data, Financial Data,
+                Transaction Data, and Technical Data.
+              </p>
+            </section>
 
-          <h2 className="font-black text-3xl text-white mb-5">
-            How We Use Your Personal Data
-          </h2>
-          <p className="mb-5">
-            We comply with IND data protection laws and use your personal data
-            only where it is lawful to do so. This may include fulfilling
-            contracts, pursuing legitimate interests, or complying with legal
-            obligations.
-          </p>
+            <section className="border-b border-gray-800 pb-8">
+              <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                How Is Your Personal Data Collected?
+              </h2>
+              <p className="text-gray-300">
+                Data is collected through direct interactions with our website
+                and services, as well as through automated technologies that
+                record your interactions with our website.
+              </p>
+            </section>
 
-          <h2 className="font-black text-3xl text-white mb-5">Data Security</h2>
-          <p className="mb-5">
-            In compliance with IND law, we have implemented strong security
-            measures to protect your data from unauthorized access, alteration,
-            or disclosure.
-          </p>
+            <section className="border-b border-gray-800 pb-8">
+              <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                How We Use Your Personal Data
+              </h2>
+              <p className="text-gray-300">
+                We comply with IND data protection laws and use your personal
+                data only where it is lawful to do so. This may include
+                fulfilling contracts, pursuing legitimate interests, or
+                complying with legal obligations.
+              </p>
+            </section>
 
-          <h2 className="font-black text-3xl text-white mb-5">
-            Data Retention
-          </h2>
-          <p className="mb-5">
-            We retain personal data for as long as necessary to fulfill the
-            purposes outlined in this policy, in line with the legal
-            requirements and regulations of the IND.
-          </p>
+            <section className="border-b border-gray-800 pb-8">
+              <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                Data Security
+              </h2>
+              <p className="text-gray-300">
+                In compliance with IND law, we have implemented strong security
+                measures to protect your data from unauthorized access,
+                alteration, or disclosure.
+              </p>
+            </section>
 
-          <h2 className="font-black text-3xl text-white mb-5">
-            Your Legal Rights
-          </h2>
-          <p className="mb-5">
-            You have specific rights regarding your personal data under IND law,
-            including the right to access, correct, or request the deletion of
-            your personal data.
-          </p>
+            <section className="border-b border-gray-800 pb-8">
+              <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                Data Retention
+              </h2>
+              <p className="text-gray-300">
+                We retain personal data for as long as necessary to fulfill the
+                purposes outlined in this policy, in line with the legal
+                requirements and regulations of the IND.
+              </p>
+            </section>
 
-          <h2 className="font-black text-3xl text-white mb-5">
-            International Transfers
-          </h2>
-          <p className="mb-5">
-            We comply with IND regulations regarding the international transfer
-            of personal data, ensuring that your data is protected in accordance
-            with IND law when transferred across borders.
-          </p>
+            <section className="border-b border-gray-800 pb-8">
+              <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                Your Legal Rights
+              </h2>
+              <p className="text-gray-300">
+                You have specific rights regarding your personal data under IND
+                law, including the right to access, correct, or request the
+                deletion of your personal data.
+              </p>
+            </section>
 
-          <h2 className="font-black text-3xl text-white mb-5">
-            Third-Party Links
-          </h2>
-          <p className="mb-5">
-            Our website may link to external sites that are not operated by us.
-            We have no control over and assume no responsibility for the content
-            or privacy practices of any third-party sites.
-          </p>
+            <section className="border-b border-gray-800 pb-8">
+              <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                International Transfers
+              </h2>
+              <p className="text-gray-300">
+                We comply with IND regulations regarding the international
+                transfer of personal data, ensuring that your data is protected
+                in accordance with IND law when transferred across borders.
+              </p>
+            </section>
 
-          <h2 className="font-black text-3xl text-white mb-5">
-            Contact Details
-          </h2>
-          <p className="mb-5">
-            If you have any questions about this privacy policy or our privacy
-            practices, please contact us in the following ways:
-          </p>
-          <ul className="list-disc list-inside mb-5">
-            <li>
-              Email:
-              <a
-                href="mailto:gauravgkhaire@gmail.com"
-                className="text-blue-500"
-              >
-                gauravgkhaire@gmail.com
-              </a>
-            </li>
-            <li>Address:Nashik,Maharastra 423101,india</li>
-          </ul>
+            <section className="border-b border-gray-800 pb-8">
+              <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                Third-Party Links
+              </h2>
+              <p className="text-gray-300">
+                Our website may link to external sites that are not operated by
+                us. We have no control over and assume no responsibility for the
+                content or privacy practices of any third-party sites.
+              </p>
+            </section>
 
-          <h2 className="font-black text-3xl text-white mb-5">
-            Changes to the Privacy Policy
-          </h2>
-          <p className="mb-5">
-            We reserve the right to update this policy at any time. Changes will
-            be posted on this page with an updated revision date.
-          </p>
+            <section className="border-b border-gray-800 pb-8">
+              <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                Contact Details
+              </h2>
+              <p className="text-gray-300 mb-5">
+                If you have any questions about this privacy policy or our
+                privacy practices, please contact us:
+              </p>
+              <ul className="list-disc list-inside space-y-2 text-gray-300">
+                <li className="flex">
+                  <span className="text-[#00F0FF] mr-2">Email:</span>
+                  <a
+                    href="mailto:gauravgkhaire@gmail.com"
+                    className="text-[#FF2E9F] hover:underline"
+                  >
+                    gauravgkhaire@gmail.com
+                  </a>
+                </li>
+                <li className="flex">
+                  <span className="text-[#00F0FF] mr-2">Address:</span>
+                  Nashik, Maharastra 423101, India
+                </li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                Changes to the Privacy Policy
+              </h2>
+              <p className="text-gray-300">
+                We reserve the right to update this policy at any time. Changes
+                will be posted on this page with an updated revision date.
+              </p>
+            </section>
+          </div>
         </div>
       </div>
       <Footer />

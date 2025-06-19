@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <main className="root no-scrollbar ">
+    <main className=" no-scrollbar ">
       <MotionDiv
         variants={variants}
         initial="hidden"
@@ -29,7 +29,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           duration: 0.5,
         }}
         viewport={{ amount: 0 }}
-        className="bg-black "
+        className=" "
       >
         <NavBar />
 

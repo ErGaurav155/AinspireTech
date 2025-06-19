@@ -46,7 +46,6 @@ const ContactForm = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
-      console.log(values); // Handle form submission
       const Appointmentdata = {
         name: values.name,
         phone: values.phone,
@@ -62,14 +61,15 @@ const ContactForm = () => {
       if (response) {
         toast({
           title: "Appointment Booked Successfully",
-          description: `we Will Contact You Soon `,
+          description: `We will contact you soon`,
           duration: 2000,
           className: "success-toast",
         });
+        form.reset(); // Reset form after successful submission
       } else {
         toast({
           title: "Appointment booking Failed",
-          description: `Plz Try Again `,
+          description: `Please try again`,
           duration: 2000,
           className: "error-toast",
         });
@@ -77,7 +77,7 @@ const ContactForm = () => {
     } catch (error) {
       toast({
         title: "Appointment booking Failed",
-        description: `Plz Try Again `,
+        description: `Please try again`,
         duration: 2000,
         className: "error-toast",
       });
@@ -87,47 +87,81 @@ const ContactForm = () => {
   };
 
   return (
-    <section className=" w-full shadow-lg my-5 rounded-md py-16 bg-black">
-      <div className="container  mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Google Map */}
-
-          <div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl  lg:text-6xl font-bold  text-white leading-tight">
+    <section className="w-full py-16 relative z-10">
+      <div className="container mx-auto px-4">
+        <div className="grid lg:grid-cols-2 gap-12">
+          {/* Content Section */}
+          <div className="bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] p-8 rounded-2xl border border-[#B026FF]/30">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
               THE FUTURE, <br />
-              <span className="  text-[#55edab]">AWAITS.</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#55edab]">
+                AWAITS.
+              </span>
             </h1>
-            <p className="p-20-regular text-white mt-4">
+            <p className="text-gray-300 mt-6 text-lg">
               Got a burning AI idea, question, or just want to chat about what
               we do? We are all ears! Reach out, and our friendly team at
               AinspireTech AI will be right there to guide, assist, or simply
               share in your excitement. Lets make your AI journey memorable
               together!
             </p>
+
+            {/* Owner Details */}
+            <div className="mt-10 border-t border-[#00F0FF]/30 pt-6">
+              <h1 className="text-white text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#55edab]">
+                Owner Details:
+              </h1>
+              <div className="space-y-3">
+                <p className="text-gray-300 flex">
+                  <span className="text-[#00F0FF] min-w-[120px]">Owner:</span>
+                  Mr. GAURAV KHIARE
+                </p>
+                <p className="text-gray-300 flex">
+                  <span className="text-[#00F0FF] min-w-[120px]">
+                    Business:
+                  </span>
+                  GK Services
+                </p>
+                <p className="text-gray-300 flex">
+                  <span className="text-[#00F0FF] min-w-[120px]">Email:</span>
+                  <a
+                    href="mailto:gauravgkhaire@gmail.com"
+                    className="text-[#55edab] hover:underline"
+                  >
+                    gauravgkhaire@gmail.com
+                  </a>
+                </p>
+                <p className="text-gray-300 flex">
+                  <span className="text-[#00F0FF] min-w-[120px]">Address:</span>
+                  Chandwad, Nashik, Maharashtra - 423104
+                </p>
+              </div>
+            </div>
           </div>
+
           {/* Contact Form */}
-          <div>
+          <div className="bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-2xl p-8">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-8"
+                className="space-y-6"
               >
-                {/* Department and Doctor Fields */}
-                <div className="flex flex-col sm:flex-row gap-1 items-center justify-between w-full">
+                {/* Name and Phone Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
-                      <FormItem className="flex-auto w-full">
+                      <FormItem>
                         <FormControl>
                           <Input
                             type="text"
-                            className="select-field"
+                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
                             placeholder="Full Name"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-400" />
                       </FormItem>
                     )}
                   />
@@ -135,37 +169,37 @@ const ContactForm = () => {
                     control={form.control}
                     name="phone"
                     render={({ field }) => (
-                      <FormItem className="flex-auto w-full">
+                      <FormItem>
                         <FormControl>
                           <Input
                             type="number"
-                            className="select-field"
+                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
                             placeholder="Phone Number"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-400" />
                       </FormItem>
                     )}
                   />
                 </div>
 
-                {/* Date and Time Fields */}
-                <div className="flex flex-col sm:flex-row gap-1 items-center justify-between w-full">
+                {/* Subject and Email Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="subject"
                     render={({ field }) => (
-                      <FormItem className="flex-auto w-full">
+                      <FormItem>
                         <FormControl>
                           <Input
                             type="text"
-                            className="select-field"
-                            placeholder="subject"
+                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
+                            placeholder="Subject"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-400" />
                       </FormItem>
                     )}
                   />
@@ -173,68 +207,54 @@ const ContactForm = () => {
                     control={form.control}
                     name="email"
                     render={({ field }) => (
-                      <FormItem className="flex-auto w-full">
+                      <FormItem>
                         <FormControl>
                           <Input
                             type="email"
-                            className="select-field"
-                            placeholder=" Enter email"
+                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
+                            placeholder="Enter email"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-400" />
                       </FormItem>
                     )}
                   />
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-1 items-center justify-between w-full">
+                {/* Budget and Address Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="budget"
                     render={({ field }) => (
-                      <FormItem className="flex-auto w-full">
+                      <FormItem>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
-                          <SelectTrigger className="select-field ">
+                          <SelectTrigger className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]">
                             <SelectValue placeholder="Choose Budget" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem
-                              className="bg-white hover:bg-gray-100 text-black text-lg  py-2 px- mb-4 m-auto text-center flex min-w-max"
-                              value=" $100 - $500"
-                            >
-                              $100 - $500
-                            </SelectItem>
-                            <SelectItem
-                              className="bg-white hover:bg-gray-100 text-black text-lg  py-2 px- mb-4 m-auto text-center flex min-w-max"
-                              value="$500 - $1000"
-                            >
-                              $500 - $1000
-                            </SelectItem>
-                            <SelectItem
-                              className="bg-white hover:bg-gray-100 text-black text-lg  py-2 px- mb-4 m-auto text-center flex min-w-max"
-                              value="$1,000 - $1,500"
-                            >
-                              $1,000 - $1,500
-                            </SelectItem>
-                            <SelectItem
-                              className="bg-white hover:bg-gray-100 text-black text-lg  py-2 px- mb-4 m-auto text-center flex min-w-max"
-                              value=" $1,500- $2,000"
-                            >
-                              $1,500- $2,000
-                            </SelectItem>
-                            <SelectItem
-                              className="bg-white hover:bg-gray-100 text-black text-lg  py-2 px- mb-4 m-auto text-center flex min-w-max"
-                              value=" $2,000 +"
-                            >
-                              $2,000 +
-                            </SelectItem>
+                          <SelectContent className="bg-gray-900 border border-[#B026FF]/30 backdrop-blur-md">
+                            {[
+                              "$100 - $500",
+                              "$500 - $1000",
+                              "$1,000 - $1,500",
+                              "$1,500- $2,000",
+                              "$2,000 +",
+                            ].map((option) => (
+                              <SelectItem
+                                key={option}
+                                value={option}
+                                className="text-white hover:bg-gray-800/50 py-3"
+                              >
+                                {option}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
-                        <FormMessage />
+                        <FormMessage className="text-red-400" />
                       </FormItem>
                     )}
                   />
@@ -242,22 +262,20 @@ const ContactForm = () => {
                     control={form.control}
                     name="address"
                     render={({ field }) => (
-                      <FormItem className="flex-auto w-full">
+                      <FormItem>
                         <FormControl>
                           <Input
                             type="text"
-                            className="select-field"
-                            placeholder=" Enter address"
+                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
+                            placeholder="Enter address"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-400" />
                       </FormItem>
                     )}
                   />
                 </div>
-
-                {/* Name and Phone Fields */}
 
                 {/* Message Field */}
                 <FormField
@@ -268,52 +286,38 @@ const ContactForm = () => {
                       <FormControl>
                         <Textarea
                           rows={6}
-                          className="select-field"
+                          className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-4 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
                           placeholder="Your Message"
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-red-400" />
                     </FormItem>
                   )}
                 />
 
                 {/* Submit Button */}
-                <div className="col-span-2">
+                <div className="pt-4">
                   {isSubmitting ? (
                     <Button
                       type="submit"
-                      className="px-4 py-2 text-base md:text-xl hover:bg-indigo-600 bg-indigo-700 text-white w-full"
+                      disabled
+                      className="w-full py-6 bg-gradient-to-r from-[#00F0FF] to-[#55edab] text-black font-bold text-lg rounded-lg opacity-70 cursor-not-allowed"
                     >
                       Submitting...
                     </Button>
                   ) : (
                     <Button
                       type="submit"
-                      className="px-4 py-2 text-base md:text-xl hover:bg-indigo-600 bg-indigo-700 text-white w-full"
+                      className="w-full py-6 bg-gradient-to-r from-[#00F0FF] to-[#55edab] text-black font-bold text-lg rounded-lg hover:from-[#00F0FF]/90 hover:to-[#55edab]/90 transition-all duration-300 shadow-lg shadow-[#00F0FF]/20"
                     >
-                      Send
+                      Send Message
                     </Button>
                   )}
                 </div>
               </form>
             </Form>
           </div>
-        </div>
-        <div className="mt-10">
-          <h1 className="text-white text-3xl font-bold ">Owner Details :</h1>
-          <p className="text-white text-sm font-normal mt-4 ">
-            Owner- Mr. GAURAV KHIARE
-          </p>
-          <p className="text-white text-sm font-normal mt-2">
-            Business Name-GK Services
-          </p>
-          <p className="text-white text-sm font-normal mt-2">
-            Email-gauravgkhaire@gmail.com
-          </p>
-          <p className="text-white text-sm font-normal mt-2">
-            Address-Chandwad, Nashik, Maharashtra - 423104
-          </p>
         </div>
       </div>
     </section>

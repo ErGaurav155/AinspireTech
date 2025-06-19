@@ -30,15 +30,15 @@ const columns = [
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("budget", {
-    header: "budget",
+    header: "Budget",
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("subject", {
-    header: "subject",
+    header: "Subject",
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("email", {
-    header: "email",
+    header: "Email",
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("message", {
@@ -50,8 +50,8 @@ const columns = [
 const AppointmentTable = () => {
   const { userId } = useAuth();
   const router = useRouter();
-
   const [data, setData] = useState<AppointmentParams[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,18 +59,21 @@ const AppointmentTable = () => {
         router.push("/sign-in");
         return;
       }
-      const ownerId = await getOwner();
-      if (userId !== ownerId) {
-        router.push("/");
-        return;
-      }
 
       try {
-        const response = await getAllAppointments();
+        const ownerId = await getOwner();
+        if (userId !== ownerId) {
+          router.push("/");
+          return;
+        }
 
-        setData(response.data);
+        const response = await getAllAppointments();
+        setData(response.data || []);
       } catch (error) {
+        console.error("Error fetching appointments:", error);
         router.push("/");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -83,52 +86,88 @@ const AppointmentTable = () => {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-white font-bold text-xl bg-black">
+        Loading appointments...
+      </div>
+    );
+  }
+
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center text-white font-bold text-xl">
-        No appointments found
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black">
+        <BreadcrumbsDefault />
+        <div className="max-w-4xl w-full bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-xl p-12 text-center mt-12">
+          <h2 className="text-3xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
+            No Appointments Found
+          </h2>
+          <p className="text-gray-300 text-xl">
+            There are currently no scheduled appointments.
+          </p>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="w-full min-h-[100vh] flex flex-col justify-between items-center">
+    <div className="w-full min-h-screen flex flex-col justify-between items-center bg-black">
       <BreadcrumbsDefault />
 
-      <div className="max-w-7xl w-full p-2 data-table mt-4 md:mt-11 no-scrollbar">
-        <table className="shad-table w-full">
-          <thead className="bg-gray-300 text-center">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr
-                key={headerGroup.id}
-                className="shad-table-row-header text-center"
-              >
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
+      <div className="max-w-7xl w-full p-4 mt-8">
+        <div className="bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr
+                    key={headerGroup.id}
+                    className="bg-gradient-to-r from-[#00F0FF]/20 to-[#FF2E9F]/20"
+                  >
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className="py-4 px-4 text-left text-sm font-bold text-white uppercase tracking-wider"
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody className="divide-y divide-[#B026FF]/30">
+                {table.getRowModel().rows.map((row, rowIndex) => (
+                  <tr
+                    key={row.id}
+                    className={
+                      rowIndex % 2 === 0 ? "bg-gray-900/30" : "bg-gray-800/30"
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className="py-4 px-4 text-sm text-gray-300"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
                         )}
-                  </th>
+                      </td>
+                    ))}
+                  </tr>
                 ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="shad-table-row text-center">
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
+
       <Footer />
     </div>
   );

@@ -11,7 +11,7 @@ import TestimonialSection from "@/components/shared/Testimonial";
 
 const Home = async () => {
   return (
-    <div className="flex wrapper2  flex-col gap-10 items-center justify-center">
+    <div className="flex wrapper2   flex-col gap-10 items-center justify-center">
       <DiscountBanner />
       <HeroSlider />
       <FunFacts />

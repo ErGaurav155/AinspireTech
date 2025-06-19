@@ -17,58 +17,66 @@ export default function ServicesTabs() {
   });
 
   return (
-    <Tabs defaultValue="tab-1">
-      <TabsList className="flex flex-row flex-wrap   items-center justify-center w-full h-full text-white bg-black">
+    <Tabs defaultValue="tab-1" className="w-full relative z-10">
+      <TabsList className="flex flex-wrap items-center justify-center w-full pb-15 bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-xl">
         {topics.map((topic, index) => (
           <TabsTrigger
-            className="   transition-transform duration-300 hover:scale-105 active:scale-105 "
+            className="p-1 transition-all duration-300 hover:scale-105 focus-visible:ring-0 focus-visible:ring-offset-0"
             key={index}
             value={`tab-${index}`}
           >
             <div
-              className={`w-full rounded-md p-3   ${
-                index % 2 === 0 ? "bg-red-800 " : "bg-[#55edab] "
+              className={`w-full rounded-lg p-3 ${
+                index % 2 === 0
+                  ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF]"
+                  : "bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]"
               }`}
             >
-              <h1 className="text-sm lg:text-lg font-normal  text-black  ">
+              <h1 className="text-sm lg:text-base font-bold text-black">
                 {topic.title}
               </h1>
             </div>
           </TabsTrigger>
         ))}
       </TabsList>
+
       {topics.map((topic, index) => (
-        <TabsContent key={index} defaultValue="tab-1" value={`tab-${index}`}>
+        <TabsContent key={index} value={`tab-${index}`} className="mt-8">
           {topic.subTopics.length > 0 ? (
-            <div>
-              <ul className="flex items-center justify-center flex-wrap gap-3 bg-black text-white cursor-pointer mt-9">
+            <div className="space-y-8">
+              <ul className="flex flex-wrap items-center justify-center gap-4">
                 {topic.subTopics.map((subTopic, subIndex) => (
                   <li
                     key={subIndex}
-                    className={`border p-2 md:p-3 rounded-md text-sm font-normal  ${
+                    className={`p-3 rounded-xl transition-all duration-300 cursor-pointer border ${
                       selectedSubTopic?.name === subTopic.name
-                        ? "bg-white text-black"
-                        : ""
+                        ? "bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold border-transparent scale-105"
+                        : "bg-gray-900/50 backdrop-blur-md border-[#B026FF]/30 text-white hover:bg-gray-800"
                     }`}
                     onClick={() => setSelectedSubTopic(subTopic)}
                   >
-                    {subTopic.name}
+                    <span className="text-sm md:text-base">
+                      {subTopic.name}
+                    </span>
                   </li>
                 ))}
               </ul>
+
               {selectedSubTopic && (
-                <div style={{ marginTop: "20px" }}>
-                  <h3 className=" h3-bold text-white">
+                <div className="bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-xl p-6 transition-all duration-300">
+                  <h3 className="text-xl md:text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
                     {selectedSubTopic.name}
                   </h3>
-                  <p className=" pt-2 p-16-regular text-white">
+                  <p className="text-gray-300">
                     {selectedSubTopic.description}
                   </p>
                 </div>
               )}
             </div>
           ) : (
-            <p>No subtopics available for this section.</p>
+            <p className="text-gray-300 text-center py-8">
+              No subtopics available for this section.
+            </p>
           )}
         </TabsContent>
       ))}

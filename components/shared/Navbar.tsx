@@ -1,249 +1,258 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Navbar, Collapse, Button, IconButton } from "@material-tailwind/react";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
-import Logo from "/public/assets/img/file.png";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import Logo from "/public/assets/img/logo.png";
 import { SignedIn, SignedOut, useAuth, UserButton } from "@clerk/nextjs";
 import { getOwner } from "@/lib/action/appointment.actions";
+import { ArrowRight } from "lucide-react";
 
 export function NavBar() {
-  const [openNav, setOpenNav] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOwn, setIsOwn] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeNavItem, setActiveNavItem] = useState("home");
 
   const router = useRouter();
   const { userId } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
-      // Add or remove the rounded style based on scroll position
       setIsScrolled(window.scrollY > 20);
     };
 
     window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 540) {
-        setOpenNav(false);
-      }
-    };
 
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
   useEffect(() => {
     const isOwner = async () => {
       const ownerId = await getOwner();
-      if (userId !== ownerId) {
-        setIsOwn(false);
-      } else {
-        setIsOwn(true);
-      }
+      setIsOwn(userId === ownerId);
     };
-    isOwner();
+    if (userId) isOwner();
   }, [router, userId]);
-  const navList = (
-    <ul className="mb-4 mt-2 flex flex-col gap-1 sm:mb-2 sm:mt-2 lg:mb-0  lg:mt-0 md:flex-row items-center justify-center sm:gap-1 md:gap-2 lg:gap-6 border shadow-inner-glow rounded-md  text-white w-full ">
-      <li className="flex-auto p-[1px]">
-        <a
-          href="/"
-          className="    flex   hover:text-black hover:bg-gray-300 active:text-black active:bg-white font-thin  text-md md:font-light md:text-lg p-1 justify-center w-full  rounded-md"
-        >
-          Home
-        </a>
-      </li>
 
-      <li className="flex-auto  p-[1px]">
-        <a
-          href="/OurService"
-          className="    flex   hover:text-black hover:bg-gray-300 active:text-black active:bg-white  font-thin  text-md md:font-light md:text-lg p-1 justify-center w-full  rounded-md"
-        >
-          Services
-        </a>
-      </li>
-      <li className="flex-auto  p-[1px]">
-        <a
-          href="/product"
-          className="    flex   hover:text-black hover:bg-gray-300 active:text-black active:bg-white  font-thin  text-md md:font-light md:text-lg p-1 justify-center w-full  rounded-md"
-        >
-          Products
-        </a>
-      </li>
-      <li className="flex-auto  p-[1px]">
-        <a
-          href="/Aboutus"
-          className="    flex  hover:text-black hover:bg-gray-300 active:text-black active:bg-white  font-thin  text-md md:font-light md:text-lg p-1 justify-center w-full rounded-md"
-        >
-          AboutUs
-        </a>
-      </li>
-      <li className="flex-auto  p-[1px]">
-        <a
-          href="/Review"
-          className="    flex  hover:text-black hover:bg-gray-300 active:text-black active:bg-white font-thin  text-md md:font-light md:text-lg p-1 justify-center w-full  rounded-md "
-        >
-          Review
-        </a>
-      </li>
-    </ul>
-  );
+  const navItems = [
+    { id: "home", label: "Home", href: "/" },
+    { id: "services", label: "Services", href: "/OurService" },
+    { id: "products", label: "Products", href: "/product" },
+    { id: "about", label: "AboutUs", href: "/Aboutus" },
+    { id: "review", label: "Review", href: "/Review" },
+  ];
+
+  const handleNavClick = (id: string) => {
+    setActiveNavItem(id);
+    setIsMenuOpen(false);
+  };
 
   return (
-    <Navbar
-      className={`m-auto  sticky top-0 z-10 px-0 transition-all duration-300  border-black bg-black  ${
+    <header
+      className={`sticky top-0 z-50  border-b border-[#00F0FF]/20 transition-all duration-300 ${
         isScrolled ? "rounded-lg shadow-md" : "rounded-none"
       }`}
     >
-      <div className="flex items-center w-full justify-between text-white">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between gap-2 items-center bg-[#0a0a0a] backdrop-blur-sm">
+        {/* Logo */}
         <Link
           href="/"
-          className="w-1/2   md:w-1/6  cursor-pointer py-1.5 font-bold text-xl"
+          className="flex items-center"
+          onClick={() => handleNavClick("home")}
         >
-          <Image
-            alt="image"
-            className="flex-1 object-contain "
-            src={Logo}
-            width={250}
-            height={250}
-            priority
-          />
+          <div className="relative w-10 h-10 mr-3">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
+            <div className="absolute inset-1 rounded-full bg-[#0A0A0A] flex items-center justify-center">
+              <Image
+                alt="Logo"
+                src={Logo}
+                width={24}
+                height={24}
+                className="object-contain"
+              />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
+            Ainpire<span className="text-[#B026FF]">Tech</span>
+          </h1>
         </Link>
-        <div className="hidden md:flex   w-1/2  md:w-5/6  items-center gap-3 justify-end ">
-          <div className="  w-9/12  lg:w-8/12">{navList}</div>
 
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex justify-evenly items-center space-x-8">
+          {navItems.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`nav-link relative group cursor-pointer ${
+                activeNavItem === item.id ? "text-[#00F0FF]" : "text-white"
+              }`}
+              onClick={() => handleNavClick(item.id)}
+            >
+              <span className="hover:text-[#00F0FF] transition-colors">
+                {item.label}
+              </span>
+              <span
+                className={`absolute bottom-0 left-0 h-0.5 bg-[#00F0FF] transition-all duration-300 ${
+                  activeNavItem === item.id
+                    ? "w-full"
+                    : "w-0 group-hover:w-full"
+                }`}
+              ></span>
+            </Link>
+          ))}
+        </nav>
+
+        {/* Auth Buttons */}
+        <div className="flex items-center space-x-4">
           <SignedIn>
             {isOwn ? (
-              <Button
-                size="lg"
-                color="white"
-                variant="gradient"
+              <button
                 onClick={() => router.push("/admin")}
-                className="text-black 
-                w-2/12 py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
+                className="hidden md:flex px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
               >
-                Dashboard
-              </Button>
+                <span className="mr-2">Dashboard</span>
+                <ArrowRight size={16} />
+              </button>
             ) : (
-              <Button
-                size="lg"
-                color="white"
-                variant="gradient"
+              <button
                 onClick={() => router.push("/UserDashboard")}
-                className="text-black 
-            w-2/12 py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
+                className="hidden md:flex px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
               >
-                Dashboard
-              </Button>
+                <span className="mr-2">Dashboard</span>
+                <ArrowRight size={16} />
+              </button>
             )}
-            <div className="">
+            <div className="hidden md:block">
               <UserButton afterSignOutUrl="/" />
             </div>
           </SignedIn>
+
           <SignedOut>
-            <Button
-              size="lg"
-              color="white"
-              variant="gradient"
+            <button
               onClick={() => router.push("/contactUs")}
-              className="text-black 
-              w-2/12 py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
+              className="hidden md:flex px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
             >
-              ContactUs
-            </Button>
-            <Button
-              size="lg"
-              color="white"
-              variant="gradient"
-              onClick={() => router.push("/sign-up")}
-              className="text-black 
-           
-               w-2/12  py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800 "
+              Contact Us
+            </button>
+            <button
+              onClick={() => router.push("/sign-in")}
+              className="hidden md:flex px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
             >
               Login
-            </Button>
+            </button>
+          </SignedOut>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden text-2xl text-[#00F0FF] cursor-pointer !rounded-button whitespace-nowrap"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation Menu */}
+      <div
+        className={`md:hidden transition-all duration-300 overflow-hidden ${
+          isMenuOpen ? "max-h-96" : "max-h-0"
+        } bg-[#0a0a0a]/80 backdrop-blur-sm`}
+      >
+        <div className="container mx-auto px-4 py-4 flex flex-col space-y-4 bg-[#0A0A0A]/80 backdrop-blur-lg">
+          {navItems.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`text-white hover:text-[#00F0FF] transition-colors cursor-pointer ${
+                activeNavItem === item.id ? "text-[#00F0FF]" : ""
+              }`}
+              onClick={() => handleNavClick(item.id)}
+            >
+              {item.label}
+            </Link>
+          ))}
+
+          <SignedIn>
+            <div className="flex flex-col gap-4">
+              {isOwn ? (
+                <button
+                  onClick={() => {
+                    router.push("/admin");
+                    setIsMenuOpen(false);
+                  }}
+                  className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                >
+                  Admin Dashboard
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    router.push("/UserDashboard");
+                    setIsMenuOpen(false);
+                  }}
+                  className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                >
+                  User Dashboard
+                </button>
+              )}
+              <div className="flex justify-center">
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            </div>
+          </SignedIn>
+
+          <SignedOut>
+            <button
+              onClick={() => {
+                router.push("/contactUs");
+                setIsMenuOpen(false);
+              }}
+              className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+            >
+              Contact Us
+            </button>
+            <button
+              onClick={() => {
+                router.push("/sign-in");
+                setIsMenuOpen(false);
+              }}
+              className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+            >
+              Login
+            </button>
           </SignedOut>
         </div>
-
-        <IconButton
-          variant="text"
-          className="w-6/12 text-white md:hidden "
-          onClick={() => setOpenNav(!openNav)}
-        >
-          {openNav ? (
-            <XMarkIcon className="h-6 w-6" strokeWidth={2} />
-          ) : (
-            <Bars3Icon className="h-6 w-6" strokeWidth={2} />
-          )}
-        </IconButton>
       </div>
-      <Collapse open={openNav}>
-        {navList}
-
-        <SignedIn>
-          <div className="flex items-center justify-center gap-2">
-            {isOwn ? (
-              <Button
-                size="lg"
-                color="white"
-                variant="gradient"
-                onClick={() => router.push("/admin")}
-                className="text-black 
-               w-full py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
-              >
-                Dashboard
-              </Button>
-            ) : (
-              <Button
-                size="lg"
-                color="white"
-                variant="gradient"
-                onClick={() => router.push("/UserDashboard")}
-                className="text-black 
-            w-full py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
-              >
-                Dashboard
-              </Button>
-            )}
-            <div className="flex items-center justify-center bg-white rounded p-[3px]">
-              <UserButton afterSignOutUrl="/" />
-            </div>
-          </div>
-        </SignedIn>
-        <SignedOut>
-          <Button
-            fullWidth
-            size="lg"
-            color="white"
-            variant="gradient"
-            onClick={() => router.push("/contactUs")}
-            className="text-black 
-               py-2 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800"
-          >
-            ContactUs
-          </Button>
-          <Button
-            fullWidth
-            size="lg"
-            color="white"
-            variant="gradient"
-            onClick={() => router.push("/sign-up")}
-            className="text-black 
-              
-                py-2 mt-1 px-1 border text-center  border-white shadow-sm shadow-blue-gray-800 "
-          >
-            Login
-          </Button>
-        </SignedOut>
-      </Collapse>
-    </Navbar>
+    </header>
   );
 }

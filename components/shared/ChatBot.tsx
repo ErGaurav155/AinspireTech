@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Collapse, Button } from "@material-tailwind/react";
+import { Collapse } from "@material-tailwind/react";
 import {
   ArrowPathIcon,
   ChatBubbleLeftIcon,
@@ -22,12 +22,9 @@ import { useForm } from "react-hook-form";
 import { formSchema1 } from "@/lib/validator";
 import { generateGptResponse } from "@/lib/action/ai.action";
 import Link from "next/link";
-import { createAllProducts } from "@/lib/action/plan.action";
-import { getUserByDbId } from "@/lib/action/user.actions";
 
 export default function AIChatBot() {
   const [open, setOpen] = useState(false);
-
   const [messages, setMessages] = useState([
     { sender: "AI Bot", text: "Hello! How can I help you?" },
   ]);
@@ -88,71 +85,57 @@ export default function AIChatBot() {
   };
 
   return (
-    <div className="h-auto w-auto flex flex-col ">
+    <div className="h-auto w-auto flex flex-col">
+      {/* Closed state button */}
       <div
-        className={` fixed bottom-4 right-4 z-40 text-center  ${
+        className={`fixed bottom-4 right-4 z-40 text-center justify-center ${
           open ? "hidden" : "inline-block"
-        }  `}
+        }`}
       >
-        <div
-          className={` bg-[#143796] text-white rounded-full shadow-lg p-3  hover:bg-[#5372c0] transition`}
-        >
+        <div className="bg-gradient-to-r h-14 w-14 from-[#00F0FF] to-[#FF2E9F] rounded-full shadow-lg p-3 flex items-center justify-center hover:shadow-[0_0_15px_5px_rgba(0,240,255,0.5)] transition-all duration-300">
           <ChatBubbleLeftIcon
             onClick={toggleOpen}
             className="text-white h-12 w-12"
           />
         </div>
-        <h1
-          className={`font-semibold text-base text-[#0f1788]  hover:text-[#5372c0]`}
-        >
-          Help
-        </h1>
+        <h1 className="font-semibold text-base text-white mt-1">Help </h1>
       </div>
 
+      {/* Chat window */}
       <Collapse
         open={open}
-        className={`fixed bottom-4 right-5 w-[90vw] ${
-          open ? "border" : "border-none"
-        } sm:w-96 h-[90vh] max-h-[90vh] bg-gray-50 flex flex-col gap-4 rounded-xl shadow-xl shadow-gray-700 z-20 `}
+        className={`fixed bottom-4 right-4 w-[90vw] sm:w-96 h-[80vh] max-h-[80vh] bg-gray-900/80 backdrop-blur-lg border ${
+          open ? "border border-[#B026FF]/30" : "border-none"
+        }  rounded-xl shadow-xl shadow-[#00F0FF]/20 z-20 flex flex-col`}
       >
-        <div className="flex p-4 items-center justify-between gap-2 w-full border-b">
-          <div className="pl-3 w-full flex items-center text-nowrap justify-start gap-4">
-            <div className="border w-14 h-14 p-3 rounded-full bg-gray-200">
-              <SparklesIcon className="text-gray-700" />
+        {/* Header */}
+        <div className="flex p-4 items-center justify-between gap-2 w-full bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] rounded-t-xl">
+          <div className="flex items-center gap-3">
+            <div className="border-2 border-white w-12 h-12 p-2 rounded-full bg-black/30">
+              <SparklesIcon className="text-white" />
             </div>
-            <span className="font-normal flex gap-1 md:gap-2 text-xl md:text-2xl">
-              {["Dev", "Ai"].map((word, index) => (
-                <span
-                  key={index}
-                  style={{
-                    display: "block ",
-                    animation: `colorChangeHorizontal  2s infinite ${
-                      index * 0.5
-                    }s`,
-                  }}
-                >
-                  {word}
-                </span>
-              ))}
+            <span className="font-bold text-xl text-white">
+              DevAI Assistant
             </span>
           </div>
-          <div className="w-full flex items-center justify-center gap-4">
+          <div className="flex items-center gap-2">
             <button
-              className="w-10 h-10 p-2 rounded-full hover:bg-gray-300"
+              className="w-10 h-10 p-2 rounded-full hover:bg-black/20 transition"
               onClick={restartChat}
             >
-              <ArrowPathIcon className="text-gray-700" />
+              <ArrowPathIcon className="text-white" />
             </button>
-            <button className="w-10 h-10 p-2 rounded-full hover:bg-gray-300">
-              <ChevronDoubleDownIcon
-                onClick={toggleOpen}
-                className="text-gray-700"
-              />
+            <button
+              className="w-10 h-10 p-2 rounded-full hover:bg-black/20 transition"
+              onClick={toggleOpen}
+            >
+              <ChevronDoubleDownIcon className="text-white" />
             </button>
           </div>
         </div>
 
-        <div className="flex flex-col p-4 flex-1 min-h-[50vh] max-h-[50vh] z-10 overflow-y-auto no-scrollbar">
+        {/* Messages container */}
+        <div className="flex flex-col p-4 flex-1 min-h-[50vh] max-h-[50vh] overflow-y-auto no-scrollbar space-y-4">
           {messages.map((msg, index) => (
             <div
               key={index}
@@ -161,67 +144,61 @@ export default function AIChatBot() {
               }`}
             >
               <div
-                className={`p-3 my-1 rounded-lg ${
+                className={`p-3 rounded-xl max-w-[80%] ${
                   msg.sender === "You"
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-700"
+                    ? "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F] text-white"
+                    : "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white"
                 }`}
               >
                 <span>{msg.text}</span>
               </div>
             </div>
           ))}
-          <Link
-            target="_blank"
-            href="https://ainspiretech.com/"
-            className="absolute flex items-center justify-center gap-1 bottom-0 left-1/3 text-xs font-thin text-gray-400 mb-1"
-          >
-            <div className="relative w-4 h-2 overflow-hidden">
-              <div className="absolute w-4 h-8 bg-orange-300 rounded-full"></div>
-            </div>
-            Powered by AinspireTech
-          </Link>
         </div>
 
-        <div className="flex items-center gap-2 p-4 border-t">
+        {/* Input area */}
+        <div className="p-4 border-t border-[#00F0FF]/30">
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className="flex items-center justify-between gap-3 w-full"
+              className="flex items-center gap-3 w-full"
             >
               <FormField
                 control={form.control}
                 name="message"
                 render={({ field }) => (
-                  <FormItem className="w-full ">
+                  <FormItem className="flex-1">
                     <FormControl>
                       <input
-                        className="select-field w-full"
-                        placeholder="Your Message"
+                        className="w-full bg-gray-800/50 border border-[#00F0FF]/30 rounded-lg py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-[#00F0FF]"
+                        placeholder="Your message..."
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-red-400" />
                   </FormItem>
                 )}
               />
-              {submit ? (
-                <Button
-                  type="submit"
-                  className="pl-1 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
-                >
-                  Sending..
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  className="px-4 py-2 text-base md:text-xl hover:bg-[#88e2bb] bg-[#6ee5b2] text-white "
-                >
-                  Send
-                </Button>
-              )}
+              <button
+                type="submit"
+                disabled={submit}
+                className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-bold py-3 px-5 rounded-lg hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90 transition-all duration-300 disabled:opacity-70"
+              >
+                {submit ? "Sending..." : "Send"}
+              </button>
             </form>
           </Form>
+
+          {/* Footer */}
+          <div className="mt-2 text-center">
+            <Link
+              target="_blank"
+              href="https://ainspiretech.com/"
+              className="text-xs text-gray-400 hover:text-[#00F0FF] transition-colors"
+            >
+              Powered by AinspireTech
+            </Link>
+          </div>
         </div>
       </Collapse>
     </div>

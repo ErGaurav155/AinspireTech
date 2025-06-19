@@ -45,13 +45,13 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
   }
 
   return (
-    <div className="md:wrapper2  w-full md:p-8">
+    <div className="w-full p-4 sm:p-8 relative  z-10">
       {showAvailableOnly ? (
-        <h1 className="text-4xl font-bold text-white mb-12 text-center">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
           Popular Products
         </h1>
       ) : (
-        <h1 className="text-4xl font-bold text-white mb-12 text-center">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
           All Products
         </h1>
       )}
@@ -59,13 +59,13 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
         {products.map((product) => (
           <div
             key={product.productId}
-            className={`flex flex-col items-center justify-center gap-6 ${
-              product.available ? "bg-gray-700" : "bg-gray-800 "
-            }  rounded-xl p-6 shadow-lg`}
+            className={`flex flex-col items-center justify-center gap-6 rounded-xl p-6 shadow-xl
+              bg-[#0a0a0a] backdrop-blur-sm border border-[#00F0FF]/30 hover:border-[#B026FF] transition-all
+              ${!product.available && "opacity-70"}`}
           >
             {/* Product Header */}
             <div
-              className={`w-full flex items-center justify-start gap-3 ${product.description.bgcolor} rounded-xl p-3`}
+              className={`w-full flex items-center justify-start gap-3 rounded-xl p-3 bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20`}
             >
               <HeadsetIcon className="w-8 h-8 text-white" />
               <h2 className="text-lg font-semibold text-white">
@@ -74,9 +74,9 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
             </div>
 
             {/* Product Video */}
-            <div className="w-full aspect-video">
+            <div className="w-full aspect-video rounded-lg overflow-hidden border border-[#00F0FF]/30">
               <iframe
-                className=" w-full h-full"
+                className="w-full h-full"
                 src={product.video}
                 title="YouTube video player"
                 frameBorder="0"
@@ -90,7 +90,7 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
               <h3 className="text-xl font-bold text-white">
                 {product.description.heading}
               </h3>
-              <p className="text-gray-400">{product.description.subheading}</p>
+              <p className="text-gray-300">{product.description.subheading}</p>
             </div>
 
             {/* Action Buttons */}
@@ -98,22 +98,18 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
               {product.available ? (
                 <Button
                   fullWidth
-                  color="green"
-                  variant="gradient"
+                  className="text-base font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
                   onClick={() =>
                     router.push(`/pricing?id=${product.productId}`)
                   }
-                  className="text-base font-bold"
                 >
                   Buy Now
                 </Button>
               ) : (
                 <Button
                   fullWidth
-                  color="green"
-                  variant="gradient"
+                  className="text-base font-bold bg-gradient-to-r from-gray-500 to-gray-700 text-gray-300 cursor-not-allowed"
                   disabled
-                  className="text-base font-bold"
                 >
                   Coming Soon...
                 </Button>
