@@ -87,11 +87,11 @@ const ContactForm = () => {
   };
 
   return (
-    <section className="w-full py-16 relative z-10">
-      <div className="container mx-auto px-4">
+    <section className="w-screen py-16 relative z-10">
+      <div className="container mx-auto p-2 md:px-4">
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Content Section */}
-          <div className="bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] p-8 rounded-2xl border border-[#B026FF]/30">
+          <div className="bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] p-2 md:p-8 rounded-2xl border border-[#B026FF]/30">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
               THE FUTURE, <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#55edab]">
@@ -113,17 +113,17 @@ const ContactForm = () => {
               </h1>
               <div className="space-y-3">
                 <p className="text-gray-300 flex">
-                  <span className="text-[#00F0FF] min-w-[120px]">Owner:</span>
+                  <span className="text-[#00F0FF] min-w-[100px]">Owner: </span>{" "}
                   Mr. GAURAV KHIARE
                 </p>
                 <p className="text-gray-300 flex">
-                  <span className="text-[#00F0FF] min-w-[120px]">
+                  <span className="text-[#00F0FF] min-w-[100px]">
                     Business:
                   </span>
                   GK Services
                 </p>
                 <p className="text-gray-300 flex">
-                  <span className="text-[#00F0FF] min-w-[120px]">Email:</span>
+                  <span className="text-[#00F0FF] min-w-[100px]">Email:</span>
                   <a
                     href="mailto:gauravgkhaire@gmail.com"
                     className="text-[#55edab] hover:underline"
@@ -132,7 +132,7 @@ const ContactForm = () => {
                   </a>
                 </p>
                 <p className="text-gray-300 flex">
-                  <span className="text-[#00F0FF] min-w-[120px]">Address:</span>
+                  <span className="text-[#00F0FF] min-w-[100px]">Address:</span>
                   Chandwad, Nashik, Maharashtra - 423104
                 </p>
               </div>
@@ -140,7 +140,7 @@ const ContactForm = () => {
           </div>
 
           {/* Contact Form */}
-          <div className="bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-2xl p-8">
+          <div className="bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-2xl p-2 md:p-8">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
