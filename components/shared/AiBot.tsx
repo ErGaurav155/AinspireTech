@@ -59,16 +59,69 @@ export default function AibotCollapse({
 
   // Submit handler (same as before)
   const onSubmit = async (values: z.infer<typeof formSchema1>) => {
-    // ... same as before
+    const { message } = values;
+    setSubmit(true);
+
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { sender: "You", text: message },
+    ]);
+
+    form.reset({ message: "" });
+
+    try {
+      const response = await generateGptResponse({
+        userInput: message,
+        userfileName: userfileName,
+      });
+
+      if (response) {
+        setCount((pre: number) => pre + 1);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { sender: "AI Bot", text: response },
+        ]);
+      } else {
+        toast({
+          title: "Content Warning",
+          duration: 2000,
+          className: "error-toast",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: "AI Bot", text: "Sorry, something went wrong!" },
+      ]);
+    } finally {
+      setSubmit(false);
+    }
   };
 
   const restartChat = () => {
-    // ... same as before
+    setCount(-10);
+    setMessages([{ sender: "AI Bot", text: "Hello! How can I help you?" }]);
   };
-
   useEffect(() => {
-    // ... same as before
-  }, [userId, authorised]);
+    const getFileName = async () => {
+      try {
+        if (!userId) {
+          authorised === false;
+          return;
+        }
+        const user = await getUserByDbId(userId);
+
+        if (user) {
+          setUserFileName(user.scrappedFile);
+        }
+      } catch (error) {
+        console.error("Error fetching file name:", error);
+      }
+    };
+
+    getFileName();
+  }, [userId, authorised]); // Add userId as a dependency
 
   async function handleFeedbackSubmit(data: {
     name: string;
@@ -76,7 +129,20 @@ export default function AibotCollapse({
     phone?: string;
     message?: string;
   }) {
-    // ... same as before
+    try {
+      setCount(-999);
+      const response = await sendWhatsAppInfo({ data, userId });
+      if (!response) {
+        handleError;
+      }
+      toast({
+        title: "Form Submmitted Successfully,We will contact you soon",
+        duration: 2000,
+        className: "success-toast",
+      });
+    } catch (error) {
+      console.error("Error sending WhatsApp message:", error);
+    }
   }
 
   return (

@@ -35,6 +35,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
         {children}
         <AIChatBot />
+
         <Toaster />
       </MotionDiv>
     </main>
