@@ -41,9 +41,9 @@ export default function ServicesTabs() {
       </TabsList>
 
       {topics.map((topic, index) => (
-        <TabsContent key={index} value={`tab-${index}`} className="mt-8">
+        <TabsContent key={index} value={`tab-${index}`} className="mt-28">
           {topic.subTopics.length > 0 ? (
-            <div className="space-y-8">
+            <div className="space-y-8 p-2">
               <ul className="flex flex-wrap items-center justify-center gap-4">
                 {topic.subTopics.map((subTopic, subIndex) => (
                   <li
@@ -63,7 +63,7 @@ export default function ServicesTabs() {
               </ul>
 
               {selectedSubTopic && (
-                <div className="bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-xl p-6 transition-all duration-300">
+                <div className="bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-xl p-6 transition-all duration-300 ">
                   <h3 className="text-xl md:text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
                     {selectedSubTopic.name}
                   </h3>

@@ -35,7 +35,6 @@ export function NavBar() {
   }, [router, userId]);
 
   const navItems = [
-    { id: "home", label: "Home", href: "/" },
     { id: "services", label: "Services", href: "/OurService" },
     { id: "products", label: "Products", href: "/product" },
     { id: "about", label: "AboutUs", href: "/Aboutus" },
@@ -60,7 +59,7 @@ export function NavBar() {
           className="flex items-center"
           onClick={() => handleNavClick("home")}
         >
-          <div className="relative w-10 h-10 mr-3">
+          <div className="relative h-7 w-7 md:w-10 md:h-10 mr-1 md:mr-3">
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
             <div className="absolute inset-1 rounded-full bg-[#0A0A0A] flex items-center justify-center">
               <Image
@@ -72,13 +71,13 @@ export function NavBar() {
               />
             </div>
           </div>
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
+          <h1 className="text-lg lg:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
             Ainpire<span className="text-[#B026FF]">Tech</span>
           </h1>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex justify-evenly items-center space-x-8">
+        <nav className="hidden md:flex justify-evenly items-center space-x-3 lg:space-x-8 text-sm lg:text-base">
           {navItems.map((item) => (
             <Link
               key={item.id}
@@ -103,7 +102,7 @@ export function NavBar() {
         </nav>
 
         {/* Auth Buttons */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 lg:space-x-4">
           <SignedIn>
             {isOwn ? (
               <button
@@ -188,7 +187,7 @@ export function NavBar() {
           isMenuOpen ? "max-h-96" : "max-h-0"
         } bg-[#0a0a0a]/80 backdrop-blur-sm`}
       >
-        <div className="container mx-auto px-4 py-4 flex flex-col space-y-4 bg-[#0A0A0A]/80 backdrop-blur-lg">
+        <div className="container mx-auto px-4 py-4 flex flex-col items-center justify-center max-w-max space-y-4 ">
           {navItems.map((item) => (
             <Link
               key={item.id}
@@ -246,7 +245,7 @@ export function NavBar() {
                 router.push("/sign-in");
                 setIsMenuOpen(false);
               }}
-              className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+              className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 w-full transition-opacity whitespace-nowrap cursor-pointer"
             >
               Login
             </button>

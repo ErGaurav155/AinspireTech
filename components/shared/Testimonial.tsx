@@ -92,9 +92,6 @@ export function TestimonialSection() {
               </CarouselItem>
             ))}
           </CarouselContent>
-
-          <CarouselPrevious className="absolute -left-10 top-1/2 transform -translate-y-1/2 bg-[#0a0a0a]/60 backdrop-blur-sm border border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/20 hover:text-white" />
-          <CarouselNext className="absolute -right-10 top-1/2 transform -translate-y-1/2 bg-[#0a0a0a]/60 backdrop-blur-sm border border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/20 hover:text-white" />
         </Carousel>
       </div>
     </section>

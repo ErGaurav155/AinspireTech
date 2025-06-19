@@ -4,6 +4,7 @@ import { MapPin, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
+import Logo from "/public/assets/img/logo.png";
 
 export function Footer() {
   useEffect(() => {
@@ -71,13 +72,23 @@ export function Footer() {
           {/* Logo and Navigation */}
           <div className="flex flex-col items-center md:items-start">
             <div className="mb-6">
-              <Image
-                src="/assets/img/file.png"
-                alt="logo"
-                width={200}
-                height={200}
-                className="rounded"
-              />
+              <Link href="/" className="flex items-center">
+                <div className="relative w-10 h-10 mr-3">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
+                  <div className="absolute inset-1 rounded-full bg-[#0A0A0A] flex items-center justify-center">
+                    <Image
+                      alt="Logo"
+                      src={Logo}
+                      width={24}
+                      height={24}
+                      className="object-contain"
+                    />
+                  </div>
+                </div>
+                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
+                  Ainpire<span className="text-[#B026FF]">Tech</span>
+                </h1>
+              </Link>
             </div>
             <ul className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6">
               {[
@@ -118,7 +129,7 @@ export function Footer() {
                 <h3 className="font-bold text-white">Contact</h3>
                 <a
                   href="mailto:gauravgkhaire@gmail.com"
-                  className="text-gray-300 hover:text-[#00F0FF] transition-colors duration-300"
+                  className="text-gray-300 hover:text-[#00F0FF] transition-colors duration-300 text-md md:text-base"
                 >
                   gauravgkhaire@gmail.com
                 </a>
