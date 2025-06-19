@@ -207,7 +207,7 @@ export const Checkout = ({
     }
   };
   const onCheckout = async (event: React.FormEvent) => {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault();
 
     const isDataFetched = await fetchPlanInfo();
     if (isDataFetched) {
