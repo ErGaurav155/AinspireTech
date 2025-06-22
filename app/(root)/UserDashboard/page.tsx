@@ -216,17 +216,17 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center text-white font-bold text-xl">
+      <div className="flex items-center justify-center text-white font-bold text-xl relative  bg-[#0a0a0a]/60 backdrop-blur-sm w-screen h-screen">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen relative  bg-[#0a0a0a]/60 backdrop-blur-sm">
+    <div className=" flex flex-col items-center justify-center min-h-screen ">
       <BreadcrumbsDefault />
 
-      <div className="wrapper2 w-full max-w-6xl px-4 py-8">
+      <div className=" w-full max-w-6xl px-4 py-8 relative  z-10  bg-[#0a0a0a]/60 backdrop-blur-sm">
         <h1 className="text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
           Your Subscriptions
         </h1>

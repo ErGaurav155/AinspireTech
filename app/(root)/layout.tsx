@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <main className=" no-scrollbar ">
+    <main className=" no-scrollbar">
       <MotionDiv
         variants={variants}
         initial="hidden"
