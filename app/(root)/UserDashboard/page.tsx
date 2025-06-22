@@ -223,7 +223,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black">
+    <div className="flex flex-col items-center justify-center min-h-screen relative  bg-[#0a0a0a]/60 backdrop-blur-sm">
       <BreadcrumbsDefault />
 
       <div className="wrapper2 w-full max-w-6xl px-4 py-8">

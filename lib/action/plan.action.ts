@@ -188,100 +188,28 @@ export const getRazerpayPlanInfo = async (productId: string) => {
   }
 };
 
-export async function createPaypalPlans() {
-  await connectToDatabase(); // Connect to the database
-  const accessToken = await getAccessToken();
+// export async function createPaypalPlans() {
+//   await connectToDatabase(); // Connect to the database
 
-  if (!accessToken) {
-    throw new Error("Unable to fetch PayPal access token.");
-  }
+//   try {
+//     for (const [productId, details] of Object.entries(plans)) {
+//       const newPlan = new Plan({
+//         productId,
+//         razorpaymonthlyplanId: "hi",
+//         paypalmonthlyplanId: "hello",
+//         razorpayyearlyplanId: "how",
+//         paypalyearlyplanId: "you",
+//       });
 
-  try {
-    for (const [productId, details] of Object.entries(plans)) {
-      const { amount, currency, period } = details;
+//       await newPlan.save();
+//     }
 
-      const planResponse = await fetch(
-        "https://api-m.sandbox.paypal.com/v1/billing/plans",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "PayPal-Request-Id": `PLAN-${new Date().getTime()}`,
-            Prefer: "return=representation",
-          },
-          body: JSON.stringify({
-            product_id: productId, // Replace with your actual product ID
-            name: `${productId} Plan`,
-            description: `${productId} Subscription Plan`,
-            status: "ACTIVE",
-            billing_cycles: [
-              {
-                frequency: {
-                  interval_unit: period.toUpperCase(),
-                  interval_count: 1,
-                },
-                tenure_type: "REGULAR",
-                sequence: 1,
-                total_cycles: 0, // 0 means infinite
-                pricing_scheme: {
-                  fixed_price: {
-                    value: amount.toString(),
-                    currency_code: currency,
-                  },
-                },
-              },
-            ],
-            payment_preferences: {
-              auto_bill_outstanding: true,
-              setup_fee: {
-                value: "0",
-                currency_code: currency,
-              },
-              setup_fee_failure_action: "CONTINUE",
-              payment_failure_threshold: 3,
-            },
-            taxes: {
-              percentage: "10",
-              inclusive: false,
-            },
-          }),
-        }
-      );
-
-      const planData = await planResponse.json();
-
-      const plan = await Plan.findOneAndUpdate(
-        { productId: productId },
-        { $set: { paypalplanId: planData.id } },
-        { new: true }
-      );
-
-      if (!plan) {
-        throw new Error("User not found");
-      }
-
-      // Save the plan to the database
-      // const newPlan = new Plan({
-      //   productId,
-      //   paypalplanId: planData.id,
-      //   name: `${productId} Subscription`,
-
-      //   amount,
-      //   currency,
-      //   period,
-      // });
-
-      // await newPlan.save();
-    }
-
-    return { success: true };
-  } catch (error: any) {
-    console.error("Error creating PayPal plans:", error.message);
-    throw new Error("Plan creation failed.");
-  }
-}
+//     return { success: true };
+//   } catch (error: any) {
+//     console.error("Error creating PayPal plans:", error.message);
+//     throw new Error("Plan creation failed.");
+//   }
+// }
 
 // Helper function to get PayPal access token
 async function getAccessToken() {

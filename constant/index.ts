@@ -244,7 +244,7 @@ export const productDetails: Record<
     name: "Customer Support AI Agent",
     video: "/assets/congratulation.webm",
     icon: "/icons/customer-support.png",
-    available: false,
+    available: true,
 
     description: {
       bgcolor: "bg-purple-500",

@@ -1,7 +1,6 @@
 "use server";
 
 import nodemailer from "nodemailer";
-import twilio from "twilio";
 import User from "../database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
 import { Twilio } from "twilio";

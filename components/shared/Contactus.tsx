@@ -65,7 +65,7 @@ const ContactForm = () => {
           duration: 2000,
           className: "success-toast",
         });
-        form.reset(); // Reset form after successful submission
+        form.reset();
       } else {
         toast({
           title: "Appointment booking Failed",
