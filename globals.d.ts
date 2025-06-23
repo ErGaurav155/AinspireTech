@@ -10,6 +10,6 @@ declare global {
       userId: string;
       agentId: string;
     }) => void;
-    paypal?: any; // Replace 'any' with a proper PayPal type if available
+    paypal?: any;
   }
 }

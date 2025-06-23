@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-import CartPay from "./CartPay";
 import RazerPay from "./RazorPay";
 import { Button } from "@material-tailwind/react";
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
@@ -68,11 +67,8 @@ export const Checkout = ({
   const [phone, setPhone] = useState("");
   const locationRef = useRef<string>("India"); // Store location without causing re-renders
   const razorpaymonthlyplanId = useRef<string | null>(null);
-  const paypalmonthlyplanId = useRef<string | null>(null);
   const razorpayyearlyplanId = useRef<string | null>(null);
-  const paypalyearlyplanId = useRef<string | null>(null);
   const razorpayplanId = useRef<string | null>(null);
-  const paypalplanId = useRef<string | null>(null);
 
   const buyerIdRef = useRef<string | null>(null);
   const {
@@ -95,20 +91,13 @@ export const Checkout = ({
     try {
       // Fetch plan data
       const info = await getRazerpayPlanInfo(productId);
-      if (
-        !info.razorpaymonthlyplanId ||
-        !info.paypalmonthlyplanId ||
-        !info.razorpayyearlyplanId ||
-        !info.paypalyearlyplanId
-      ) {
+      if (!info.razorpaymonthlyplanId || !info.razorpayyearlyplanId) {
         router.push("/");
         throw new Error("Plan not found");
       }
 
       razorpaymonthlyplanId.current = info.razorpaymonthlyplanId;
-      paypalmonthlyplanId.current = info.paypalmonthlyplanId;
       razorpayyearlyplanId.current = info.razorpayyearlyplanId;
-      paypalyearlyplanId.current = info.paypalyearlyplanId;
     } catch (error) {
       console.error("Error fetching plan info:", error);
       return false;
@@ -213,10 +202,8 @@ export const Checkout = ({
     if (isDataFetched) {
       if (billingCycle === "monthly") {
         razorpayplanId.current = razorpaymonthlyplanId.current;
-        paypalplanId.current = paypalmonthlyplanId.current;
       } else if (billingCycle === "yearly") {
         razorpayplanId.current = razorpayyearlyplanId.current;
-        paypalplanId.current = paypalyearlyplanId.current;
       } else {
         router.push("/");
         return false;
@@ -391,14 +378,10 @@ export const Checkout = ({
       )}
       {isActive &&
         razorpaymonthlyplanId.current &&
-        paypalmonthlyplanId.current &&
         razorpayyearlyplanId.current &&
-        paypalyearlyplanId.current &&
         razorpayplanId.current &&
-        paypalplanId.current &&
         buyerIdRef.current &&
-        step === "payment" &&
-        (locationRef.current === "India" ? (
+        step === "payment" && (
           <RazerPay
             amount={amount}
             razorpayplanId={razorpayplanId.current ?? ""}
@@ -406,35 +389,7 @@ export const Checkout = ({
             productId={productId}
             billingCycle={billingCycle}
           />
-        ) : (
-          <AlertDialog defaultOpen>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="sr-only">
-                  Enter Website URL
-                </AlertDialogTitle>
-                <div className="flex justify-between items-center">
-                  <p className="p-16-semibold text-black">
-                    Proceed To Take Monthly Subscription
-                  </p>
-                  <AlertDialogCancel
-                    onClick={() => router.push(`/`)}
-                    className="border-0 p-0 hover:bg-transparent"
-                  >
-                    <XMarkIcon className="size-6 cursor-pointer" />
-                  </AlertDialogCancel>
-                </div>
-              </AlertDialogHeader>
-              <CartPay
-                amount={amount}
-                paypalplanId={paypalplanId.current ?? ""}
-                buyerId={buyerIdRef.current ?? ""}
-                productId={productId}
-                billingCycle={billingCycle}
-              />
-            </AlertDialogContent>
-          </AlertDialog>
-        ))}
+        )}
     </>
   );
 };
