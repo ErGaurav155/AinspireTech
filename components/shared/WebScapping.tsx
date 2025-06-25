@@ -97,10 +97,10 @@ export const WebScapping = ({
       });
 
       await setWebsiteScrapped(userId);
-      router.push("/UserDashboard");
+      router.push("/web/UserDashboard");
     } catch (error) {
       console.error("Error during subscription process:", error);
-      router.push("/UserDashboard");
+      router.push("/web/UserDashboard");
     } finally {
       setLoading(false);
     }

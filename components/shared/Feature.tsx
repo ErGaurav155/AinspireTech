@@ -26,7 +26,7 @@ const Features = () => {
   ];
 
   return (
-    <div className="container mx-auto py-16 px-4 sm:px-6 lg:px-8 relative z-10">
+    <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8 relative z-10">
       {/* Section Title */}
       <div className="text-center mb-16">
         <h2 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">

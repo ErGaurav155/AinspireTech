@@ -36,7 +36,6 @@ export function NavBar() {
 
   const navItems = [
     { id: "services", label: "Services", href: "/OurService" },
-    { id: "products", label: "Products", href: "/product" },
     { id: "about", label: "AboutUs", href: "/Aboutus" },
     { id: "review", label: "Review", href: "/Review" },
   ];
@@ -48,11 +47,11 @@ export function NavBar() {
 
   return (
     <header
-      className={`sticky top-0 z-50  border-b border-[#00F0FF]/20 transition-all duration-300 ${
+      className={`sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-[#00F0FF]/20 transition-all duration-300 ${
         isScrolled ? "rounded-lg shadow-md" : "rounded-none"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between gap-2 items-center bg-[#0a0a0a] backdrop-blur-sm">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between gap-2 items-center ">
         {/* Logo */}
         <Link
           href="/"
@@ -107,19 +106,28 @@ export function NavBar() {
             {isOwn ? (
               <button
                 onClick={() => router.push("/admin")}
-                className="hidden md:flex px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                className="hidden md:flex items-center justify-center px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
               >
                 <span className="mr-2">Dashboard</span>
-                <ArrowRight size={16} />
+                <ArrowRight className="hidden lg:flex" size={16} />
               </button>
             ) : (
-              <button
-                onClick={() => router.push("/UserDashboard")}
-                className="hidden md:flex px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-              >
-                <span className="mr-2">Dashboard</span>
-                <ArrowRight size={16} />
-              </button>
+              <>
+                <button
+                  onClick={() => router.push("/web")}
+                  className="hidden md:flex items-center justify-center px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                >
+                  <span className="mr-2">WebBot</span>
+                  <ArrowRight className="hidden lg:flex" size={16} />
+                </button>
+                <button
+                  onClick={() => router.push("/insta")}
+                  className="hidden md:flex items-center justify-center px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                >
+                  <span className="mr-2">InstaBot</span>
+                  <ArrowRight className="hidden lg:flex" size={16} />
+                </button>
+              </>
             )}
             <div className="hidden md:block">
               <UserButton afterSignOutUrl="/" />
@@ -214,15 +222,26 @@ export function NavBar() {
                   Admin Dashboard
                 </button>
               ) : (
-                <button
-                  onClick={() => {
-                    router.push("/UserDashboard");
-                    setIsMenuOpen(false);
-                  }}
-                  className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-                >
-                  User Dashboard
-                </button>
+                <>
+                  <button
+                    onClick={() => {
+                      router.push("/web");
+                      setIsMenuOpen(false);
+                    }}
+                    className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                  >
+                    WebBot
+                  </button>
+                  <button
+                    onClick={() => {
+                      router.push("/insta");
+                      setIsMenuOpen(false);
+                    }}
+                    className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                  >
+                    InstaBot
+                  </button>
+                </>
               )}
               <div className="flex justify-center">
                 <UserButton afterSignOutUrl="/" />

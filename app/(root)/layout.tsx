@@ -19,25 +19,12 @@ export const metadata: Metadata = {
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <main className=" no-scrollbar">
-      <MotionDiv
-        variants={variants}
-        initial="hidden"
-        animate="visible"
-        transition={{
-          delay: stagger,
-          ease: "easeInOut",
-          duration: 0.5,
-        }}
-        viewport={{ amount: 0 }}
-        className=" "
-      >
-        <NavBar />
+      <NavBar />
 
-        {children}
-        <AIChatBot />
+      {children}
+      <AIChatBot />
 
-        <Toaster />
-      </MotionDiv>
+      <Toaster />
     </main>
   );
 };

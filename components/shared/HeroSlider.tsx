@@ -30,7 +30,7 @@ export const HeroSlider = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-2">
           <button
             className="px-6 py-3 text-center font-medium transition-all bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black rounded-full hover:opacity-90 shadow-lg shadow-[#00F0FF]/30"
-            onClick={() => router.push("/product")}
+            onClick={() => router.push("/web/product")}
           >
             Our Products
           </button>

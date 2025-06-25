@@ -4,30 +4,21 @@ import { useRouter } from "next/navigation";
 
 const sections = [
   {
-    title: "CHATBOTS",
+    title: " WEBSITE CHATBOTS",
     items: [
-      { id: "chatbot-customer-support", name: "Customer Support" },
-      { id: "chatbot-e-commerce", name: "E-Commerce" },
-      { id: "chatbot-lead-generation", name: "Lead Generation" },
-      { id: "chatbot-education", name: "Education" },
+      { id: "/web/product/chatbot-customer-support", name: "Customer Support" },
+      { id: "/web/product/chatbot-e-commerce", name: "E-Commerce" },
+      { id: "/web/product/chatbot-lead-generation", name: "Lead Generation" },
+      { id: "/web/product/chatbot-education", name: "Education" },
     ],
   },
   {
-    title: "AI AGENTS",
+    title: "INSTAGRAM CHATBOTS",
     items: [
-      { id: "ai-agent-customer-support", name: "Customer Support" },
-      { id: "ai-agent-e-commerce", name: "E-Commerce" },
-      { id: "ai-agent-lead-generation", name: "Lead Generation" },
-      { id: "ai-agent-education", name: "Education" },
-    ],
-  },
-  {
-    title: "WEBSITE TEMPLATES",
-    items: [
-      { id: "template-pathology", name: "Pathology & Medical" },
-      { id: "template-e-commerce", name: "E-Commerce" },
-      { id: "template-business", name: "Business" },
-      { id: "template-saas", name: "SaaS" },
+      { id: "/insta", name: "Pathology & Medical" },
+      { id: "/insta", name: "E-Commerce" },
+      { id: "/insta", name: "Business" },
+      { id: "/insta", name: "SaaS" },
     ],
   },
 ];
@@ -36,13 +27,13 @@ const OutProduct = () => {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center gap-10 py-16 px-4 sm:px-6 lg:px-8 relative z-10 ">
+    <div className="flex flex-col items-center justify-center gap-10 py-10 px-4 sm:px-6 lg:px-8 relative z-10 ">
       <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
         Buy Products
       </h1>
 
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="max-w-7xl m-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {sections.map((section, sectionIndex) => {
             // Determine border colors based on index
             const borderColor =
@@ -79,7 +70,7 @@ const OutProduct = () => {
                     {section.items.map((item) => (
                       <button
                         key={item.id}
-                        onClick={() => router.push(`/product/${item.id}`)}
+                        onClick={() => router.push(`${item.id}`)}
                         className="w-full text-xs md:text-sm font-medium bg-gray-900/60 backdrop-blur-sm border border-[#00F0FF]/30 text-white py-3 rounded-lg hover:bg-gradient-to-br hover:from-[#00F0FF]/10 hover:to-transparent transition-all duration-300"
                       >
                         {item.name}

@@ -108,7 +108,7 @@ const RazerPay = ({
                 `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
               );
             } else {
-              router.push("/UserDashboard");
+              router.push("/web/UserDashboard");
             }
           } else {
             toast({

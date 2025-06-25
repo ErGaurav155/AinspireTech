@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 const ProductsPage = () => {
   return (
-    <div className="flex flex-col items-center justify-center ">
+    <div className="flex flex-col items-center justify-center max-w-7xl m-auto ">
       <BreadcrumbsDefault />
       <AvailableProduct showAvailableOnly={false} />
 

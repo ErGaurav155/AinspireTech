@@ -3,71 +3,12 @@
 import { MapPin, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
 import Logo from "/public/assets/img/logo.png";
 
 export function Footer() {
-  useEffect(() => {
-    // Simulate particles with random stars
-    const createStarParticles = () => {
-      const starsContainer = document.getElementById("stars-container");
-      if (!starsContainer) return;
-      starsContainer.innerHTML = "";
-      const numberOfStars = 150;
-      for (let i = 0; i < numberOfStars; i++) {
-        const star = document.createElement("div");
-        star.className = "absolute rounded-full";
-        // Random size
-        const size = Math.random() * 3;
-        star.style.width = `${size}px`;
-        star.style.height = `${size}px`;
-        // Random position
-        star.style.left = `${Math.random() * 100}%`;
-        star.style.top = `${Math.random() * 100}%`;
-        // Random color - use theme colors
-        const colors = ["#00F0FF", "#B026FF", "#FF2E9F", "#FFFFFF"];
-        star.style.backgroundColor =
-          colors[Math.floor(Math.random() * colors.length)];
-        // Random opacity
-        star.style.opacity = `${Math.random() * 0.8 + 0.2}`;
-        // Animation
-        star.style.animation = `twinkle ${Math.random() * 5 + 3}s infinite`;
-        starsContainer.appendChild(star);
-      }
-    };
-    createStarParticles();
-    // Add keyframes for twinkling animation
-    const style = document.createElement("style");
-    style.innerHTML = `
-            @keyframes twinkle {
-              0% { opacity: 0.2; }
-              50% { opacity: 1; }
-              100% { opacity: 0.2; }
-            }
-            @keyframes float {
-              0% { transform: translateY(0px); }
-              50% { transform: translateY(-10px); }
-              100% { transform: translateY(0px); }
-            }
-            @keyframes pulse {
-              0% { transform: scale(1); }
-              50% { transform: scale(1.05); }
-              100% { transform: scale(1); }
-            }
-          `;
-    document.head.appendChild(style);
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
   return (
     <footer className="w-full   border-t border-[#00F0FF]/30">
-      <div
-        id="stars-container"
-        className="fixed inset-0  pointer-events-none"
-      ></div>
-      <div className="fixed  min-h-screen  inset-0 bg-gradient-to-br from-[#0A0A0A] via-[#0A0A0A] to-[#0A0A0A]/95  pointer-events-none"></div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-[#0a0a0a]/60 backdrop-blur-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-[#0a0a0a]/10 backdrop-blur-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Logo and Navigation */}
           <div className="flex flex-col items-center md:items-start">

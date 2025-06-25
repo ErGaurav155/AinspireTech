@@ -36,7 +36,7 @@ const Service = () => {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center gap-10 py-16 px-4 sm:px-6 lg:px-8 relative z-10 ">
+    <div className="flex flex-col items-center justify-center gap-10 py-10 px-4 sm:px-6 lg:px-8 relative z-10 ">
       <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
         Our Services
       </h1>

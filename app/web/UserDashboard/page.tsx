@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import EmbedCode from "@/components/shared/EmbedCode";
 import {
-  cancelPayPalSubscription,
   cancelRazorPaySubscription,
   getSubscription,
   getSubscriptionInfo,
@@ -47,18 +46,10 @@ const phoneFormSchema = z.object({
 type PhoneFormData = z.infer<typeof phoneFormSchema>;
 
 const agentIds = [
-  "ai-agent-customer-support",
-  "ai-agent-e-commerce",
-  "ai-agent-lead-generation",
-  "ai-agent-education",
   "chatbot-customer-support",
   "chatbot-e-commerce",
   "chatbot-lead-generation",
   "chatbot-education",
-  "template-pathology",
-  "template-e-commerce",
-  "template-business",
-  "template-saas",
 ];
 
 export default function Dashboard() {
@@ -175,20 +166,12 @@ export default function Dashboard() {
         return;
       }
 
-      let result;
-      if (getSub.mode === "paypal") {
-        result = await cancelPayPalSubscription(
-          selectedSubscriptionId,
-          reason,
-          mode
-        );
-      } else {
-        result = await cancelRazorPaySubscription(
-          selectedSubscriptionId,
-          reason,
-          mode
-        );
-      }
+      const result = await cancelRazorPaySubscription(
+        selectedSubscriptionId,
+        reason,
+        mode
+      );
+
       if (result.success) {
         toast({
           title: "Subscription cancelled successfully!",

@@ -45,7 +45,7 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
   }
 
   return (
-    <div className="w-full p-4 sm:p-8 relative  z-10">
+    <div className="w-full p-4 sm:p-8 relative bg-transparent  z-10">
       {showAvailableOnly ? (
         <h1 className="text-3xl md:text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
           Popular Products
@@ -100,7 +100,7 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
                   fullWidth
                   className="text-base font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
                   onClick={() =>
-                    router.push(`/pricing?id=${product.productId}`)
+                    router.push(`/web/pricing?id=${product.productId}`)
                   }
                 >
                   Buy Now

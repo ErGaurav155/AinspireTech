@@ -3,15 +3,16 @@ import { authMiddleware } from "@clerk/nextjs";
 export default authMiddleware({
   ignoredRoutes: [
     "/",
-
+    "/web",
+    "/insta",
     "/ChatBots",
     "/Aboutus",
-    "/pricing",
+    "/web/pricing",
     "/contactUs",
     "/OurService",
     "/Review",
-    "/product/:path*",
-    "/product",
+    "/web/product/:path*",
+    "/new/product",
     "/api/webhooks/clerk",
     "/api/twilio/call",
     "/api/twilio/next-question",

@@ -25,7 +25,7 @@ export function TestimonialSection() {
   }
 
   return (
-    <section className="w-full py-16 relative z-10">
+    <section className="w-full py-10 relative z-10">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
