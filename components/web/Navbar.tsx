@@ -62,10 +62,10 @@ export default function Navbar() {
               Categories
             </Link>
             <Link
-              href="/web/pricing"
+              href="/web/feature"
               className="text-gray-300 hover:text-[#00F0FF] transition-colors font-medium"
             >
-              Pricing
+              Feature
             </Link>
           </div>
 
@@ -84,9 +84,9 @@ export default function Navbar() {
               className="btn-gradient-cyan hover:opacity-90 transition-opacity"
               asChild
             >
-              <Link href="/pricing">
+              <Link href="/web/pricing">
                 <Zap className="h-4 w-4 mr-2" />
-                Get Started
+                Get Pricing
               </Link>
             </Button>
             <SignedIn>
@@ -133,11 +133,11 @@ export default function Navbar() {
                 Categories
               </Link>
               <Link
-                href="/pricing"
+                href="/web/feature"
                 className="text-gray-300 hover:text-[#00F0FF] transition-colors font-medium px-2 py-1"
                 onClick={() => setIsOpen(false)}
               >
-                Pricing
+                Feature
               </Link>
 
               <div className="flex flex-col space-y-2 pt-2">
@@ -155,9 +155,9 @@ export default function Navbar() {
                   className="btn-gradient-cyan hover:opacity-90 transition-opacity"
                   asChild
                 >
-                  <Link href="/pricing">
+                  <Link href="/web/pricing">
                     <Zap className="h-4 w-4 mr-2" />
-                    Get Started
+                    Get Pricing
                   </Link>
                 </Button>
               </div>

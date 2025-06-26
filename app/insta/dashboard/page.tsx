@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import Image from "next/image";
+import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
 // Mock data for demonstration
 const mockAccounts = [
@@ -68,6 +69,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen text-white">
+      <BreadcrumbsDefault />
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex  flex-wrap justify-between items-center gap-3 lg:gap-0 mb-8">

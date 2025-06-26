@@ -12,6 +12,8 @@ import {
   ShoppingCartIcon,
   Building2Icon,
   Bot,
+  Check,
+  Zap,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -20,6 +22,7 @@ import { getSubscriptionInfo } from "@/lib/action/subscription.action";
 import { getUserById } from "@/lib/action/user.actions";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import Image from "next/image";
+import { Switch } from "@/components/ui/switch";
 
 const iconMapping: Record<string, any> = {
   HeadsetIcon: HeadsetIcon,
@@ -78,10 +81,6 @@ const Pricing = () => {
     fetchSubscriptions();
   }, [userId]);
 
-  const toggleBillingCycle = (cycle: "monthly" | "yearly") => {
-    setBillingCycle(cycle);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-white font-bold text-xl relative z-10">
@@ -91,64 +90,60 @@ const Pricing = () => {
   }
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen relative z-10">
+    <div className="flex flex-col justify-center items-center min-h-screen relative z-10 max-w-7xl m-auto">
       <BreadcrumbsDefault />
 
-      <div className="wrapper2 w-full max-w-6xl px-4 py-8 relative z-10">
-        <div className="text-center my-12">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
-            Unlock the Power of AI
-          </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Unlock the power of AI-driven customer support and intelligent
-            chatbots. Whether you are a{" "}
-            <span className="text-[#00F0FF] font-medium">startup</span>,{" "}
-            <span className="text-[#00F0FF] font-medium">growing business</span>
-            , or an{" "}
-            <span className="text-[#FF2E9F] font-medium">
-              established enterprise
-            </span>
-            , our AI agents are tailored to{" "}
-            <span className="text-[#FF2E9F] font-medium">
-              optimize customer experiences
-            </span>
-            , drive <span className="text-[#B026FF] font-medium">sales</span>,
-            and maximize{" "}
-            <span className="text-[#B026FF] font-medium">
-              operational efficiency
-            </span>
-            .
-          </p>
-        </div>
+      <div className="w-full  px-4 py-8 relative z-10">
+        {/* Updated Header Section */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8 backdrop-blur-sm">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center bg-blue-100/10 text-blue-400 border border-blue-400/30 rounded-full px-4 py-1 mb-4">
+              <Zap className="h-4 w-4 mr-1" />
+              <span className="text-sm font-medium">
+                AI-Powered Automation Solutions
+              </span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
+              Transform Your Business with AI
+            </h1>
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto font-mono">
+              Advanced AI solutions tailored to optimize operations, enhance
+              customer experiences, and drive growth for businesses of all
+              sizes.
+            </p>
 
-        {/* Billing cycle toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="flex bg-gray-800/50 backdrop-blur-sm border border-[#B026FF]/30 p-1 rounded-full">
-            <button
-              onClick={() => toggleBillingCycle("monthly")}
-              className={`px-8 py-3 font-medium rounded-full ${
-                billingCycle === "monthly"
-                  ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black"
-                  : "text-gray-300"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => toggleBillingCycle("yearly")}
-              className={`px-8 py-3 font-medium rounded-full ${
-                billingCycle === "yearly"
-                  ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black"
-                  : "text-gray-300"
-              }`}
-            >
-              Yearly
-            </button>
+            {/* Enhanced Billing Toggle */}
+            <div className="flex items-center justify-center gap-4 mb-12">
+              <span
+                className={`text-sm font-medium ${
+                  billingCycle === "monthly" ? "text-white" : "text-gray-500"
+                }`}
+              >
+                Monthly
+              </span>
+              <Switch
+                checked={billingCycle === "yearly"}
+                onCheckedChange={(checked) =>
+                  setBillingCycle(checked ? "yearly" : "monthly")
+                }
+                className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#00F0FF] data-[state=checked]:to-[#FF2E9F]"
+              />
+              <span
+                className={`text-sm font-medium ${
+                  billingCycle === "yearly" ? "text-white" : "text-gray-500"
+                }`}
+              >
+                Yearly
+              </span>
+              <div className="bg-green-900/20 text-green-400 border border-green-400/30 rounded-full px-3 py-1 ml-2">
+                Save 16%
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* Pricing cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Pricing Cards with Enhanced UI */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {Object.values(productSubscriptionDetails).map((product) => {
             const Icon = iconMapping[product.icon];
             const monthlyPrice = product.mprice;
@@ -162,7 +157,7 @@ const Pricing = () => {
               billingCycle === "monthly"
                 ? monthlyOriginalPrice
                 : yearlyOriginalPrice;
-            // Check if user has an active subscription for this product
+
             const isSubscribed = subscriptions.some(
               (sub) =>
                 sub.productId === productId &&
@@ -172,46 +167,52 @@ const Pricing = () => {
             return (
               <div
                 key={product.productId}
-                className={`p-8 relative hover:bg-[#8955a7]/5 backdrop-blur-md border border-[#B026FF]/30 rounded-2xl flex flex-col items-center justify-between gap-8 transition-all duration-300 hover:border-[#00F0FF] ${
-                  product.productId === activeProductId
-                    ? "ring-4 ring-[#00F0FF] ring-opacity-50"
-                    : ""
-                }`}
+                className={`relative group rounded-lg backdrop-blur-sm border transition-all duration-300 p-5
+                  ${
+                    product.productId === activeProductId
+                      ? "scale-105 z-10 border-[#B026FF]/30 hover:border-[#B026FF]"
+                      : "border-[#FF2E9F]/20 hover:border-[#FF2E9F]"
+                  }`}
               >
-                <div className="flex flex-col items-center w-full">
+                {/* Popular Badge */}
+                {product.productId === "chatbot-lead-generation" && (
+                  <div className="absolute -top-3 left-0 right-0 text-center">
+                    <span className="bg-gradient-to-r from-[#B026FF] to-[#FF2E9F] text-black text-sm font-bold py-1 px-4 rounded-full">
+                      Most Popular
+                    </span>
+                  </div>
+                )}
+
+                {/* Gradient Background Effect */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity ${
+                    product.productId === "chatbot-lead-generation"
+                      ? "from-[#B026FF]/10"
+                      : product.productId === "chatbot-education"
+                      ? "from-[#00F0FF]/10"
+                      : "from-[#FF2E9F]/10"
+                  } to-transparent`}
+                ></div>
+                <div className="relative z-10 flex flex-col items-center gap-3 w-full">
                   {Icon && (
-                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-[#00F0FF] to-[#B026FF] flex items-center justify-center mb-6">
-                      <Icon className="h-10 w-10 text-black" />
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#00F0FF] to-[#B026FF] flex items-center justify-center mb-6">
+                      <Icon className="h-8 w-8 text-black" />
                     </div>
                   )}
 
                   <div className="w-full flex justify-center relative">
-                    <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
+                    <h3 className="text-2xl font-bold text-white text-start">
                       {product.name}
                     </h3>
-
-                    {(product.productId === "chatbot-lead-generation" ||
-                      product.productId === "ai-agent-customer-support") && (
-                      <div className="absolute -top-40 -right-2">
-                        <Image
-                          src={Bestseller}
-                          alt="Bestseller"
-                          width={100}
-                          height={40}
-                          priority
-                          className="w-24"
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                <div className="w-full">
-                  <div className="flex items-center justify-center gap-3">
+                <div className="relative z-10 w-full text-center">
+                  <div className="flex items-center py-5 justify-center gap-3">
                     <p className="text-xl font-bold text-gray-400 line-through">
                       ${originalPrice.toFixed(0)}
                     </p>
-                    <p className="text-4xl font-extrabold text-white">
+                    <p className="text-3xl font-bold text-[#B026FF]">
                       ${displayedPrice.toFixed(0)}
                       <span className="text-lg font-medium text-gray-400">
                         /{billingCycle === "monthly" ? "mo" : "yr"}
@@ -227,7 +228,7 @@ const Pricing = () => {
                   )}
                 </div>
 
-                <ul className="w-full text-left text-gray-300 space-y-4">
+                <ul className="relative z-10 w-full text-left text-gray-300 space-y-4">
                   {product.inclusions.map((inclusion, index) => (
                     <li
                       key={index}
@@ -237,24 +238,12 @@ const Pricing = () => {
                     >
                       <span
                         className={`flex-shrink-0 w-5 h-5 mt-1 ${
-                          inclusion.isIncluded ? "bg-green-500" : "bg-gray-700"
+                          inclusion.isIncluded
+                            ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black"
+                            : "bg-gray-700"
                         } rounded-full flex items-center justify-center`}
                       >
-                        {inclusion.isIncluded && (
-                          <svg
-                            className="w-3 h-3 text-black"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="3"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        )}
+                        {inclusion.isIncluded && <Check className="w-3 h-3" />}
                       </span>
                       <span className="flex-1">{inclusion.label}</span>
                     </li>
@@ -265,9 +254,9 @@ const Pricing = () => {
                   <SignedOut>
                     <button
                       onClick={() => router.push("/sign-in")}
-                      className="w-full py-3 rounded-full font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90 transition-all duration-300"
+                      className="relative z-10 w-full mt-3 py-3 rounded-full font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
                     >
-                      Login to Subscribe
+                      Get Started
                     </button>
                   </SignedOut>
                 )}
@@ -275,7 +264,7 @@ const Pricing = () => {
                 <SignedIn>
                   {isSubscribed ? (
                     <button
-                      className="w-full py-3 rounded-full font-bold bg-gradient-to-r from-green-500 to-green-700 text-black cursor-not-allowed"
+                      className="relative z-10 w-full py-3 rounded-full font-bold bg-gradient-to-r from-green-500 to-green-700 text-black cursor-not-allowed"
                       disabled
                     >
                       Subscribed
@@ -292,9 +281,80 @@ const Pricing = () => {
             );
           })}
         </div>
-      </div>
 
-      <Footer />
+        {/* Feature Comparison Table */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8">
+          <div className=" mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-white mb-4">
+                Feature Comparison
+              </h2>
+              <p className="text-xl text-gray-300">
+                See how our solutions compare
+              </p>
+            </div>
+
+            <div className="overflow-x-auto ">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gradient-to-r from-[#1a1a1a] to-[#2a0b45]">
+                    <th className="text-left py-4 px-6 font-semibold text-white border-b border-[#B026FF]/30">
+                      Features
+                    </th>
+                    {Object.values(productSubscriptionDetails).map(
+                      (product) => (
+                        <th
+                          key={product.productId}
+                          className="text-center py-4 px-6 font-semibold text-white border-b border-[#B026FF]/30"
+                        >
+                          {product.name}
+                        </th>
+                      )
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#333]">
+                  {[
+                    "24/7 Availability",
+                    "Multi-language Support",
+                    "CRM Integration",
+                    "Advanced Analytics",
+                    "Custom Workflows",
+                    "Lead Generation",
+                    "Email Notifications",
+                    "Priority Support",
+                  ].map((feature, index) => (
+                    <tr key={index} className="hover:bg-[#1a1a1a]/50">
+                      <td className="py-4 px-6 font-medium text-gray-300">
+                        {feature}
+                      </td>
+                      {Object.values(productSubscriptionDetails).map(
+                        (product) => {
+                          const hasFeature = product.inclusions.some((inc) =>
+                            inc.label.includes(feature.split(" ")[0])
+                          );
+                          return (
+                            <td
+                              key={product.productId}
+                              className="py-4 px-6 text-center"
+                            >
+                              {hasFeature ? (
+                                <Check className="h-5 w-5 text-[#00F0FF] mx-auto" />
+                              ) : (
+                                <span className="text-gray-500">—</span>
+                              )}
+                            </td>
+                          );
+                        }
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };

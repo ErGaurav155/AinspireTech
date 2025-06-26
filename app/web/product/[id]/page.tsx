@@ -95,7 +95,6 @@ const ProductDetail = ({ params }: { params: ProductParams }) => {
           />
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

@@ -26,6 +26,7 @@ import Link from "next/link";
 import TemplateForm from "@/components/insta/TemplateForm";
 import TemplateCard from "@/components/insta/TemplateCard";
 import Image from "next/image";
+import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
 // Mock data
 const mockAccount = {
@@ -97,6 +98,8 @@ export default function AccountPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <BreadcrumbsDefault />
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Button variant="ghost" size="sm" asChild>

@@ -54,7 +54,7 @@ const RazerPay = ({
       const paymentOptions = {
         key_id: process.env.RAZORPAY_KEY_ID!,
         amount: amount * 100,
-        currency: "INR",
+        currency: "USD",
         name: "GK Services",
         description: "Thanks For Taking Our Services",
         subscription_id: subscriptionCreate.subsId,

@@ -20,8 +20,7 @@ import RazerPay from "./RazorPay";
 import { Button } from "@material-tailwind/react";
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { getUserById, updateUserByDbId } from "@/lib/action/user.actions";
-import OTPVerification from "./OTPVerification";
-import { countryCodes } from "@/constant";
+
 import { toast } from "../ui/use-toast";
 
 interface CheckoutProps {
@@ -29,18 +28,11 @@ interface CheckoutProps {
   productId: string;
   billingCycle: string;
 }
-const phoneFormSchema = z.object({
-  MobileNumber: z
-    .string()
-    .min(10, "MOBILE number is required")
-    .regex(/^\d+$/, "invalid number"),
-});
 
 const websiteFormSchema = z.object({
   websiteUrl: z.string().url("Invalid URL").min(1, "Website URL is required"),
 });
 
-type PhoneFormData = z.infer<typeof phoneFormSchema>;
 type WebsiteFormData = z.infer<typeof websiteFormSchema>;
 
 export const Checkout = ({
@@ -55,29 +47,18 @@ export const Checkout = ({
     router.push("/sign-in");
   }
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isOtpSubmitting, setIsOtpSubmitting] = useState(false);
   const [buyerId, setBuyerId] = useState(null);
-  const [countryCode, setCountryCode] = useState("+1"); // Default to US
-
+  const [webActive, setWebActive] = useState(false);
   const [isActive, setIsActive] = useState(false);
-  const [feedInfo, setFeedInfo] = useState(false);
   const [step, setStep] = useState<"phone" | "otp" | "weblink" | "payment">(
     "phone"
   );
-  const [phone, setPhone] = useState("");
-  const locationRef = useRef<string>("India"); // Store location without causing re-renders
+
   const razorpaymonthlyplanId = useRef<string | null>(null);
   const razorpayyearlyplanId = useRef<string | null>(null);
   const razorpayplanId = useRef<string | null>(null);
 
   const buyerIdRef = useRef<string | null>(null);
-  const {
-    handleSubmit: handlePhoneSubmit,
-    register: registerPhone,
-    formState: { errors: phoneErrors },
-  } = useForm<PhoneFormData>({
-    resolver: zodResolver(phoneFormSchema),
-  });
 
   const {
     handleSubmit: handleWebsiteSubmit,
@@ -120,48 +101,9 @@ export const Checkout = ({
       }
     }
 
-    try {
-      const res = await fetch("/api/location");
-      const locData = await res.json();
-
-      locationRef.current = locData.location.country || "India";
-    } catch (error) {
-      console.error("Error fetching location:", error);
-      locationRef.current = "India";
-    }
-
     return true;
   };
-  const handlePhoneSubmission = async (data: PhoneFormData) => {
-    setIsOtpSubmitting(true);
-    try {
-      const fullPhoneNumber = `${countryCode}${data.MobileNumber}`;
 
-      const res = await fetch("/api/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullPhoneNumber }),
-      });
-      if (res.ok) {
-        setPhone(fullPhoneNumber);
-        setStep("otp");
-      } else {
-        console.error("Failed to send OTP:", res.statusText);
-      }
-    } catch (error) {
-      console.error("Error sending OTP:", error);
-    } finally {
-      setIsOtpSubmitting(false);
-    }
-  };
-
-  const handleOTPVerified = () => {
-    if (productId !== "ai-agent-customer-support") {
-      setStep("weblink");
-    } else {
-      setStep("payment");
-    }
-  };
   const handleWebsiteSubmission = async (data: WebsiteFormData) => {
     setIsSubmitting(true);
     try {
@@ -208,7 +150,7 @@ export const Checkout = ({
         router.push("/");
         return false;
       }
-      setFeedInfo(true);
+      setWebActive(true);
       setIsActive(true);
     }
   };
@@ -219,163 +161,90 @@ export const Checkout = ({
           <Button
             type="submit"
             role="link"
-            className="w-full rounded-md text-base text-white bg-cover bg-indigo-900"
+            className={`w-full py-3 mt-3  rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
+              productId === "chatbot-customer-support"
+                ? "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]"
+                : productId === "chatbot-lead-generation"
+                ? "bg-gradient-to-r from-[#00F0FF]/80 to-[#00F0FF]"
+                : "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
+            } text-black`}
           >
             Get The Plan
           </Button>
         </section>
       </form>
-      {feedInfo && (
-        <>
-          <div>
-            {step === "phone" && (
-              <AlertDialog defaultOpen>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="sr-only">
-                      Enter Your Phone Number
-                    </AlertDialogTitle>
-                    <div className="flex justify-between items-center">
-                      <p className="p-16-semibold text-black">
-                        PLEASE ENTER YOUR MOBILE NUMBER HERE
-                      </p>
-                      <AlertDialogCancel
-                        onClick={() => router.push(`/`)}
-                        className="border-0 p-0 hover:bg-transparent"
-                      >
-                        <XMarkIcon className="size-6 cursor-pointer" />
-                      </AlertDialogCancel>
-                    </div>
-                  </AlertDialogHeader>
-                  <form
-                    onSubmit={handlePhoneSubmit(handlePhoneSubmission)}
-                    className="space-y-4"
+      {webActive && (
+        <div>
+          <AlertDialog defaultOpen>
+            <AlertDialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-pink-400">
+                  Enter Website URL
+                </AlertDialogTitle>
+                <div className="flex justify-between items-center">
+                  <p className="p-16-semibold text-white text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                    PLEASE ENTER YOUR WEBSITE URL/LINK
+                  </p>
+                  <AlertDialogCancel
+                    onClick={() => router.push(`/`)}
+                    className="border-0 p-0 hover:bg-transparent text-gray-400 hover:text-white transition-colors"
                   >
-                    <div className="w-full">
-                      <label
-                        htmlFor="MobileNumber"
-                        className="block text-lg font-semibold"
-                      >
-                        Enter Your Phone Number
-                      </label>
-                      <div className="flex items-center justify-start input-field mt-2 w-full">
-                        <select
-                          value={countryCode}
-                          onChange={(e) => setCountryCode(e.target.value)}
-                          className="max-w-max border-none  active:border-none no-scrollbar   p-2"
-                        >
-                          {countryCodes.map((countryCode, index) => (
-                            <option
-                              key={index}
-                              className="bg-white text-gray-700 text-lg font-xs  mb-4 w-[10vw]  flex items-center justify-center    "
-                              value={countryCode.code}
-                            >
-                              {countryCode.code}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          id="MobileNumber"
-                          type="text"
-                          {...registerPhone("MobileNumber")}
-                          className="input-field  w-full"
-                        />
-                      </div>
-                      {phoneErrors.MobileNumber && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {phoneErrors.MobileNumber.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <button
-                        type="submit"
-                        className="bg-green-500 text-white p-2 w-1/2 rounded-md"
-                        disabled={isOtpSubmitting}
-                      >
-                        {isOtpSubmitting ? "Sending OTP" : "Send OTP"}
-                      </button>
-                    </div>
-                  </form>
-
-                  <AlertDialogDescription className="p-16-regular py-3 text-green-500">
-                    IT WILL HELP US TO PROVIDE BETTER SERVICES
-                  </AlertDialogDescription>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            {step === "otp" && (
-              <OTPVerification
-                phone={phone}
-                onVerified={handleOTPVerified}
-                buyerId={buyerId}
-              />
-            )}
-            {step === "weblink" &&
-              productId !== "ai-agent-customer-support" && (
-                <div>
-                  <AlertDialog defaultOpen>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="sr-only">
-                          Enter Website URL
-                        </AlertDialogTitle>
-                        <div className="flex justify-between items-center">
-                          <p className="p-16-semibold text-black">
-                            PLEASE ENTER YOUR WEBSITE URL/LINK
-                          </p>
-                          <AlertDialogCancel
-                            onClick={() => router.push(`/`)}
-                            className="border-0 p-0 hover:bg-transparent"
-                          >
-                            <XMarkIcon className="size-6 cursor-pointer" />
-                          </AlertDialogCancel>
-                        </div>
-                      </AlertDialogHeader>
-                      <form
-                        onSubmit={handleWebsiteSubmit(handleWebsiteSubmission)}
-                        className="space-y-4"
-                      >
-                        <div className="w-full">
-                          <label
-                            htmlFor="websiteUrl"
-                            className="block text-lg font-semibold"
-                          >
-                            Website URL
-                          </label>
-                          <input
-                            id="websiteUrl"
-                            type="url"
-                            {...registerWebsite("websiteUrl")}
-                            className="input-field mt-2 w-full"
-                          />
-                          {websiteErrors.websiteUrl && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {websiteErrors.websiteUrl.message}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <button
-                            type="submit"
-                            className="bg-green-500 text-white p-2 w-1/2 rounded-md"
-                            disabled={isSubmitting}
-                          >
-                            {isSubmitting ? "Saving Url" : "Save Url"}
-                          </button>
-                        </div>
-                      </form>
-
-                      <AlertDialogDescription className="p-16-regular py-3 text-green-500">
-                        IT WILL HELP US TO PROVIDE BETTER SERVICES
-                      </AlertDialogDescription>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                    <XMarkIcon className="size-6 cursor-pointer" />
+                  </AlertDialogCancel>
                 </div>
-              )}
-          </div>
-        </>
+              </AlertDialogHeader>
+              <form
+                onSubmit={handleWebsiteSubmit(handleWebsiteSubmission)}
+                className="space-y-4 p-4"
+              >
+                <div className="w-full">
+                  <label
+                    htmlFor="websiteUrl"
+                    className="block text-md font-medium text-gray-300 mb-2"
+                  >
+                    Website URL
+                  </label>
+                  <input
+                    id="websiteUrl"
+                    type="url"
+                    {...registerWebsite("websiteUrl")}
+                    className="w-full bg-transparent py-3 px-4 text-white placeholder:text-gray-500 focus:outline-none"
+                  />
+                  {websiteErrors.websiteUrl && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {websiteErrors.websiteUrl.message}
+                    </p>
+                  )}
+                </div>
+                <div className="flex justify-between items-center">
+                  <button
+                    type="submit"
+                    className={`w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90 transition-all ${
+                      isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-t-2 border-white border-solid rounded-full animate-spin"></div>
+                        Saving Url...
+                      </div>
+                    ) : (
+                      "Save Url"
+                    )}
+                  </button>
+                </div>
+              </form>
+              <AlertDialogDescription className="p-4 text-center text-sm text-gray-400 border-t border-[#333] pt-4">
+                <span className="text-[#00F0FF]">
+                  IT WILL HELP US TO PROVIDE BETTER SERVICES
+                </span>
+              </AlertDialogDescription>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       )}
+
       {isActive &&
         razorpaymonthlyplanId.current &&
         razorpayyearlyplanId.current &&

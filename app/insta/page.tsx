@@ -17,6 +17,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
+import Faq from "@/components/shared/Faq";
 
 export default function Home() {
   const features = [
@@ -66,21 +68,21 @@ export default function Home() {
 
   const testimonials = [
     {
-      name: "Sarah Johnson",
+      name: "Raj Mehta",
       company: "Fashion Boutique",
       content:
         "Our engagement increased by 300% after implementing InstaReply Pro. Never miss a customer comment again!",
       rating: 5,
     },
     {
-      name: "Mike Chen",
-      company: "Tech Startup",
+      name: "Priya Desai",
+      company: "Tech Dropshipping",
       content:
         "The automation is so natural, our followers can't tell it's not us responding personally.",
       rating: 5,
     },
     {
-      name: "Emma Rodriguez",
+      name: "Anil Kumar",
       company: "Food Blog",
       content:
         "ROI was positive within the first week. The system pays for itself with increased engagement.",
@@ -90,6 +92,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen  text-white">
+      <BreadcrumbsDefault />
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-20">
         <div className="text-center mb-20">
@@ -117,7 +120,7 @@ export default function Home() {
             management. Create custom response templates, monitor comments, and
             never miss an opportunity to connect.
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-wrap gap-4 justify-center">
             <Button
               size="lg"
               className="btn-gradient-cyan text-lg px-8 hover:opacity-90 transition-opacity"
@@ -236,7 +239,7 @@ export default function Home() {
                 their Instagram responses and increased their engagement rates
                 by up to 300%.
               </p>
-              <div className="flex gap-4 justify-center">
+              <div className="flex flex-wrap gap-4 justify-center">
                 <Button
                   size="lg"
                   className="btn-gradient-cyan text-lg px-8 hover:opacity-90 transition-opacity"
@@ -257,6 +260,7 @@ export default function Home() {
             </CardContent>
           </Card>
         </div>
+        <Faq />
       </div>
     </div>
   );

@@ -444,7 +444,7 @@ export const productSubscriptionDetails: Record<
   },
   "chatbot-education": {
     productId: "chatbot-education",
-    name: "Educational Chatbot",
+    name: "MCQ Educational Chatbot",
     video: "/assets/congratulation.webm",
     icon: "GraduationCapIcon",
     mprice: 49,

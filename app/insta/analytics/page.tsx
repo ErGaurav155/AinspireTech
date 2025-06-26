@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
+import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
 // Mock analytics data
 const analyticsData = {
@@ -161,6 +162,8 @@ export default function AnalyticsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <BreadcrumbsDefault />
+
       {/* Header */}
       <div className="flex flex-wrap justify-between items-center gap-3 md:gap-0 mb-8">
         <div>

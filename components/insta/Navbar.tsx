@@ -89,9 +89,9 @@ export default function Navbar() {
               className="btn-gradient-cyan hover:opacity-90 transition-opacity"
               asChild
             >
-              <Link href="/insta/dashboard">
+              <Link href="/insta/pricing">
                 <Zap className="h-4 w-4 mr-2" />
-                Get Started
+                Get Pricing
               </Link>
             </Button>
             <SignedIn>
@@ -166,9 +166,9 @@ export default function Navbar() {
                   className="btn-gradient-cyan hover:opacity-90 transition-opacity"
                   asChild
                 >
-                  <Link href="/insta/dashboard">
+                  <Link href="/insta/pricing">
                     <Zap className="h-4 w-4 mr-2" />
-                    Get Started
+                    Get Pricing
                   </Link>
                 </Button>
               </div>

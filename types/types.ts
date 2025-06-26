@@ -39,3 +39,12 @@ export interface ScrapeResponse {
   error?: string;
   message?: string;
 }
+export type PricingPlan = {
+  id: string;
+  name: string;
+  description: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  features: string[];
+  popular: boolean;
+};

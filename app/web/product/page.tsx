@@ -14,8 +14,6 @@ const ProductsPage = () => {
     <div className="flex flex-col items-center justify-center max-w-7xl m-auto ">
       <BreadcrumbsDefault />
       <AvailableProduct showAvailableOnly={false} />
-
-      <Footer />
     </div>
   );
 };
