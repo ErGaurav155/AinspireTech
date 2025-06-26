@@ -211,7 +211,7 @@ export default function Pricing() {
                           : "text-[#FF2E9F]"
                       }`}
                     >
-                      ₹{" "}
+                      ${" "}
                       {billingCycle === "monthly"
                         ? plan.monthlyPrice.toFixed(0)
                         : plan.yearlyPrice.toFixed(0)}

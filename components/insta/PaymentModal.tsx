@@ -276,7 +276,7 @@ export default function PaymentModal({
                       ? "border-[#B026FF] bg-[#B026FF]/10"
                       : "border-[#333] hover:border-[#B026FF]/50"
                   }`}
-                  onClick={() => setPaymentMethod("razorpay")}
+                  onClick={() => setPaymentMethod("paypal")}
                 >
                   <div className="flex items-center gap-2">
                     <Globe className="h-4 w-4 text-[#B026FF]" />

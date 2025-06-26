@@ -312,7 +312,7 @@ export const Checkout = ({
           <Button
             type="submit"
             role="link"
-            className={`w-full py-3 mt-3  rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
+            className={`w-full relative z-10 py-3 mt-3  rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
               productId === "chatbot-customer-support"
                 ? "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]"
                 : productId === "chatbot-lead-generation"
@@ -499,12 +499,14 @@ export const Checkout = ({
           </div>
         </>
       )}
-      <div>
-        <Script
-          id="razorpay-checkout-js"
-          src="https://checkout.razorpay.com/v1/checkout.js"
-        />
-      </div>
+      {isActive && (
+        <div>
+          <Script
+            id="razorpay-checkout-js"
+            src="https://checkout.razorpay.com/v1/checkout.js"
+          />
+        </div>
+      )}
     </>
   );
 };
