@@ -119,7 +119,7 @@ const DiscountBanner = () => {
         </div>
 
         <Link
-          href="/credits"
+          href="/web/pricing"
           className="p-2 px-4 text-center bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black text-sm font-bold rounded-md uppercase hover:opacity-90 transition-opacity"
         >
           Purchase Now
@@ -127,7 +127,7 @@ const DiscountBanner = () => {
       </div>
 
       <Link
-        href={"/credits"}
+        href={"/insta/pricing"}
         className="mt-3 w-full overflow-hidden bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border border-[#333] rounded-md"
       >
         <div className="flex animate-scroll-left whitespace-nowrap py-2">

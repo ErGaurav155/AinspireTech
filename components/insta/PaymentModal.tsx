@@ -86,7 +86,7 @@ export default function PaymentModal({
   const handleRazorpayPayment = async () => {
     setIsProcessing(true);
     try {
-      const response = await fetch("/api/payments/razorpay/subscription", {
+      const response = await fetch("/api/webhooks/razerpay/subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -119,7 +119,7 @@ export default function PaymentModal({
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
           };
-          const verifyResponse = await fetch("/api/payments/razorpay/verify", {
+          const verifyResponse = await fetch("/api/webhooks/razerpay/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
