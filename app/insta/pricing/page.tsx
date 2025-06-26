@@ -28,8 +28,8 @@ export default function Pricing() {
       id: "starter",
       name: "Starter",
       description: "For new creators",
-      monthlyPrice: 299,
-      yearlyPrice: 2990,
+      monthlyPrice: 4,
+      yearlyPrice: 35,
       features: [
         "500 comments/month",
         "3 reply templates",
@@ -44,8 +44,8 @@ export default function Pricing() {
       id: "growth",
       name: "Growth",
       description: "For growing accounts",
-      monthlyPrice: 799,
-      yearlyPrice: 7990,
+      monthlyPrice: 10,
+      yearlyPrice: 94,
       features: [
         "2,000 comments/month",
         "10 reply templates",
@@ -61,8 +61,8 @@ export default function Pricing() {
       id: "pro",
       name: "Professional",
       description: "For high-traffic pages",
-      monthlyPrice: 1499,
-      yearlyPrice: 14990,
+      monthlyPrice: 18,
+      yearlyPrice: 175,
       features: [
         "10,000 comments/month",
         "Unlimited templates",

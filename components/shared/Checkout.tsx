@@ -16,23 +16,33 @@ import {
 } from "@/components/ui/alert-dialog";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-import RazerPay from "./RazorPay";
 import { Button } from "@material-tailwind/react";
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { getUserById, updateUserByDbId } from "@/lib/action/user.actions";
-
+import OTPVerification from "./OTPVerification";
+import { countryCodes } from "@/constant";
 import { toast } from "../ui/use-toast";
+import Script from "next/script";
+import { createRazerPaySubscription } from "@/lib/action/subscription.action";
+import { createTransaction } from "@/lib/action/transaction.action";
 
 interface CheckoutProps {
   amount: number;
   productId: string;
   billingCycle: string;
 }
+const phoneFormSchema = z.object({
+  MobileNumber: z
+    .string()
+    .min(10, "MOBILE number is required")
+    .regex(/^\d+$/, "invalid number"),
+});
 
 const websiteFormSchema = z.object({
   websiteUrl: z.string().url("Invalid URL").min(1, "Website URL is required"),
 });
 
+type PhoneFormData = z.infer<typeof phoneFormSchema>;
 type WebsiteFormData = z.infer<typeof websiteFormSchema>;
 
 export const Checkout = ({
@@ -47,18 +57,29 @@ export const Checkout = ({
     router.push("/sign-in");
   }
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOtpSubmitting, setIsOtpSubmitting] = useState(false);
   const [buyerId, setBuyerId] = useState(null);
-  const [webActive, setWebActive] = useState(false);
+  const [countryCode, setCountryCode] = useState("+1"); // Default to US
+
   const [isActive, setIsActive] = useState(false);
+  const [feedInfo, setFeedInfo] = useState(false);
   const [step, setStep] = useState<"phone" | "otp" | "weblink" | "payment">(
     "phone"
   );
-
+  const [phone, setPhone] = useState("");
+  const locationRef = useRef<string>("India"); // Store location without causing re-renders
   const razorpaymonthlyplanId = useRef<string | null>(null);
   const razorpayyearlyplanId = useRef<string | null>(null);
   const razorpayplanId = useRef<string | null>(null);
 
   const buyerIdRef = useRef<string | null>(null);
+  const {
+    handleSubmit: handlePhoneSubmit,
+    register: registerPhone,
+    formState: { errors: phoneErrors },
+  } = useForm<PhoneFormData>({
+    resolver: zodResolver(phoneFormSchema),
+  });
 
   const {
     handleSubmit: handleWebsiteSubmit,
@@ -103,7 +124,136 @@ export const Checkout = ({
 
     return true;
   };
+  const handlePhoneSubmission = async (data: PhoneFormData) => {
+    setIsOtpSubmitting(true);
+    try {
+      const fullPhoneNumber = `${countryCode}${data.MobileNumber}`;
 
+      const res = await fetch("/api/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullPhoneNumber }),
+      });
+      if (res.ok) {
+        setPhone(fullPhoneNumber);
+        setStep("otp");
+      } else {
+        console.error("Failed to send OTP:", res.statusText);
+      }
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+    } finally {
+      setIsOtpSubmitting(false);
+    }
+  };
+  const handleRazorpayPayment = async () => {
+    try {
+      const response = await fetch("/api/payments/razorpay/subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: amount,
+          productId: razorpayplanId.current,
+          billingCycle,
+          buyerId,
+        }),
+      });
+
+      const subscriptionCreate = await response.json();
+      if (!subscriptionCreate.isOk) {
+        throw new Error("Purchase Order is not created");
+      }
+      const options = {
+        key_id: process.env.RAZORPAY_KEY_ID!,
+        amount: amount * 100,
+        currency: "USD",
+        name: "GK Services",
+        description: `${razorpayplanId.current} Plan - ${billingCycle}`,
+        subscription_id: subscriptionCreate.subsId,
+        notes: {
+          productId: productId,
+          buyerId: buyerId,
+          amount: amount,
+        },
+        handler: async (response: any) => {
+          const data = {
+            subscription_id: subscriptionCreate.subsId,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          };
+          const verifyResponse = await fetch("/api/payments/razorpay/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          const res = await verifyResponse.json();
+
+          if (res.success) {
+            toast({
+              title: "Payment Successful!",
+              description: "Code added to your Dashboard",
+              duration: 3000,
+              className: "success-toast",
+            });
+
+            await createRazerPaySubscription(
+              buyerId!,
+              razorpayplanId.current!,
+              subscriptionCreate.subsId,
+              billingCycle
+            );
+            await createTransaction({
+              customerId: subscriptionCreate.subsId,
+              amount,
+              plan: razorpayplanId.current!,
+              buyerId: buyerId!,
+              createdAt: new Date(),
+            });
+            if (
+              productId === "chatbot-customer-support" ||
+              productId === "chatbot-education"
+            ) {
+              router.push(
+                `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
+              );
+            } else {
+              router.push("/web/UserDashboard");
+            }
+          } else {
+            toast({
+              title: "Order canceled!",
+              description: res.message,
+              duration: 3000,
+              className: "error-toast",
+            });
+          }
+        },
+
+        theme: {
+          color: "#2563eb",
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.on("payment.failed", function (response: any) {
+        toast({
+          title: "Order failed!",
+          description: response.error.description,
+          duration: 3000,
+          className: "error-toast",
+        });
+      });
+      razorpay.open();
+    } catch (error: any) {
+      console.error("Payment error:", error);
+      toast({
+        title: "Checkout Error",
+        description: error.message,
+        duration: 3000,
+        className: "error-toast",
+      });
+    }
+  };
   const handleWebsiteSubmission = async (data: WebsiteFormData) => {
     setIsSubmitting(true);
     try {
@@ -118,7 +268,7 @@ export const Checkout = ({
           duration: 2000,
           className: "success-toast",
         });
-        setStep("payment");
+        await handleRazorpayPayment();
       } else {
         toast({
           title: "Failed to submit the URL",
@@ -137,6 +287,7 @@ export const Checkout = ({
       setIsSubmitting(false);
     }
   };
+
   const onCheckout = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -150,7 +301,7 @@ export const Checkout = ({
         router.push("/");
         return false;
       }
-      setWebActive(true);
+      setFeedInfo(true);
       setIsActive(true);
     }
   };
@@ -169,96 +320,191 @@ export const Checkout = ({
                 : "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
             } text-black`}
           >
-            Get The Plan
+            Start Automating
           </Button>
         </section>
       </form>
-      {webActive && (
-        <div>
-          <AlertDialog defaultOpen>
-            <AlertDialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-pink-400">
-                  Enter Website URL
-                </AlertDialogTitle>
-                <div className="flex justify-between items-center">
-                  <p className="p-16-semibold text-white text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-                    PLEASE ENTER YOUR WEBSITE URL/LINK
-                  </p>
-                  <AlertDialogCancel
-                    onClick={() => router.push(`/`)}
-                    className="border-0 p-0 hover:bg-transparent text-gray-400 hover:text-white transition-colors"
-                  >
-                    <XMarkIcon className="size-6 cursor-pointer" />
-                  </AlertDialogCancel>
-                </div>
-              </AlertDialogHeader>
-              <form
-                onSubmit={handleWebsiteSubmit(handleWebsiteSubmission)}
-                className="space-y-4 p-4"
-              >
-                <div className="w-full">
-                  <label
-                    htmlFor="websiteUrl"
-                    className="block text-md font-medium text-gray-300 mb-2"
-                  >
-                    Website URL
-                  </label>
-                  <input
-                    id="websiteUrl"
-                    type="url"
-                    {...registerWebsite("websiteUrl")}
-                    className="w-full bg-transparent py-3 px-4 text-white placeholder:text-gray-500 focus:outline-none"
-                  />
-                  {websiteErrors.websiteUrl && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {websiteErrors.websiteUrl.message}
-                    </p>
-                  )}
-                </div>
-                <div className="flex justify-between items-center">
-                  <button
-                    type="submit"
-                    className={`w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90 transition-all ${
-                      isSubmitting ? "opacity-70 cursor-not-allowed" : ""
-                    }`}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-4 h-4 border-t-2 border-white border-solid rounded-full animate-spin"></div>
-                        Saving Url...
-                      </div>
-                    ) : (
-                      "Save Url"
-                    )}
-                  </button>
-                </div>
-              </form>
-              <AlertDialogDescription className="p-4 text-center text-sm text-gray-400 border-t border-[#333] pt-4">
-                <span className="text-[#00F0FF]">
-                  IT WILL HELP US TO PROVIDE BETTER SERVICES
-                </span>
-              </AlertDialogDescription>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+      {feedInfo && (
+        <>
+          <div>
+            {step === "phone" && (
+              <AlertDialog defaultOpen>
+                <AlertDialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
+                  <AlertDialogTitle className="text-pink-400">
+                    Otp Verification
+                  </AlertDialogTitle>
+                  <AlertDialogHeader>
+                    <div className="flex justify-between items-center">
+                      <h3 className="p-16-semibold text-white text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                        PLEASE ENTER YOUR MOBILE NUMBER
+                      </h3>
+                      <AlertDialogCancel
+                        onClick={() => router.push(`/`)}
+                        className="border-0 p-0 hover:bg-transparent text-gray-400 hover:text-white transition-colors"
+                      >
+                        <XMarkIcon className="size-6 cursor-pointer" />
+                      </AlertDialogCancel>
+                    </div>
+                  </AlertDialogHeader>
 
-      {isActive &&
-        razorpaymonthlyplanId.current &&
-        razorpayyearlyplanId.current &&
-        razorpayplanId.current &&
-        buyerIdRef.current &&
-        step === "payment" && (
-          <RazerPay
-            amount={amount}
-            razorpayplanId={razorpayplanId.current ?? ""}
-            buyerId={buyerIdRef.current ?? ""}
-            productId={productId}
-            billingCycle={billingCycle}
-          />
-        )}
+                  <form
+                    onSubmit={handlePhoneSubmit(handlePhoneSubmission)}
+                    className="space-y-6 p-4"
+                  >
+                    <div className="w-full">
+                      <label
+                        htmlFor="MobileNumber"
+                        className="block text-md font-medium text-gray-300 mb-2"
+                      >
+                        Enter Your Phone Number
+                      </label>
+                      <div className="flex items-center justify-start w-full bg-[#1a1a1a]/50 backdrop-blur-sm border border-[#333] rounded-xl overflow-hidden">
+                        <select
+                          value={countryCode}
+                          onChange={(e) => setCountryCode(e.target.value)}
+                          className="bg-transparent text-white p-3 border-r border-[#333] focus:outline-none focus:ring-2 focus:ring-[#00F0FF]"
+                        >
+                          {countryCodes.map((countryCode, index) => (
+                            <option
+                              key={index}
+                              className="bg-[#1a1a1a] text-gray-300"
+                              value={countryCode.code}
+                            >
+                              {countryCode.code}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          id="MobileNumber"
+                          type="text"
+                          {...registerPhone("MobileNumber")}
+                          className="w-full bg-transparent py-3 px-4 text-white placeholder:text-gray-500 focus:outline-none"
+                          placeholder="Phone number"
+                        />
+                      </div>
+                      {phoneErrors.MobileNumber && (
+                        <p className="text-red-400 text-sm mt-2">
+                          {phoneErrors.MobileNumber.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex justify-center">
+                      <button
+                        type="submit"
+                        className={`w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90 transition-all ${
+                          isOtpSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                        }`}
+                        disabled={isOtpSubmitting}
+                      >
+                        {isOtpSubmitting ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <div className="w-4 h-4 border-t-2 border-white border-solid rounded-full animate-spin"></div>
+                            Sending OTP...
+                          </div>
+                        ) : (
+                          "Send OTP"
+                        )}
+                      </button>
+                    </div>
+                  </form>
+
+                  <AlertDialogDescription className="p-4 text-center text-sm text-gray-400 border-t border-[#333] pt-4">
+                    <span className="text-[#00F0FF]">
+                      IT WILL HELP US TO PROVIDE BETTER SERVICES
+                    </span>
+                  </AlertDialogDescription>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            {step === "otp" && (
+              <OTPVerification
+                phone={phone}
+                onVerified={() => {
+                  setStep("weblink");
+                }}
+                buyerId={buyerId}
+              />
+            )}
+            {step === "weblink" && (
+              <div>
+                <AlertDialog defaultOpen>
+                  <AlertDialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
+                    {" "}
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-pink-400">
+                        Enter Website URL
+                      </AlertDialogTitle>
+                      <div className="flex justify-between items-center">
+                        <p className="p-16-semibold text-white text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                          PLEASE ENTER YOUR WEBSITE URL/LINK
+                        </p>
+                        <AlertDialogCancel
+                          onClick={() => router.push(`/`)}
+                          className="border-0 p-0 hover:bg-transparent text-gray-400 hover:text-white transition-colors"
+                        >
+                          <XMarkIcon className="size-6 cursor-pointer" />
+                        </AlertDialogCancel>
+                      </div>
+                    </AlertDialogHeader>
+                    <form
+                      onSubmit={handleWebsiteSubmit(handleWebsiteSubmission)}
+                      className="space-y-4"
+                    >
+                      <div className="w-full">
+                        <label
+                          htmlFor="websiteUrl"
+                          className="block text-md font-medium text-gray-300 mb-2"
+                        >
+                          Website URL
+                        </label>
+                        <input
+                          id="websiteUrl"
+                          type="url"
+                          {...registerWebsite("websiteUrl")}
+                          className="w-full bg-[#1a1a1a]/50 backdrop-blur-sm border border-[#333] rounded-xl py-4 px-4 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00F0FF]"
+                        />
+                        {websiteErrors.websiteUrl && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {websiteErrors.websiteUrl.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex justify-center">
+                        <button
+                          type="submit"
+                          className={`w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90 transition-all ${
+                            isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                          }`}
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? (
+                            <div className="flex items-center justify-center gap-2">
+                              <div className="w-4 h-4 border-t-2 border-white border-solid rounded-full animate-spin"></div>
+                              Saving Url...
+                            </div>
+                          ) : (
+                            "Save Url"
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                    <AlertDialogDescription className="p-16-regular py-3 text-green-500">
+                      IT WILL HELP US TO PROVIDE BETTER SERVICES
+                    </AlertDialogDescription>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+      <div>
+        <Script
+          id="razorpay-checkout-js"
+          src="https://checkout.razorpay.com/v1/checkout.js"
+        />
+      </div>
     </>
   );
 };
