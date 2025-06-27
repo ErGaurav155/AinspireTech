@@ -84,7 +84,6 @@ export const getSubscriptionInfo = async (userId: string) => {
     // Filter subscriptions by userId and subscriptionStatus
     const subscriptions = await Subscription.find({
       userId,
-
       subscriptionStatus: "active", // Only fetch active subscriptions
     });
 
@@ -98,6 +97,33 @@ export const getSubscriptionInfo = async (userId: string) => {
     throw new Error("Failed to retrieve subscription info.");
   }
 };
+export const getInstaSubscriptionInfo = async (userId: string) => {
+  try {
+    await connectToDatabase(); // Ensure database connection
+
+    const subscriptions = await Subscription.find({
+      userId,
+      productId: {
+        $in: [
+          "Insta-Automation-Starter",
+          "Insta-Automation-Grow",
+          "Insta-Automation-Professional",
+        ],
+      },
+      subscriptionStatus: "active", // Only fetch active subscriptions
+    });
+
+    if (!subscriptions || subscriptions.length === 0) {
+      return []; // Return an empty array if no active subscriptions
+    }
+
+    return JSON.parse(JSON.stringify(subscriptions)); // Serialize for frontend
+  } catch (error: any) {
+    console.error("Error retrieving subscription info:", error.message);
+    throw new Error("Failed to retrieve subscription info.");
+  }
+};
+
 export const getAgentSubscriptionInfo = async (
   userId: string,
   agentId: string

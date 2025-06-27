@@ -8,7 +8,10 @@ import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { getUserById } from "@/lib/action/user.actions";
 import { useRouter } from "next/navigation";
 import { PricingPlan } from "@/types/types";
-import { getSubscriptionInfo } from "@/lib/action/subscription.action";
+import {
+  getInstaSubscriptionInfo,
+  getSubscriptionInfo,
+} from "@/lib/action/subscription.action";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { instagramPricingPlans } from "@/constant";
 
@@ -33,7 +36,8 @@ export default function Pricing() {
     if (!userId) {
       setIsSubscribed(false);
     } else {
-      const subscriptionInfo = await getSubscriptionInfo(userId);
+      const subscriptionInfo = await getInstaSubscriptionInfo(userId);
+      console.log(subscriptionInfo);
       if (subscriptionInfo.length === 0) {
         setIsSubscribed(false);
       } else {

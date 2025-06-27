@@ -57,7 +57,6 @@ const phoneFormSchema = z.object({
     .min(10, "MOBILE number is required")
     .regex(/^\d+$/, "invalid number"),
 });
-type PhoneFormData = z.infer<typeof phoneFormSchema>;
 
 export default function PaymentModal({
   isOpen,
