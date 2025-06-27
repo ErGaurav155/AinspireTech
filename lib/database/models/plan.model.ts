@@ -14,9 +14,7 @@ export interface IPlan extends Document {
 const PlanSchema = new Schema<IPlan>({
   productId: { type: String, unique: true, required: true },
   razorpaymonthlyplanId: { type: String },
-  paypalmonthlyplanId: { type: String },
   razorpayyearlyplanId: { type: String },
-  paypalyearlyplanId: { type: String },
 
   name: { type: String, required: true },
 });

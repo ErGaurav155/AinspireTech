@@ -65,6 +65,7 @@ export default function TemplateForm({
         <Input
           id="name"
           value={name}
+          className="bg-gray-300"
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., Welcome Message, Product Inquiry"
           required
@@ -78,7 +79,7 @@ export default function TemplateForm({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Write your automated reply message..."
-          className="min-h-[100px]"
+          className="min-h-[100px] bg-gray-300"
           required
         />
         <p className="text-xs text-muted-foreground">
@@ -86,7 +87,7 @@ export default function TemplateForm({
         </p>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 ">
         <Label htmlFor="triggers">Trigger Keywords</Label>
         <div className="flex gap-2">
           <Input
@@ -94,9 +95,15 @@ export default function TemplateForm({
             value={triggerInput}
             onChange={(e) => setTriggerInput(e.target.value)}
             onKeyPress={handleKeyPress}
+            className="bg-gray-300"
             placeholder="Add a keyword that triggers this reply"
           />
-          <Button type="button" onClick={addTrigger} variant="outline">
+          <Button
+            className="bg-[#0f5833]"
+            type="button"
+            onClick={addTrigger}
+            variant="outline"
+          >
             Add
           </Button>
         </div>
@@ -135,6 +142,7 @@ export default function TemplateForm({
           type="number"
           min="1"
           max="10"
+          className="bg-gray-300 text-gray-500"
           value={priority}
           onChange={(e) => setPriority(parseInt(e.target.value))}
         />
@@ -148,7 +156,12 @@ export default function TemplateForm({
           {isSubmitting ? "Creating..." : "Create Template"}
         </Button>
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            className="bg-[#d61a1a]"
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+          >
             Cancel
           </Button>
         )}

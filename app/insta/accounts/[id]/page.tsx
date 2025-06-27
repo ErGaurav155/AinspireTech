@@ -113,8 +113,8 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       {/* Account Header */}
       <Card className="mb-8">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col md:flex-row gap-5 md:gap-0 items-center justify-between">
+            <div className="flex flex-col md:flex-row gap-5 md:gap-0 items-center space-x-4">
               <div className="relative">
                 <Image
                   src={account.profilePicture}
@@ -162,13 +162,13 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       {/* Main Content */}
       <Tabs defaultValue="templates" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="templates">Reply Templates</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="templates" className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap gap-3 md:gap-0 justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold">Reply Templates</h2>
               <p className="text-muted-foreground">
@@ -182,7 +182,9 @@ export default function AccountPage({ params }: { params: { id: string } }) {
           </div>
 
           {showTemplateForm && (
-            <Card>
+            <Card
+              className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#FF2E9F]/20 to-[#FF2E9F]/5 border-[#FF2E9F]/20 hover:border-[#FF2E9F]/40  bg-transparent backdrop-blur-sm border`}
+            >
               <CardHeader>
                 <CardTitle>Create New Template</CardTitle>
                 <CardDescription>
@@ -190,7 +192,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   are detected
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-2">
                 <TemplateForm
                   accountId={params.id}
                   onSuccess={() => setShowTemplateForm(false)}
@@ -234,7 +236,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
-          <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#FF2E9F]/20 to-[#FF2E9F]/5 border-[#FF2E9F]/20 hover:border-[#FF2E9F]/40 group bg-transparent backdrop-blur-sm border">
+          <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#187d31]/20 to-[#187d31]/5 border-[#187d31]/20 hover:bg-[#187d31]/15 group bg-transparent backdrop-blur-sm border">
             <CardHeader>
               <CardTitle>Performance Analytics</CardTitle>
               <CardDescription>
@@ -263,7 +265,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
-          <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#FF2E9F]/20 to-[#FF2E9F]/5 border-[#FF2E9F]/20 hover:border-[#FF2E9F]/40 group bg-transparent backdrop-blur-sm border">
+          <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#d61a1a]/20 to-[#d61a1a]/5 border-[#d61a1a]/20 hover:bg-[#d61a1a]/15 group bg-transparent backdrop-blur-sm border">
             <CardHeader>
               <CardTitle>Account Settings</CardTitle>
               <CardDescription>

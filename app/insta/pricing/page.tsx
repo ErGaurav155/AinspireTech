@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { PricingPlan } from "@/types/types";
 import { getSubscriptionInfo } from "@/lib/action/subscription.action";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
+import { instagramPricingPlans } from "@/constant";
 
 export default function Pricing() {
   const { userId } = useAuth();
@@ -22,60 +23,6 @@ export default function Pricing() {
   const [buyerId, setBuyerId] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [islogged, setIslogged] = useState(false);
-
-  const instagramPricingPlans: PricingPlan[] = [
-    {
-      id: "starter",
-      name: "Starter",
-      description: "For new creators",
-      monthlyPrice: 4,
-      yearlyPrice: 35,
-      features: [
-        "500 comments/month",
-        "3 reply templates",
-        "Basic keyword triggers",
-        "Email support",
-        "Instagram API compliance",
-        "Spam detection",
-      ],
-      popular: false,
-    },
-    {
-      id: "growth",
-      name: "Growth",
-      description: "For growing accounts",
-      monthlyPrice: 10,
-      yearlyPrice: 94,
-      features: [
-        "2,000 comments/month",
-        "10 reply templates",
-        "AI spam filter",
-        "Priority support",
-        "Basic analytics",
-        "Multi-account support",
-        "WhatsApp notifications",
-      ],
-      popular: true,
-    },
-    {
-      id: "pro",
-      name: "Professional",
-      description: "For high-traffic pages",
-      monthlyPrice: 18,
-      yearlyPrice: 175,
-      features: [
-        "10,000 comments/month",
-        "Unlimited templates",
-        "Sentiment analysis",
-        "Custom workflows",
-        "Advanced analytics",
-        "24/7 priority support",
-        "Multi-language support",
-        "CRM integration",
-      ],
-      popular: false,
-    },
-  ];
 
   const handleSubscribe = async (
     plan: PricingPlan,
@@ -157,7 +104,7 @@ export default function Pricing() {
             >
               Yearly
             </span>
-            <div className="bg-green-900/20 text-green-400 border border-green-400/30 rounded-full px-3 py-1 ml-2">
+            <div className="bg-green-900/20 text-xs text-green-400 border border-green-400/30 rounded-full px-3 py-1 md:ml-2">
               Save 16%
             </div>
           </div>
@@ -173,7 +120,7 @@ export default function Pricing() {
                 className={`relative group rounded-lg backdrop-blur-sm border transition-all duration-300 ${
                   plan.popular
                     ? "scale-105 z-10 border-[#B026FF]/30 hover:border-[#B026FF]"
-                    : plan.id === "starter"
+                    : plan.id === "Insta-Automation-Starter"
                     ? "border-[#00F0FF]/20 hover:border-[#00F0FF]"
                     : "border-[#FF2E9F]/20 hover:border-[#FF2E9F]"
                 }`}
@@ -189,7 +136,7 @@ export default function Pricing() {
                   className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity ${
                     plan.popular
                       ? "from-[#B026FF]/10"
-                      : plan.id === "starter"
+                      : plan.id === "Insta-Automation-Starter"
                       ? "from-[#00F0FF]/10"
                       : "from-[#FF2E9F]/10"
                   } to-transparent`}
@@ -206,7 +153,7 @@ export default function Pricing() {
                       className={`text-3xl font-bold ${
                         plan.popular
                           ? "text-[#B026FF]"
-                          : plan.id === "starter"
+                          : plan.id === "Insta-Automation-Starter"
                           ? "text-[#00F0FF]"
                           : "text-[#FF2E9F]"
                       }`}
@@ -220,6 +167,11 @@ export default function Pricing() {
                       /{billingCycle === "monthly" ? "month" : "year"}
                     </span>
                   </div>
+                  {billingCycle === "yearly" && (
+                    <p className="text-center text-green-400 my-2 font-medium">
+                      Two Months Free Subscription On Yearly Plan.
+                    </p>
+                  )}
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start">
@@ -242,7 +194,7 @@ export default function Pricing() {
                       className={`w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
                         plan.popular
                           ? "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]"
-                          : plan.id === "starter"
+                          : plan.id === "Insta-Automation-Starter"
                           ? "bg-gradient-to-r from-[#00F0FF]/80 to-[#00F0FF]"
                           : "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
                       } text-black`}
@@ -256,7 +208,7 @@ export default function Pricing() {
                       className={`w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
                         plan.popular
                           ? "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]"
-                          : plan.id === "starter"
+                          : plan.id === "Insta-Automation-Starter"
                           ? "bg-gradient-to-r from-[#00F0FF]/80 to-[#00F0FF]"
                           : "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
                       } text-black`}

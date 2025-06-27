@@ -150,7 +150,7 @@ export default function Home() {
                 Thousands of local businesses are using AI-powered chatbots to
                 automate support, boost engagement, and increase sales.
               </p>
-              <div className="flex gap-4 justify-center">
+              <div className="flex flex-wrap gap-4 justify-center">
                 <Button
                   size="lg"
                   className="btn-gradient-cyan text-lg px-8 hover:opacity-90 transition-opacity"

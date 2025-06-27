@@ -1,3 +1,5 @@
+import { PricingPlan } from "@/types/types";
+
 export const testimonials = [
   {
     id: 5,
@@ -351,6 +353,59 @@ export const productDetails: Record<
   //   },
   // },
 };
+export const instagramPricingPlans: PricingPlan[] = [
+  {
+    id: "Insta-Automation-Starter",
+    name: "Starter",
+    description: "For new creators",
+    monthlyPrice: 6,
+    yearlyPrice: 60,
+    features: [
+      "500 comments/month",
+      "3 reply templates",
+      "Basic keyword triggers",
+      "Email support",
+      "Instagram API compliance",
+      "Spam detection",
+    ],
+    popular: false,
+  },
+  {
+    id: "Insta-Automation-Grow",
+    name: "Growth",
+    description: "For growing accounts",
+    monthlyPrice: 18,
+    yearlyPrice: 180,
+    features: [
+      "2,000 comments/month",
+      "10 reply templates",
+      "AI spam filter",
+      "Priority support",
+      "Basic analytics",
+      "Multi-account support",
+      "WhatsApp notifications",
+    ],
+    popular: true,
+  },
+  {
+    id: "Insta-Automation-Professional",
+    name: "Professional",
+    description: "For high-traffic pages",
+    monthlyPrice: 39,
+    yearlyPrice: 390,
+    features: [
+      "5,000 comments/month",
+      "Unlimited templates",
+      "Sentiment analysis",
+      "Custom workflows",
+      "Advanced analytics",
+      "24/7 priority support",
+      "Multi-language support",
+      "CRM integration",
+    ],
+    popular: false,
+  },
+];
 
 export const productSubscriptionDetails: Record<
   string,

@@ -72,13 +72,15 @@ export default function TemplateCard({
   return (
     <Card
       className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br ${
-        template.isActive
-          ? "from-[#FF2E9F]/20 to-[#FF2E9F]/5 border-[#FF2E9F]/20 hover:border-[#FF2E9F]/40 "
-          : "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:border-[#00F0FF]/40 "
+        template.id === "1"
+          ? "from-[#FF2E9F]/20 to-[#FF2E9F]/5 border-[#FF2E9F]/20 hover:bg-[#FF2E9F]/15 "
+          : template.id === "2"
+          ? "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:bg-[#00F0FF]/15 "
+          : "from-[#ca7030]/10 to-[#ca7030]/5 border-[#ca7030]/20 hover:bg-[#ca7030]/15 "
       }bg-transparent backdrop-blur-sm border`}
     >
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col md:flex-row items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg flex items-center gap-2">
               {template.name}

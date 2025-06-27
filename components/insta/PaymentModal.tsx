@@ -104,12 +104,12 @@ export default function PaymentModal({
       const options = {
         key_id: process.env.RAZORPAY_KEY_ID!,
         amount: price * 100,
-        currency: "USD",
+        currency: "INR",
         name: "GK Services",
         description: `${plan.name} Plan - ${billingCycle}`,
         subscription_id: subscriptionCreate.subsId,
         notes: {
-          productId: plan.id,
+          productId: razorpayplanId.current,
           buyerId: buyerId,
           amount: price,
         },
@@ -202,6 +202,7 @@ export default function PaymentModal({
       return false;
     } finally {
       setFeedInfo(true);
+      await handleRazorpayPayment();
     }
   };
   return (
@@ -333,7 +334,7 @@ export default function PaymentModal({
             )}
           </div>
         </DialogContent>
-        {feedInfo && (
+        {/* {feedInfo && (
           <AddAccount
             onVerified={() => {
               setFeedInfo(false);
@@ -342,7 +343,7 @@ export default function PaymentModal({
             }}
             buyerId={buyerId}
           />
-        )}
+        )} */}
       </Dialog>
       <div>
         <Script
