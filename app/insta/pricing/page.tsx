@@ -37,15 +37,12 @@ export default function Pricing() {
       setIsSubscribed(false);
     } else {
       const subscriptionInfo = await getInstaSubscriptionInfo(userId);
-      console.log(subscriptionInfo);
-      console.log(subscriptionInfo.length, "subscriptionInfo length");
+
       if (subscriptionInfo.length === 0) {
         setIsSubscribed(false);
       } else {
         setIsSubscribed(true);
       }
-
-      console.log(isSubscribed, "isSubscribed");
     }
   };
 
@@ -62,10 +59,6 @@ export default function Pricing() {
           }
           setBuyerId(buyer._id);
           setIslogged(true);
-
-          // Check subscription status
-          const subscriptionInfo = await getSubscriptionInfo(userId);
-          setIsSubscribed(!!subscriptionInfo);
         } catch (error) {
           console.error("Error fetching user info:", error);
         }
