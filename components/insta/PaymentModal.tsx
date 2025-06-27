@@ -296,7 +296,7 @@ export default function PaymentModal({
 
             {/* Payment Button */}
             <SignedIn>
-              {!isSubscribed ? (
+              {isSubscribed ? (
                 <Button className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#33e49d] to-[#044624] hover:from-[#79b59b]/90 hover:to-[#30d472]/90">
                   Subscribed
                 </Button>
@@ -321,7 +321,7 @@ export default function PaymentModal({
                 Sign-in
               </Button>
             </SignedOut>
-            {!isSubscribed ? (
+            {isSubscribed ? (
               <p className="text-xs text-gray-400 text-center px-4">
                 Your subscription will be activated immediately after successful
                 payment. You can cancel anytime from your dashboard.
