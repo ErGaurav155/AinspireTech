@@ -38,11 +38,14 @@ export default function Pricing() {
     } else {
       const subscriptionInfo = await getInstaSubscriptionInfo(userId);
       console.log(subscriptionInfo);
+      console.log(subscriptionInfo.length, "subscriptionInfo length");
       if (subscriptionInfo.length === 0) {
         setIsSubscribed(false);
       } else {
         setIsSubscribed(true);
       }
+
+      console.log(isSubscribed, "isSubscribed");
     }
   };
 
