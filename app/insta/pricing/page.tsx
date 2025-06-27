@@ -34,7 +34,11 @@ export default function Pricing() {
       setIsSubscribed(false);
     } else {
       const subscriptionInfo = await getSubscriptionInfo(userId);
-      setIsSubscribed(!!subscriptionInfo);
+      if (!subscriptionInfo) {
+        setIsSubscribed(false);
+      } else {
+        setIsSubscribed(true);
+      }
     }
   };
 

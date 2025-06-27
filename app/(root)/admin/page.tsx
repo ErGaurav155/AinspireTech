@@ -96,7 +96,7 @@ const AppointmentTable = () => {
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-black">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black gap-5">
         <BreadcrumbsDefault />
         <div className="max-w-4xl w-full bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-xl p-12 text-center mt-12">
           <h2 className="text-3xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
