@@ -202,7 +202,7 @@ export default function PaymentModal({
       return false;
     } finally {
       setFeedInfo(true);
-      await handleRazorpayPayment();
+      // await handleRazorpayPayment();
     }
   };
   return (

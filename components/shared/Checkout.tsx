@@ -268,6 +268,7 @@ export const Checkout = ({
           duration: 2000,
           className: "success-toast",
         });
+        setStep("payment");
         await handleRazorpayPayment();
       } else {
         toast({
