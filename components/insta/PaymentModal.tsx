@@ -37,6 +37,7 @@ import Script from "next/script";
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { toast } from "../ui/use-toast";
 import AddAccount from "./AddAccount";
+import { InstagramConnectDialog } from "./InstagramConnect";
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -90,8 +91,8 @@ export default function PaymentModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: price,
-          productId: razorpayplanId.current,
-          billingCycle,
+          razorpayplanId: razorpayplanId.current,
+          productId: plan.id,
           buyerId,
         }),
       });
@@ -333,16 +334,24 @@ export default function PaymentModal({
             )}
           </div>
         </DialogContent>
-        {/* {feedInfo && (
-          <AddAccount
+        {feedInfo && (
+          // <AddAccount
+          //   onVerified={() => {
+          //     setFeedInfo(false);
+          //     onClose();
+          //     handleRazorpayPayment();
+          //   }}
+          //   buyerId={buyerId}
+          // />
+          <InstagramConnectDialog
+            buyerId={buyerId}
             onVerified={() => {
               setFeedInfo(false);
-              onClose();
+
               handleRazorpayPayment();
             }}
-            buyerId={buyerId}
           />
-        )} */}
+        )}
       </Dialog>
       <div>
         <Script

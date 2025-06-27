@@ -153,8 +153,8 @@ export const Checkout = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: amount,
-          productId: razorpayplanId.current,
-          billingCycle,
+          razorpayplanId: razorpayplanId.current,
+          productId,
           buyerId,
         }),
       });

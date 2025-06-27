@@ -1,4 +1,3 @@
-// app/api/webhooks/razerpay/subscription/route.ts
 import Razorpay from "razorpay";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,19 +12,14 @@ const razorpay = new Razorpay({
 
 export async function POST(request: NextRequest) {
   try {
-    const {
-      razorpayplanId,
-      buyerId,
-      productId,
+    const { razorpayplanId, buyerId, productId, amount } =
+      (await request.json()) as {
+        razorpayplanId: string;
+        buyerId: string;
+        productId: string;
 
-      amount,
-    } = (await request.json()) as {
-      razorpayplanId: string;
-      buyerId: string;
-      productId: string;
-
-      amount: number;
-    };
+        amount: number;
+      };
 
     if (!buyerId || !productId || !razorpayplanId || !amount) {
       return NextResponse.json(
