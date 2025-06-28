@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Check, Zap } from "lucide-react";
+import { Check, Zap, X, Loader2, BadgeCheck } from "lucide-react";
 import PaymentModal from "@/components/insta/PaymentModal";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { getUserById } from "@/lib/action/user.actions";
@@ -10,10 +10,13 @@ import { useRouter } from "next/navigation";
 import { PricingPlan } from "@/types/types";
 import {
   getInstaSubscriptionInfo,
-  getSubscriptionInfo,
+  cancelRazorPaySubscription,
 } from "@/lib/action/subscription.action";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { instagramPricingPlans } from "@/constant";
+import { toast } from "sonner";
+import { setSubsciptionCanceled } from "@/lib/action/subscription.action";
+import { Button } from "@/components/ui/button";
 
 export default function Pricing() {
   const { userId } = useAuth();
@@ -26,49 +29,166 @@ export default function Pricing() {
   const [buyerId, setBuyerId] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [islogged, setIslogged] = useState(false);
+  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch user data and subscription info
+  useEffect(() => {
+    const fetchUserData = async () => {
+      setIsLoading(true);
+
+      if (!userId) {
+        setIslogged(false);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const buyer = await getUserById(userId);
+        if (!buyer) {
+          router.push("/sign-in");
+          return;
+        }
+
+        setBuyerId(buyer._id);
+        setIslogged(true);
+
+        // Fetch subscription info
+        const subscriptionInfo = await getInstaSubscriptionInfo(userId);
+        if (subscriptionInfo.length > 0) {
+          setIsSubscribed(true);
+          setCurrentSubscription(subscriptionInfo[0]);
+        } else {
+          setIsSubscribed(false);
+          setCurrentSubscription(null);
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+        toast.error("Failed to load subscription data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [userId, router]);
 
   const handleSubscribe = async (
     plan: PricingPlan,
     cycle: "monthly" | "yearly"
   ) => {
-    setSelectedPlan(plan);
-    setIsPaymentModalOpen(true);
-    if (!userId) {
-      setIsSubscribed(false);
-    } else {
-      const subscriptionInfo = await getInstaSubscriptionInfo(userId);
+    // If user is already subscribed to this plan, do nothing
+    if (
+      currentSubscription &&
+      currentSubscription.productId === plan.id &&
+      currentSubscription.billingCycle === cycle
+    ) {
+      return;
+    }
 
-      if (subscriptionInfo.length === 0) {
+    // If user has a different subscription, cancel it first
+    if (currentSubscription && currentSubscription.productId !== plan.id) {
+      try {
+        setIsUpgrading(true);
+        setSelectedPlan(plan);
+
+        // Cancel current subscription
+        const cancelResult = await cancelRazorPaySubscription(
+          currentSubscription.subscriptionId,
+          "Upgrading to new plan",
+          "Immediate"
+        );
+
+        if (!cancelResult.success) {
+          toast.error("Failed to cancel current subscription", {
+            description: cancelResult.message,
+          });
+          setIsUpgrading(false);
+          return;
+        }
+
+        // Update database status
+        await setSubsciptionCanceled(
+          currentSubscription.subscriptionId,
+          "Upgraded to new plan"
+        );
+
+        toast.success("Current subscription cancelled", {
+          description: "You can now select a new plan",
+        });
+
+        // Clear current subscription
+        setCurrentSubscription(null);
         setIsSubscribed(false);
-      } else {
-        setIsSubscribed(true);
+
+        // Open payment modal for new plan
+        setIsPaymentModalOpen(true);
+      } catch (error) {
+        console.error("Error cancelling subscription:", error);
+        toast.error("Failed to cancel current subscription");
+        setIsUpgrading(false);
       }
+    } else {
+      // Open payment modal for new plan
+      setSelectedPlan(plan);
+      setIsPaymentModalOpen(true);
     }
   };
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!userId) {
-        setIslogged(false);
-      } else {
-        try {
-          const buyer = await getUserById(userId);
-          if (!buyer) {
-            router.push("/sign-in");
-            return;
-          }
-          setBuyerId(buyer._id);
-          setIslogged(true);
-        } catch (error) {
-          console.error("Error fetching user info:", error);
-        }
+  const handleCancelSubscription = async () => {
+    if (!currentSubscription) return;
+
+    setIsCancelling(true);
+    try {
+      const cancelResult = await cancelRazorPaySubscription(
+        currentSubscription.subscriptionId,
+        "User requested cancellation",
+        "Immediate"
+      );
+
+      if (!cancelResult.success) {
+        toast.error("Failed to cancel subscription", {
+          description: cancelResult.message,
+        });
+        return;
       }
-    };
-    fetchUserData();
-  }, [userId, router]);
+
+      // Update database status
+      await setSubsciptionCanceled(
+        currentSubscription.subscriptionId,
+        "User requested cancellation"
+      );
+
+      toast.success("Subscription cancelled successfully", {
+        description: "Your plan has been cancelled",
+      });
+
+      // Clear current subscription
+      setCurrentSubscription(null);
+      setIsSubscribed(false);
+    } catch (error) {
+      console.error("Error cancelling subscription:", error);
+      toast.error("Failed to cancel subscription");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-12 w-12 animate-spin text-[#00F0FF]" />
+          <p className="mt-4 text-gray-400">Loading subscription data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen text-white bg-[#0a0a0a]">
       <BreadcrumbsDefault />
       <section className="py-16 px-4 sm:px-6 lg:px-8 ">
         <div className="max-w-4xl mx-auto text-center">
@@ -85,6 +205,49 @@ export default function Pricing() {
             Reply instantly to every comment. No setup fees. Cancel anytime.
           </p>
 
+          {/* Current Subscription Info */}
+          {currentSubscription && (
+            <div className="mb-10 p-6 bg-[#0a0a0a]/80 backdrop-blur-sm border border-[#00F0FF]/30 rounded-xl">
+              <div className="flex flex-wrap justify-between items-center gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-white">
+                    Your Current Plan
+                  </h2>
+                  <p className="text-gray-300">
+                    {
+                      instagramPricingPlans.find(
+                        (p) => p.id === currentSubscription.productId
+                      )?.name
+                    }{" "}
+                    ({currentSubscription.billingCycle})
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">Status: Active</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelSubscription}
+                    disabled={isCancelling}
+                    className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                  >
+                    {isCancelling ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <X className="mr-2 h-4 w-4" />
+                    )}
+                    Cancel Subscription
+                  </Button>
+                  <Button
+                    className="bg-gradient-to-r from-[#00F0FF] to-[#00F0FF]/70"
+                    onClick={() => router.push("/insta/dashboard")}
+                  >
+                    Go to Dashboard
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-center gap-4 mb-12">
             <span
               className={`text-sm font-medium ${
@@ -99,6 +262,7 @@ export default function Pricing() {
                 setBillingCycle(checked ? "yearly" : "monthly")
               }
               className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#00F0FF] data-[state=checked]:to-[#FF2E9F]"
+              disabled={isSubscribed}
             />
             <span
               className={`text-sm font-medium ${
@@ -116,111 +280,149 @@ export default function Pricing() {
       <section className="px-4 sm:px-6 lg:px-8 pb-16">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {instagramPricingPlans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`relative group rounded-lg backdrop-blur-sm border transition-all duration-300 ${
-                  plan.popular
-                    ? "scale-105 z-10 border-[#B026FF]/30 hover:border-[#B026FF]"
-                    : plan.id === "Insta-Automation-Starter"
-                    ? "border-[#00F0FF]/20 hover:border-[#00F0FF]"
-                    : "border-[#FF2E9F]/20 hover:border-[#FF2E9F]"
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-0 right-0 text-center">
-                    <span className="bg-gradient-to-r from-[#B026FF] to-[#FF2E9F] text-black text-sm font-bold py-1 px-4 rounded-full">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
+            {instagramPricingPlans.map((plan) => {
+              const isCurrentPlan =
+                currentSubscription &&
+                currentSubscription.productId === plan.id &&
+                currentSubscription.billingCycle === billingCycle;
+              const isUpgradeOption =
+                currentSubscription &&
+                currentSubscription.productId !== plan.id;
+
+              return (
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity ${
+                  key={plan.id}
+                  className={`relative group rounded-lg backdrop-blur-sm border transition-all duration-300 ${
                     plan.popular
-                      ? "from-[#B026FF]/10"
+                      ? "scale-105 z-10 border-[#B026FF]/30 hover:border-[#B026FF]"
                       : plan.id === "Insta-Automation-Starter"
-                      ? "from-[#00F0FF]/10"
-                      : "from-[#FF2E9F]/10"
-                  } to-transparent`}
-                ></div>
-                <div className="relative z-10 p-6">
-                  <h3 className="text-xl font-bold mb-2 text-white">
-                    {plan.name}
-                  </h3>
-                  <p className="text-gray-400 mb-6 font-mono text-lg">
-                    {plan.description}
-                  </p>
-                  <div className="flex items-end mb-6">
-                    <span
-                      className={`text-3xl font-bold ${
-                        plan.popular
-                          ? "text-[#B026FF]"
-                          : plan.id === "Insta-Automation-Starter"
-                          ? "text-[#00F0FF]"
-                          : "text-[#FF2E9F]"
-                      }`}
-                    >
-                      ${" "}
-                      {billingCycle === "monthly"
-                        ? plan.monthlyPrice.toFixed(0)
-                        : plan.yearlyPrice.toFixed(0)}
-                    </span>
-                    <span className="text-gray-400 ml-1">
-                      /{billingCycle === "monthly" ? "month" : "year"}
-                    </span>
-                  </div>
-                  {billingCycle === "yearly" && (
-                    <p className="text-center text-green-400 my-2 font-medium">
-                      Two Months Free Subscription On Yearly Plan.
-                    </p>
+                      ? "border-[#00F0FF]/20 hover:border-[#00F0FF]"
+                      : "border-[#FF2E9F]/20 hover:border-[#FF2E9F]"
+                  } ${
+                    isCurrentPlan ? "ring-2 ring-[#00F0FF] ring-opacity-80" : ""
+                  }`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-0 right-0 text-center">
+                      <span className="bg-gradient-to-r from-[#B026FF] to-[#FF2E9F] text-black text-sm font-bold py-1 px-4 rounded-full">
+                        Most Popular
+                      </span>
+                    </div>
                   )}
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start">
-                        <Check
-                          className={`h-5 w-5 mt-1 mr-3 ${
-                            plan.popular
-                              ? "text-[#B026FF]"
-                              : plan.id === "starter"
-                              ? "text-[#00F0FF]"
-                              : "text-[#FF2E9F]"
-                          }`}
-                        />
-                        <span className="text-gray-300">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <SignedOut>
-                    <button
-                      onClick={() => router.push("/sign-in")}
-                      className={`w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
-                        plan.popular
-                          ? "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]"
-                          : plan.id === "Insta-Automation-Starter"
-                          ? "bg-gradient-to-r from-[#00F0FF]/80 to-[#00F0FF]"
-                          : "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
-                      } text-black`}
-                    >
-                      Get Started
-                    </button>
-                  </SignedOut>
-                  <SignedIn>
-                    <button
-                      onClick={() => handleSubscribe(plan, billingCycle)}
-                      className={`w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
-                        plan.popular
-                          ? "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]"
-                          : plan.id === "Insta-Automation-Starter"
-                          ? "bg-gradient-to-r from-[#00F0FF]/80 to-[#00F0FF]"
-                          : "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
-                      } text-black`}
-                    >
-                      {isSubscribed ? "Upgrade Plan" : "Start Automating"}
-                    </button>
-                  </SignedIn>
+                  {isCurrentPlan && (
+                    <div className="absolute -top-3 left-0 right-0 text-center">
+                      <span className="bg-gradient-to-r from-[#00F0FF] to-[#00F0FF]/70 text-black text-sm font-bold py-1 px-4 rounded-full">
+                        Your Current Plan
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity ${
+                      plan.popular
+                        ? "from-[#B026FF]/10"
+                        : plan.id === "Insta-Automation-Starter"
+                        ? "from-[#00F0FF]/10"
+                        : "from-[#FF2E9F]/10"
+                    } to-transparent`}
+                  ></div>
+                  <div className="relative z-10 p-6">
+                    <div className="flex justify-between items-start">
+                      <h3 className="text-xl font-bold mb-2 text-white">
+                        {plan.name}
+                      </h3>
+                      {isCurrentPlan && (
+                        <BadgeCheck className="h-6 w-6 text-[#00F0FF]" />
+                      )}
+                    </div>
+                    <p className="text-gray-400 mb-6 font-mono text-lg">
+                      {plan.description}
+                    </p>
+                    <div className="flex items-end mb-6">
+                      <span
+                        className={`text-3xl font-bold ${
+                          plan.popular
+                            ? "text-[#B026FF]"
+                            : plan.id === "Insta-Automation-Starter"
+                            ? "text-[#00F0FF]"
+                            : "text-[#FF2E9F]"
+                        }`}
+                      >
+                        ${" "}
+                        {billingCycle === "monthly"
+                          ? plan.monthlyPrice.toFixed(0)
+                          : plan.yearlyPrice.toFixed(0)}
+                      </span>
+                      <span className="text-gray-400 ml-1">
+                        /{billingCycle === "monthly" ? "month" : "year"}
+                      </span>
+                    </div>
+                    {billingCycle === "yearly" && (
+                      <p className="text-center text-green-400 my-2 font-medium">
+                        Two Months Free Subscription On Yearly Plan.
+                      </p>
+                    )}
+                    <ul className="space-y-3 mb-8">
+                      {plan.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <Check
+                            className={`h-5 w-5 mt-1 mr-3 ${
+                              plan.popular
+                                ? "text-[#B026FF]"
+                                : plan.id === "Insta-Automation-Starter"
+                                ? "text-[#00F0FF]"
+                                : "text-[#FF2E9F]"
+                            }`}
+                          />
+                          <span className="text-gray-300">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <SignedOut>
+                      <button
+                        onClick={() => router.push("/sign-in")}
+                        className={`w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
+                          plan.popular
+                            ? "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]"
+                            : plan.id === "Insta-Automation-Starter"
+                            ? "bg-gradient-to-r from-[#00F0FF]/80 to-[#00F0FF]"
+                            : "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
+                        } text-black`}
+                      >
+                        Get Started
+                      </button>
+                    </SignedOut>
+                    <SignedIn>
+                      <button
+                        onClick={() => handleSubscribe(plan, billingCycle)}
+                        disabled={isCurrentPlan || isUpgrading || isCancelling}
+                        className={`w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
+                          isCurrentPlan
+                            ? "bg-gray-700 cursor-not-allowed"
+                            : plan.popular
+                            ? "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]"
+                            : plan.id === "Insta-Automation-Starter"
+                            ? "bg-gradient-to-r from-[#00F0FF]/80 to-[#00F0FF]"
+                            : "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
+                        } text-black disabled:opacity-70 disabled:cursor-not-allowed`}
+                      >
+                        {isUpgrading && selectedPlan?.id === plan.id ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Processing...
+                          </div>
+                        ) : isCurrentPlan ? (
+                          "Current Plan"
+                        ) : isUpgradeOption ? (
+                          "Switch to This Plan"
+                        ) : (
+                          "Start Automating"
+                        )}
+                      </button>
+                    </SignedIn>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -380,6 +582,11 @@ export default function Pricing() {
           billingCycle={billingCycle}
           buyerId={buyerId}
           isSubscribed={isSubscribed}
+          onSuccess={(newSubscription) => {
+            setCurrentSubscription(newSubscription);
+            setIsSubscribed(true);
+            setIsUpgrading(false);
+          }}
         />
       )}
     </div>

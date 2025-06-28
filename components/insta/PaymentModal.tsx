@@ -41,6 +41,7 @@ import { InstagramConnectDialog } from "./InstagramConnect";
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess: (newSubscription: string) => void;
   plan: PricingPlan | null;
   billingCycle: "monthly" | "yearly";
   buyerId: string;
@@ -66,6 +67,7 @@ export default function PaymentModal({
   billingCycle,
   buyerId,
   isSubscribed,
+  onSuccess,
 }: PaymentModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -133,7 +135,7 @@ export default function PaymentModal({
               duration: 3000,
               className: "success-toast",
             });
-
+            await onSuccess(plan.id);
             await createRazerPaySubscription(
               buyerId,
               plan.id,

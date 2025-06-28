@@ -9,6 +9,7 @@ import {
   BarChart3,
   Settings,
   Zap,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,14 @@ import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
+import { useAuth } from "@clerk/nextjs";
+import { getUserById } from "@/lib/action/user.actions";
+import {
+  cancelRazorPaySubscription,
+  getSubscriptionInfo,
+} from "@/lib/action/subscription.action";
+import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
 
 // Mock data for demonstration
 const mockAccounts = [
@@ -56,6 +65,15 @@ const mockAccounts = [
 
 export default function Dashboard() {
   const [accounts, setAccounts] = useState(mockAccounts);
+  const { userId } = useAuth();
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [selectedSubscriptionId, setSelectedSubscriptionId] = useState("");
+  const [cancellationMode, setCancellationMode] = useState<
+    "Immediate" | "End-of-term"
+  >("End-of-term");
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState("");
 
   const totalReplies = accounts.reduce(
     (sum, account) => sum + account.repliesCount,
@@ -66,6 +84,64 @@ export default function Dashboard() {
     0
   );
   const activeAccounts = accounts.filter((account) => account.isActive).length;
+
+  // Fetch user subscriptions
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      if (!userId) return;
+
+      try {
+        const user = await getUserById(userId);
+        if (user) {
+          const subs = await getSubscriptionInfo(user._id);
+          setSubscriptions(subs);
+        }
+      } catch (error) {
+        console.error("Failed to fetch subscriptions:", error);
+      }
+    };
+
+    fetchSubscriptions();
+  }, [userId]);
+
+  const handleCancelSubscription = async () => {
+    if (!selectedSubscriptionId) return;
+
+    setIsCancelling(true);
+    try {
+      const result = await cancelRazorPaySubscription(
+        selectedSubscriptionId,
+        cancellationReason,
+        cancellationMode
+      );
+
+      if (result.success) {
+        toast.success("Subscription cancelled successfully!", {
+          description: result.message,
+          duration: 3000,
+        });
+        setSubscriptions(
+          subscriptions.filter(
+            (sub) => sub.subscriptionId !== selectedSubscriptionId
+          )
+        );
+      } else {
+        toast.error("Subscription cancellation failed!", {
+          description: result.message,
+          duration: 3000,
+        });
+      }
+    } catch (error: any) {
+      toast.error("Error cancelling subscription", {
+        description: error.message || "An unknown error occurred",
+        duration: 3000,
+      });
+    } finally {
+      setIsCancelling(false);
+      setShowCancelDialog(false);
+      setCancellationReason("");
+    }
+  };
 
   return (
     <div className="min-h-screen text-white">
@@ -82,17 +158,61 @@ export default function Dashboard() {
               Manage your Instagram auto-reply system and monitor performance
             </p>
           </div>
-          <Button
-            className="btn-gradient-cyan hover:opacity-90 transition-opacity"
-            asChild
-          >
-            <Link href="/insta/accounts/add">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Account
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {subscriptions.length > 0 && (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setSelectedSubscriptionId(subscriptions[0].subscriptionId);
+                  setShowCancelDialog(true);
+                }}
+              >
+                Cancel Subscription
+              </Button>
+            )}
+            <Button
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 transition-opacity"
+              asChild
+            >
+              <Link href="/pricing">
+                <Zap className="mr-2 h-4 w-4" />
+                Upgrade Subscription
+              </Link>
+            </Button>
+            <Button
+              className="btn-gradient-cyan hover:opacity-90 transition-opacity"
+              asChild
+            >
+              <Link href="/insta/accounts/add">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Account
+              </Link>
+            </Button>
+          </div>
         </div>
-
+        {subscriptions.length > 0 && (
+          <Card className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 backdrop-blur-sm border border-purple-500/30 mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Zap className="h-5 w-5 text-yellow-400" />
+                Your Subscription
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap justify-between items-center gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-white">
+                  Premium Plan - Active
+                </h3>
+                <p className="text-gray-300">
+                  Next billing: {new Date().toLocaleDateString()}
+                </p>
+              </div>
+              <Badge className="bg-green-900/20 text-green-400 border-green-400/20">
+                Active
+              </Badge>
+            </CardContent>
+          </Card>
+        )}
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="card-hover group">
@@ -356,6 +476,73 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+        {showCancelDialog && (
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="p-8 rounded-xl max-w-md w-full bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] ">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]">
+                  Cancel Subscription
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowCancelDialog(false)}
+                >
+                  <X className="text-gray-400 h-5 w-5 hover:text-white" />
+                </Button>
+              </div>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-lg font-semibold text-gray-200 mb-2">
+                    Please Provide Reason
+                  </label>
+                  <Textarea
+                    value={cancellationReason}
+                    onChange={(e) => setCancellationReason(e.target.value)}
+                    className="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-[#B026FF]"
+                    placeholder="Cancellation reason"
+                    required
+                  />
+                </div>
+
+                <div className="text-sm text-gray-400">
+                  <p className="mb-2">
+                    <strong>Immediate Cancellation:</strong> Service ends
+                    immediately
+                  </p>
+                  <p>
+                    <strong>End-of-term Cancellation:</strong> Service continues
+                    until the end of billing period
+                  </p>
+                </div>
+
+                <div className="flex justify-center gap-4">
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setCancellationMode("Immediate");
+                      handleCancelSubscription();
+                    }}
+                    disabled={isCancelling}
+                    className="px-6 py-2"
+                  >
+                    {isCancelling ? "Cancelling..." : "Cancel Immediately"}
+                  </Button>
+                  <Button
+                    className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF]"
+                    onClick={() => {
+                      setCancellationMode("End-of-term");
+                      handleCancelSubscription();
+                    }}
+                    disabled={isCancelling}
+                  >
+                    {isCancelling ? "Cancelling..." : "Cancel at End of Term"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
