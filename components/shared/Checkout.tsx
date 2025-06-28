@@ -209,16 +209,9 @@ export const Checkout = ({
               buyerId: buyerId!,
               createdAt: new Date(),
             });
-            if (
-              productId === "chatbot-customer-support" ||
-              productId === "chatbot-education"
-            ) {
-              router.push(
-                `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
-              );
-            } else {
-              router.push("/web/UserDashboard");
-            }
+            router.push(
+              `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
+            );
           } else {
             toast({
               title: "Order canceled!",

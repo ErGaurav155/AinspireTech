@@ -163,7 +163,6 @@ const Pricing = () => {
             const isSubscribed = subscriptions.some(
               (sub) =>
                 sub.productId === productId &&
-                sub.billingMode === billingCycle &&
                 sub.subscriptionStatus === "active"
             );
 
