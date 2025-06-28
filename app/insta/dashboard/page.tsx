@@ -174,7 +174,7 @@ export default function Dashboard() {
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 transition-opacity"
               asChild
             >
-              <Link href="/pricing">
+              <Link href="/insta/pricing">
                 <Zap className="mr-2 h-4 w-4" />
                 Upgrade Subscription
               </Link>

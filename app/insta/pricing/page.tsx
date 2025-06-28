@@ -178,7 +178,7 @@ export default function Pricing() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+      <div className="min-h-screen flex items-center justify-center ">
         <div className="flex flex-col items-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#00F0FF]" />
           <p className="mt-4 text-gray-400">Loading subscription data...</p>
@@ -188,7 +188,7 @@ export default function Pricing() {
   }
 
   return (
-    <div className="min-h-screen text-white bg-[#0a0a0a]">
+    <div className="min-h-screen text-white ">
       <BreadcrumbsDefault />
       <section className="py-16 px-4 sm:px-6 lg:px-8 ">
         <div className="max-w-4xl mx-auto text-center">
