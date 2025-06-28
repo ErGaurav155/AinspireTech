@@ -13,11 +13,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, Instagram, Briefcase, User, Check } from "lucide-react";
 import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   getInstagramAccounts,
   convertToProfessionalAccount,
   createOrUpdateInsta,
 } from "@/lib/action/insta.action";
 import { useAuth } from "@clerk/nextjs";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 
 interface InstagramBasicAccount {
   id: string;
@@ -168,18 +177,46 @@ export const InstagramConnectDialog = ({
   };
   return (
     <div className="w-full max-w-md">
-      <Button
-        onClick={handleInstagramLogin}
-        disabled={isLoading}
-        className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
-      >
-        {isLoading ? (
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        ) : (
-          <Instagram className="mr-2 h-5 w-5" />
-        )}
-        Connect Instagram Account
-      </Button>
+      <AlertDialog defaultOpen>
+        <AlertDialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
+          <div className="flex justify-between  items-center">
+            <AlertDialogTitle className="text-pink-400">
+              Adding Instgram Account
+            </AlertDialogTitle>
+            <AlertDialogCancel
+              onClick={() => router.push(`/`)}
+              className="border-0 p-0 hover:bg-transparent text-gray-400 hover:text-white transition-colors self-start bg-[#0a0a0a]/90"
+            >
+              <XMarkIcon className="h-5 w-6 bg-red-500 cursor-pointer rounded-sm" />
+            </AlertDialogCancel>
+          </div>
+          <AlertDialogHeader>
+            <div className="flex justify-between  items-center">
+              <h3 className="p-16-semibold text-white text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                Add Linked Insta Account With Facebook Only.
+              </h3>
+            </div>
+          </AlertDialogHeader>
+          <Button
+            onClick={handleInstagramLogin}
+            disabled={isLoading}
+            className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            ) : (
+              <Instagram className="mr-2 h-5 w-5" />
+            )}
+            Connect Instagram Account
+          </Button>
+
+          <AlertDialogDescription className="p-4 text-center text-sm text-gray-400 border-t border-[#333] pt-4">
+            <span className="text-[#00F0FF]">
+              IT IS MUST TO PROVIDE BETTER SERVICES
+            </span>
+          </AlertDialogDescription>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="bg-[#0f0f0f] border border-[#333] rounded-xl text-white max-w-md">

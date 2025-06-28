@@ -70,7 +70,6 @@ export default function Pricing() {
   return (
     <div className="min-h-screen text-white">
       <BreadcrumbsDefault />
-
       <section className="py-16 px-4 sm:px-6 lg:px-8 ">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center  text-blue-400 border border-blue-400/30 rounded-full px-4 py-1 mb-4">
@@ -114,7 +113,6 @@ export default function Pricing() {
           </div>
         </div>
       </section>
-
       <section className="px-4 sm:px-6 lg:px-8 pb-16">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -226,7 +224,6 @@ export default function Pricing() {
           </div>
         </div>
       </section>
-
       <section className="py-16 px-4 sm:px-6 lg:px-8 ">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -375,7 +372,6 @@ export default function Pricing() {
           </div>
         </div>
       </section>
-
       {islogged && (
         <PaymentModal
           isOpen={isPaymentModalOpen}

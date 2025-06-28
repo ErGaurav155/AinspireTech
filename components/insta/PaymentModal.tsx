@@ -202,6 +202,7 @@ export default function PaymentModal({
       return false;
     } finally {
       setFeedInfo(true);
+      onClose();
       // await handleRazorpayPayment();
     }
   };
@@ -334,25 +335,24 @@ export default function PaymentModal({
             )}
           </div>
         </DialogContent>
-        {feedInfo && (
-          // <AddAccount
-          //   onVerified={() => {
-          //     setFeedInfo(false);
-          //     onClose();
-          //     handleRazorpayPayment();
-          //   }}
-          //   buyerId={buyerId}
-          // />
-          <InstagramConnectDialog
-            buyerId={buyerId}
-            onVerified={() => {
-              setFeedInfo(false);
-
-              handleRazorpayPayment();
-            }}
-          />
-        )}
       </Dialog>
+      {feedInfo && (
+        // <AddAccount
+        //   onVerified={() => {
+        //     setFeedInfo(false);
+        //     onClose();
+        //     handleRazorpayPayment();
+        //   }}
+        //   buyerId={buyerId}
+        // />
+        <InstagramConnectDialog
+          buyerId={buyerId}
+          onVerified={() => {
+            setFeedInfo(false);
+            handleRazorpayPayment();
+          }}
+        />
+      )}
       <div>
         <Script
           id="razorpay-checkout-js"
