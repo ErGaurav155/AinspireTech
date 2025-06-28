@@ -1,7 +1,6 @@
-// components/instagram/InstagramConnectDialog.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -41,6 +40,7 @@ interface AccountVerificationProps {
   onVerified: () => void;
   buyerId: string;
 }
+
 export const InstagramConnectDialog = ({
   onVerified,
   buyerId,
@@ -60,6 +60,50 @@ export const InstagramConnectDialog = ({
   >("idle");
   const [error, setError] = useState<string | null>(null);
   const [fbStatus, setFbStatus] = useState<FBStatus>("loading");
+  const [status, setStatus] = useState<string>(""); // For Facebook login status
+
+  // Wrap fetchInstagramAccounts in useCallback
+  const fetchInstagramAccounts = useCallback(async (accessToken: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const accounts = await getInstagramAccounts(accessToken);
+      setAccounts(accounts);
+      setIsOpen(true);
+    } catch (err: any) {
+      setError(err.message || "Failed to fetch Instagram accounts");
+      console.error("Instagram account fetch error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Wrap statusChangeCallback in useCallback
+  const statusChangeCallback = useCallback(
+    (response: any) => {
+      console.log("statusChangeCallback");
+      console.log(response);
+
+      // Define testAPI inside to capture dependencies
+      const testAPI = (accessToken: string) => {
+        console.log("Welcome!  Fetching your information.... ");
+
+        window.FB.api("/me", function (response: any) {
+          console.log("Successful login for: " + response.name);
+          setStatus("Thanks for logging in, " + response.name + "!");
+          fetchInstagramAccounts(accessToken);
+        });
+      };
+
+      if (response.status === "connected") {
+        testAPI(response.authResponse.accessToken);
+      } else {
+        setStatus("Please log into this webpage.");
+      }
+    },
+    [fetchInstagramAccounts]
+  );
 
   // Initialize Facebook SDK
   useEffect(() => {
@@ -71,7 +115,11 @@ export const InstagramConnectDialog = ({
           xfbml: true,
           version: "v18.0",
         });
-        setFbStatus("ready");
+
+        // Check login status after initialization
+        window.FB.getLoginStatus(function (response: any) {
+          statusChangeCallback(response);
+        });
       };
 
       // Load the Facebook SDK script
@@ -82,6 +130,9 @@ export const InstagramConnectDialog = ({
         js = d.createElement(s) as HTMLScriptElement;
         js.id = id;
         js.src = "https://connect.facebook.net/en_US/sdk.js";
+        js.async = true;
+        js.defer = true;
+        js.crossOrigin = "anonymous";
         js.onerror = () => setFbStatus("error");
         fjs.parentNode!.insertBefore(js, fjs);
       })(document, "script", "facebook-jssdk");
@@ -89,12 +140,13 @@ export const InstagramConnectDialog = ({
 
     if (typeof window !== "undefined" && !window.FB) {
       initFacebookSDK();
+      setFbStatus("ready");
     } else if (window.FB) {
       setFbStatus("ready");
     }
-  }, []);
+  }, [statusChangeCallback]);
 
-  const handleInstagramLogin = async () => {
+  const handleInstagramLogin = () => {
     if (!userId) {
       setError("User not authenticated");
       return;
@@ -105,34 +157,16 @@ export const InstagramConnectDialog = ({
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Step 1: Authenticate with Facebook
-      const response: any = await new Promise((resolve) => {
-        window.FB.login(resolve, {
-          scope: "instagram_basic,pages_show_list,business_management",
-          return_scopes: true,
-        });
-      });
-
-      if (!response.authResponse) {
-        throw new Error("User cancelled login or did not fully authorize.");
+    // Use FB.login from the Facebook example
+    window.FB.login(
+      function (response: any) {
+        statusChangeCallback(response);
+      },
+      {
+        scope: "public_profile,instagram_basic,pages_read_engagement",
+        return_scopes: true,
       }
-
-      const accessToken = response.authResponse.accessToken;
-
-      // Step 2: Get connected Instagram accounts
-      const accounts = await getInstagramAccounts(accessToken);
-      setAccounts(accounts);
-      setIsOpen(true);
-    } catch (err: any) {
-      setError(err.message || "Failed to connect to Instagram");
-      console.error("Instagram login error:", err);
-    } finally {
-      setIsLoading(false);
-    }
+    );
   };
 
   const handleAccountConversion = async () => {
@@ -175,13 +209,14 @@ export const InstagramConnectDialog = ({
       console.error("Conversion error:", err);
     }
   };
+
   return (
     <div className="w-full max-w-md">
       <AlertDialog defaultOpen>
         <AlertDialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
-          <div className="flex justify-between  items-center">
+          <div className="flex justify-between items-center">
             <AlertDialogTitle className="text-pink-400">
-              Adding Instgram Account
+              Adding Instagram Account
             </AlertDialogTitle>
             <AlertDialogCancel
               onClick={() => router.push(`/`)}
@@ -191,30 +226,34 @@ export const InstagramConnectDialog = ({
             </AlertDialogCancel>
           </div>
           <AlertDialogHeader>
-            <div className="flex justify-between  items-center">
+            <div className="flex justify-between items-center">
               <h3 className="p-16-semibold text-white text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 Add Linked Insta Account With Facebook Only.
               </h3>
             </div>
           </AlertDialogHeader>
-          <Button
-            onClick={handleInstagramLogin}
-            disabled={isLoading}
-            className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
-          >
-            {isLoading ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-              <Instagram className="mr-2 h-5 w-5" />
-            )}
-            Connect Instagram Account
-          </Button>
 
-          <AlertDialogDescription className="p-4 text-center text-sm text-gray-400 border-t border-[#333] pt-4">
-            <span className="text-[#00F0FF]">
-              IT IS MUST TO PROVIDE BETTER SERVICES
-            </span>
-          </AlertDialogDescription>
+          <div className="space-y-4">
+            <Button
+              onClick={handleInstagramLogin}
+              disabled={isLoading}
+              className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Instagram className="mr-2 h-5 w-5" />
+              )}
+              Connect Instagram Account
+            </Button>
+
+            <div className="text-center text-sm text-gray-400">
+              {status && <p className="mb-2">{status}</p>}
+              <span className="text-[#00F0FF]">
+                IT IS MUST TO PROVIDE BETTER SERVICES
+              </span>
+            </div>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
 
