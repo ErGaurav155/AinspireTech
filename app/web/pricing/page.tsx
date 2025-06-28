@@ -38,6 +38,7 @@ interface Subscription {
   productId: string;
   userId: string;
   subscriptionStatus: string;
+  billingMode: string;
 }
 
 const Pricing = () => {
@@ -67,6 +68,7 @@ const Pricing = () => {
             productId: sub.productId,
             userId: sub.userId,
             subscriptionStatus: sub.subscriptionStatus,
+            billingMode: sub.billingMode,
           }));
 
           setSubscriptions(filteredSubscriptions || []);
@@ -161,6 +163,7 @@ const Pricing = () => {
             const isSubscribed = subscriptions.some(
               (sub) =>
                 sub.productId === productId &&
+                sub.billingMode === billingCycle &&
                 sub.subscriptionStatus === "active"
             );
 
