@@ -9,8 +9,19 @@ import {
   Trash2,
   Power,
   PowerOff,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Card,
   CardContent,
@@ -27,6 +38,8 @@ import TemplateForm from "@/components/insta/TemplateForm";
 import TemplateCard from "@/components/insta/TemplateCard";
 import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
+import { useRouter } from "next/navigation";
+import { toast } from "@/components/ui/use-toast";
 
 // Mock data
 const mockAccount = {
@@ -79,7 +92,9 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const [account, setAccount] = useState(mockAccount);
   const [templates, setTemplates] = useState(mockTemplates);
   const [showTemplateForm, setShowTemplateForm] = useState(false);
-
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
   const handleToggleAccount = () => {
     setAccount({ ...account, isActive: !account.isActive });
   };
@@ -95,11 +110,39 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       )
     );
   };
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      // In a real app, you would call your API endpoint here
+      const response = await fetch(`/api/accounts?id=${params.id}`, {
+        method: "DELETE",
+      });
 
+      if (!response.ok) {
+        throw new Error("Failed to delete account");
+      }
+
+      toast({
+        title: "Account deleted successfully!",
+        duration: 3000,
+        className: "success-toast",
+      });
+      router.push("/insta/dashboard");
+    } catch (error: any) {
+      console.error("Error deleting account:", error);
+      toast({
+        title: "Account deletion Failed!",
+        duration: 3000,
+        className: "error-toast",
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
   return (
     <div className="container mx-auto px-4 py-8">
       <BreadcrumbsDefault />
-
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Button variant="ghost" size="sm" asChild>
@@ -109,7 +152,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
           </Link>
         </Button>
       </div>
-
       {/* Account Header */}
       <Card className="mb-8">
         <CardContent className="pt-6">
@@ -153,12 +195,19 @@ export default function AccountPage({ params }: { params: { id: string } }) {
               </div>
               <Badge variant={account.isActive ? "default" : "secondary"}>
                 {account.isActive ? "Active" : "Inactive"}
-              </Badge>
+              </Badge>{" "}
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
             </div>
           </div>
         </CardContent>
       </Card>
-
       {/* Main Content */}
       <Tabs defaultValue="templates" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
@@ -285,7 +334,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   onCheckedChange={handleToggleAccount}
                 />
               </div>
-
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Rate Limiting</Label>
@@ -295,7 +343,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                 </div>
                 <Switch defaultChecked />
               </div>
-
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Smart Filtering</Label>
@@ -304,11 +351,59 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   </p>
                 </div>
                 <Switch defaultChecked />
+              </div>{" "}
+              <div className="pt-4 border-t border-dashed">
+                <div className="flex flex-col space-y-4">
+                  <Label className="text-destructive">Danger Zone</Label>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-medium">Delete Account</p>
+                      <p className="text-sm text-muted-foreground">
+                        Permanently delete this Instagram account
+                      </p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      onClick={() => setShowDeleteDialog(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Account
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+      </Tabs>{" "}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              Instagram account and all associated templates.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Account"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
