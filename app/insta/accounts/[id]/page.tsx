@@ -184,7 +184,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center flex-col gap-3 md:flex-row ">
               <div className="flex items-center space-x-2">
                 <Label htmlFor="account-toggle">Auto-replies</Label>
                 <Switch
@@ -193,17 +193,19 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   onCheckedChange={handleToggleAccount}
                 />
               </div>
-              <Badge variant={account.isActive ? "default" : "secondary"}>
-                {account.isActive ? "Active" : "Inactive"}
-              </Badge>{" "}
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setShowDeleteDialog(true)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
+              <div className="flex items-center justify-between gap-5 md:gap-3">
+                <Badge variant={account.isActive ? "default" : "secondary"}>
+                  {account.isActive ? "Active" : "Inactive"}
+                </Badge>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -355,8 +357,8 @@ export default function AccountPage({ params }: { params: { id: string } }) {
               <div className="pt-4 border-t border-dashed">
                 <div className="flex flex-col space-y-4">
                   <Label className="text-destructive">Danger Zone</Label>
-                  <div className="flex justify-between items-center">
-                    <div>
+                  <div className="flex flex-col md:flex-row gap-3 justify-between items-center">
+                    <div className="flex items-center justify-center gap-3">
                       <p className="font-medium">Delete Account</p>
                       <p className="text-sm text-muted-foreground">
                         Permanently delete this Instagram account
@@ -375,14 +377,15 @@ export default function AccountPage({ params }: { params: { id: string } }) {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>{" "}
+      </Tabs>
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
-              Instagram account and all associated templates.
+              Instagram account data from our database and all associated
+              templates.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
