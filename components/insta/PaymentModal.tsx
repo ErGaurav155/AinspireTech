@@ -38,7 +38,6 @@ import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { toast } from "../ui/use-toast";
 import AddAccount from "./AddAccount";
 import { InstagramConnectDialog } from "./InstagramConnect";
-import FacebookIntegration from "./ConnectFacebook";
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -348,7 +347,13 @@ export default function PaymentModal({
         //   }}
         //   buyerId={buyerId}
         // />
-        <FacebookIntegration />
+        <InstagramConnectDialog
+          buyerId={buyerId}
+          onVerified={() => {
+            setFeedInfo(false);
+            handleRazorpayPayment();
+          }}
+        />
       )}
       <div>
         <Script
