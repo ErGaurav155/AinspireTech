@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import ReplyTemplate from "@/lib/database/models/replyTemp.model";
+import InstaReplyTemplate from "@/lib/database/models/replyTemp.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 
 export async function GET(req: Request) {
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const templates = await ReplyTemplate.find({ accountId }).sort({
+    const templates = await InstaReplyTemplate.find({ accountId }).sort({
       priority: 1,
       createdAt: -1,
     });
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const template = new ReplyTemplate({
+    const template = new InstaReplyTemplate({
       accountId,
       name,
       content,

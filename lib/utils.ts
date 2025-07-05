@@ -20,3 +20,19 @@ export const handleError = (error: unknown) => {
     throw new Error(`Unknown error: ${JSON.stringify(error)}`);
   }
 };
+import { auth } from "@clerk/nextjs";
+import { NextRequest } from "next/server";
+
+export async function getAuthUser() {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  return { userId };
+}
+
+export function createAuthResponse(error: string, status: number = 401) {
+  return Response.json({ error }, { status });
+}

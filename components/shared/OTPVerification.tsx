@@ -50,7 +50,7 @@ export default function OTPVerification({
     setIsVerifying(true);
     try {
       const { OTP } = data;
-      const res = await fetch("/api/verify-otp", {
+      const res = await fetch("/api/web/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone, OTP }),

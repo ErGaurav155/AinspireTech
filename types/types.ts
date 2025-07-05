@@ -1,4 +1,4 @@
-export interface AppointmentParams {
+export interface MyAppointmentParams {
   name: string;
   phone: string;
   address?: string;

@@ -7,14 +7,14 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { AppointmentParams } from "@/types/types";
 import { Footer } from "@/components/shared/Footer";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { getAllAppointments, getOwner } from "@/lib/action/appointment.actions";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
+import { MyAppointmentParams } from "@/types/types";
 
-const columnHelper = createColumnHelper<AppointmentParams>();
+const columnHelper = createColumnHelper<MyAppointmentParams>();
 
 const columns = [
   columnHelper.accessor("name", {
@@ -50,7 +50,7 @@ const columns = [
 const AppointmentTable = () => {
   const { userId } = useAuth();
   const router = useRouter();
-  const [data, setData] = useState<AppointmentParams[]>([]);
+  const [data, setData] = useState<MyAppointmentParams[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

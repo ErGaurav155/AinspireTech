@@ -30,6 +30,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
+import { AnalyticsDashboard } from "@/components/insta/Analytics-dashboard";
 
 // Mock analytics data
 const analyticsData = {
@@ -363,7 +364,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-
+      <AnalyticsDashboard />
       {/* Recent Activity */}
       <Card className="card-hover group">
         <CardHeader>

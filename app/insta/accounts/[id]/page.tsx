@@ -114,7 +114,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
     setIsDeleting(true);
     try {
       // In a real app, you would call your API endpoint here
-      const response = await fetch(`/api/accounts?id=${params.id}`, {
+      const response = await fetch(`/api/web/accounts?id=${params.id}`, {
         method: "DELETE",
       });
 

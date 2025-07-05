@@ -18,7 +18,7 @@ export default function ServicesTabs() {
 
   return (
     <Tabs defaultValue="tab-1" className="w-full relative z-10">
-      <TabsList className="flex flex-wrap items-center justify-center w-full pb-15 bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-xl">
+      <TabsList className="flex flex-wrap items-center justify-center w-full p-0 max-w-max m-auto  backdrop-blur-md  rounded-xl min-h-min bg-transparent">
         {topics.map((topic, index) => (
           <TabsTrigger
             className="p-1 transition-all duration-300 hover:scale-105 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -41,14 +41,14 @@ export default function ServicesTabs() {
       </TabsList>
 
       {topics.map((topic, index) => (
-        <TabsContent key={index} value={`tab-${index}`} className="mt-28">
+        <TabsContent key={index} value={`tab-${index}`} className="mt-8">
           {topic.subTopics.length > 0 ? (
             <div className="space-y-8 p-2">
-              <ul className="flex flex-wrap items-center justify-center gap-4">
+              <ul className="flex flex-wrap items-center justify-center  gap-4">
                 {topic.subTopics.map((subTopic, subIndex) => (
                   <li
                     key={subIndex}
-                    className={`p-3 rounded-xl transition-all duration-300 cursor-pointer border ${
+                    className={`p-3 rounded-xl min-h-min transition-all duration-300 cursor-pointer border ${
                       selectedSubTopic?.name === subTopic.name
                         ? "bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold border-transparent scale-105"
                         : "bg-gray-900/50 backdrop-blur-md border-[#B026FF]/30 text-white hover:bg-gray-800"
@@ -67,7 +67,7 @@ export default function ServicesTabs() {
                   <h3 className="text-xl md:text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
                     {selectedSubTopic.name}
                   </h3>
-                  <p className="text-gray-300">
+                  <p className="text-gray-300 font-body text-lg">
                     {selectedSubTopic.description}
                   </p>
                 </div>

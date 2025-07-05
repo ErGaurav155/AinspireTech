@@ -1,15 +1,15 @@
 "use server";
 
-import { AppointmentParams } from "@/types/types";
+import { MyAppointmentParams } from "@/types/types";
 import { connectToDatabase } from "../database/mongoose";
 import { handleError } from "../utils";
-import Appointment from "@/lib/database/models/Appointment.model";
+import MyAppointment from "../database/models/MyAppointment.model";
 
-export async function createAppointment(Appointmentdata: AppointmentParams) {
+export async function createAppointment(Appointmentdata: MyAppointmentParams) {
   try {
     await connectToDatabase();
 
-    const newTransaction = await Appointment.create({
+    const newTransaction = await MyAppointment.create({
       ...Appointmentdata,
     });
 
@@ -22,7 +22,7 @@ export async function getAllAppointments() {
   try {
     await connectToDatabase();
 
-    const appointments = await Appointment.find({});
+    const appointments = await MyAppointment.find({});
     const formattedAppointments = appointments.map((appointment) => {
       return {
         _id: appointment._id.toString(), // Ensure _id is converted to string

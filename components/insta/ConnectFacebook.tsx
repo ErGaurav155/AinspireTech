@@ -13,7 +13,7 @@ export default function FacebookIntegration() {
   // 1️⃣ Exchange user FB token for Page tokens
   async function exchangeToken() {
     const fbToken = await getToken({ template: "facebook" });
-    const res = await fetch("/api/facebook/login", {
+    const res = await fetch("/api/web/facebook/login", {
       method: "POST",
       body: JSON.stringify({ accessToken: fbToken }),
     });
@@ -24,7 +24,7 @@ export default function FacebookIntegration() {
   // 2️⃣ Select a page, fetch IG account ID
   async function selectPage(page: any) {
     setPageToken(page.access_token);
-    const res = await fetch("/api/facebook/instagram-account", {
+    const res = await fetch("/api/web/facebook/instagram-account", {
       method: "POST",
       body: JSON.stringify({
         pageAccessToken: page.access_token,
@@ -37,7 +37,7 @@ export default function FacebookIntegration() {
 
   // 3️⃣ Fetch comments for a media
   async function fetchComments(mediaId: string) {
-    const res = await fetch("/api/facebook/comments", {
+    const res = await fetch("/api/web/facebook/comments", {
       method: "POST",
       body: JSON.stringify({
         action: "fetch",
@@ -52,7 +52,7 @@ export default function FacebookIntegration() {
 
   // 4️⃣ Reply to a comment
   async function replyComment(commentId: string, message: string) {
-    await fetch("/api/facebook/comments", {
+    await fetch("/api/web/facebook/comments", {
       method: "POST",
       body: JSON.stringify({
         action: "reply",

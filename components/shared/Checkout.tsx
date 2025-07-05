@@ -129,7 +129,7 @@ export const Checkout = ({
     try {
       const fullPhoneNumber = `${countryCode}${data.MobileNumber}`;
 
-      const res = await fetch("/api/send-otp", {
+      const res = await fetch("/api/web/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fullPhoneNumber }),

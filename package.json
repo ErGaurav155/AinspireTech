@@ -74,6 +74,7 @@
     "react-hook-form": "^7.51.0",
     "react-just-parallax": "^3.1.16",
     "react-resizable-panels": "^3.0.3",
+    "recharts": "^2.12.7",
     "sonner": "^2.0.5",
     "svix": "^1.17.0",
     "tailwind-merge": "^2.2.1",

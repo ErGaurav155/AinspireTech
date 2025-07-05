@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import ReplyTemplate from "@/lib/database/models/replyTemp.model";
+import InstaReplyTemplate from "@/lib/database/models/replyTemp.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 
 export async function PUT(
@@ -12,7 +12,7 @@ export async function PUT(
     const body = await req.json();
     const { name, content, triggers, priority, isActive } = body;
 
-    const template = await ReplyTemplate.findByIdAndUpdate(
+    const template = await InstaReplyTemplate.findByIdAndUpdate(
       params.id,
       {
         name,
@@ -50,7 +50,7 @@ export async function DELETE(
   try {
     await connectToDatabase();
 
-    const template = await ReplyTemplate.findByIdAndDelete(params.id);
+    const template = await InstaReplyTemplate.findByIdAndDelete(params.id);
 
     if (!template) {
       return NextResponse.json(

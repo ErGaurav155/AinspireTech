@@ -9,7 +9,7 @@ const Faq = () => {
       <section className="py-16 px-4 sm:px-6 lg:px-8   ">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl font-bold text-[#a12368] mb-4">
               Frequently Asked Questions
             </h2>
           </div>
@@ -47,7 +47,7 @@ const Faq = () => {
                 className="bg-[#0a0a0a]/60 border border-[#333]"
               >
                 <CardContent className="p-6">
-                  <h3 className="font-semibold text-white mb-2">
+                  <h3 className="font-semibold text-[#258b94] mb-2">
                     {faq.question}
                   </h3>
                   <p className="text-gray-300 font-mono">{faq.answer}</p>
