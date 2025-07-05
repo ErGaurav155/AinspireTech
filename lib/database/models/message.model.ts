@@ -66,7 +66,6 @@ const MessageSchema = new Schema<IMessage>(
       type: Schema.Types.ObjectId,
       ref: "Conversation",
       required: true,
-      index: true,
     },
   },
   {

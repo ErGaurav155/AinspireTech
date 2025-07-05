@@ -26,7 +26,6 @@ const AppointmentSchema = new Schema<IAppointment>(
       type: Schema.Types.ObjectId,
       ref: "Chatbot",
       required: true,
-      index: true,
     },
     chatbotType: {
       type: String,
@@ -37,18 +36,15 @@ const AppointmentSchema = new Schema<IAppointment>(
         "lead-generation",
         "instagram-automation",
       ],
-      index: true,
     },
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     clerkId: {
       type: String,
       required: true,
-      index: true,
     },
     customerName: {
       type: String,
@@ -100,7 +96,6 @@ const AppointmentSchema = new Schema<IAppointment>(
       required: true,
       enum: ["scheduled", "confirmed", "cancelled", "completed"],
       default: "scheduled",
-      index: true,
     },
   },
   {

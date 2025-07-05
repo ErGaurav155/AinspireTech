@@ -134,7 +134,6 @@ const ConversationSchema = new Schema<IConversation>(
       type: Schema.Types.ObjectId,
       ref: "Chatbot",
       required: true,
-      index: true,
     },
     chatbotType: {
       type: String,
@@ -145,18 +144,15 @@ const ConversationSchema = new Schema<IConversation>(
         "lead-generation",
         "instagram-automation",
       ],
-      index: true,
     },
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     clerkId: {
       type: String,
       required: true,
-      index: true,
     },
     customerEmail: {
       type: String,
@@ -180,7 +176,6 @@ const ConversationSchema = new Schema<IConversation>(
       required: true,
       enum: ["active", "resolved", "pending"],
       default: "active",
-      index: true,
     },
     tags: [
       {

@@ -23,12 +23,10 @@ const SubscriptionSchema = new Schema<ISubscription>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     clerkId: {
       type: String,
       required: true,
-      index: true,
     },
     chatbotType: {
       type: String,
@@ -39,7 +37,6 @@ const SubscriptionSchema = new Schema<ISubscription>(
         "lead-generation",
         "instagram-automation",
       ],
-      index: true,
     },
     plan: {
       type: String,
@@ -51,14 +48,12 @@ const SubscriptionSchema = new Schema<ISubscription>(
       type: String,
       required: true,
       enum: ["monthly", "yearly"],
-      index: true,
     },
     status: {
       type: String,
       required: true,
       enum: ["active", "cancelled", "expired"],
       default: "active",
-      index: true,
     },
     expiresAt: {
       type: Date,

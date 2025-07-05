@@ -23,18 +23,15 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     clerkId: {
       type: String,
       required: true,
-      index: true,
     },
     chatbotId: {
       type: Schema.Types.ObjectId,
       ref: "Chatbot",
       required: true,
-      index: true,
     },
     chatbotType: {
       type: String,
@@ -45,7 +42,6 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
         "lead-generation",
         "instagram-automation",
       ],
-      index: true,
     },
     name: {
       type: String,
@@ -73,7 +69,6 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
     isActive: {
       type: Boolean,
       default: true,
-      index: true,
     },
   },
   {

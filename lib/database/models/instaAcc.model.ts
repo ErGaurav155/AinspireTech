@@ -22,7 +22,6 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
     userId: {
       type: String,
       required: true,
-      index: true,
     },
     instagramId: { type: String, unique: true, sparse: true },
     username: {

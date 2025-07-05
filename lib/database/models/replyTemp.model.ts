@@ -19,7 +19,6 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
       type: Schema.Types.ObjectId,
       ref: "InstagramAccount",
       required: true,
-      index: true,
     },
     name: {
       type: String,

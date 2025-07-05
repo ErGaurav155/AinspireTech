@@ -523,7 +523,7 @@ import {
   Cell,
 } from "recharts";
 import { useAuth, useClerk, useUser } from "@clerk/nextjs";
-import { apiClient } from "@/lib/action/user.actions";
+import { apiClient } from "@/lib/utils";
 
 // Chatbot types configuration
 const chatbotTypes = [

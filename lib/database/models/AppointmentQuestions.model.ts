@@ -67,12 +67,10 @@ const AppointmentQuestionsSchema = new Schema<IAppointmentQuestions>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     clerkId: {
       type: String,
       required: true,
-      index: true,
     },
     chatbotType: {
       type: String,
@@ -83,7 +81,6 @@ const AppointmentQuestionsSchema = new Schema<IAppointmentQuestions>(
         "lead-generation",
         "instagram-automation",
       ],
-      index: true,
     },
     questions: {
       type: [AppointmentQuestionSchema],

@@ -19,12 +19,10 @@ const WebsiteDataSchema = new Schema<IWebsiteData>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     clerkId: {
       type: String,
       required: true,
-      index: true,
     },
     chatbotType: {
       type: String,
@@ -35,7 +33,6 @@ const WebsiteDataSchema = new Schema<IWebsiteData>(
         "lead-generation",
         "instagram-automation",
       ],
-      index: true,
     },
     content: {
       type: String,

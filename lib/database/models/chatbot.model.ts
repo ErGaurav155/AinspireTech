@@ -99,12 +99,10 @@ const ChatbotSchema = new Schema<IChatbot>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     clerkId: {
       type: String,
       required: true,
-      index: true,
     },
     name: {
       type: String,
