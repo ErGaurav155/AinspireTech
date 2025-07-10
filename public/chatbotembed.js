@@ -731,7 +731,19 @@
     async loadAppointmentQuestions() {
       try {
         const response = await fetch(
-          `${this.config.apiUrl}/api/embed/webQuestion?chatbotType=${this.config.chatbotType}&userId=${this.config.userId}`
+          `${this.config.apiUrl}/api/embed/webQuestion?chatbotType=${this.config.chatbotType}&userId=${this.config.userId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Add API key if needed
+              // 'x-api-key': this.config.apiKey
+            },
+            body: JSON.stringify({
+              userId: `${this.config.userId}`,
+              chatbotType: `${this.config.chatbotType}`,
+            }),
+          }
         );
         const data = await response.json();
         this.appointmentQuestions = data.appointmentQuestions?.questions || [

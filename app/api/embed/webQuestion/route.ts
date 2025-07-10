@@ -4,9 +4,7 @@ import WebAppointmentQuestions from "@/lib/database/models/web/AppointmentQuesti
 
 export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const chatbotType = searchParams.get("chatbotType");
-    const userId = searchParams.get("userId");
+    const { chatbotType, userId } = await request.json();
 
     if (!chatbotType || !userId) {
       return NextResponse.json(

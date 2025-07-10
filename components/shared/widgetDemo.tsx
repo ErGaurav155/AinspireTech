@@ -53,10 +53,10 @@ export default function WidgetDemoPage() {
   (function() {
     const chatbotConfig = {
       userId: 'user_2zSxTB9PwSs67PGtuSzFw37CpNv',
-      isAuthorized:'true',
+      isAuthorized:true,
       filename: 'morningside.ai.json',
       chatbotType: 'chatbot-customer-support',
-      apiUrl: 'https://ainspiretech.com/',
+      apiUrl: 'https://ainspiretech.com',
       primaryColor: '${primaryColor}',
       position: '${position}',
       welcomeMessage: '${welcomeMessage}'
@@ -98,10 +98,10 @@ export default function WidgetDemoPage() {
       "data-chatbot-config",
       JSON.stringify({
         userId: "user_2zSxTB9PwSs67PGtuSzFw37CpNv",
-        isAuthorized: "true",
+        isAuthorized: true,
         filename: "morningside.ai.json",
         chatbotType: "chatbot-customer-support",
-        apiUrl: "https://ainspiretech.com/",
+        apiUrl: "https://ainspiretech.com",
         primaryColor: "bg-gray-800/50",
         position: "bottom-right",
         welcomeMessage: "HI,welcome my name is Bot",
