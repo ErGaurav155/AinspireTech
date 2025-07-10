@@ -6,7 +6,7 @@
   },
   "headers": [
     {
-      "source": "/api/embed/:path*",
+      "source": "/api/embed/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "POST" },

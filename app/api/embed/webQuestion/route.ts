@@ -12,7 +12,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    await connectToDatabase;
+    await connectToDatabase();
 
     const questions = await WebAppointmentQuestions.findOne({
       clerkId: userId,
