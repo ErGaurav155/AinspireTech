@@ -731,7 +731,7 @@
     async loadAppointmentQuestions() {
       try {
         const response = await fetch(
-          `${this.config.apiUrl}/api/embed/webQuestion?chatbotType=${this.config.chatbotType}&userId=${this.config.userId}`,
+          `${this.config.apiUrl}/api/embed/webQuestion`,
           {
             method: "POST",
             headers: {
