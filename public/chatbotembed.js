@@ -515,7 +515,7 @@
             </button>
           </div>
             ${
-              isAuthorized
+              this.config.isAuthorized
                 ? `
           <div class="chatbot-messages" id="chatbot-messages">
             <div class="chatbot-message bot">
