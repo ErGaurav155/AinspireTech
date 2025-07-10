@@ -49,7 +49,6 @@ export default function WidgetDemoPage() {
   const [copied, setCopied] = useState(false);
 
   const generateEmbedCode = () => {
-    const chatbotId = Math.random().toString(36).substr(2, 9);
     return `<script>
   (function() {
     const chatbotConfig = {
@@ -57,14 +56,14 @@ export default function WidgetDemoPage() {
       isAuthorized:'true',
       filename: 'morningside.ai.json',
       chatbotType: 'chatbot-customer-support',
-      apiUrl: 'http://localhost:3000',
+      apiUrl: 'https://ainspiretech.com/',
       primaryColor: '${primaryColor}',
       position: '${position}',
       welcomeMessage: '${welcomeMessage}'
     };
     
     const script = document.createElement('script');
-    script.src = 'http://localhost:3000/chatbot-embed.js';
+    script.src = 'https://ainspiretech.com/chatbotembed.js';
     script.setAttribute('data-chatbot-config', JSON.stringify(chatbotConfig));
     document.head.appendChild(script);
   })();
@@ -94,16 +93,18 @@ export default function WidgetDemoPage() {
 
     // Create new script with current config
     const script = document.createElement("script");
-    script.src = "/chatbotembed.js";
+    script.src = "https://ainspiretech.com/chatbotembed.js";
     script.setAttribute(
       "data-chatbot-config",
       JSON.stringify({
         userId: "user_2zSxTB9PwSs67PGtuSzFw37CpNv",
+        isAuthorized: "true",
         filename: "morningside.ai.json",
         chatbotType: "chatbot-customer-support",
-        apiUrl: "http://localhost:3000",
+        apiUrl: "https://ainspiretech.com/",
         primaryColor: "bg-gray-800/50",
         position: "bottom-right",
+        welcomeMessage: "HI,welcome my name is Bot",
       })
     );
     document.head.appendChild(script);
