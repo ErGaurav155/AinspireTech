@@ -18,7 +18,7 @@ export const testimonials = [
   {
     id: 7,
     name: "Sammy Lee",
-    title: "Marketing Director, TrendEdge Media",
+    title: "Marketing head, TrendEdge Media",
     text: "The chatbots AinspireTech AI developed for us have dramatically improved our customer engagement. Their GPT-based solutions feel so natural that customers often can't tell it's AI. Our client satisfaction rates have soared thanks to their innovation.",
     image: "/assets/Review/Rimg4.jpg",
   },
@@ -33,7 +33,7 @@ export const testimonials = [
   {
     id: 9,
     name: "Olivia Green",
-    title: "Product Manager, ShopSmart Online",
+    title: "Product Manager, ShopSmart",
     text: "The SEO optimization and marketing strategies implemented by AinspireTech AI have significantly increased our website traffic and conversion rates. Their team combines creativity with technical expertise, and it shows in the results. Working with them was an excellent decision.",
     image: "/assets/Review/Rimg6.jpg",
   },
@@ -47,7 +47,7 @@ export const testimonials = [
   {
     id: 11,
     name: "Priya Kapoor",
-    title: " Marketing Director, BrandEcho",
+    title: "Marketing Head, BrandEcho",
     text: "From AI-driven marketing chatbots to workflow automation, AinspireTech ai has been a key partner in our digital transformation journey. The solutions they provided are not only innovative but also seamlessly integrate into our existing systems.",
 
     image: "/assets/Review/Rimg9.jpg",
@@ -55,7 +55,7 @@ export const testimonials = [
   {
     id: 12,
     name: "James Peterson",
-    title: " Operations Manager, LogisticsPro",
+    title: "Operations Manager, LogisticsPro",
     text: "The autonomous agents developed by AinspireTech have streamlined our logistics processes dramatically. Their ability to adapt to real-time changes and optimize operations has saved us countless hours and resources.",
     image: "/assets/Review/Rimg10.jpg",
   },
@@ -78,7 +78,7 @@ export const testimonials = [
   {
     id: 15,
     name: "Emily Turner",
-    title: "Product Manager, GreenTech Innovations",
+    title: "Product Manager, GreenTech",
     text: "The AI solutions provided by AinspireTech are intuitive, reliable, and innovative. Their team’s ability to translate our requirements into actionable AI systems was truly impressive.",
 
     image: "/assets/Review/Rimg12.jpg",
@@ -717,4 +717,53 @@ export const countryCodes = [
   { code: "+377", country: "🇲🇨 Monaco" },
   { code: "+378", country: "🇸🇲 San Marino" },
   { code: "+379", country: "🇻🇦 Vatican City" },
+];
+function getFutureDate(days: number): Date {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date;
+}
+
+export const dummySubscriptions = [
+  {
+    clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
+    chatbotType: "chatbot-customer-support",
+    plan: "Premium Support",
+    billingCycle: "monthly",
+    status: "active",
+    expiresAt: getFutureDate(30), // 1 month from now
+  },
+  {
+    clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
+    chatbotType: "chatbot-e-commerce",
+    plan: "Business Plus",
+    billingCycle: "yearly",
+    status: "active",
+    expiresAt: getFutureDate(365), // 1 year from now
+  },
+  {
+    clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
+    chatbotType: "chatbot-lead-generation",
+    plan: "Starter",
+    billingCycle: "monthly",
+    status: "cancelled",
+    expiresAt: getFutureDate(15),
+    cancelledAt: new Date(),
+  },
+  {
+    clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
+    chatbotType: "chatbot-education",
+    plan: "Pro",
+    billingCycle: "monthly",
+    status: "expired",
+    expiresAt: getFutureDate(-7), // Expired 7 days ago
+  },
+  {
+    clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
+    chatbotType: "chatbot-customer-support",
+    plan: "Basic",
+    billingCycle: "monthly",
+    status: "active",
+    expiresAt: getFutureDate(45),
+  },
 ];

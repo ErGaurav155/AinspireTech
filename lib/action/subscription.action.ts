@@ -1,9 +1,11 @@
 "use server";
 
-import Subscription from "@/lib/database/models/subscription.model";
+import Subscription from "@/lib/database/models/insta/InstaSubscription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { handleError } from "../utils";
 import Razorpay from "razorpay";
+import InstaSubscription from "@/lib/database/models/insta/InstaSubscription.model";
+import WebSubscription from "../database/models/web/Websubcription.model";
 if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
   throw new Error("Razorpay credentials are not set in .env");
 }
@@ -23,7 +25,7 @@ function addYears(date: Date, years: number): Date {
   newDate.setFullYear(newDate.getFullYear() + years);
   return newDate;
 }
-export async function createRazerPaySubscription(
+export async function createWebRazerPaySubscription(
   buyerId: string,
   productId: string,
   subscriptionId: string,
@@ -39,7 +41,7 @@ export async function createRazerPaySubscription(
     } else {
       throw new Error("Invalid billing cycle.");
     }
-    const newSubscription = await Subscription.create({
+    const newSubscription = await WebSubscription.create({
       userId: buyerId,
       productId,
       subscriptionId,
@@ -57,13 +59,50 @@ export async function createRazerPaySubscription(
     handleError(error);
   }
 }
+export async function createInstaRazerPaySubscription(
+  buyerId: string,
+  productId: string,
+  subscriptionId: string,
+  billingCycle: string
+) {
+  try {
+    await connectToDatabase();
+    let endDate = new Date();
+    if (billingCycle === "monthly") {
+      endDate = addMonths(endDate, 1);
+    } else if (billingCycle === "yearly") {
+      endDate = addYears(endDate, 1);
+    } else {
+      throw new Error("Invalid billing cycle.");
+    }
+    const newSubscription = await InstaSubscription.create({
+      userId: buyerId,
+      productId,
+      subscriptionId,
+      billingMode: billingCycle,
+      subscriptionStatus: "active",
+      mode: "RazorPay",
+      subscriptionEndDate: endDate,
+    });
+    if (!newSubscription) {
+      throw new Error("Failed to create subscription.");
+    }
 
-export const getSubscription = async (selectedSubscriptionId: string) => {
+    return JSON.parse(JSON.stringify(newSubscription));
+  } catch (error) {
+    handleError(error);
+  }
+}
+export const getSubscription = async (
+  chatbotId: string,
+  selectedSubscriptionId: string
+) => {
   try {
     await connectToDatabase(); // Ensure database connection
 
     // Filter subscriptions by userId and subscriptionStatus
-    const subscriptions = await Subscription.findOne({
+    const subscriptions = await WebSubscription.find({
+      chatbotId: chatbotId,
       subscriptionId: selectedSubscriptionId,
     });
 
@@ -109,7 +148,7 @@ export const getInstaSubscriptionInfo = async (userId: string) => {
   try {
     await connectToDatabase(); // Ensure database connection
 
-    const subscriptions = await Subscription.find({
+    const subscriptions = await InstaSubscription.find({
       userId,
       productId: {
         $in: [

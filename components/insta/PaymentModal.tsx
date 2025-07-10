@@ -19,25 +19,12 @@ import { CreditCard, MapPin, Globe } from "lucide-react";
 import { PricingPlan } from "@/types/types";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { createRazerPaySubscription } from "@/lib/action/subscription.action";
 
 import React from "react";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
-import OTPVerification from "../shared/OTPVerification";
-import { countryCodes } from "@/constant";
 import Script from "next/script";
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { toast } from "../ui/use-toast";
-import AddAccount from "./AddAccount";
-import { InstagramConnectDialog } from "./InstagramConnect";
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -135,14 +122,20 @@ export default function PaymentModal({
               duration: 3000,
               className: "success-toast",
             });
-            await onSuccess(plan.id);
-            await createRazerPaySubscription(
-              buyerId,
-              plan.id,
-              subscriptionCreate.subsId,
-              billingCycle
-            );
 
+            await fetch("/api/insta/subscription/create", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                chatbotType: plan.id,
+                plan: razorpayplanId.current,
+                subscriptionId: subscriptionCreate.subsId,
+                billingCycle: billingCycle,
+              }),
+            });
+            await onSuccess(plan.id);
             router.push("/insta/dashboard");
           } else {
             toast({
@@ -338,15 +331,15 @@ export default function PaymentModal({
           </div>
         </DialogContent>
       </Dialog>
-      {feedInfo && (
-        // <AddAccount
-        //   onVerified={() => {
-        //     setFeedInfo(false);
-        //     onClose();
-        //     handleRazorpayPayment();
-        //   }}
-        //   buyerId={buyerId}
-        // />
+      {/* {feedInfo && (
+        <AddAccount
+          onVerified={() => {
+            setFeedInfo(false);
+            onClose();
+            handleRazorpayPayment();
+          }}
+          buyerId={buyerId}
+        />
         <InstagramConnectDialog
           buyerId={buyerId}
           onVerified={() => {
@@ -354,7 +347,7 @@ export default function PaymentModal({
             handleRazorpayPayment();
           }}
         />
-      )}
+      )} */}
       <div>
         <Script
           id="razorpay-checkout-js"

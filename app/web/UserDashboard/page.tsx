@@ -1,449 +1,3 @@
-// "use client";
-
-// import { useEffect, useState } from "react";
-// import EmbedCode from "@/components/shared/EmbedCode";
-// import {
-//   cancelRazorPaySubscription,
-//   getSubscription,
-//   getSubscriptionInfo,
-// } from "@/lib/action/subscription.action";
-// import { useAuth } from "@clerk/nextjs";
-// import { getUserById } from "@/lib/action/user.actions";
-// import { useRouter } from "next/navigation";
-// import Link from "next/link";
-// import { LockClosedIcon } from "@heroicons/react/24/outline";
-// import { XMarkIcon } from "@heroicons/react/24/solid";
-// import { toast } from "@/components/ui/use-toast";
-// import { z } from "zod";
-// import { useForm } from "react-hook-form";
-// import { zodResolver } from "@hookform/resolvers/zod";
-// import {
-//   AlertDialog,
-//   AlertDialogCancel,
-//   AlertDialogContent,
-//   AlertDialogDescription,
-//   AlertDialogHeader,
-//   AlertDialogTitle,
-// } from "@/components/ui/alert-dialog";
-// import { Input } from "@/components/ui/input";
-// import { countryCodes } from "@/constant";
-// import OTPVerification from "@/components/shared/OTPVerification";
-// import { Footer } from "@/components/shared/Footer";
-// import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
-
-// interface Subscription {
-//   productId: string;
-//   userId: string;
-//   subscriptionId: string;
-//   subscriptionStatus: string;
-// }
-// const phoneFormSchema = z.object({
-//   MobileNumber: z
-//     .string()
-//     .min(10, "MOBILE number is required")
-//     .regex(/^\d+$/, "invalid number"),
-// });
-// type PhoneFormData = z.infer<typeof phoneFormSchema>;
-
-// const agentIds = [
-//   "chatbot-customer-support",
-//   "chatbot-e-commerce",
-//   "chatbot-lead-generation",
-//   "chatbot-education",
-// ];
-
-// export default function Dashboard() {
-//   const router = useRouter();
-
-//   const [subscriptions, setSubscriptions] = useState<Subscription[]>([
-//     {
-//       productId: "",
-//       userId: "",
-//       subscriptionId: "",
-//       subscriptionStatus: "",
-//     },
-//   ]);
-//   const [userPhone, setUserPhone] = useState<string | null>(null);
-//   const [isOtpSubmitting, setIsOtpSubmitting] = useState(false);
-//   const [isSubmitting, setIsSubmitting] = useState(false);
-//   const [isImmediateSubmitting, setIsImmediateSubmitting] = useState(false);
-
-//   const [phone, setPhone] = useState("");
-//   const [buyer, setBuyer] = useState("");
-//   const [mode, setMode] = useState<"Immediate" | "End-of-term">("End-of-term");
-
-//   const [countryCode, setCountryCode] = useState("+1");
-//   const [step, setStep] = useState<"phone" | "otp" | "payment">("payment");
-//   const [loading, setLoading] = useState(true);
-//   const { userId } = useAuth();
-
-//   const [open, setOpen] = useState(false);
-//   const [selectedSubscriptionId, setSelectedSubscriptionId] = useState<
-//     string | null
-//   >("");
-//   const {
-//     handleSubmit: handlePhoneSubmit,
-//     register: registerPhone,
-//     formState: { errors: phoneErrors },
-//   } = useForm<PhoneFormData>({
-//     resolver: zodResolver(phoneFormSchema),
-//   });
-//   const handlePhoneSubmission = async (data: PhoneFormData) => {
-//     setIsOtpSubmitting(true);
-//     try {
-//       const fullPhoneNumber = `${countryCode}${data.MobileNumber}`;
-
-//       const res = await fetch("/api/send-otp", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ fullPhoneNumber }),
-//       });
-//       if (res.ok) {
-//         setPhone(fullPhoneNumber);
-//         setStep("otp");
-//       } else {
-//         console.error("Failed to send OTP:", res.statusText);
-//       }
-//     } catch (error) {
-//       console.error("Error sending OTP:", error);
-//     } finally {
-//       setIsOtpSubmitting(false);
-//     }
-//   };
-//   const handleOTPVerified = () => {
-//     setStep("payment");
-//   };
-//   useEffect(() => {
-//     async function fetchSubscriptions() {
-//       if (!userId) {
-//         router.push("/sign-in");
-//         return;
-//       }
-
-//       try {
-//         const user = await getUserById(userId);
-//         setBuyer(user._id);
-//         setUserPhone(user.phone);
-//         const response = await getSubscriptionInfo(user._id);
-
-//         setSubscriptions(
-//           response.map((sub: any) => ({
-//             productId: sub.productId,
-//             userId: sub.userId,
-//             subscriptionId: sub.subscriptionId,
-//             subscriptionStatus: sub.subscriptionStatus,
-//           })) || []
-//         );
-//       } catch (error: any) {
-//         console.error("Error fetching subscriptions:", error.message);
-//       } finally {
-//         setLoading(false);
-//       }
-//     }
-
-//     fetchSubscriptions();
-//   }, [userId, router]);
-
-//   const handleCancelSubscription = async (
-//     event: React.FormEvent<HTMLFormElement>
-//   ) => {
-//     event.preventDefault();
-
-//     if (!selectedSubscriptionId) return;
-
-//     const formData = new FormData(event.currentTarget);
-//     const reason = formData.get("reason") as string;
-
-//     try {
-//       if (mode === "Immediate") {
-//         setIsSubmitting(true);
-//       } else {
-//         setIsImmediateSubmitting(true);
-//       }
-//       const getSub = await getSubscription(selectedSubscriptionId);
-//       if (!getSub) {
-//         router.push("/");
-//         return;
-//       }
-
-//       const result = await cancelRazorPaySubscription(
-//         selectedSubscriptionId,
-//         reason,
-//         mode
-//       );
-
-//       if (result.success) {
-//         toast({
-//           title: "Subscription cancelled successfully!",
-//           description: result.message,
-//           duration: 3000,
-//           className: "success-toast",
-//         });
-//         router.refresh();
-//         setOpen(false);
-//       } else {
-//         toast({
-//           title: "Subscription cancelled Failed!",
-//           description: result.message,
-//           duration: 3000,
-//           className: "error-toast",
-//         });
-//       }
-//     } catch (error) {
-//       console.error("Error cancelling subscription:", error);
-//     } finally {
-//       setIsSubmitting(false);
-//       setIsImmediateSubmitting(false);
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="flex items-center justify-center text-white font-bold text-xl relative  bg-[#0a0a0a]/60 backdrop-blur-sm w-screen h-screen">
-//         Loading...
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className=" flex flex-col items-center justify-center min-h-screen ">
-//       <BreadcrumbsDefault />
-
-//       <div className=" w-full max-w-6xl px-4 py-8 relative  z-10  bg-[#0a0a0a]/60 backdrop-blur-sm">
-//         <h1 className="text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
-//           Your Subscriptions
-//         </h1>
-//         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-//           {agentIds.map((agentId) => {
-//             const subscription = subscriptions.find(
-//               (sub) => sub.productId === agentId
-//             );
-//             const isSubscribed = subscription?.subscriptionStatus === "active";
-
-//             return (
-//               <div
-//                 key={agentId}
-//                 className="flex flex-col w-full min-h-max gap-4 bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-6 transition-all duration-300 hover:border-[#B026FF]/50"
-//               >
-//                 <Link
-//                   href={`/product/${agentId}`}
-//                   className={`p-4 w-full rounded-lg text-center transition-all ${
-//                     isSubscribed
-//                       ? "bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]"
-//                       : "bg-gray-800"
-//                   }`}
-//                 >
-//                   <h2 className="text-xl font-bold text-white">
-//                     {agentId.replace(/-/g, " ").toUpperCase()}
-//                   </h2>
-//                 </Link>
-//                 {isSubscribed ? (
-//                   <div className="mt-4 space-y-4">
-//                     {agentId === "ai-agent-education" ||
-//                     agentId === "ai-agent-customer-support" ||
-//                     agentId === "ai-agent-lead-generation" ||
-//                     agentId === "ai-agent-e-commerce" ? (
-//                       <div className="flex flex-col items-center justify-between gap-4 w-full">
-//                         <div className="flex flex-col w-full bg-gray-800/50 gap-2 p-4 rounded-lg">
-//                           <label className="text-sm font-medium text-gray-300">
-//                             Add this number in your mobile call forwarding
-//                             options (Busy/Unanswered/Unreachable):
-//                           </label>
-//                           <span className="text-lg font-bold text-[#00F0FF]">
-//                             {process.env.NEXT_PUBLIC_TWILIO_NUMBER}
-//                           </span>
-//                         </div>
-//                         <div className="flex flex-row items-center justify-between w-full bg-gray-800/50 p-4 rounded-lg">
-//                           <label className="text-sm lg:text-base font-medium text-gray-300">
-//                             Linked Number:
-//                           </label>
-//                           <span className="text-base font-bold text-[#00F0FF]">
-//                             {userPhone}
-//                           </span>
-//                         </div>
-//                       </div>
-//                     ) : (
-//                       <EmbedCode
-//                         userId={subscription?.userId || ""}
-//                         agentId={agentId}
-//                       />
-//                     )}
-//                     <div className="flex items-center justify-center gap-3 w-full">
-//                       <button
-//                         onClick={() => setStep("phone")}
-//                         className={`flex-1 ${
-//                           agentId === "ai-agent-education" ||
-//                           agentId === "ai-agent-customer-support" ||
-//                           agentId === "ai-agent-lead-generation" ||
-//                           agentId === "ai-agent-e-commerce"
-//                             ? "block"
-//                             : "hidden"
-//                         } bg-gradient-to-r from-[#00F0FF]/80 to-[#00F0FF] text-black font-medium py-2 px-4 rounded-md transition duration-300 hover:opacity-90`}
-//                       >
-//                         Change Number
-//                       </button>
-//                       <button
-//                         onClick={() => {
-//                           setSelectedSubscriptionId(
-//                             subscription.subscriptionId
-//                           );
-//                           setOpen(true);
-//                         }}
-//                         className="flex-1 bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F] text-black font-medium py-2 px-4 rounded-md transition duration-300 hover:opacity-90"
-//                       >
-//                         Cancel Subscription
-//                       </button>
-//                     </div>
-//                   </div>
-//                 ) : (
-//                   <div className="mt-4 w-auto flex gap-2 items-center justify-center">
-//                     <Link
-//                       href={`/product/${agentId}`}
-//                       className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-//                     >
-//                       <LockClosedIcon className="h-6 w-6" />
-//                       <span className="font-medium">Locked</span>
-//                     </Link>
-//                   </div>
-//                 )}
-//               </div>
-//             );
-//           })}
-//         </div>
-
-//         {open && (
-//           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-//             <div className="bg-gray-900/80 backdrop-blur-lg border border-[#B026FF]/30 p-8 rounded-xl max-w-md w-full">
-//               <div className="flex items-center justify-between mb-6">
-//                 <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]">
-//                   Cancel Subscription
-//                 </h2>
-//                 <XMarkIcon
-//                   onClick={() => setOpen(false)}
-//                   className="text-gray-400 size-6 cursor-pointer hover:text-white"
-//                 />
-//               </div>
-//               <form onSubmit={handleCancelSubscription} className="space-y-6">
-//                 <label className="block text-lg font-semibold text-gray-200">
-//                   Please Provide Reason
-//                 </label>
-//                 <textarea
-//                   name="reason"
-//                   className="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-[#B026FF]"
-//                   placeholder="Cancellation reason"
-//                   required
-//                 />
-//                 <div className="flex justify-center gap-4">
-//                   <button
-//                     type="submit"
-//                     onClick={() => setMode("Immediate")}
-//                     className="px-6 py-2 bg-gradient-to-r from-[#FF2E9F] to-[#B026FF] text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
-//                   >
-//                     {isSubmitting ? "Cancelling..." : "Immediate"}
-//                   </button>
-//                   <button
-//                     type="submit"
-//                     onClick={() => setMode("End-of-term")}
-//                     className="px-6 py-2 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
-//                   >
-//                     {isImmediateSubmitting ? "Cancelling..." : "End-of-term"}
-//                   </button>
-//                 </div>
-//               </form>
-//             </div>
-//           </div>
-//         )}
-//         {step === "phone" && (
-//           <AlertDialog defaultOpen>
-//             <AlertDialogContent className="bg-gray-900/80 backdrop-blur-lg border border-[#00F0FF]/30 rounded-xl max-w-md">
-//               <AlertDialogHeader>
-//                 <AlertDialogTitle className="sr-only">
-//                   Enter Your Phone Number
-//                 </AlertDialogTitle>
-//                 <div className="flex justify-between items-center">
-//                   <p className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-//                     ENTER YOUR NEW MOBILE NUMBER
-//                   </p>
-//                   <AlertDialogCancel
-//                     onClick={() => {
-//                       setStep("payment");
-//                       router.push(`/UserDashboard`);
-//                     }}
-//                     className="border-0 p-0 hover:bg-transparent text-gray-400 hover:text-white"
-//                   >
-//                     <XMarkIcon className="size-6 cursor-pointer" />
-//                   </AlertDialogCancel>
-//                 </div>
-//               </AlertDialogHeader>
-//               <form
-//                 onSubmit={handlePhoneSubmit(handlePhoneSubmission)}
-//                 className="space-y-6 mt-4"
-//               >
-//                 <div className="w-full">
-//                   <label
-//                     htmlFor="MobileNumber"
-//                     className="block text-lg font-semibold text-gray-200 mb-2"
-//                   >
-//                     Enter Your New Phone Number
-//                   </label>
-//                   <div className="flex items-center justify-start bg-gray-800/50 border border-gray-700 rounded-lg p-2 mt-2 w-full">
-//                     <select
-//                       value={countryCode}
-//                       onChange={(e) => setCountryCode(e.target.value)}
-//                       className="bg-transparent text-white border-none focus:outline-none p-2"
-//                     >
-//                       {countryCodes.map((countryCode, index) => (
-//                         <option
-//                           key={index}
-//                           className="bg-gray-800 text-white"
-//                           value={countryCode.code}
-//                         >
-//                           {countryCode.code}
-//                         </option>
-//                       ))}
-//                     </select>
-//                     <input
-//                       id="MobileNumber"
-//                       type="text"
-//                       {...registerPhone("MobileNumber")}
-//                       className="bg-transparent text-white border-none focus:outline-none w-full p-2"
-//                       placeholder="Phone number"
-//                     />
-//                   </div>
-//                   {phoneErrors.MobileNumber && (
-//                     <p className="text-red-400 text-sm mt-1">
-//                       {phoneErrors.MobileNumber.message}
-//                     </p>
-//                   )}
-//                 </div>
-//                 <div className="flex justify-center">
-//                   <button
-//                     type="submit"
-//                     className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium py-2 px-8 rounded-lg transition duration-300 hover:opacity-90"
-//                     disabled={isOtpSubmitting}
-//                   >
-//                     {isOtpSubmitting ? "Sending OTP..." : "Send OTP"}
-//                   </button>
-//                 </div>
-//               </form>
-
-//               <AlertDialogDescription className="text-center text-green-400 mt-4 font-medium">
-//                 IT WILL HELP US PROVIDE BETTER SERVICES
-//               </AlertDialogDescription>
-//             </AlertDialogContent>
-//           </AlertDialog>
-//         )}
-//         {step === "otp" && (
-//           <OTPVerification
-//             phone={phone}
-//             onVerified={handleOTPVerified}
-//             buyerId={buyer}
-//           />
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -469,6 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
 import {
   Bot,
   MessageCircle,
@@ -524,11 +79,17 @@ import {
 } from "recharts";
 import { useAuth, useClerk, useUser } from "@clerk/nextjs";
 import { apiClient } from "@/lib/utils";
+import { toast } from "@/components/ui/use-toast";
+import {
+  cancelRazorPaySubscription,
+  getSubscription,
+} from "@/lib/action/subscription.action";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 
 // Chatbot types configuration
 const chatbotTypes = [
   {
-    id: "customer-support",
+    id: "chatbot-customer-support",
     name: "Customer Support",
     icon: MessageCircle,
     description: "24/7 automated customer service",
@@ -543,7 +104,7 @@ const chatbotTypes = [
     ],
   },
   {
-    id: "e-commerce",
+    id: "chatbot-e-commerce",
     name: "E-Commerce",
     icon: ShoppingCart,
     description: "Boost sales with AI shopping assistant",
@@ -558,7 +119,7 @@ const chatbotTypes = [
     ],
   },
   {
-    id: "lead-generation",
+    id: "chatbot-lead-generation",
     name: "Lead Generation",
     icon: Target,
     description: "Convert visitors into qualified leads",
@@ -573,8 +134,8 @@ const chatbotTypes = [
     ],
   },
   {
-    id: "instagram-automation",
-    name: "Instagram Automation",
+    id: "chatbot-education",
+    name: "Chatbot Education",
     icon: Instagram,
     description: "Automate Instagram engagement",
     category: "Social Media",
@@ -594,7 +155,9 @@ export default function DashboardPage() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   // const [user, setUser] = useState<any>(null);
-  const [selectedChatbot, setSelectedChatbot] = useState("customer-support");
+  const [selectedChatbot, setSelectedChatbot] = useState(
+    "chatbot-customer-support"
+  );
   const [chatbotCode, setChatbotCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [subscriptions, setSubscriptions] = useState<any>({});
@@ -639,13 +202,23 @@ export default function DashboardPage() {
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showCancelSubDialog, setShowCancelSubDialog] = useState(false);
+  const [cancelSub, setCancelSub] = useState(false);
+  const [selectedChatbotId, setSelectedChatbotId] = useState("");
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isImmediateSubmitting, setIsImmediateSubmitting] = useState(false);
+
+  const [mode, setMode] = useState<"Immediate" | "End-of-term">("End-of-term");
+
   const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
 
       // Load subscriptions
       const subscriptionsData = await apiClient.getSubscriptions();
-      const subscriptionsMap = subscriptionsData.subscriptions.reduce(
+
+      const subscriptionsMap = subscriptionsData.reduce(
         (acc: any, sub: any) => {
           acc[sub.chatbotType] = sub;
           return acc;
@@ -717,24 +290,97 @@ export default function DashboardPage() {
     signOut(() => router.push("/"));
   };
 
-  const handleSubscribe = async (chatbotId: string) => {
+  // const handleCancelSubscription = async (chatbotId: string) => {
+  //   try {
+  //     await apiClient.cancelSubscription(chatbotId);
+  //     await loadDashboardData(); // Reload data
+  //   } catch (err: any) {
+  //     setError(err.message || "Failed to cancel subscription");
+  //   }
+  // };
+  const handleCancelSubscription = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    const subcriptionId = subscriptions[selectedChatbotId]?.subcriptionId;
+    const formData = new FormData(event.currentTarget);
+    const reason = formData.get("reason") as string;
+
     try {
-      await apiClient.createSubscription(chatbotId, "growth", "monthly");
-      await loadDashboardData(); // Reload data
-    } catch (err: any) {
-      setError(err.message || "Failed to create subscription");
+      if (mode === "Immediate") {
+        setIsSubmitting(true);
+      } else {
+        setIsImmediateSubmitting(true);
+      }
+      const getSub = await getSubscription(selectedChatbotId, subcriptionId);
+      if (!getSub) {
+        router.push("/");
+        return;
+      }
+      const response = await fetch("/api/web/subscription/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscriptionId: subcriptionId,
+          reason: reason,
+          mode: mode,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Subscription cancelled successfully!",
+          description: result.message,
+          duration: 3000,
+          className: "success-toast",
+        });
+        router.refresh();
+      } else {
+        toast({
+          title: "Subscription cancelled Failed!",
+          description: result.message,
+          duration: 3000,
+          className: "error-toast",
+        });
+      }
+    } catch (error) {
+      console.error("Error cancelling subscription:", error);
+    } finally {
+      setIsSubmitting(false);
+      setIsImmediateSubmitting(false);
     }
   };
 
-  const handleCancelSubscription = async (chatbotId: string) => {
-    try {
-      await apiClient.cancelSubscription(chatbotId);
-      await loadDashboardData(); // Reload data
-    } catch (err: any) {
-      setError(err.message || "Failed to cancel subscription");
-    }
-  };
+  // const handleCancelSubscription = async (chatbotId: string) => {
+  //   setCancelSub(true);
+  //   try {
+  //     // In a real app, you would call your API endpoint here
+  //     const response = await apiClient.cancelSubscription(chatbotId);
 
+  //     if (!response.ok) {
+  //       throw new Error("Failed to delete account");
+  //     }
+
+  //     toast({
+  //       title: "Subcription Cancelled successfully!",
+  //       duration: 3000,
+  //       className: "success-toast",
+  //     });
+  //     await loadDashboardData(); // Reload data
+  //   } catch (error: any) {
+  //     setError(error.message || "Failed to cancel subscription");
+  //     toast({
+  //       title: "Subcription cancelling Failed!",
+  //       duration: 3000,
+  //       className: "error-toast",
+  //     });
+  //   } finally {
+  //     setCancelSub(false);
+  //     setShowCancelSubDialog(false);
+  //   }
+  // };
   const saveWebsiteData = async () => {
     try {
       await apiClient.saveWebsiteData(selectedChatbot, websiteData);
@@ -780,7 +426,7 @@ export default function DashboardPage() {
 
   if (!isLoaded || loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-transparent text-white flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-[#00F0FF] mx-auto mb-4" />
           <p className="text-gray-400">Loading dashboard...</p>
@@ -799,7 +445,7 @@ export default function DashboardPage() {
 
     const overview = analytics.overview;
     const baseStats = {
-      "customer-support": [
+      "chatbot-customer-support": [
         {
           title: "Support Tickets",
           value: overview.totalConversations?.toString() || "0",
@@ -829,7 +475,7 @@ export default function DashboardPage() {
           change: "+2%",
         },
       ],
-      "e-commerce": [
+      "chatbot-e-commerce": [
         {
           title: "Product Inquiries",
           value: overview.productInquiries?.toString() || "0",
@@ -859,7 +505,7 @@ export default function DashboardPage() {
           change: "+3%",
         },
       ],
-      "lead-generation": [
+      "chatbot-lead-generation": [
         {
           title: "Leads Generated",
           value: overview.leadsGenerated?.toString() || "0",
@@ -889,7 +535,7 @@ export default function DashboardPage() {
           change: "+7%",
         },
       ],
-      "instagram-automation": [
+      "chatbot-education": [
         {
           title: "Comments Replied",
           value: overview.commentsReplied?.toString() || "0",
@@ -923,7 +569,7 @@ export default function DashboardPage() {
 
     return (
       baseStats[chatbotId as keyof typeof baseStats] ||
-      baseStats["customer-support"]
+      baseStats["chatbot-customer-support"]
     );
   };
   return (
@@ -995,7 +641,7 @@ export default function DashboardPage() {
                         className={`w-full bg-gradient-to-r ${chatbot.gradient} hover:opacity-90 text-black font-medium`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleSubscribe(chatbot.id);
+                          router.push(`/web/pricing?id=${chatbot.id}`);
                         }}
                       >
                         Subscribe Now
@@ -1004,9 +650,10 @@ export default function DashboardPage() {
                     {hasSubscription && (
                       <Button
                         variant="outline"
-                        onClick={() =>
-                          handleCancelSubscription(selectedChatbot)
-                        }
+                        onClick={(e) => {
+                          setShowCancelSubDialog(true),
+                            setSelectedChatbotId(chatbot.id);
+                        }}
                         className={`border-red-500/50 text-red-400  w-full bg-gradient-to-r hover:bg-red-500/10 from-[#7d3c3c]/50 to-[#921642]/20 hover:opacity-90  font-medium`}
                       >
                         <X className="h-4 w-4 mr-2" />
@@ -1104,13 +751,21 @@ export default function DashboardPage() {
                               strokeDasharray="3 3"
                               stroke="#374151"
                             />
-                            <XAxis dataKey="name" stroke="#9CA3AF" />
-                            <YAxis stroke="#9CA3AF" />
+                            <XAxis
+                              dataKey="name"
+                              stroke="#9CA3AF"
+                              tick={{ fill: "#9CA3AF" }}
+                            />
+                            <YAxis
+                              stroke="#9CA3AF"
+                              tick={{ fill: "#9CA3AF" }}
+                            />
                             <Tooltip
                               contentStyle={{
                                 backgroundColor: "#1F2937",
                                 border: "1px solid #374151",
                                 borderRadius: "8px",
+                                color: "#F3F4F6",
                               }}
                             />
                             <Line
@@ -1118,12 +773,14 @@ export default function DashboardPage() {
                               dataKey="conversations"
                               stroke="#00F0FF"
                               strokeWidth={2}
+                              activeDot={{ r: 6 }}
                             />
                             <Line
                               type="monotone"
                               dataKey="responses"
                               stroke="#FF2E9F"
                               strokeWidth={2}
+                              activeDot={{ r: 6 }}
                             />
                           </LineChart>
                         </ResponsiveContainer>
@@ -1150,16 +807,28 @@ export default function DashboardPage() {
                               strokeDasharray="3 3"
                               stroke="#374151"
                             />
-                            <XAxis dataKey="time" stroke="#9CA3AF" />
-                            <YAxis stroke="#9CA3AF" />
+                            <XAxis
+                              dataKey="time"
+                              stroke="#9CA3AF"
+                              tick={{ fill: "#9CA3AF" }}
+                            />
+                            <YAxis
+                              stroke="#9CA3AF"
+                              tick={{ fill: "#9CA3AF" }}
+                            />
                             <Tooltip
                               contentStyle={{
                                 backgroundColor: "#1F2937",
                                 border: "1px solid #374151",
                                 borderRadius: "8px",
+                                color: "#F3F4F6", // Better text visibility
                               }}
                             />
-                            <Bar dataKey="count" fill="#B026FF" />
+                            <Bar
+                              dataKey="count"
+                              fill="#B026FF"
+                              radius={[4, 4, 0, 0]} // Rounded top corners
+                            />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -1177,15 +846,20 @@ export default function DashboardPage() {
                         {currentChatbot?.name.toLowerCase()} users
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="p-2">
-                      <div className="h-64 overflow-x-auto">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
+                    <CardContent className="">
+                      <div className="h-64   overflow-x-auto">
+                        <ResponsiveContainer
+                          className={` `}
+                          width={500}
+                          height="100%"
+                        >
+                          <PieChart className="">
                             <Pie
+                              className=" "
                               data={analytics.satisfaction}
                               cx="50%"
                               cy="50%"
-                              outerRadius={80}
+                              outerRadius={100}
                               dataKey="value"
                               label={({ name, value }) => `${name}: ${value}%`}
                             >
@@ -1217,43 +891,45 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent className="p-2">
                       <div className="space-y-4">
-                        {conversations.slice(0, 4).map((conversation) => (
-                          <div
-                            key={conversation.id}
-                            className="flex items-start space-x-3 p-3 rounded-lg bg-[#5d1a6d]/10 hover:bg-[#5a1e92]/15 transition-colors"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <p className="text-sm font-medium text-white">
-                                  {conversation.customerName || "Anonymous"}
+                        {conversations
+                          .slice(0, 4)
+                          .map((conversation, index) => (
+                            <div
+                              key={conversation.id ? conversation.id : index}
+                              className="flex items-start space-x-3 p-3 rounded-lg bg-[#5d1a6d]/10 hover:bg-[#5a1e92]/15 transition-colors"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm font-medium text-white">
+                                    {conversation.customerName || "Anonymous"}
+                                  </p>
+                                  <Badge
+                                    variant={
+                                      conversation.status === "answered"
+                                        ? "default"
+                                        : "secondary"
+                                    }
+                                  >
+                                    {conversation.status === "answered" ? (
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                    ) : (
+                                      <Clock className="h-3 w-3 mr-1" />
+                                    )}
+                                    {conversation.status}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-gray-400 truncate">
+                                  {conversation.messages[0]?.content ||
+                                    "No message"}{" "}
                                 </p>
-                                <Badge
-                                  variant={
-                                    conversation.status === "answered"
-                                      ? "default"
-                                      : "secondary"
-                                  }
-                                >
-                                  {conversation.status === "answered" ? (
-                                    <CheckCircle className="h-3 w-3 mr-1" />
-                                  ) : (
-                                    <Clock className="h-3 w-3 mr-1" />
-                                  )}
-                                  {conversation.status}
-                                </Badge>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {new Date(
+                                    conversation.createdAt
+                                  ).toLocaleString()}{" "}
+                                </p>
                               </div>
-                              <p className="text-sm text-gray-400 truncate">
-                                {conversation.messages[0]?.content ||
-                                  "No message"}{" "}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {new Date(
-                                  conversation.createdAt
-                                ).toLocaleString()}{" "}
-                              </p>
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     </CardContent>
                   </Card>
@@ -1274,9 +950,9 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="p-2">
                   <div className="space-y-4">
-                    {conversations.map((conversation) => (
+                    {conversations.map((conversation, index) => (
                       <div
-                        key={conversation.id}
+                        key={conversation.id ? conversation.id : index}
                         className="flex items-start space-x-3 p-4 rounded-lg bg-[#147679]/10 hover:bg-[#308285]/15  transition-colors"
                       >
                         <div className="flex-1 min-w-0">
@@ -1733,7 +1409,9 @@ export default function DashboardPage() {
               Subscribe to access dashboard features for {currentChatbot?.name}
             </p>
             <Button
-              onClick={() => handleSubscribe(selectedChatbot)}
+              onClick={() =>
+                router.push(`/web/pricing?id=${currentChatbot?.id}`)
+              }
               className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black font-semibold`}
             >
               <CreditCard className="h-4 w-4 mr-2" />
@@ -1742,6 +1420,51 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+      <AlertDialog
+        open={showCancelSubDialog}
+        onOpenChange={setShowCancelSubDialog}
+      >
+        <AlertDialogContent className="  backdrop-blur-md">
+          <AlertDialogContent>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]">
+                Cancel Subscription
+              </h2>
+              <XMarkIcon
+                onClick={() => setShowCancelSubDialog(false)}
+                className="text-gray-400 size-6 cursor-pointer hover:text-white"
+              />
+            </div>
+            <form onSubmit={handleCancelSubscription} className="space-y-6">
+              <label className="block text-lg font-semibold text-gray-200">
+                Please Provide Reason
+              </label>
+              <textarea
+                name="reason"
+                className="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-[#B026FF]"
+                placeholder="Cancellation reason"
+                required
+              />
+              <div className="flex justify-center gap-4">
+                <button
+                  type="submit"
+                  onClick={() => setMode("Immediate")}
+                  className="px-6 py-2 bg-gradient-to-r from-[#FF2E9F]/20 to-[#B026FF]/20 bg-transparent  text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+                >
+                  {isSubmitting ? "Cancelling..." : "Immediate"}
+                </button>
+                <button
+                  type="submit"
+                  onClick={() => setMode("End-of-term")}
+                  className="px-6 py-2 bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20 bg-transparent  text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+                >
+                  {isImmediateSubmitting ? "Cancelling..." : "End-of-term"}
+                </button>
+              </div>
+            </form>
+          </AlertDialogContent>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

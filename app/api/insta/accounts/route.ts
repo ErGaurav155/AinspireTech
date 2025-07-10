@@ -1,14 +1,18 @@
-import { NextResponse } from "next/server";
-import InstagramAccount from "@/lib/database/models/instaAcc.model";
+import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
     await connectToDatabase();
-    const userId = "demo-user"; // Replace with actual user ID from auth
+
+    // In a real app, you'd get the user ID from authentication
+    const userId = "demo-user";
+
     const accounts = await InstagramAccount.find({ userId }).sort({
       createdAt: -1,
     });
+
     return NextResponse.json(accounts);
   } catch (error) {
     console.error("Error fetching accounts:", error);
@@ -22,10 +26,14 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     await connectToDatabase();
+
     const body = await req.json();
     const { username, displayName } = body;
-    const userId = "demo-user"; // Replace with actual user ID from auth
 
+    // In a real app, you'd get the user ID from authentication
+    const userId = "demo-user";
+
+    // Check if account already exists
     const existingAccount = await InstagramAccount.findOne({ username });
     if (existingAccount) {
       return NextResponse.json(
@@ -43,43 +51,12 @@ export async function POST(req: Request) {
     });
 
     await account.save();
+
     return NextResponse.json(account, { status: 201 });
   } catch (error) {
     console.error("Error creating account:", error);
     return NextResponse.json(
       { error: "Failed to create account" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(req: Request) {
-  try {
-    await connectToDatabase();
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "Account ID is required" },
-        { status: 400 }
-      );
-    }
-
-    const deletedAccount = await InstagramAccount.findByIdAndDelete(id);
-
-    if (!deletedAccount) {
-      return NextResponse.json({ error: "Account not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(
-      { message: "Account deleted successfully" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error deleting account:", error);
-    return NextResponse.json(
-      { error: "Failed to delete account" },
       { status: 500 }
     );
   }

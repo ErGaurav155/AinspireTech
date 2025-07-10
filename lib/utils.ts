@@ -85,11 +85,12 @@ class ApiClient {
   async createSubscription(
     chatbotType: string,
     plan: string,
-    billingCycle: string
+    billingCycle: string,
+    subscriptionId: string
   ) {
     return this.request("/web/subscription/create", {
       method: "POST",
-      body: JSON.stringify({ chatbotType, plan, billingCycle }),
+      body: JSON.stringify({ chatbotType, plan, billingCycle, subscriptionId }),
     });
   }
 
@@ -143,13 +144,6 @@ class ApiClient {
     return this.request(
       `/web/conversations/${chatbotType}?limit=${limit}&offset=${offset}`
     );
-  }
-
-  async createConversation(data: any) {
-    return this.request("/web/conversations", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
   }
 
   // Website data methods

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Collapse, Button } from "@material-tailwind/react";
+import { Collapse } from "@material-tailwind/react";
 import {
   ArrowPathIcon,
   ChatBubbleLeftIcon,
@@ -30,6 +30,7 @@ import { getUserByDbId } from "@/lib/action/user.actions";
 import { sendWhatsAppInfo } from "@/lib/action/sendEmail.action";
 import FeedbackForm from "./FeedBack";
 import { handleError } from "@/lib/utils";
+import { Button } from "../ui/button";
 
 interface AibotCollapseProps {
   authorised: boolean;

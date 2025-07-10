@@ -79,7 +79,6 @@ export default function Pricing() {
     plan: PricingPlan,
     cycle: "monthly" | "yearly"
   ) => {
-    // If user is already subscribed to this plan, do nothing
     if (
       currentSubscription &&
       currentSubscription.productId === plan.id &&
@@ -88,7 +87,6 @@ export default function Pricing() {
       return;
     }
 
-    // If user has a different subscription, cancel it first
     if (currentSubscription && currentSubscription.productId !== plan.id) {
       try {
         setIsUpgrading(true);
@@ -325,7 +323,7 @@ export default function Pricing() {
                         : "from-[#FF2E9F]/10"
                     } to-transparent`}
                   ></div>
-                  <div className="relative z-10 p-6">
+                  <div className="relative z-10 h-full flex flex-col items-center justify-between p-6">
                     <div className="flex justify-between items-start">
                       <h3 className="text-xl font-bold mb-2 text-white">
                         {plan.name}
@@ -413,7 +411,7 @@ export default function Pricing() {
                         ) : isCurrentPlan ? (
                           "Current Plan"
                         ) : isUpgradeOption ? (
-                          "Switch to This Plan"
+                          "Upgrade Plan"
                         ) : (
                           "Start Automating"
                         )}

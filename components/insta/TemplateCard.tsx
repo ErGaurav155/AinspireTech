@@ -73,20 +73,20 @@ export default function TemplateCard({
     <Card
       className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br ${
         template.id === "1"
-          ? "from-[#FF2E9F]/20 to-[#FF2E9F]/5 border-[#FF2E9F]/20 hover:bg-[#FF2E9F]/15 "
+          ? "from-[#FF2E9F]/10 to-[#FF2E9F]/5 border-[#FF2E9F]/10 hover:bg-[#FF2E9F]/10 "
           : template.id === "2"
-          ? "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:bg-[#00F0FF]/15 "
-          : "from-[#ca7030]/10 to-[#ca7030]/5 border-[#ca7030]/20 hover:bg-[#ca7030]/15 "
+          ? "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/10 hover:bg-[#00F0FF]/10 "
+          : "from-[#ca7030]/10 to-[#ca7030]/5 border-[#ca7030]/10 hover:bg-[#ca7030]/10 "
       }bg-transparent backdrop-blur-sm border`}
     >
-      <CardHeader className="pb-3">
+      <CardHeader className="p-3">
         <div className="flex flex-col md:flex-row items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg flex items-center gap-2">
               {template.name}
               <Badge
                 variant={template.isActive ? "default" : "secondary"}
-                className="text-xs"
+                className="text-xs text-nowrap"
               >
                 Priority {template.priority}
               </Badge>
@@ -134,7 +134,7 @@ export default function TemplateCard({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 p-3">
         <div>
           <p className="text-sm text-muted-foreground mb-2">Reply Content:</p>
           <p className="text-sm bg-muted p-3 rounded-md">{template.content}</p>

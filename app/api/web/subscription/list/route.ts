@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
-import Subscription from "@/lib/database/models/Websubcription.model";
+import { NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
+import { auth } from "@clerk/nextjs";
+import WebSubscription from "@/lib/database/models/web/Websubcription.model";
+import { connectToDatabase } from "@/lib/database/mongoose";
+
+export async function GET() {
   try {
     const { userId } = auth();
 
@@ -10,17 +12,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userSubscriptions = await Subscription.find({ clerkId: userId })
-      .sort({ createdAt: -1 })
-      .lean();
+    await connectToDatabase();
 
-    return NextResponse.json({
-      subscriptions: userSubscriptions,
+    const subscriptions = await WebSubscription.find({
+      clerkId: userId,
+      chatbotType: {
+        $in: [
+          "chatbot-customer-support",
+          "chatbot-e-commerce",
+          "chatbot-lead-generation",
+          "chatbot-education",
+        ],
+      },
+      status: "active",
     });
-  } catch (error) {
-    console.error("Subscriptions fetch error:", error);
+
+    if (!subscriptions || subscriptions.length === 0) {
+      return NextResponse.json([], { status: 200 });
+    }
+
+    return NextResponse.json(subscriptions, { status: 200 });
+  } catch (error: any) {
+    console.error("Error fetching subscriptions:", error.message);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to fetch subscription information" },
       { status: 500 }
     );
   }

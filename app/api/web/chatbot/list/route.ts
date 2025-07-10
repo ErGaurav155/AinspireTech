@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import Chatbot from "@/lib/database/models/chatbot.model";
+import Chatbot from "@/lib/database/models/web/chatbot.model";
 
 export async function GET(request: NextRequest) {
   try {

@@ -16,15 +16,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-import { Button } from "@material-tailwind/react";
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { getUserById, updateUserByDbId } from "@/lib/action/user.actions";
 import OTPVerification from "./OTPVerification";
 import { countryCodes } from "@/constant";
 import { toast } from "../ui/use-toast";
 import Script from "next/script";
-import { createRazerPaySubscription } from "@/lib/action/subscription.action";
 import { createTransaction } from "@/lib/action/transaction.action";
+import { Button } from "../ui/button";
+import { apiClient } from "@/lib/utils";
 
 interface CheckoutProps {
   amount: number;
@@ -195,13 +195,13 @@ export const Checkout = ({
               duration: 3000,
               className: "success-toast",
             });
-
-            await createRazerPaySubscription(
-              buyerId!,
+            await apiClient.createSubscription(
+              productId,
               razorpayplanId.current!,
-              subscriptionCreate.subsId,
-              billingCycle
+              billingCycle,
+              subscriptionCreate.subsId
             );
+
             await createTransaction({
               customerId: subscriptionCreate.subsId,
               amount,
@@ -324,21 +324,22 @@ export const Checkout = ({
             {step === "phone" && (
               <AlertDialog defaultOpen>
                 <AlertDialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
-                  <AlertDialogTitle className="text-pink-400">
-                    Otp Verification
-                  </AlertDialogTitle>
+                  <div className="flex justify-between items-center gap-3">
+                    <AlertDialogTitle className="text-pink-400">
+                      Otp Verification
+                    </AlertDialogTitle>
+                    <AlertDialogCancel
+                      onClick={() => router.push(`/web/pricing`)}
+                      className="border-0 p-0 hover:bg-transparent text-gray-400 hover:text-red-800 transition-colors  bg-transparent"
+                    >
+                      <XMarkIcon className="h-6 w-6 cursor-pointer text-pink-400" />
+                    </AlertDialogCancel>
+                  </div>
+
                   <AlertDialogHeader>
-                    <div className="flex justify-between items-center">
-                      <h3 className="p-16-semibold text-white text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-                        PLEASE ENTER YOUR MOBILE NUMBER
-                      </h3>
-                      <AlertDialogCancel
-                        onClick={() => router.push(`/`)}
-                        className="border-0 p-0 hover:bg-transparent text-gray-400 hover:text-white transition-colors"
-                      >
-                        <XMarkIcon className="size-6 cursor-pointer" />
-                      </AlertDialogCancel>
-                    </div>
+                    <h3 className="p-16-semibold text-white text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                      PLEASE ENTER YOUR MOBILE NUMBER
+                    </h3>
                   </AlertDialogHeader>
 
                   <form
@@ -356,7 +357,7 @@ export const Checkout = ({
                         <select
                           value={countryCode}
                           onChange={(e) => setCountryCode(e.target.value)}
-                          className="bg-transparent text-white p-3 border-r border-[#333] focus:outline-none focus:ring-2 focus:ring-[#00F0FF]"
+                          className="bg-transparent text-white p-3 border-r border-[#333] focus:outline-none focus:ring-2 focus:ring-[#00F0FF] no-scrollbar"
                         >
                           {countryCodes.map((countryCode, index) => (
                             <option

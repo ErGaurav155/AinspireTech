@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import Chatbot from "@/lib/database/models/chatbot.model";
+import Chatbot from "@/lib/database/models/web/chatbot.model";
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     const newChatbot = {
       _id: chatbotId, // Use the ObjectId directly
-      userId: new ObjectId(userId), // Convert string to ObjectId
+      clerkId: userId, // Convert string to ObjectId
       name,
       websiteUrl,
       embedCode,

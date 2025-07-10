@@ -22,6 +22,7 @@ import { useForm } from "react-hook-form";
 import { formSchema1 } from "@/lib/validator";
 import { generateGptResponse } from "@/lib/action/ai.action";
 import Link from "next/link";
+import { seedSubscriptions } from "@/lib/action/user.actions";
 
 export default function AIChatBot() {
   const [open, setOpen] = useState(false);
@@ -30,7 +31,7 @@ export default function AIChatBot() {
   ]);
   const [submit, setSubmit] = useState(false);
 
-  const toggleOpen = () => setOpen((cur) => !cur);
+  const toggleOpen = () => seedSubscriptions();
 
   const form = useForm<z.infer<typeof formSchema1>>({
     resolver: zodResolver(formSchema1),

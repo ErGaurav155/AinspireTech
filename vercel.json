@@ -6,39 +6,11 @@
   },
   "headers": [
     {
-      "source": "/widget-loader.js",
+      "source": "/api/embed/:path*",
       "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "frame-ancestors *;"
-        }
-      ]
-    },
-    {
-      "source": "/widget.js",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "frame-ancestors *;"
-        }
-      ]
-    },
-    {
-      "source": "/ChatBots",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "frame-ancestors *;"
-        }
-      ]
-    },
-    {
-      "source": "/widget.bundle.js",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "frame-ancestors *;"
-        }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "POST" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
       ]
     }
   ]

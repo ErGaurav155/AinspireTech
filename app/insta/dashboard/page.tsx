@@ -33,38 +33,75 @@ import {
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 
-// Mock data for demonstration
-const mockAccounts = [
-  {
-    id: "1",
-    username: "fashionista_jane",
-    displayName: "Jane Fashion",
-    profilePicture:
-      "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
-    followersCount: 15420,
-    postsCount: 892,
-    isActive: true,
-    templatesCount: 5,
-    repliesCount: 234,
-    lastActivity: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    username: "tech_guru_mike",
-    displayName: "Mike Tech",
-    profilePicture:
-      "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
-    followersCount: 8930,
-    postsCount: 456,
-    isActive: false,
-    templatesCount: 3,
-    repliesCount: 89,
-    lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+// Dummy data fallback
+const dummyData = {
+  totalAccounts: 3,
+  activeAccounts: 2,
+  totalTemplates: 8,
+  totalReplies: 779,
+  engagementRate: 87,
+  successRate: 94,
+  accounts: [
+    {
+      id: "1",
+      username: "fashionista_jane",
+      displayName: "Jane Fashion",
+      profilePicture:
+        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
+      followersCount: 15420,
+      postsCount: 892,
+      isActive: true,
+      templatesCount: 5,
+      repliesCount: 234,
+      lastActivity: new Date().toISOString(),
+      engagementRate: 4.2,
+      avgResponseTime: "2.3s",
+    },
+    {
+      id: "2",
+      username: "tech_guru_mike",
+      displayName: "Mike Tech",
+      profilePicture:
+        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
+      followersCount: 8930,
+      postsCount: 456,
+      isActive: false,
+      templatesCount: 3,
+      repliesCount: 89,
+      lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      engagementRate: 3.8,
+      avgResponseTime: "1.9s",
+    },
+  ],
+  recentActivity: [
+    {
+      id: "1",
+      type: "reply_sent",
+      account: "fashionista_jane",
+      template: "Welcome Message",
+      timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+      message: "Auto-reply sent to @user123",
+    },
+    {
+      id: "2",
+      type: "reply_sent",
+      account: "tech_guru_mike",
+      template: "Product Inquiry",
+      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      message: "Auto-reply sent to @customer456",
+    },
+    {
+      id: "3",
+      type: "reply_sent",
+      account: "fashionista_jane",
+      template: "Compliment Response",
+      timestamp: new Date(Date.now() - 8 * 60 * 1000).toISOString(),
+      message: "Auto-reply sent to @follower789",
+    },
+  ],
+};
 
 export default function Dashboard() {
-  const [accounts, setAccounts] = useState(mockAccounts);
   const { userId } = useAuth();
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -74,18 +111,46 @@ export default function Dashboard() {
   >("End-of-term");
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
+  const [dashboardData, setDashboardData] = useState(dummyData);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const totalReplies = accounts.reduce(
-    (sum, account) => sum + account.repliesCount,
-    0
-  );
-  const totalTemplates = accounts.reduce(
-    (sum, account) => sum + account.templatesCount,
-    0
-  );
-  const activeAccounts = accounts.filter((account) => account.isActive).length;
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  // Fetch user subscriptions
+  const fetchDashboardData = async () => {
+    try {
+      const response = await fetch("/api/insta/dashboard");
+      if (response.ok) {
+        const data = await response.json();
+        setDashboardData(data);
+      } else {
+        console.log("Using dummy data - API not available");
+        setDashboardData(dummyData);
+      }
+    } catch (error) {
+      console.log("Using dummy data - API error:", error);
+      setDashboardData(dummyData);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
+
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes}m ago`;
+    } else if (diffInMinutes < 1440) {
+      return `${Math.floor(diffInMinutes / 60)}h ago`;
+    } else {
+      return `${Math.floor(diffInMinutes / 1440)}d ago`;
+    }
+  };
   useEffect(() => {
     const fetchSubscriptions = async () => {
       if (!userId) return;
@@ -109,11 +174,16 @@ export default function Dashboard() {
 
     setIsCancelling(true);
     try {
-      const result = await cancelRazorPaySubscription(
-        selectedSubscriptionId,
-        cancellationReason,
-        cancellationMode
-      );
+      const response = await fetch("/api/insta/subscription/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscriptionId: selectedSubscriptionId,
+          reason: cancellationReason,
+          mode: cancellationMode,
+        }),
+      });
+      const result = await response.json();
 
       if (result.success) {
         toast.success("Subscription cancelled successfully!", {
@@ -142,11 +212,20 @@ export default function Dashboard() {
       setCancellationReason("");
     }
   };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-white">
-      <BreadcrumbsDefault />
-
+      <BreadcrumbsDefault />{" "}
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex  flex-wrap justify-between items-center gap-3 lg:gap-0 mb-8">
@@ -224,10 +303,11 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {activeAccounts}
+                {dashboardData.activeAccounts}
               </div>
               <p className="text-xs text-gray-400">
-                {accounts.length - activeAccounts} inactive
+                {dashboardData.totalAccounts - dashboardData.activeAccounts}{" "}
+                inactive
               </p>
             </CardContent>
           </Card>
@@ -241,7 +321,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {totalTemplates}
+                {dashboardData.totalTemplates}
               </div>
               <p className="text-xs text-gray-400">Across all accounts</p>
             </CardContent>
@@ -256,7 +336,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {totalReplies}
+                {dashboardData.totalReplies}
               </div>
               <p className="text-xs text-gray-400">+23% from last month</p>
             </CardContent>
@@ -270,7 +350,9 @@ export default function Dashboard() {
               <BarChart3 className="h-4 w-4 text-[#00F0FF]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">87%</div>
+              <div className="text-2xl font-bold text-white">
+                {dashboardData.engagementRate}%
+              </div>
               <p className="text-xs text-gray-400">+5% from last week</p>
             </CardContent>
           </Card>
@@ -290,7 +372,7 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 p-2">
-              {accounts.map((account) => (
+              {dashboardData.accounts.map((account) => (
                 <div
                   key={account.id}
                   className="flex flex-wrap gap-3 md:gap-0 items-center justify-between p-2 md:p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
@@ -298,10 +380,10 @@ export default function Dashboard() {
                   <div className="flex items-center space-x-2 md:space-x-4">
                     <div className="relative">
                       <Image
-                        src={account.profilePicture}
-                        alt={account.displayName}
                         width={48}
                         height={48}
+                        src={account.profilePicture}
+                        alt={account.displayName}
                         className="h-12 w-12 rounded-full object-cover"
                       />
                       <div
@@ -344,7 +426,7 @@ export default function Dashboard() {
                 </div>
               ))}
 
-              {accounts.length === 0 && (
+              {dashboardData.accounts.length === 0 && (
                 <div className="text-center py-8">
                   <Instagram className="h-12 w-12 mx-auto text-gray-500 mb-4" />
                   <p className="text-gray-400 mb-4 font-mono">
@@ -377,9 +459,14 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-gray-300">
                     Reply Success Rate
                   </span>
-                  <span className="text-sm text-gray-400">94%</span>
+                  <span className="text-sm text-gray-400">
+                    {dashboardData.successRate}%
+                  </span>
                 </div>
-                <Progress value={94} className="h-2 bg-white/10" />
+                <Progress
+                  value={dashboardData.successRate}
+                  className="h-2 bg-white/10"
+                />
               </div>
 
               <div>
@@ -407,12 +494,17 @@ export default function Dashboard() {
                   Recent Activity
                 </h4>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-300">
-                      Auto-reply sent to @user123
-                    </span>
-                    <span className="text-gray-500">2m ago</span>
-                  </div>
+                  {dashboardData.recentActivity.slice(0, 3).map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <span className="text-gray-300">{activity.message}</span>
+                      <span className="text-gray-500">
+                        {formatTimestamp(activity.timestamp)}
+                      </span>
+                    </div>
+                  ))}
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-300">
                       Template Welcome triggered
@@ -441,7 +533,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Button
                 variant="outline"
-                className="h-auto p-6 flex flex-col items-center gap-3 border-[#00F0FF]/20 hover:bg-[#00F0FF]/10 hover:border-[#00F0FF]/40 transition-all"
+                className="h-auto p-6 flex flex-col items-center gap-3 bg-[#00F0FF]/10 border-[#00F0FF]/20 hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]/40 transition-all"
                 asChild
               >
                 <Link href="/insta/templates">
@@ -454,7 +546,7 @@ export default function Dashboard() {
 
               <Button
                 variant="outline"
-                className="h-auto p-6 flex flex-col items-center gap-3 border-[#B026FF]/20 hover:bg-[#B026FF]/10 hover:border-[#B026FF]/40 transition-all"
+                className="h-auto p-6 flex flex-col items-center gap-3 border-[#B026FF]/20 bg-[#B026FF]/10  hover:bg-[#B026FF]/15 hover:border-[#B026FF]/40 transition-all"
                 asChild
               >
                 <Link href="/insta/analytics">
@@ -465,7 +557,7 @@ export default function Dashboard() {
 
               <Button
                 variant="outline"
-                className="h-auto p-6 flex flex-col items-center gap-3 border-[#FF2E9F]/20 hover:bg-[#FF2E9F]/10 hover:border-[#FF2E9F]/40 transition-all"
+                className="h-auto p-6 flex flex-col items-center gap-3 border-[#FF2E9F]/20 bg-[#FF2E9F]/10 hover:bg-[#FF2E9F]/15 hover:border-[#FF2E9F]/40 transition-all"
                 asChild
               >
                 <Link href="/insta/accounts/add">

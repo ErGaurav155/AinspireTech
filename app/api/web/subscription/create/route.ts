@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
-import Subscription from "@/lib/database/models/Websubcription.model";
+import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,16 +10,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { chatbotType, plan, billingCycle } = await request.json();
+    const { chatbotType, plan, billingCycle, subscriptionId } =
+      await request.json();
 
-    if (!chatbotType || !plan || !billingCycle) {
+    if (!chatbotType || !plan || !billingCycle || !subscriptionId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const existingSubscription = await Subscription.findOne({
+    const existingSubscription = await WebSubscription.findOne({
       clerkId: userId,
       chatbotType,
       status: "active",
@@ -42,9 +43,9 @@ export async function POST(request: NextRequest) {
     }
 
     const newSubscription = {
-      userId: userId,
       clerkId: userId,
       chatbotType,
+      subscriptionId,
       plan,
       billingCycle,
       status: "active",
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     };
 
-    const result = await Subscription.create(newSubscription);
+    const result = await WebSubscription.create(newSubscription);
 
     return NextResponse.json({
       message: "Subscription created successfully",

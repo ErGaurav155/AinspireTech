@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs";
 
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import Chatbot from "@/lib/database/models/chatbot.model";
+import Chatbot from "@/lib/database/models/web/chatbot.model";
 
 export async function GET(
   request: NextRequest,

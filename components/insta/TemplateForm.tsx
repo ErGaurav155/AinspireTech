@@ -65,7 +65,7 @@ export default function TemplateForm({
         <Input
           id="name"
           value={name}
-          className="bg-gray-300"
+          className="bg-gray-800"
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., Welcome Message, Product Inquiry"
           required
@@ -79,7 +79,7 @@ export default function TemplateForm({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Write your automated reply message..."
-          className="min-h-[100px] bg-gray-300"
+          className="min-h-[100px] bg-gray-800"
           required
         />
         <p className="text-xs text-muted-foreground">
@@ -95,7 +95,7 @@ export default function TemplateForm({
             value={triggerInput}
             onChange={(e) => setTriggerInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="bg-gray-300"
+            className="bg-gray-800"
             placeholder="Add a keyword that triggers this reply"
           />
           <Button
@@ -142,7 +142,7 @@ export default function TemplateForm({
           type="number"
           min="1"
           max="10"
-          className="bg-gray-300 text-gray-500"
+          className="bg-gray-800 text-gray-500"
           value={priority}
           onChange={(e) => setPriority(parseInt(e.target.value))}
         />
@@ -152,7 +152,11 @@ export default function TemplateForm({
       </div>
 
       <div className="flex gap-4 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="flex-1 bg-[#1a3f6c] text-white"
+        >
           {isSubmitting ? "Creating..." : "Create Template"}
         </Button>
         {onCancel && (

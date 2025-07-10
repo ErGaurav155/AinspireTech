@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { productDetails } from "@/constant";
 import { HeadsetIcon } from "lucide-react";
-import { Button } from "@material-tailwind/react";
+import { Button } from "../ui/button";
 
 interface Product {
   productId: string;
@@ -97,8 +97,7 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
             <div className="flex gap-3 w-full mt-auto">
               {product.available ? (
                 <Button
-                  fullWidth
-                  className="text-base font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
+                  className="text-base  w-full font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
                   onClick={() =>
                     router.push(`/web/pricing?id=${product.productId}`)
                   }
@@ -107,8 +106,7 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
                 </Button>
               ) : (
                 <Button
-                  fullWidth
-                  className="text-base font-bold bg-gradient-to-r from-gray-500 to-gray-700 text-gray-300 cursor-not-allowed"
+                  className="text-base w-full font-bold bg-gradient-to-r from-gray-500 to-gray-700 text-gray-300 cursor-not-allowed"
                   disabled
                 >
                   Coming Soon...

@@ -2,7 +2,7 @@
 
 import OpenAI from "openai";
 import { connectToDatabase } from "../database/mongoose";
-import File from "@/lib/database/models/scrappeddata.model";
+import File from "@/lib/database/models/web/scrappeddata.model";
 
 const openai = setupOpenAI();
 function setupOpenAI() {

@@ -1,7 +1,7 @@
 import { ApifyClient } from "apify-client";
 import { NextRequest, NextResponse } from "next/server";
 
-import File from "@/lib/database/models/scrappeddata.model";
+import File from "@/lib/database/models/web/scrappeddata.model";
 
 import { URL } from "url";
 import { connectToDatabase } from "@/lib/database/mongoose";

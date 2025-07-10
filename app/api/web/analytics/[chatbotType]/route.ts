@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import Subscription from "@/lib/database/models/subscription.model";
+import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 
 export async function GET(
   request: NextRequest,
@@ -17,7 +17,7 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "7d";
 
-    const activeSubscription = await Subscription.findOne({
+    const activeSubscription = await WebSubscription.findOne({
       clerkId: userId,
       chatbotType: params.chatbotType,
       status: "active",
@@ -33,7 +33,7 @@ export async function GET(
     // Generate analytics data based on chatbot type
     const generateAnalyticsData = (chatbotType: string) => {
       const baseData = {
-        "customer-support": {
+        "chatbot-customer-support": {
           totalConversations: Math.floor(Math.random() * 1000) + 500,
           totalMessages: Math.floor(Math.random() * 5000) + 2000,
           averageResponseTime: Math.floor(Math.random() * 10) + 2,
@@ -41,7 +41,7 @@ export async function GET(
           resolvedIssues: Math.floor(Math.random() * 800) + 400,
           pendingTickets: Math.floor(Math.random() * 50) + 10,
         },
-        "e-commerce": {
+        "chatbot-e-commerce": {
           totalConversations: Math.floor(Math.random() * 1500) + 800,
           totalMessages: Math.floor(Math.random() * 7000) + 3000,
           salesAssisted: Math.floor(Math.random() * 50000) + 20000,
@@ -49,7 +49,7 @@ export async function GET(
           conversionRate: Math.floor(Math.random() * 10) + 8,
           productInquiries: Math.floor(Math.random() * 2000) + 1000,
         },
-        "lead-generation": {
+        "chatbot-lead-generation": {
           totalConversations: Math.floor(Math.random() * 800) + 300,
           totalMessages: Math.floor(Math.random() * 3000) + 1500,
           leadsGenerated: Math.floor(Math.random() * 500) + 200,
@@ -57,7 +57,7 @@ export async function GET(
           conversionRate: Math.floor(Math.random() * 8) + 5,
           formCompletions: Math.floor(Math.random() * 20) + 70,
         },
-        "instagram-automation": {
+        "chatbot-education": {
           totalConversations: Math.floor(Math.random() * 2000) + 1000,
           totalMessages: Math.floor(Math.random() * 8000) + 4000,
           commentsReplied: Math.floor(Math.random() * 3000) + 1500,
@@ -69,7 +69,7 @@ export async function GET(
 
       return (
         baseData[chatbotType as keyof typeof baseData] ||
-        baseData["customer-support"]
+        baseData["chatbot-customer-support"]
       );
     };
 

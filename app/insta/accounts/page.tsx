@@ -26,8 +26,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
-// Mock data for demonstration
-const mockAccounts = [
+// Dummy data fallback
+const dummyAccounts = [
   {
     id: "1",
     username: "fashionista_jane",
@@ -76,16 +76,76 @@ const mockAccounts = [
 ];
 
 export default function AccountsPage() {
-  const [accounts, setAccounts] = useState(mockAccounts);
+  const [accounts, setAccounts] = useState(dummyAccounts);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleToggleAccount = (accountId: string) => {
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
+  const fetchAccounts = async () => {
+    try {
+      const response = await fetch("/api/insta/accounts");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.length > 0) {
+          setAccounts(data);
+        } else {
+          console.log("No accounts found, using dummy data");
+          setAccounts(dummyAccounts);
+        }
+      } else {
+        console.log("API not available, using dummy data");
+        setAccounts(dummyAccounts);
+      }
+    } catch (error) {
+      console.log("API error, using dummy data:", error);
+      setAccounts(dummyAccounts);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleToggleAccount = async (accountId: string) => {
+    const account = accounts.find((acc) => acc.id === accountId);
+    if (!account) return;
+
+    const newActiveState = !account.isActive;
+
+    // Optimistically update UI
     setAccounts(
-      accounts.map((account) =>
-        account.id === accountId
-          ? { ...account, isActive: !account.isActive }
-          : account
+      accounts.map((acc) =>
+        acc.id === accountId ? { ...acc, isActive: newActiveState } : acc
       )
     );
+
+    try {
+      const response = await fetch(`/api/insta/accounts/${accountId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isActive: newActiveState }),
+      });
+
+      if (!response.ok) {
+        // Revert on error
+        setAccounts(
+          accounts.map((acc) =>
+            acc.id === accountId ? { ...acc, isActive: !newActiveState } : acc
+          )
+        );
+        console.error("Failed to update account status");
+      }
+    } catch (error) {
+      // Revert on error
+      setAccounts(
+        accounts.map((acc) =>
+          acc.id === accountId ? { ...acc, isActive: !newActiveState } : acc
+        )
+      );
+      console.error("Error updating account:", error);
+    }
   };
 
   const formatLastActivity = (dateString: string) => {
@@ -103,6 +163,17 @@ export default function AccountsPage() {
       return `${Math.floor(diffInMinutes / 1440)}d ago`;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading accounts...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-white">
@@ -195,10 +266,14 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {(
-                  accounts.reduce((sum, acc) => sum + acc.engagementRate, 0) /
-                  accounts.length
-                ).toFixed(1)}
+                {accounts.length > 0
+                  ? (
+                      accounts.reduce(
+                        (sum, acc) => sum + acc.engagementRate,
+                        0
+                      ) / accounts.length
+                    ).toFixed(1)
+                  : 0}
                 %
               </div>
               <p className="text-xs text-gray-400">Engagement rate</p>
@@ -256,7 +331,6 @@ export default function AccountsPage() {
                       </div>
                     </div>
                   </div>
-
                   <div className="flex flex-col lg:flex-row items-center gap-3 md:gap-0 md:space-x-4">
                     <div className=" flex items-start justify-center gap-3 w-full">
                       <div className="text-xs font-light text-white">
@@ -334,7 +408,7 @@ export default function AccountsPage() {
                   replies
                 </p>
                 <Button className="btn-gradient-cyan" asChild>
-                  <Link href="/insta/accounts/add">
+                  <Link href="/accounts/add">
                     <Plus className="mr-2 h-4 w-4" />
                     Connect Account
                   </Link>

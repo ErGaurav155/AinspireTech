@@ -15,7 +15,7 @@ import { testimonials } from "@/constant";
 
 export function TestimonialSection() {
   const plugin = React.useRef(
-    Autoplay({ delay: 2000, stopOnInteraction: true })
+    Autoplay({ delay: 2000, stopOnInteraction: false })
   );
 
   // Create pairs of testimonials (two per item)
@@ -42,7 +42,7 @@ export function TestimonialSection() {
         {/* Testimonial Carousel */}
         <Carousel
           plugins={[plugin.current]}
-          className="w-full max-w-6xl mx-auto"
+          className="w-full min-h-max max-w-6xl mx-auto"
           onMouseEnter={plugin.current.stop}
           onMouseLeave={plugin.current.reset}
         >
@@ -52,13 +52,13 @@ export function TestimonialSection() {
                 key={index}
                 className="md:basis-1/2 lg:basis-1/3 p-4"
               >
-                <div className="grid grid-cols-1 gap-6">
+                <div className="flex flex-col   gap-6">
                   {pair.map((testimonial) => (
                     <Card
                       key={testimonial.id}
-                      className="bg-[#0a0a0a]/60 backdrop-blur-sm border border-[#00F0FF]/30 rounded-xl hover:border-[#B026FF] transition-all"
+                      className="bg-[#0a0a0a]/60 backdrop-blur-sm border   border-[#00F0FF]/30 rounded-xl hover:border-[#B026FF] transition-all"
                     >
-                      <CardContent className="p-6">
+                      <CardContent className="p-3 ">
                         <div className="flex flex-col gap-6">
                           <div className="flex gap-4 items-center">
                             <div className="relative">
@@ -78,12 +78,14 @@ export function TestimonialSection() {
                               <h4 className="text-lg font-bold text-white">
                                 {testimonial.title}
                               </h4>
-                              <span className="text-sm text-gray-300">
+                              <span className="text-sm  text-gray-300">
                                 {testimonial.name}
                               </span>
                             </div>
                           </div>
-                          <p className="text-gray-300">{testimonial.text}</p>
+                          <p className="text-gray-300 h-[10rem] md:h-[14rem] overflow-y-auto no-scrollbar">
+                            {testimonial.text}
+                          </p>
                         </div>
                       </CardContent>
                     </Card>

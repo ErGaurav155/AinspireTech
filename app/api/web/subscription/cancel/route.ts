@@ -1,55 +1,50 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
+// app/api/subscriptions/web/cancel/route.ts
 import { connectToDatabase } from "@/lib/database/mongoose";
-import Subscription from "@/lib/database/models/Websubcription.model";
+import { NextResponse } from "next/server";
+import Razorpay from "razorpay";
 
-export async function POST(request: NextRequest) {
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID!,
+  key_secret: process.env.RAZORPAY_KEY_SECRET!,
+});
+
+export async function POST(req: Request) {
   try {
-    const { userId } = auth();
+    const { subscriptionId, reason, mode } = await req.json();
 
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { chatbotType } = await request.json();
-
-    if (!chatbotType) {
+    if (!subscriptionId || !mode) {
       return NextResponse.json(
-        { error: "Chatbot type is required" },
+        { success: false, message: "Missing required fields" },
         { status: 400 }
       );
     }
-    await connectToDatabase;
 
-    const result = await Subscription.updateOne(
-      {
-        clerkId: userId,
-        chatbotType,
-        status: "active",
-      },
-      {
-        $set: {
-          status: "cancelled",
-          cancelledAt: new Date(),
-          updatedAt: new Date(),
-        },
-      }
-    );
+    await connectToDatabase();
 
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { error: "Active subscription not found" },
-        { status: 404 }
-      );
+    // Cancel with Razorpay first
+    const razorpayResponse =
+      mode === "Immediate"
+        ? await razorpay.subscriptions.cancel(subscriptionId, false)
+        : await razorpay.subscriptions.cancel(subscriptionId, true);
+
+    if (!razorpayResponse) {
+      throw new Error("Failed to cancel with Razorpay");
     }
 
-    return NextResponse.json({
-      message: "Subscription cancelled successfully",
-    });
-  } catch (error) {
-    console.error("Subscription cancellation error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        success: true,
+        message: "Web subscription cancelled",
+      },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("Web cancellation error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: error.message || "Failed to cancel Web subscription",
+      },
       { status: 500 }
     );
   }

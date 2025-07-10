@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
-import WebsiteData from "@/lib/database/models/WebsiteData.model";
+import WebsiteData from "@/lib/database/models/web/WebsiteData.model";
+import { ObjectId } from "mongoose";
+import User from "@/lib/database/models/user.model";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +30,6 @@ export async function GET(request: NextRequest) {
     if (!data) {
       // Return default data if none exists
       const defaultData = {
-        userId: userId,
         clerkId: userId,
         chatbotType,
         content: `Company: Your Company Name

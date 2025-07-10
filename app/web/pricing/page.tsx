@@ -23,6 +23,7 @@ import { getUserById } from "@/lib/action/user.actions";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
+import { apiClient } from "@/lib/utils";
 
 const iconMapping: Record<string, any> = {
   HeadsetIcon: HeadsetIcon,
@@ -35,10 +36,10 @@ const iconMapping: Record<string, any> = {
 };
 
 interface Subscription {
-  productId: string;
-  userId: string;
-  subscriptionStatus: string;
-  billingMode: string;
+  chatbotType: string;
+  clerkId: string;
+  status: string;
+  billingCycle: string;
 }
 
 const Pricing = () => {
@@ -50,7 +51,7 @@ const Pricing = () => {
   const searchParams = useSearchParams();
   const activeProductId = searchParams.get("id");
 
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
+  const [billingMode, setBillingMode] = useState<"monthly" | "yearly">(
     "monthly"
   );
 
@@ -61,14 +62,13 @@ const Pricing = () => {
         setLoading(false);
       } else {
         try {
-          const user = await getUserById(userId);
-          const response = await getSubscriptionInfo(user._id);
+          const response = await apiClient.getSubscriptions();
 
           const filteredSubscriptions = response.map((sub: any) => ({
-            productId: sub.productId,
-            userId: sub.userId,
-            subscriptionStatus: sub.subscriptionStatus,
-            billingMode: sub.billingMode,
+            chatbotType: sub.chatbotType,
+            clerkId: sub.clerkId,
+            status: sub.status,
+            billingCycle: sub.billingCycle,
           }));
 
           setSubscriptions(filteredSubscriptions || []);
@@ -118,21 +118,21 @@ const Pricing = () => {
             <div className="flex items-center justify-center gap-4 mb-12">
               <span
                 className={`text-sm font-medium ${
-                  billingCycle === "monthly" ? "text-white" : "text-gray-500"
+                  billingMode === "monthly" ? "text-white" : "text-gray-500"
                 }`}
               >
                 Monthly
               </span>
               <Switch
-                checked={billingCycle === "yearly"}
+                checked={billingMode === "yearly"}
                 onCheckedChange={(checked) =>
-                  setBillingCycle(checked ? "yearly" : "monthly")
+                  setBillingMode(checked ? "yearly" : "monthly")
                 }
                 className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#00F0FF] data-[state=checked]:to-[#FF2E9F]"
               />
               <span
                 className={`text-sm font-medium ${
-                  billingCycle === "yearly" ? "text-white" : "text-gray-500"
+                  billingMode === "yearly" ? "text-white" : "text-gray-500"
                 }`}
               >
                 Yearly
@@ -151,28 +151,26 @@ const Pricing = () => {
             const monthlyPrice = product.mprice;
             const yearlyPrice = product.yprice;
             const displayedPrice =
-              billingCycle === "monthly" ? monthlyPrice : yearlyPrice;
+              billingMode === "monthly" ? monthlyPrice : yearlyPrice;
             const productId = product.productId;
             const monthlyOriginalPrice = product.original / 12;
             const yearlyOriginalPrice = product.original;
             const originalPrice =
-              billingCycle === "monthly"
+              billingMode === "monthly"
                 ? monthlyOriginalPrice
                 : yearlyOriginalPrice;
 
             const isSubscribed = subscriptions.some(
-              (sub) =>
-                sub.productId === productId &&
-                sub.subscriptionStatus === "active"
+              (sub) => sub.chatbotType === productId && sub.status === "active"
             );
 
             return (
               <div
                 key={product.productId}
-                className={`relative group rounded-lg backdrop-blur-sm border transition-all duration-300 p-5
+                className={`relative group h-full flex flex-col items-center justify-between rounded-lg backdrop-blur-sm border transition-all duration-300 p-5
                   ${
                     product.productId === activeProductId
-                      ? "scale-105 z-10 border-[#B026FF]/30 hover:border-[#B026FF]"
+                      ? "scale-105 z-10 border-[#2d8246]/30 hover:border-[#2d8246] bg-[#34e468]/5"
                       : "border-[#FF2E9F]/20 hover:border-[#FF2E9F]"
                   }`}
               >
@@ -195,7 +193,7 @@ const Pricing = () => {
                       : "from-[#FF2E9F]/10"
                   } to-transparent`}
                 ></div>
-                <div className="relative z-10 flex flex-col items-center gap-3 w-full">
+                <div className=" flex flex-col items-center gap-3 w-full">
                   {Icon && (
                     <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#00F0FF] to-[#B026FF] flex items-center justify-center mb-6">
                       <Icon className="h-8 w-8 text-black" />
@@ -209,7 +207,7 @@ const Pricing = () => {
                   </div>
                 </div>
 
-                <div className="relative z-10 w-full text-center">
+                <div className=" w-full text-center">
                   <div className="flex items-center py-5 justify-center gap-3">
                     <p className="text-xl font-bold text-gray-400 line-through">
                       ${originalPrice.toFixed(0)}
@@ -217,12 +215,12 @@ const Pricing = () => {
                     <p className="text-3xl font-bold text-[#B026FF]">
                       ${displayedPrice.toFixed(0)}
                       <span className="text-lg font-medium text-gray-400">
-                        /{billingCycle === "monthly" ? "mo" : "yr"}
+                        /{billingMode === "monthly" ? "mo" : "yr"}
                       </span>
                     </p>
                   </div>
 
-                  {billingCycle === "yearly" && (
+                  {billingMode === "yearly" && (
                     <p className="text-center text-green-400 mt-2 font-medium">
                       Save ${(originalPrice - displayedPrice).toFixed(0)}{" "}
                       annually
@@ -230,7 +228,7 @@ const Pricing = () => {
                   )}
                 </div>
 
-                <ul className="relative z-10 w-full text-left text-gray-300 space-y-4">
+                <ul className=" w-full text-left text-gray-300 space-y-4">
                   {product.inclusions.map((inclusion, index) => (
                     <li
                       key={index}
@@ -256,7 +254,7 @@ const Pricing = () => {
                   <SignedOut>
                     <button
                       onClick={() => router.push("/sign-in")}
-                      className="relative z-10 w-full mt-3 py-3 rounded-full font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
+                      className=" w-full mt-3 py-3 rounded-full font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
                     >
                       Get Started
                     </button>
@@ -266,7 +264,7 @@ const Pricing = () => {
                 <SignedIn>
                   {isSubscribed ? (
                     <button
-                      className="relative z-10 w-full py-3 rounded-full font-bold bg-gradient-to-r from-green-500 to-green-700 text-black cursor-not-allowed"
+                      className=" w-full py-2 mt-3 rounded-full font-bold bg-gradient-to-r from-green-500 to-green-700 text-black cursor-not-allowed self-end"
                       disabled
                     >
                       Subscribed
@@ -274,7 +272,7 @@ const Pricing = () => {
                   ) : (
                     <Checkout
                       productId={productId}
-                      billingCycle={billingCycle}
+                      billingCycle={billingMode}
                       amount={displayedPrice}
                     />
                   )}

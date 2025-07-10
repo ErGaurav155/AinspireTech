@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import Subscription from "@/lib/database/models/Websubcription.model";
-import Conversation from "@/lib/database/models/Conversation.model";
+import WebSubscription from "@/lib/database/models/web/Websubcription.model";
+import Conversation from "@/lib/database/models/web/Conversation.model";
 
 export async function GET(
   request: NextRequest,
@@ -20,7 +20,7 @@ export async function GET(
     const offset = parseInt(searchParams.get("offset") || "0");
 
     await connectToDatabase;
-    const activeSubscription = await Subscription.findOne({
+    const activeSubscription = await WebSubscription.findOne({
       clerkId: userId,
       chatbotType: params.chatbotType,
       status: "active",
@@ -50,7 +50,6 @@ export async function GET(
           _id: "mock1",
           chatbotId: "chatbot1",
           chatbotType: params.chatbotType,
-          userId: userId,
           clerkId: userId,
           customerName: "John Doe",
           customerEmail: "john@example.com",
@@ -86,7 +85,6 @@ export async function GET(
           _id: "mock2",
           chatbotId: "chatbot1",
           chatbotType: params.chatbotType,
-          userId: userId,
           clerkId: userId,
           customerName: "Jane Smith",
           customerEmail: "jane@example.com",
@@ -114,7 +112,6 @@ export async function GET(
           _id: "mock3",
           chatbotId: "chatbot1",
           chatbotType: params.chatbotType,
-          userId: userId,
           clerkId: userId,
           customerName: "Mike Johnson",
           customerEmail: "mike@example.com",

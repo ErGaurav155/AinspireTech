@@ -57,21 +57,7 @@ const productSections = [
         image:
           "https://images.pexels.com/photos/5699456/pexels-photo-5699456.jpeg?auto=compress&cs=tinysrgb&w=400",
       },
-      {
-        id: "/web/product/chatbot-e-commerce",
-        name: "E-Commerce",
-        icon: ShoppingCart,
-        description: "Boost sales with AI-powered shopping assistants",
-        features: [
-          "Product recommendations",
-          "Order tracking",
-          "Cart recovery",
-        ],
-        rating: 4.8,
-        users: "8K+",
-        image:
-          "https://images.pexels.com/photos/230544/pexels-photo-230544.jpeg?auto=compress&cs=tinysrgb&w=400",
-      },
+
       {
         id: "/web/product/chatbot-lead-generation",
         name: "Lead Generation",
@@ -106,22 +92,7 @@ const productSections = [
     hoverBg: "from-[#B026FF]/10",
     items: [
       {
-        id: "/insta",
-        name: "Pathology & Medical",
-        icon: Stethoscope,
-        description: "Automated patient engagement and appointment booking",
-        features: [
-          "Appointment scheduling",
-          "Health queries",
-          "Report delivery",
-        ],
-        rating: 4.9,
-        users: "3K+",
-        image:
-          "https://images.pexels.com/photos/4173251/pexels-photo-4173251.jpeg?auto=compress&cs=tinysrgb&w=400",
-      },
-      {
-        id: "/insta",
+        id: "/insta?2",
         name: "E-Commerce",
         icon: ShoppingCart,
         description: "Drive sales through Instagram with automated responses",
@@ -132,7 +103,7 @@ const productSections = [
           "https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&cs=tinysrgb&w=400",
       },
       {
-        id: "/insta",
+        id: "/insta?3",
         name: "Business",
         icon: Building2,
         description: "Professional Instagram automation for businesses",
@@ -143,7 +114,7 @@ const productSections = [
           "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=400",
       },
       {
-        id: "/insta",
+        id: "/insta?4",
         name: "SaaS",
         icon: Globe,
         description: "Automate customer onboarding and support for SaaS",
@@ -181,11 +152,11 @@ const ProductShowcase = () => {
                 </div>
 
                 {/* Products Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                   {section.items.map((item, itemIndex) => (
                     <Card
                       key={item.id}
-                      className={`group relative overflow-hidden backdrop-blur-sm border transition-all duration-500 hover:scale-105 hover:shadow-2xl ${section.borderColor} bg-gray-900/30 h-full`}
+                      className={`group relative h-full flex flex-col items-center justify-between overflow-hidden backdrop-blur-sm border transition-all duration-500 hover:scale-105 hover:shadow-2xl ${section.borderColor} bg-gray-900/30 h-full`}
                     >
                       {/* Hover Effect Background */}
                       <div
@@ -193,18 +164,22 @@ const ProductShowcase = () => {
                       ></div>
 
                       {/* Product Image */}
-                      <div className="relative h-48 overflow-hidden">
+                      <div className="relative h-48 w-full overflow-hidden">
+                        {/* Image with full coverage */}
                         <Image
                           src={item.image}
                           alt={item.name}
-                          height={900}
-                          width={900}
-                          className="w-full h-full object-cover overflow-hidden transition-transform duration-500 group-hover:scale-110"
+                          fill
+                          sizes="100vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                          priority={true} // If this is a prominent image
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent overflow-hidden"></div>
+
+                        {/* Gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent" />
 
                         {/* 3D Icon Overlay */}
-                        <div className="absolute overflow-hidden top-4 right-4 w-12 h-12 rounded-xl bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-sm border border-white/20 flex items-center justify-center transform rotate-12 group-hover:rotate-0 transition-transform duration-500">
+                        <div className="absolute top-4 right-4 w-12 h-12 rounded-xl bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-sm border border-white/20 flex items-center justify-center transform rotate-12 group-hover:rotate-0 transition-transform duration-500">
                           <item.icon
                             className={`h-6 w-6 ${
                               sectionIndex === 0
@@ -223,7 +198,7 @@ const ProductShowcase = () => {
                         </div>
                       </div>
 
-                      <CardContent className="relative flex flex-col  justify-center gap-3 xl:gap-5   border-gray-900  border-t-4 overflow-hidden z-10 p-4  max-h-max ">
+                      <CardContent className="relative flex flex-col  justify-center gap-3 xl:gap-5   border-gray-900   overflow-hidden z-10 p-4  max-h-max ">
                         <div className="flex items-center justify-between mb-3">
                           <CardTitle className="text-lg font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#00F0FF] group-hover:to-[#FF2E9F] transition-all duration-300">
                             {item.name}

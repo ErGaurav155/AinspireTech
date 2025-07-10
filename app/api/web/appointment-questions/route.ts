@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import AppointmentQuestions from "@/lib/database/models/AppointmentQuestions.model";
+import WebAppointmentQuestions from "@/lib/database/models/web/AppointmentQuestions.model";
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     }
     await connectToDatabase;
 
-    const questions = await AppointmentQuestions.findOne({
+    const questions = await WebAppointmentQuestions.findOne({
       clerkId: userId,
       chatbotType,
     });
@@ -30,7 +30,6 @@ export async function GET(request: NextRequest) {
     if (!questions) {
       // Return default questions if none exist
       const defaultQuestions = {
-        userId,
         clerkId: userId,
         chatbotType,
         questions: [
@@ -70,7 +69,7 @@ export async function GET(request: NextRequest) {
         updatedAt: new Date(),
       };
 
-      await AppointmentQuestions.create(defaultQuestions);
+      await WebAppointmentQuestions.create(defaultQuestions);
       return NextResponse.json({ appointmentQuestions: defaultQuestions });
     }
 
@@ -103,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     await connectToDatabase;
 
-    const result = await AppointmentQuestions.updateOne(
+    const result = await WebAppointmentQuestions.updateOne(
       {
         clerkId: userId,
         chatbotType,
@@ -114,7 +113,6 @@ export async function POST(request: NextRequest) {
           updatedAt: new Date(),
         },
         $setOnInsert: {
-          userId: userId,
           clerkId: userId,
           chatbotType,
           createdAt: new Date(),

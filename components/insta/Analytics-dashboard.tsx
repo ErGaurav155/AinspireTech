@@ -88,7 +88,7 @@ export function AnalyticsDashboard() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="flex items-center justify-center bg-transparent backdrop-blur-sm border-gray-900 p-0">
               <CardHeader className="p-2">
                 <CardTitle className="text-sm font-medium text-gray-300 p-2">
@@ -227,7 +227,7 @@ export function AnalyticsDashboard() {
                       cy="50%"
                       labelLine={false}
                       label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
+                        `${name} ${(percent! * 100).toFixed(0)}%`
                       }
                       outerRadius={80}
                       fill="#8884d8"
@@ -284,7 +284,7 @@ export function AnalyticsDashboard() {
                       cy="50%"
                       labelLine={false}
                       label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
+                        `${name} ${(percent! * 100).toFixed(0)}%`
                       }
                       outerRadius={80}
                       fill="#8884d8"

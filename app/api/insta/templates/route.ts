@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import InstaReplyTemplate from "@/lib/database/models/replyTemp.model";
+import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
+import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   try {

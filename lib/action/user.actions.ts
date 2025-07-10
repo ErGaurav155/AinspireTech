@@ -6,6 +6,8 @@ import User from "@/lib/database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
 import { handleError } from "../utils";
 import { CreateUserParams, UpdateUserParams } from "@/types/types";
+import WebSubscription from "../database/models/web/Websubcription.model";
+import { dummySubscriptions } from "@/constant";
 
 // CREATE
 export async function createUser(user: CreateUserParams) {
@@ -167,5 +169,20 @@ export async function deleteUser(clerkId: string) {
     return deletedUser ? JSON.parse(JSON.stringify(deletedUser)) : null;
   } catch (error) {
     handleError(error);
+  }
+}
+export async function seedSubscriptions() {
+  try {
+    await connectToDatabase();
+
+    // Clear existing data
+    await WebSubscription.deleteMany({});
+    console.log("Cleared existing subscriptions");
+
+    // Insert dummy data
+    const created = await WebSubscription.insertMany(dummySubscriptions);
+    console.log(`Created ${created.length} dummy subscriptions`);
+  } catch (error) {
+    console.error("Error seeding subscriptions:", error);
   }
 }
