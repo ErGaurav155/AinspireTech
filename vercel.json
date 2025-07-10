@@ -12,6 +12,24 @@
         { "key": "Access-Control-Allow-Methods", "value": "POST" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
       ]
+    },
+    {
+      "source": "/widgetDemo.tsx",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors *;"
+        }
+      ]
+    },
+    {
+      "source": "/chatbotembed.js",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors *;"
+        }
+      ]
     }
   ]
 }
