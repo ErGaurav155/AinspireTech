@@ -5,6 +5,7 @@ import { Metadata } from "next";
 import { MotionDiv } from "@/components/shared/Motion";
 import AIChatBot from "@/components/shared/ChatBot";
 import WidgetDemoPage from "@/components/shared/widgetDemo";
+import AibotCollapse from "@/components/shared/AiBot";
 
 const stagger = 0.25;
 

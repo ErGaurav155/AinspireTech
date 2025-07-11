@@ -26,7 +26,7 @@ import {
 } from "@/lib/action/ai.action";
 import Link from "next/link";
 import { createAllProducts } from "@/lib/action/plan.action";
-import { getUserByDbId } from "@/lib/action/user.actions";
+import { getUserByDbId, getUserById } from "@/lib/action/user.actions";
 import { sendWhatsAppInfo } from "@/lib/action/sendEmail.action";
 import FeedbackForm from "./FeedBack";
 import { handleError } from "@/lib/utils";
@@ -111,7 +111,7 @@ export default function AibotCollapse({
           authorised === false;
           return;
         }
-        const user = await getUserByDbId(userId);
+        const user = await getUserById(userId);
 
         if (user) {
           setUserFileName(user.scrappedFile);

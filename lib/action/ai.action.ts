@@ -9,7 +9,10 @@ function setupOpenAI() {
   if (!process.env.DEEPSEEK_API_KEY) {
     return new Error("OpenAI API key is not set");
   }
-  return new OpenAI({ apiKey: process.env.DEEPSEEK_API_KEY });
+  return new OpenAI({
+    baseURL: "https://api.deepseek.com",
+    apiKey: process.env.DEEPSEEK_API_KEY,
+  });
 }
 
 export const generateGptResponse = async ({
