@@ -10,7 +10,7 @@ export async function OPTIONS() {
   response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   response.headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-API-KEY" // Added X-API-KEY
+    "Content-Type, X-API-KEY" // Added X-API-KEY
   );
   return response;
 }
