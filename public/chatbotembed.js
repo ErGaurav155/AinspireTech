@@ -937,8 +937,8 @@
           userId: `${this.config.userId}`,
           messages: this.messages,
           formData: this.formData,
-          customerName: this.formData[0] || "Anonymous",
-          customerEmail: this.formData[1] || null,
+          customerName: this.formData[0].answer || "Anonymous",
+          customerEmail: this.formData[1].answer || null,
           status: this.formData ? "pending" : "active",
         };
         const response = await fetch(
