@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
       );
     }
     const {
-      chatbotId,
       chatbotType,
       userId,
       customerEmail,
@@ -40,7 +39,7 @@ export async function POST(request: NextRequest) {
       status,
     } = await request.json();
 
-    if (!chatbotId || !chatbotType || !userId || !messages) {
+    if (!chatbotType || !userId || !messages) {
       return NextResponse.json(
         { error: "Missing required fields" },
         {
@@ -76,7 +75,6 @@ export async function POST(request: NextRequest) {
     }
 
     const newConversation = {
-      chatbotId: chatbotId,
       chatbotType: chatbotType,
       clerkId: userId,
       customerName: customerName || "Anonymous",

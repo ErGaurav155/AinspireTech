@@ -934,6 +934,7 @@
       try {
         const conversationData = {
           chatbotType: this.config.chatbotType,
+          userId: `${this.config.userId}`,
           messages: this.messages,
           formData: this.formData,
           customerName: this.formData?.what_is_your_full_name || "Anonymous",
