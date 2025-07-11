@@ -703,9 +703,7 @@
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-Secret-Key": "your-secret-key",
-              // Add API key if needed
-              // 'x-api-key': this.config.apiKey
+              "X-API-KEY": "your_32byte_encryption_key_here_12345", // Match your SECRET_KEY
             },
             body: JSON.stringify({
               userId: `${this.config.userId}`,
@@ -949,7 +947,7 @@
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-Secret-Key": "your-secret-key",
+              "X-API-KEY": "your_32byte_encryption_key_here_12345", // Match your SECRET_KEY
             },
             body: JSON.stringify(conversationData),
           }
