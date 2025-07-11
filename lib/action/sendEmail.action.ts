@@ -60,37 +60,55 @@ export const sendSubscriptionEmailToUser = async ({
 
   await transporter.sendMail(mailOptions);
 };
-
-interface DataTypes {
-  name: string;
+interface QuestionAns {
+  answer: string;
+}
+export const sendAppointmentEmailToUser = async ({
+  email,
+  data,
+}: {
   email: string;
-  phone?: string;
-  message?: string;
-}
+  data: QuestionAns[];
+}) => {
+  const transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
 
-interface SendWhatsAppInfoParams {
-  data: DataTypes;
-  userId: string | null;
-}
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "New Subscription Alert",
+    text: `Congratulations! SomeONe Booked New Appointment. name:${data[0].answer}, email:${data[1].answer}, other details are: ${data[3].answer}. Please go to dashboard to get detailed appointment information`,
+  };
 
+  await transporter.sendMail(mailOptions);
+};
 const client = new Twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
-
+interface QuestionAnswer {
+  answer: string;
+}
 export async function sendWhatsAppInfo({
   data,
   userId,
-}: SendWhatsAppInfoParams): Promise<{ success: boolean; data?: any }> {
+}: {
+  userId: string;
+  data: QuestionAnswer[];
+}) {
   try {
-    const { name, email, phone, message } = data;
     await connectToDatabase();
 
     let PhoneNumber;
     if (!userId) {
       PhoneNumber = process.env.WHATSAPP_NUMBER;
     }
-    const user = await User.findOne({ _id: userId }).exec();
+    const user = await User.findOne({ userId: userId }).exec();
 
     if (!user) {
       throw new Error("User not found");
@@ -105,19 +123,18 @@ export async function sendWhatsAppInfo({
       to: `whatsapp:${PhoneNumber}`,
       contentSid: process.env.YOUR_MESSAGE_CONTENT_SID_HERE, // Replace with your template's Content SID
       contentVariables: JSON.stringify({
-        "1": name,
-        "2": email,
-        "3": phone || "Not provided",
-        "4": message || "No message",
+        "1": data[0].answer,
+        "2": data[1].answer,
+        "3": data[2].answer || "Not provided",
+        "4": data[3].answer || "No message",
       }),
     });
 
-    return { success: true, data: result };
+    return { success: true };
   } catch (error) {
     console.error("WhatsApp send error:", error);
     return {
       success: false,
-      data: error instanceof Error ? error.message : "Unknown error occurred",
     };
   }
 }

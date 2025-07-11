@@ -31,7 +31,7 @@ export default function AIChatBot() {
   ]);
   const [submit, setSubmit] = useState(false);
 
-  const toggleOpen = () => seedSubscriptions();
+  const toggleOpen = () => setOpen((cur) => !cur);
 
   const form = useForm<z.infer<typeof formSchema1>>({
     resolver: zodResolver(formSchema1),

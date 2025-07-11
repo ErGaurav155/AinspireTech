@@ -124,27 +124,27 @@ export default function AibotCollapse({
     getFileName();
   }, [userId, authorised]); // Add userId as a dependency
 
-  async function handleFeedbackSubmit(data: {
-    name: string;
-    email: string;
-    phone?: string;
-    message?: string;
-  }) {
-    try {
-      setCount(-999);
-      const response = await sendWhatsAppInfo({ data, userId });
-      if (!response) {
-        handleError;
-      }
-      toast({
-        title: "Form Submmitted Successfully,We will contact you soon",
-        duration: 2000,
-        className: "success-toast",
-      });
-    } catch (error) {
-      console.error("Error sending WhatsApp message:", error);
-    }
-  }
+  // async function handleFeedbackSubmit(data: {
+  //   name: string;
+  //   email: string;
+  //   phone?: string;
+  //   message?: string;
+  // }) {
+  //   try {
+  //     setCount(-999);
+  //     const response = await sendWhatsAppInfo({ data, userId });
+  //     if (!response) {
+  //       handleError;
+  //     }
+  //     toast({
+  //       title: "Form Submmitted Successfully,We will contact you soon",
+  //       duration: 2000,
+  //       className: "success-toast",
+  //     });
+  //   } catch (error) {
+  //     console.error("Error sending WhatsApp message:", error);
+  //   }
+  // }
 
   return (
     <div className="h-auto w-auto flex flex-col">
@@ -224,9 +224,9 @@ export default function AibotCollapse({
                       <span>{msg.text}</span>
                     </div>
                   </div>
-                  {index === 6 && count > 2 && (
+                  {/* {index === 6 && count > 2 && (
                     <FeedbackForm onSubmit={handleFeedbackSubmit} />
-                  )}
+                  )} */}
                 </div>
               ))}
             </div>

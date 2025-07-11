@@ -936,9 +936,9 @@
           chatbotType: this.config.chatbotType,
           userId: `${this.config.userId}`,
           messages: this.messages,
-          formData: this.formData,
+          formData: this.formData || null,
           customerName: this.formData[0].answer || "Anonymous",
-          customerEmail: this.formData[1].answer || null,
+          customerEmail: this.formData[1].answer || "Anonymous",
           status: this.formData ? "pending" : "active",
         };
         const response = await fetch(

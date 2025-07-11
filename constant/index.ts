@@ -728,6 +728,7 @@ export const dummySubscriptions = [
   {
     clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
     chatbotType: "chatbot-customer-support",
+    subscriptionId: "zSNO5jX4zsrdIay5jX4zC7ZA",
     plan: "Premium Support",
     billingCycle: "monthly",
     status: "active",
@@ -736,6 +737,8 @@ export const dummySubscriptions = [
   {
     clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
     chatbotType: "chatbot-e-commerce",
+    subscriptionId: "zSNO5jX4zsrdIaysrdIayC7ZA",
+
     plan: "Business Plus",
     billingCycle: "yearly",
     status: "active",
@@ -744,26 +747,12 @@ export const dummySubscriptions = [
   {
     clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
     chatbotType: "chatbot-lead-generation",
+    subscriptionId: "zSNO5jX4zsrdIayzSNO5C7ZA",
+
     plan: "Starter",
     billingCycle: "monthly",
     status: "cancelled",
     expiresAt: getFutureDate(15),
     cancelledAt: new Date(),
-  },
-  {
-    clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
-    chatbotType: "chatbot-education",
-    plan: "Pro",
-    billingCycle: "monthly",
-    status: "expired",
-    expiresAt: getFutureDate(-7), // Expired 7 days ago
-  },
-  {
-    clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
-    chatbotType: "chatbot-customer-support",
-    plan: "Basic",
-    billingCycle: "monthly",
-    status: "active",
-    expiresAt: getFutureDate(45),
   },
 ];

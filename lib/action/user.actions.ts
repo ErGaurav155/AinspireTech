@@ -175,10 +175,6 @@ export async function seedSubscriptions() {
   try {
     await connectToDatabase();
 
-    // Clear existing data
-    await WebSubscription.deleteMany({});
-    console.log("Cleared existing subscriptions");
-
     // Insert dummy data
     const created = await WebSubscription.insertMany(dummySubscriptions);
     console.log(`Created ${created.length} dummy subscriptions`);

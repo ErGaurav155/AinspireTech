@@ -1033,107 +1033,114 @@ export default function DashboardPage() {
                                         )}
                                       </div>
                                     </div>
-                                    {conversation.formData.map((field: any) => {
-                                      // Map field.question to specific UI components
-                                      if (
-                                        /name|full name|your name/i.test(
-                                          field.question
-                                        )
-                                      ) {
-                                        return (
-                                          <div
-                                            key="name"
-                                            className="flex items-center space-x-2"
-                                          >
-                                            <User className="h-4 w-4 text-[#00F0FF]" />
-                                            <span className="text-gray-300">
-                                              Name: {field.answer}
-                                            </span>
-                                          </div>
-                                        );
-                                      }
-                                      if (/email/i.test(field.question)) {
-                                        return (
-                                          <div
-                                            key="email"
-                                            className="flex items-center space-x-2"
-                                          >
-                                            <Mail className="h-4 w-4 text-[#FF2E9F]" />
-                                            <span className="text-gray-300">
-                                              Email:{" "}
-                                              <a
-                                                href={`mailto:${field.answer}`}
-                                                className="text-blue-400 hover:underline"
-                                              >
-                                                {field.answer}
-                                              </a>
-                                            </span>
-                                          </div>
-                                        );
-                                      }
-                                      if (
-                                        /phone|mobile|contact number/i.test(
-                                          field.question
-                                        )
-                                      ) {
-                                        return (
-                                          <div
-                                            key="phone"
-                                            className="flex items-center space-x-2"
-                                          >
-                                            <Phone className="h-4 w-4 text-[#B026FF]" />
-                                            <span className="text-gray-300">
-                                              Phone:{" "}
-                                              <a
-                                                href={`tel:${field.answer}`}
-                                                className="text-blue-400 hover:underline"
-                                              >
-                                                {field.answer}
-                                              </a>
-                                            </span>
-                                          </div>
-                                        );
-                                      }
-                                      if (
-                                        /service|interested in|service required/i.test(
-                                          field.question
-                                        )
-                                      ) {
-                                        return (
-                                          <div
-                                            key="service"
-                                            className="flex items-center space-x-2"
-                                          >
-                                            <Settings className="h-4 w-4 text-green-400" />
-                                            <span className="text-gray-300">
-                                              Service: {field.answer}
-                                            </span>
-                                          </div>
-                                        );
-                                      }
-                                      if (
-                                        /date|time|appointment date/i.test(
-                                          field.question
-                                        )
-                                      ) {
-                                        return (
-                                          <div
-                                            key="date"
-                                            className="flex items-center space-x-2"
-                                          >
-                                            <Calendar className="h-4 w-4 text-yellow-400" />
-                                            <span className="text-gray-300">
-                                              Date:{" "}
-                                              {new Date(
-                                                field.answer
-                                              ).toLocaleDateString()}
-                                            </span>
-                                          </div>
-                                        );
-                                      }
-                                      return null;
-                                    })}
 
+                                    <div className="bg-[#b71b86]/10 p-4 rounded space-y-2">
+                                      <h4 className="font-medium mb-2">
+                                        Form Data
+                                      </h4>
+                                      {conversation.formData.map(
+                                        (field: any) => {
+                                          // Map field.question to specific UI components
+                                          if (
+                                            /name|full name|your name/i.test(
+                                              field.question
+                                            )
+                                          ) {
+                                            return (
+                                              <div
+                                                key="name"
+                                                className="flex items-center space-x-2"
+                                              >
+                                                <User className="h-4 w-4 text-[#00F0FF]" />
+                                                <span className="text-gray-300">
+                                                  Name: {field.answer}
+                                                </span>
+                                              </div>
+                                            );
+                                          }
+                                          if (/email/i.test(field.question)) {
+                                            return (
+                                              <div
+                                                key="email"
+                                                className="flex items-center space-x-2"
+                                              >
+                                                <Mail className="h-4 w-4 text-[#FF2E9F]" />
+                                                <span className="text-gray-300">
+                                                  Email:{" "}
+                                                  <a
+                                                    href={`mailto:${field.answer}`}
+                                                    className="text-blue-400 hover:underline"
+                                                  >
+                                                    {field.answer}
+                                                  </a>
+                                                </span>
+                                              </div>
+                                            );
+                                          }
+                                          if (
+                                            /phone|mobile|contact number/i.test(
+                                              field.question
+                                            )
+                                          ) {
+                                            return (
+                                              <div
+                                                key="phone"
+                                                className="flex items-center space-x-2"
+                                              >
+                                                <Phone className="h-4 w-4 text-[#B026FF]" />
+                                                <span className="text-gray-300">
+                                                  Phone:{" "}
+                                                  <a
+                                                    href={`tel:${field.answer}`}
+                                                    className="text-blue-400 hover:underline"
+                                                  >
+                                                    {field.answer}
+                                                  </a>
+                                                </span>
+                                              </div>
+                                            );
+                                          }
+                                          if (
+                                            /service|interested in|service required/i.test(
+                                              field.question
+                                            )
+                                          ) {
+                                            return (
+                                              <div
+                                                key="service"
+                                                className="flex items-center space-x-2"
+                                              >
+                                                <Settings className="h-4 w-4 text-green-400" />
+                                                <span className="text-gray-300">
+                                                  Service: {field.answer}
+                                                </span>
+                                              </div>
+                                            );
+                                          }
+                                          if (
+                                            /date|time|appointment date/i.test(
+                                              field.question
+                                            )
+                                          ) {
+                                            return (
+                                              <div
+                                                key="date"
+                                                className="flex items-center space-x-2"
+                                              >
+                                                <Calendar className="h-4 w-4 text-yellow-400" />
+                                                <span className="text-gray-300">
+                                                  Date:{" "}
+                                                  {new Date(
+                                                    field.answer
+                                                  ).toLocaleDateString()}
+                                                </span>
+                                              </div>
+                                            );
+                                          }
+                                          return null;
+                                        }
+                                      )}
+                                    </div>
                                     {conversation.formData.find((f: any) =>
                                       /message|additional comments/i.test(
                                         f.question
