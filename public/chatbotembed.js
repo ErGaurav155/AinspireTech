@@ -719,7 +719,6 @@
         }
 
         const data = await response.json();
-        console.log(data);
         return data.response || "I couldn't process your request.";
       } catch (error) {
         console.error("Chatbot error:", error);
@@ -894,15 +893,16 @@
     async submitAppointmentForm(e) {
       e.preventDefault();
 
-      const formData = {};
-      this.appointmentQuestions.forEach((question) => {
+      const formData = [];
+      this.appointmentQuestions.forEach((question, index) => {
         const field = document.getElementById(`field-${question.id}`);
         if (field) {
-          formData[question.question.toLowerCase().replace(/[^a-z0-9]/g, "_")] =
-            field.value;
+          formData[index] = {
+            question: question.question,
+            answer: field ? field.value : "",
+          };
         }
       });
-
       try {
         // Save form data to conversation
         this.formData = formData;
@@ -937,11 +937,10 @@
           userId: `${this.config.userId}`,
           messages: this.messages,
           formData: this.formData,
-          customerName: this.formData?.what_is_your_full_name || "Anonymous",
-          customerEmail: this.formData?.what_is_your_email_address || null,
+          customerName: this.formData[0] || "Anonymous",
+          customerEmail: this.formData[1] || null,
           status: this.formData ? "pending" : "active",
         };
-
         const response = await fetch(
           `${this.config.apiUrl}/api/embed/conversation`,
           {

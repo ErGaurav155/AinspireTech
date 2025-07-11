@@ -20,9 +20,11 @@ export interface IAppointmentFormData {
   date: Date;
   message?: string;
 }
-
+export interface IFormField {
+  question: string;
+  answer: string;
+}
 export interface IConversation extends Document {
-  chatbotId: mongoose.Types.ObjectId;
   chatbotType:
     | "chatbot-customer-support"
     | "chatbot-e-commerce"
@@ -32,7 +34,7 @@ export interface IConversation extends Document {
   customerEmail?: string;
   customerName?: string;
   messages: IMessage[];
-  formData?: IAppointmentFormData;
+  formData?: IFormField[];
   status: "active" | "resolved" | "pending";
   tags: string[];
   createdAt: Date;
@@ -85,55 +87,16 @@ const MessageSchema = new Schema<IMessage>(
   { _id: false }
 );
 
-const AppointmentFormDataSchema = new Schema<IAppointmentFormData>(
+const FormFieldSchema = new Schema<IFormField>(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      trim: true,
-      lowercase: true,
-      match: [
-        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-        "Please enter a valid email",
-      ],
-    },
-    phone: {
-      type: String,
-      trim: true,
-      match: [
-        /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/,
-        "Please enter a valid phone number",
-      ],
-    },
-    service: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    date: {
-      type: Date,
-      required: true,
-    },
-    message: {
-      type: String,
-      trim: true,
-    },
+    question: { type: String, required: true },
+    answer: { type: String, required: true },
   },
   { _id: false }
 );
 
 const ConversationSchema = new Schema<IConversation>(
   {
-    chatbotId: {
-      type: Schema.Types.ObjectId,
-      ref: "Chatbot",
-      required: true,
-    },
     chatbotType: {
       type: String,
       required: true,
@@ -163,9 +126,7 @@ const ConversationSchema = new Schema<IConversation>(
       trim: true,
     },
     messages: [MessageSchema],
-    formData: {
-      type: AppointmentFormDataSchema,
-    },
+    formData: [FormFieldSchema],
     status: {
       type: String,
       required: true,
@@ -186,7 +147,7 @@ const ConversationSchema = new Schema<IConversation>(
 );
 
 // Indexes for optimized queries
-ConversationSchema.index({ chatbotId: 1, status: 1 });
+
 ConversationSchema.index({ chatbotType: 1, status: 1 });
 ConversationSchema.index({ "messages.timestamp": 1 });
 ConversationSchema.index({ clerkId: 1, status: 1 });
