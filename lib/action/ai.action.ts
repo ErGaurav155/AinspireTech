@@ -6,10 +6,10 @@ import File from "@/lib/database/models/web/scrappeddata.model";
 
 const openai = setupOpenAI();
 function setupOpenAI() {
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.DEEPSEEK_API_KEY) {
     return new Error("OpenAI API key is not set");
   }
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return new OpenAI({ apiKey: process.env.DEEPSEEK_API_KEY });
 }
 
 export const generateGptResponse = async ({
@@ -42,7 +42,7 @@ export const generateGptResponse = async ({
     context = "You are an AI assistant that helps users";
   }
   const completion = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
+    model: "deepseek-chat",
     messages: [
       {
         role: "system",
