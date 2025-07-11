@@ -32,9 +32,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const { message, fileData, userId, agentId } = await request.json();
+    const { userInput, fileData, userId, agentId } = await request.json();
 
-    if (!message || !userId || !agentId) {
+    if (!userInput || !userId || !agentId || !fileData) {
       return NextResponse.json(
         { error: "Message is required" },
         {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     }
 
     const response = await generateGptResponse({
-      userInput: message,
+      userInput: userInput,
       userfileName: fileData || "default",
     });
 
