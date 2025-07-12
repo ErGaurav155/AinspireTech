@@ -894,7 +894,7 @@
             body: JSON.stringify({
               userInput,
               userId: this.config.userId,
-              agentId,
+              agentId: this.config.agentId,
             }),
           }
         );
