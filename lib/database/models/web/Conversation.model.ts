@@ -89,8 +89,8 @@ const MessageSchema = new Schema<IMessage>(
 
 const FormFieldSchema = new Schema<IFormField>(
   {
-    question: { type: String, required: true },
-    answer: { type: String, required: true },
+    question: { type: String },
+    answer: { type: String },
   },
   { _id: false }
 );

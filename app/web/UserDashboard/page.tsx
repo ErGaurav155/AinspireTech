@@ -103,21 +103,21 @@ const chatbotTypes = [
       "FAQ automation",
     ],
   },
-  {
-    id: "chatbot-e-commerce",
-    name: "E-Commerce",
-    icon: ShoppingCart,
-    description: "Boost sales with AI shopping assistant",
-    category: "Website",
-    color: "text-[#FF2E9F]",
-    gradient: "from-[#FF2E9F] to-[#B026FF]",
-    features: [
-      "Product recommendations",
-      "Order tracking",
-      "Cart recovery",
-      "Inventory queries",
-    ],
-  },
+  // {
+  //   id: "chatbot-e-commerce",
+  //   name: "E-Commerce",
+  //   icon: ShoppingCart,
+  //   description: "Boost sales with AI shopping assistant",
+  //   category: "Website",
+  //   color: "text-[#FF2E9F]",
+  //   gradient: "from-[#FF2E9F] to-[#B026FF]",
+  //   features: [
+  //     "Product recommendations",
+  //     "Order tracking",
+  //     "Cart recovery",
+  //     "Inventory queries",
+  //   ],
+  // },
   {
     id: "chatbot-lead-generation",
     name: "Lead Generation",
@@ -670,31 +670,35 @@ export default function DashboardPage() {
         {/* Current Chatbot Info */}
 
         {/* Stats Grid - Only show if subscribed */}
-        {isSubscribed && analytics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {getStatsForChatbot(selectedChatbot).map((stat, index) => (
-              <Card
-                key={index}
-                className="bg-gray-900/30 backdrop-blur-sm border-gray-800/50"
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-400 mb-1">{stat.title}</p>
-                      <p className="text-2xl font-bold text-white">
-                        {stat.value}
-                      </p>
-                      <p className="text-xs text-green-400 mt-1">
-                        {stat.change} from last week
-                      </p>
+        {currentChatbot?.id === "chatbot-lead-generation" &&
+          isSubscribed &&
+          analytics && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {getStatsForChatbot(selectedChatbot).map((stat, index) => (
+                <Card
+                  key={index}
+                  className="bg-gray-900/30 backdrop-blur-sm border-gray-800/50"
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400 mb-1">
+                          {stat.title}
+                        </p>
+                        <p className="text-2xl font-bold text-white">
+                          {stat.value}
+                        </p>
+                        <p className="text-xs text-green-400 mt-1">
+                          {stat.change} from last week
+                        </p>
+                      </div>
+                      <stat.icon className={`h-8 w-8 ${stat.color}`} />
                     </div>
-                    <stat.icon className={`h-8 w-8 ${stat.color}`} />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
         {/* Main Content Tabs - Only show if subscribed */}
         {isSubscribed ? (
@@ -734,150 +738,158 @@ export default function DashboardPage() {
               {analytics && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Conversation Trends */}
-                  <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
-                    <CardHeader>
-                      <CardTitle className="text-white">
-                        Conversation Trends
-                      </CardTitle>
-                      <CardDescription className="text-gray-400">
-                        Daily conversation volume for {currentChatbot?.name}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-64 overflow-x-auto">
-                        <ResponsiveContainer width={1000} height="100%">
-                          <LineChart data={analytics.trends}>
-                            <CartesianGrid
-                              strokeDasharray="3 3"
-                              stroke="#374151"
-                            />
-                            <XAxis
-                              dataKey="name"
-                              stroke="#9CA3AF"
-                              tick={{ fill: "#9CA3AF" }}
-                            />
-                            <YAxis
-                              stroke="#9CA3AF"
-                              tick={{ fill: "#9CA3AF" }}
-                            />
-                            <Tooltip
-                              contentStyle={{
-                                backgroundColor: "#1F2937",
-                                border: "1px solid #374151",
-                                borderRadius: "8px",
-                                color: "#F3F4F6",
-                              }}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="conversations"
-                              stroke="#00F0FF"
-                              strokeWidth={2}
-                              activeDot={{ r: 6 }}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="responses"
-                              stroke="#FF2E9F"
-                              strokeWidth={2}
-                              activeDot={{ r: 6 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {currentChatbot?.id === "chatbot-lead-generation" && (
+                    <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                      <CardHeader>
+                        <CardTitle className="text-white">
+                          Conversation Trends
+                        </CardTitle>
+                        <CardDescription className="text-gray-400">
+                          Daily conversation volume for {currentChatbot?.name}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-64 overflow-x-auto">
+                          <ResponsiveContainer width={1000} height="100%">
+                            <LineChart data={analytics.trends}>
+                              <CartesianGrid
+                                strokeDasharray="3 3"
+                                stroke="#374151"
+                              />
+                              <XAxis
+                                dataKey="name"
+                                stroke="#9CA3AF"
+                                tick={{ fill: "#9CA3AF" }}
+                              />
+                              <YAxis
+                                stroke="#9CA3AF"
+                                tick={{ fill: "#9CA3AF" }}
+                              />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: "#1F2937",
+                                  border: "1px solid #374151",
+                                  borderRadius: "8px",
+                                  color: "#F3F4F6",
+                                }}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="conversations"
+                                stroke="#00F0FF"
+                                strokeWidth={2}
+                                activeDot={{ r: 6 }}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="responses"
+                                stroke="#FF2E9F"
+                                strokeWidth={2}
+                                activeDot={{ r: 6 }}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Response Time Distribution */}
-                  <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
-                    <CardHeader>
-                      <CardTitle className="text-white">
-                        Response Time Distribution
-                      </CardTitle>
-                      <CardDescription className="text-gray-400">
-                        How quickly your {currentChatbot?.name.toLowerCase()}{" "}
-                        responds
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-64 overflow-x-auto">
-                        <ResponsiveContainer width={1000} height="100%">
-                          <BarChart data={analytics.responseTime}>
-                            <CartesianGrid
-                              strokeDasharray="3 3"
-                              stroke="#374151"
-                            />
-                            <XAxis
-                              dataKey="time"
-                              stroke="#9CA3AF"
-                              tick={{ fill: "#9CA3AF" }}
-                            />
-                            <YAxis
-                              stroke="#9CA3AF"
-                              tick={{ fill: "#9CA3AF" }}
-                            />
-                            <Tooltip
-                              contentStyle={{
-                                backgroundColor: "#1F2937",
-                                border: "1px solid #374151",
-                                borderRadius: "8px",
-                                color: "#F3F4F6", // Better text visibility
-                              }}
-                            />
-                            <Bar
-                              dataKey="count"
-                              fill="#B026FF"
-                              radius={[4, 4, 0, 0]} // Rounded top corners
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {currentChatbot?.id === "chatbot-lead-generation" && (
+                    <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                      <CardHeader>
+                        <CardTitle className="text-white">
+                          Response Time Distribution
+                        </CardTitle>
+                        <CardDescription className="text-gray-400">
+                          How quickly your {currentChatbot?.name.toLowerCase()}{" "}
+                          responds
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-64 overflow-x-auto">
+                          <ResponsiveContainer width={1000} height="100%">
+                            <BarChart data={analytics.responseTime}>
+                              <CartesianGrid
+                                strokeDasharray="3 3"
+                                stroke="#374151"
+                              />
+                              <XAxis
+                                dataKey="time"
+                                stroke="#9CA3AF"
+                                tick={{ fill: "#9CA3AF" }}
+                              />
+                              <YAxis
+                                stroke="#9CA3AF"
+                                tick={{ fill: "#9CA3AF" }}
+                              />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: "#1F2937",
+                                  border: "1px solid #374151",
+                                  borderRadius: "8px",
+                                  color: "#F3F4F6", // Better text visibility
+                                }}
+                              />
+                              <Bar
+                                dataKey="count"
+                                fill="#B026FF"
+                                radius={[4, 4, 0, 0]} // Rounded top corners
+                              />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Customer Satisfaction */}
-                  <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
-                    <CardHeader className="p-2">
-                      <CardTitle className="text-white">
-                        Customer Satisfaction
-                      </CardTitle>
-                      <CardDescription className="text-gray-400">
-                        Feedback ratings from{" "}
-                        {currentChatbot?.name.toLowerCase()} users
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="">
-                      <div className="h-64   overflow-x-auto">
-                        <ResponsiveContainer
-                          className={` `}
-                          width={500}
-                          height="100%"
-                        >
-                          <PieChart className="">
-                            <Pie
-                              className=" "
-                              data={analytics.satisfaction}
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={100}
-                              dataKey="value"
-                              label={({ name, value }) => `${name}: ${value}%`}
-                            >
-                              {analytics.satisfaction.map(
-                                (entry: any, index: number) => (
-                                  <Cell
-                                    key={`cell-${index}`}
-                                    fill={entry.color}
-                                  />
-                                )
-                              )}
-                            </Pie>
-                            <Tooltip />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {currentChatbot?.id === "chatbot-lead-generation" && (
+                    <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                      <CardHeader className="p-2">
+                        <CardTitle className="text-white">
+                          Customer Satisfaction
+                        </CardTitle>
+                        <CardDescription className="text-gray-400">
+                          Feedback ratings from{" "}
+                          {currentChatbot?.name.toLowerCase()} users
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="">
+                        <div className="h-64   overflow-x-auto">
+                          <ResponsiveContainer
+                            className={` `}
+                            width={500}
+                            height="100%"
+                          >
+                            <PieChart className="">
+                              <Pie
+                                className=" "
+                                data={analytics.satisfaction}
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={100}
+                                dataKey="value"
+                                label={({ name, value }) =>
+                                  `${name}: ${value}%`
+                                }
+                              >
+                                {analytics.satisfaction.map(
+                                  (entry: any, index: number) => (
+                                    <Cell
+                                      key={`cell-${index}`}
+                                      fill={entry.color}
+                                    />
+                                  )
+                                )}
+                              </Pie>
+                              <Tooltip />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Recent Conversations */}
                   <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
@@ -1350,129 +1362,131 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Appointment Form Questions */}
-                <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
-                  <CardHeader className="p-2">
-                    <CardTitle className="text-white flex flex-wrap gap-2 p-0 items-center justify-between">
-                      <span className="flex items-center">
-                        <Calendar className="h-5 w-5 mr-2" />
-                        Appointment Form Questions
-                      </span>
-                      <Button
-                        size="sm"
-                        onClick={addAppointmentQuestion}
-                        className="bg-[#00F0FF] hover:bg-[#00F0FF]/80 text-black"
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add Question
-                      </Button>
-                    </CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Configure questions for appointment booking
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-2">
-                    <div className="space-y-4 max-h-96 overflow-y-auto">
-                      {appointmentQuestions.map((question) => (
-                        <div
-                          key={question.id}
-                          className="p-4 bg-[#921a58]/10 rounded-lg"
+                {currentChatbot?.id === "chatbot-lead-generation" && (
+                  <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                    <CardHeader className="p-2">
+                      <CardTitle className="text-white flex flex-wrap gap-2 p-0 items-center justify-between">
+                        <span className="flex items-center">
+                          <Calendar className="h-5 w-5 mr-2" />
+                          Appointment Form Questions
+                        </span>
+                        <Button
+                          size="sm"
+                          onClick={addAppointmentQuestion}
+                          className="bg-[#00F0FF] hover:bg-[#00F0FF]/80 text-black"
                         >
-                          <div className="flex items-center justify-between mb-2">
-                            <Input
-                              value={question.question}
-                              onChange={(e) =>
-                                updateAppointmentQuestion(
-                                  question.id,
-                                  "question",
-                                  e.target.value
-                                )
-                              }
-                              className="bg-transparent border-gray-600 text-white text-sm"
-                            />
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() =>
-                                removeAppointmentQuestion(question.id)
-                              }
-                              className="text-red-400 hover:text-red-300 ml-2"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            <select
-                              value={question.type}
-                              onChange={(e) =>
-                                updateAppointmentQuestion(
-                                  question.id,
-                                  "type",
-                                  e.target.value
-                                )
-                              }
-                              className=" bg-[#805283]/40 border border-gray-600 rounded px-2 py-1 text-white text-sm"
-                            >
-                              <option
-                                className="bg-transparent  border border-gray-600 rounded px-2 py-1  text-sm text-black"
-                                value="text"
-                              >
-                                Text
-                              </option>
-                              <option
-                                className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
-                                value="email"
-                              >
-                                Email
-                              </option>
-                              <option
-                                className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
-                                value="tel"
-                              >
-                                Phone
-                              </option>
-                              <option
-                                className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
-                                value="date"
-                              >
-                                Date
-                              </option>
-                              <option
-                                className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
-                                value="select"
-                              >
-                                Select
-                              </option>
-                            </select>
-                            <label className="flex items-center text-sm text-gray-300">
-                              <input
-                                type="checkbox"
-                                checked={question.required}
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Question
+                        </Button>
+                      </CardTitle>
+                      <CardDescription className="text-gray-400">
+                        Configure questions for appointment booking
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-2">
+                      <div className="space-y-4 max-h-96 overflow-y-auto">
+                        {appointmentQuestions.map((question) => (
+                          <div
+                            key={question.id}
+                            className="p-4 bg-[#921a58]/10 rounded-lg"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <Input
+                                value={question.question}
                                 onChange={(e) =>
                                   updateAppointmentQuestion(
                                     question.id,
-                                    "required",
-                                    e.target.checked
+                                    "question",
+                                    e.target.value
                                   )
                                 }
-                                className="mr-2"
+                                className="bg-transparent border-gray-600 text-white text-sm"
                               />
-                              Required
-                            </label>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() =>
+                                  removeAppointmentQuestion(question.id)
+                                }
+                                className="text-red-400 hover:text-red-300 ml-2"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                              <select
+                                value={question.type}
+                                onChange={(e) =>
+                                  updateAppointmentQuestion(
+                                    question.id,
+                                    "type",
+                                    e.target.value
+                                  )
+                                }
+                                className=" bg-[#805283]/40 border border-gray-600 rounded px-2 py-1 text-white text-sm"
+                              >
+                                <option
+                                  className="bg-transparent  border border-gray-600 rounded px-2 py-1  text-sm text-black"
+                                  value="text"
+                                >
+                                  Text
+                                </option>
+                                <option
+                                  className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
+                                  value="email"
+                                >
+                                  Email
+                                </option>
+                                <option
+                                  className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
+                                  value="tel"
+                                >
+                                  Phone
+                                </option>
+                                <option
+                                  className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
+                                  value="date"
+                                >
+                                  Date
+                                </option>
+                                <option
+                                  className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
+                                  value="select"
+                                >
+                                  Select
+                                </option>
+                              </select>
+                              <label className="flex items-center text-sm text-gray-300">
+                                <input
+                                  type="checkbox"
+                                  checked={question.required}
+                                  onChange={(e) =>
+                                    updateAppointmentQuestion(
+                                      question.id,
+                                      "required",
+                                      e.target.checked
+                                    )
+                                  }
+                                  className="mr-2"
+                                />
+                                Required
+                              </label>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="pt-4">
-                      <Button
-                        onClick={saveAppointmentQuestions}
-                        className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black`}
-                      >
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Questions
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                        ))}
+                      </div>
+                      <div className="pt-4">
+                        <Button
+                          onClick={saveAppointmentQuestions}
+                          className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black`}
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Questions
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </TabsContent>
           </Tabs>

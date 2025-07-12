@@ -30,7 +30,9 @@
       this.createStyles();
       this.createWidget();
       this.bindEvents();
-      this.loadAppointmentQuestions();
+      if (chatbotType === "chatbot-lead-generation") {
+        this.loadAppointmentQuestions();
+      }
     }
 
     createStyles() {
@@ -641,16 +643,18 @@
       this.addMessage(response, "bot");
 
       // Show appointment form after 2 messages
-      if (this.messageCount >= 2 && !this.showAppointmentForm) {
-        this.showAppointmentForm = true;
-        setTimeout(() => {
-          this.addAppointmentForm();
-        }, 1000);
-      }
+      if (chatbotType === "chatbot-lead-generation") {
+        if (this.messageCount >= 2 && !this.showAppointmentForm) {
+          this.showAppointmentForm = true;
+          setTimeout(() => {
+            this.addAppointmentForm();
+          }, 1000);
+        }
 
-      // Save conversation after 3 messages
-      if (this.messageCount >= 3) {
-        this.saveConversation();
+        // Save conversation after 3 messages
+        if (this.messageCount >= 3) {
+          this.saveConversation();
+        }
       }
     }
 

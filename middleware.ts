@@ -14,6 +14,7 @@ export default authMiddleware({
     "/new/product",
     "/api/webhooks/clerk",
     "/api/embed/chatbot",
+    "/api/embed/mcqchatbot",
     "/api/embed/conversation",
     "/api/embed/webQuestion",
     "/privacy-policy",
