@@ -99,7 +99,7 @@ export const generateMcqResponse = async ({
     : "You are an AI assistant...";
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
+    model: "deepseek-chat",
     messages: [
       { role: "system", content: systemMessage },
       { role: "user", content: userInput },
