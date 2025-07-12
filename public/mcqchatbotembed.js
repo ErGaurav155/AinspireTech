@@ -912,7 +912,21 @@
       }
     }
   }
+  function initMcqChatbot() {
+    const script =
+      document.currentScript ||
+      document.querySelector("script[data-mcq-chatbot]");
 
+    if (!script) return;
+    const configAttr = script.getAttribute("data-mcq-chatbot");
+    if (!configAttr) return;
+    try {
+      const config = JSON.parse(configAttr);
+      new McqChatbotWidget(config);
+    } catch (error) {
+      console.error("Failed to initialize chatbot:", error);
+    }
+  }
   // Initialize when DOM is ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initMcqChatbot);
