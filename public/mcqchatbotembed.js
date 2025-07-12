@@ -8,7 +8,7 @@
         userId: config.userId,
         isAuthorized: config.isAuthorized,
         apiUrl: config.apiUrl,
-        agentId: chatbotType,
+        agentId: config.chatbotType,
         primaryColor: config.primaryColor || "#143796",
         position: config.position || "bottom-right",
         welcomeMessage: config.welcomeMessage || "Hello! How can I help you?",
