@@ -89,6 +89,7 @@ export default function McqbotCollapse({
     try {
       const response = await generateMcqResponse({
         userInput: message,
+        isMCQRequest: false,
       });
 
       // Regular chat response handling
@@ -151,7 +152,10 @@ export default function McqbotCollapse({
       const newMessage = `generate mcq test for ${data.Topic} based on ${data.Exam} syllabus.Toughness must be ${data.Level} Also consider ${data.Info}`;
       form.reset();
 
-      const response = await generateMcqResponse({ userInput: newMessage });
+      const response = await generateMcqResponse({
+        userInput: newMessage,
+        isMCQRequest: true,
+      });
       // Attempt to parse the response as quiz data (MCQ JSON)
       if (!response) {
         handleError;
