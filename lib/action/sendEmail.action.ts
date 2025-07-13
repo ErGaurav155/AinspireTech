@@ -108,7 +108,7 @@ export async function sendWhatsAppInfo({
     if (!userId) {
       PhoneNumber = process.env.WHATSAPP_NUMBER;
     }
-    const user = await User.findOne({ userId: userId }).exec();
+    const user = await User.findOne({ clerkId: userId }).exec();
 
     if (!user) {
       throw new Error("User not found");

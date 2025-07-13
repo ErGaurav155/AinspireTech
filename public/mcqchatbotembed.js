@@ -7,6 +7,7 @@
       this.config = {
         userId: config.userId,
         isAuthorized: config.isAuthorized,
+        chatbotName: config.chatbotName,
         apiUrl: config.apiUrl,
         agentId: config.chatbotType,
         primaryColor: config.primaryColor || "#143796",
@@ -17,8 +18,11 @@
 
       this.isOpen = false;
       this.messages = [
-        { sender: "AI Bot", text: "Hello! How can I help you?" },
-        { sender: "You", text: "Eg. Generate mcq test for my neet exam" },
+        {
+          sender: "AI Bot",
+          text: "Hello, cosmic traveler! I am your AI assistant. How can I help you navigate our services today?",
+        },
+        { sender: "You", text: "What services did you provide?" },
       ];
       this.quizData = null;
       this.selectedAnswers = [];
@@ -58,14 +62,16 @@
           width: 60px;
           height: 60px;
           border-radius: 50%;
-          background: ${this.config.primaryColor};
+          background: linear-gradient(to right, ${
+            this.config.primaryColor
+          }, #B026FF);
           border: none;
           cursor: pointer;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.3s ease;
+          position: relative;
         }
 
         .mcq-toggle:hover {
@@ -73,25 +79,38 @@
           box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
         }
 
-        .mcq-toggle svg {
-          width: 24px;
-          height: 24px;
-          fill: white;
+        .mcq-toggle::before {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: inherit;
+          animation: pulse 2s infinite;
+          z-index: -1;
+        }
+
+        @keyframes pulse {
+          0% { transform: scale(0.9); opacity: 0.7; }
+          50% { transform: scale(1); opacity: 1; }
+          100% { transform: scale(0.9); opacity: 0.7; }
         }
 
         .mcq-window {
           position: absolute;
           right: 0;
-          bottom: 80px;
+          bottom: 20px;
           width: 380px;
-          height: 600px;
-          background: white;
+          height: 80vh;
+          background: rgba(10, 10, 10, 0.8);
           border-radius: 16px;
           box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
           display: none;
           flex-direction: column;
           overflow: hidden;
-          border: 1px solid rgba(0, 0, 0, 0.1);
+          border: 1px solid rgba(0, 240, 255, 0.3);
+          box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+          backdrop-filter: blur(10px);
         }
 
         .mcq-window.open {
@@ -111,54 +130,68 @@
         }
 
         .mcq-header {
-          background: ${this.config.primaryColor};
-          padding: 16px 20px;
-          color: white;
+          height: 48px;
+          background: linear-gradient(to right, ${
+            this.config.primaryColor
+          }, #B026FF);
           display: flex;
           align-items: center;
           justify-content: space-between;
+          padding: 0 16px;
         }
 
-        .mcq-header h3 {
-          margin: 0;
-          font-size: 16px;
-          font-weight: 600;
+        .mcq-header-title {
           display: flex;
-          gap: 5px;
+          align-items: center;
+          gap: 8px;
+          color: #000;
+          font-weight: 500;
         }
 
-        .mcq-header span {
-          display: block;
-          animation: colorChangeHorizontal 2s infinite;
+        .mcq-header-icon {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: rgba(0, 0, 0, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        @keyframes colorChangeHorizontal {
-          0% { color: white; }
-          25% { color: #FFD700; }
-          50% { color: #00F0FF; }
-          75% { color: #FF2E9F; }
-          100% { color: white; }
+        .mcq-header-icon svg {
+          width: 16px;
+          height: 16px;
+          fill: white;
         }
 
-        .mcq-close {
-          background: none;
+        .mcq-header-buttons {
+          display: flex;
+          gap: 8px;
+        }
+
+        .mcq-header-button {
+          background: transparent;
           border: none;
-          color: white;
+          color: #000;
           cursor: pointer;
           padding: 4px;
           border-radius: 4px;
-          transition: background 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        .mcq-close:hover {
-          background: rgba(255, 255, 255, 0.2);
+        .mcq-header-button:hover {
+          background: rgba(0, 0, 0, 0.1);
         }
 
         .mcq-body {
           flex: 1;
           overflow-y: auto;
-          padding: 8px;
-          background: white;
+          padding: 16px;
+          background-image: url("https://readdy.ai/api/search-image?query=deep%20space%20starfield%20with%20distant%20stars%20and%20subtle%20nebula%2C%20dark%20cosmic%20background%20with%20tiny%20stars%2C%20perfect%20for%20chat%20background&width=320&height=300&seq=chatbg&orientation=squarish");
+          background-size: cover;
+          background-position: center;
           scrollbar-width: none;
           -ms-overflow-style: none;
         }
@@ -168,96 +201,146 @@
         }
 
         .mcq-message {
-          margin-bottom: 10px;
+          margin-bottom: 12px;
           display: flex;
           align-items: flex-start;
           gap: 8px;
         }
 
         .mcq-message.user {
-          flex-direction: row-reverse;
+          justify-content: flex-end;
         }
 
         .mcq-message-content {
           max-width: 80%;
-          padding: 8px 12px;
-          border-radius: 18px;
+          padding: 12px;
+          border-radius: 16px;
           font-size: 14px;
           line-height: 1.4;
+          backdrop-filter: blur(10px);
+          background: rgba(176, 38, 255, 0.1);
+          color: #B026FF;
+          border: 1px solid rgba(176, 38, 255, 0.3);
         }
 
         .mcq-message.bot .mcq-message-content {
-          background: #f0f0f0;
-          color: #333;
-          border-bottom-left-radius: 4px;
-        }
-
-        .mcq-message.user .mcq-message-content {
-          background: ${this.config.primaryColor};
-          color: white;
-          border-bottom-right-radius: 4px;
-        }
-
-        .mcq-avatar {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: ${this.config.primaryColor};
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .mcq-avatar svg {
-          width: 16px;
-          height: 16px;
-          fill: white;
+          background: rgba(0, 240, 255, 0.1);
+          color: #00F0FF;
+          border: 1px solid rgba(0, 240, 255, 0.3);
         }
 
         .mcq-input-area {
-          padding: 10px 12px;
-          background: #f5f5f5;
-          border-top: 1px solid rgba(0, 0, 0, 0.1);
+          padding: 12px;
+          background: rgba(10, 10, 10, 0.8);
+          border-top: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        .mcq-input-container {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+
+        .mcq-input {
+          flex: 1;
+          background: rgba(26, 26, 26, 0.9);
+          border: 1px solid rgba(0, 240, 255, 0.2);
+          border-radius: 20px;
+          padding: 12px 16px;
+          color: #f0f0f0;
+          font-size: 14px;
+          resize: none;
+          outline: none;
+        }
+
+        .mcq-input:focus {
+          border-color: rgba(0, 240, 255, 0.5);
+        }
+
+        .mcq-send {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: linear-gradient(to right, ${
+            this.config.primaryColor
+          }, #B026FF);
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.2s;
+        }
+
+        .mcq-send:hover {
+          transform: scale(1.05);
+        }
+
+        .mcq-send svg {
+          width: 16px;
+          height: 16px;
+          fill: #000;
+        }
+
+        .mcq-footer {
+          display: flex;
+          justify-content: center;
+        }
+
+        .powered-by {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.6);
+          text-decoration: none;
+          transition: color 0.3s;
+        }
+
+        .powered-by:hover {
+          color: #00F0FF;
         }
 
         .mcq-form {
-          padding: 10px;
-          background: #f9f9f9;
+          padding: 16px;
+          background: rgba(26, 26, 26, 0.8);
           border-radius: 8px;
-          margin: 8px 0;
-          border: 1px solid #eee;
+          margin-bottom: 16px;
+          border: 1px solid rgba(0, 240, 255, 0.2);
         }
-
+        
         .mcq-form p {
           font-size: 14px;
-          font-weight: 600;
-          color: ${this.config.primaryColor};
-          margin-bottom: 10px;
+          font-weight: 500;
+          color: #00F0FF;
+          margin-bottom: 12px;
         }
 
         .mcq-form input,
         .mcq-form textarea {
           width: 100%;
-          padding: 10px;
-          margin-bottom: 10px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
+          padding: 12px;
+          margin-bottom: 12px;
+          border: 1px solid rgba(0, 240, 255, 0.2);
+          border-radius: 8px;
           font-size: 14px;
+          background: rgba(10, 10, 10, 0.8);
+          color: #f0f0f0;
+          outline: none;
         }
 
         .mcq-form textarea {
-          min-height: 60px;
+          min-height: 80px;
           resize: vertical;
         }
 
         .mcq-form button {
-          background: ${this.config.primaryColor};
-          color: white;
+          background: linear-gradient(to right, ${
+            this.config.primaryColor
+          }, #B026FF);
+          color: #000;
           border: none;
-          border-radius: 4px;
-          padding: 10px 15px;
+          border-radius: 20px;
+          padding: 10px 16px;
           font-size: 14px;
+          font-weight: 500;
           cursor: pointer;
           transition: opacity 0.3s;
         }
@@ -273,64 +356,78 @@
 
         .mcq-question {
           margin-bottom: 20px;
-          padding: 10px;
-          border-bottom: 1px solid #eee;
+          padding: 16px;
+          background: rgba(26, 26, 26, 0.8);
+          border-radius: 8px;
+          border: 1px solid rgba(0, 240, 255, 0.2);
         }
 
         .mcq-question h3 {
           font-size: 15px;
-          font-weight: 600;
-          margin-bottom: 10px;
+          font-weight: 500;
+          margin-bottom: 12px;
+          color: #f0f0f0;
         }
 
         .mcq-option {
-          padding: 10px;
+          padding: 12px;
           margin-bottom: 8px;
-          border-radius: 4px;
-          text-align: left;
+          border-radius: 8px;
           cursor: pointer;
-          transition: background 0.2s;
-          border: 1px solid #eee;
+          transition: all 0.2s;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(10, 10, 10, 0.5);
+          color: #f0f0f0;
+        }
+
+        .mcq-option:hover {
+          border-color: rgba(0, 240, 255, 0.5);
         }
 
         .mcq-option.selected {
-          background-color: #e0f0ff;
-          border-color: ${this.config.primaryColor};
+          background: rgba(0, 240, 255, 0.1);
+          border-color: #00F0FF;
+          color: #00F0FF;
         }
 
         .mcq-option.correct {
-          background-color: #e6ffea;
+          background: rgba(76, 175, 80, 0.1);
           border-color: #4CAF50;
+          color: #4CAF50;
         }
 
         .mcq-option.incorrect {
-          background-color: #ffebee;
+          background: rgba(244, 67, 54, 0.1);
           border-color: #F44336;
+          color: #F44336;
         }
 
         .mcq-explanation {
-          margin-top: 10px;
-          padding: 10px;
-          background: #f9f9f9;
-          border-radius: 4px;
+          margin-top: 12px;
+          padding: 12px;
+          background: rgba(26, 26, 26, 0.8);
+          border-radius: 8px;
           font-size: 13px;
-          color: #666;
+          color: #f0f0f0;
+          border: 1px solid rgba(0, 240, 255, 0.2);
         }
 
         .mcq-quiz-controls {
-          padding: 15px;
+          padding: 16px;
           text-align: center;
         }
 
         .mcq-quiz-btn {
-          background: ${this.config.primaryColor};
-          color: white;
+          background: linear-gradient(to right, ${
+            this.config.primaryColor
+          }, #B026FF);
+          color: #000;
           border: none;
-          border-radius: 4px;
+          border-radius: 20px;
           padding: 10px 20px;
           font-size: 15px;
+          font-weight: 500;
           cursor: pointer;
-          margin: 0 5px;
           transition: opacity 0.3s;
         }
 
@@ -339,126 +436,76 @@
         }
 
         .mcq-score {
-          background: #f0f9ff;
-          padding: 15px;
+          background: rgba(26, 26, 26, 0.8);
+          padding: 20px;
           border-radius: 8px;
           text-align: center;
-          margin: 15px;
+          margin: 16px;
+          border: 1px solid rgba(0, 240, 255, 0.2);
         }
 
         .mcq-score h3 {
           font-size: 18px;
-          margin-bottom: 10px;
-          color: ${this.config.primaryColor};
-        }
-
-        .mcq-input-container {
-          display: flex;
-          gap: 8px;
-          align-items: flex-end;
-        }
-
-        .mcq-input {
-          flex: 1;
-          background: white;
-          border: 1px solid #ddd;
-          border-radius: 20px;
-          padding: 12px 16px;
-          color: #333;
-          font-size: 14px;
-          resize: none;
-          max-height: 100px;
-          min-height: 40px;
-        }
-
-        .mcq-input:focus {
-          outline: none;
-          border-color: ${this.config.primaryColor};
-        }
-
-        .mcq-send {
-          background: ${this.config.primaryColor};
-          border: none;
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: transform 0.2s;
-        }
-
-        .mcq-send:hover {
-          transform: scale(1.05);
-        }
-
-        .mcq-send svg {
-          width: 16px;
-          height: 16px;
-          fill: white;
-        }
-
-        .mcq-footer {
-          display: flex;
-          justify-content: center;
-          margin-top: 8px;
-        }
-
-        .powered-by {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 12px;
-          color: #666;
-          text-decoration: none;
-        }
-
-        .gradient-pulse {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #00F0FF, #B026FF);
-          animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-          0% { opacity: 0.7; transform: scale(0.9); }
-          50% { opacity: 1; transform: scale(1); }
-          100% { opacity: 0.7; transform: scale(0.9); }
+          margin-bottom: 12px;
+          color: #00F0FF;
         }
 
         .mcq-unauthorized {
           padding: 20px;
           text-align: center;
-          color: #666;
+          color: rgba(255, 255, 255, 0.8);
+          background: rgba(26, 26, 26, 0.8);
+          border-radius: 8px;
+          margin: 16px;
+          border: 1px solid rgba(0, 240, 255, 0.2);
         }
 
         .mcq-unauthorized a {
           display: inline-block;
-          margin-top: 15px;
-          padding: 10px 15px;
-          background: ${this.config.primaryColor};
-          color: white;
-          border-radius: 4px;
+          margin-top: 16px;
+          padding: 10px 16px;
+          background: linear-gradient(to right, ${
+            this.config.primaryColor
+          }, #B026FF);
+          color: #000;
+          border-radius: 20px;
           text-decoration: none;
+          font-weight: 500;
         }
 
         .loading {
           display: inline-block;
-          padding: 10px 20px;
-          background: #e0e0e0;
-          color: #666;
-          border-radius: 4px;
+          padding: 12px 20px;
+          background: rgba(26, 26, 26, 0.8);
+          color: #00F0FF;
+          border-radius: 8px;
+          border: 1px solid rgba(0, 240, 255, 0.2);
         }
 
         @media (max-width: 480px) {
           .mcq-window {
-            width: 320px;
+            width: 310px;
             height: 80vh;
-            right: 10px;
-            bottom: 70px;
+            right:  0px;
+            bottom: 20px;
           }
+        }
+          @media (max-width: 480px) {
+          .mcq-chatbot-widget {
+            
+          ${
+            this.config.position.includes("right")
+              ? "right: 5px;"
+              : "left: 5px;"
+          }
+          ${
+            this.config.position.includes("bottom")
+              ? "bottom: 5px;"
+              : "top: 5px;"
+          }
+          z-index: 10000;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          
         }
       `;
 
@@ -471,27 +518,25 @@
       const widget = document.createElement("div");
       widget.className = "mcq-chatbot-widget";
       widget.innerHTML = `
-        <button class="mcq-toggle" id="mcq-toggle">
-          <svg viewBox="0 0 24 24">
-            <path d="M19 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h4l3 3 3-3h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 12H8v-2h8v2zm0-3H8V9h8v2zm0-3H8V6h8v2z"/>
-          </svg>
-        </button>
-        
         <div class="mcq-window" id="mcq-window">
           <div class="mcq-header">
-            <h3>
-              <span>Tutor</span>
-              <span>Ai</span>
-            </h3>
-            <div>
-              <button class="mcq-close" id="mcq-reset">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+            <div class="mcq-header-title">
+              <div class="mcq-header-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <span>${this.config.chatbotName}</span>
+            </div>
+            <div class="mcq-header-buttons">
+              <button class="mcq-header-button" id="mcq-reset">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                  <path fill-rule="evenodd" d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 100 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388zm15.408 3.352a.75.75 0 00-.919.53 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H2.984a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9a9 9 0 0015.059-4.035.75.75 0 00-.53-.918z" clip-rule="evenodd" />
                 </svg>
               </button>
-              <button class="mcq-close" id="mcq-close">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+              <button class="mcq-header-button" id="mcq-close">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                  <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd" />
                 </svg>
               </button>
             </div>
@@ -513,15 +558,14 @@
                 rows="1"
               ></textarea>
               <button class="mcq-send" id="mcq-send">
-                <svg viewBox="0 0 24 24">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3.478 2.404a.75.75 0 00-.926.941l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.404z" />
                 </svg>
               </button>
             </div>
             <div class="mcq-footer">
               <a href="https://ainspiretech.com/" target="_blank" class="powered-by">
-                <div class="gradient-pulse"></div>
-                <span>Powered by AinspireTech</span>
+                Powered by AinspireTech
               </a>
             </div>
           </div>
@@ -529,6 +573,12 @@
               : ""
           }
         </div>
+
+        <button class="mcq-toggle" id="mcq-toggle">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="24" height="24">
+            <path d="M19 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h4l3 3 3-3h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 12H8v-2h8v2zm0-3H8V9h8v2zm0-3H8V6h8v2z"/>
+          </svg>
+        </button>
       `;
 
       document.body.appendChild(widget);
@@ -556,15 +606,6 @@
             .map(
               (msg) => `
             <div class="mcq-message ${msg.sender === "You" ? "user" : "bot"}">
-              <div class="mcq-avatar">
-                <svg viewBox="0 0 24 24">
-                  <path d="${
-                    msg.sender === "You"
-                      ? "M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"
-                      : "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                  }"/>
-                </svg>
-              </div>
               <div class="mcq-message-content">${msg.text}</div>
             </div>
           `
@@ -577,7 +618,7 @@
     renderForm() {
       return `
         <div class="mcq-form">
-          <p>Fill The Form To Generate MCQ Test.</p>
+          <p>Fill The Form To Generate MCQ Test</p>
           <form id="mcq-gen-form">
             <input 
               type="text" 
@@ -616,15 +657,6 @@
               .map(
                 (msg) => `
               <div class="mcq-message ${msg.sender === "You" ? "user" : "bot"}">
-                <div class="mcq-avatar">
-                  <svg viewBox="0 0 24 24">
-                    <path d="${
-                      msg.sender === "You"
-                        ? "M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"
-                        : "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                    }"/>
-                  </svg>
-                </div>
                 <div class="mcq-message-content">${msg.text}</div>
               </div>
             `
@@ -637,7 +669,7 @@
               .map(
                 (q, qIndex) => `
               <div class="mcq-question">
-                <h3>${q.question}</h3>
+                <h3>${qIndex + 1}. ${q.question}</h3>
                 <div class="mcq-options">
                   ${q.options
                     .map((opt, optIndex) => {
@@ -655,7 +687,7 @@
                         data-qindex="${qIndex}" 
                         data-optindex="${optIndex}"
                       >
-                        ${opt}
+                        ${String.fromCharCode(65 + optIndex)}. ${opt}
                       </div>
                     `;
                     })
@@ -706,6 +738,7 @@
       document
         .getElementById("mcq-close")
         .addEventListener("click", () => this.closeWidget());
+
       document
         .getElementById("mcq-reset")
         .addEventListener("click", () => this.resetQuiz());
@@ -753,22 +786,27 @@
         }
       });
     }
+    closeWidget() {
+      const window = document.getElementById("mcq-window");
+      const toggle = document.getElementById("mcq-toggle");
+
+      window.classList.remove("open");
+      toggle.style.display = "flex";
+      this.isOpen = false;
+    }
 
     toggleWidget() {
-      const window = document.getElementById("mcq-window");
       this.isOpen = !this.isOpen;
+      const window = document.getElementById("mcq-window");
+      const toggle = document.getElementById("mcq-toggle");
 
       if (this.isOpen) {
         window.classList.add("open");
+        toggle.style.display = "none";
       } else {
         window.classList.remove("open");
+        toggle.style.display = "flex";
       }
-    }
-
-    closeWidget() {
-      const window = document.getElementById("mcq-window");
-      window.classList.remove("open");
-      this.isOpen = false;
     }
 
     async handleFormSubmit(e) {
@@ -788,7 +826,7 @@
       this.updateBody();
 
       try {
-        const response = await this.generateMcqResponse(message);
+        const response = await this.generateMcqResponse(message, true);
 
         // Add bot response
         this.messages.push({ sender: "AI Bot", text: response });
@@ -829,7 +867,7 @@
       this.updateBody();
 
       try {
-        const response = await this.generateMcqResponse(message);
+        const response = await this.generateMcqResponse(message, false);
         this.messages.push({ sender: "AI Bot", text: response });
       } catch (error) {
         console.error("Error:", error);
@@ -878,7 +916,7 @@
       }
     }
 
-    async generateMcqResponse(userInput) {
+    async generateMcqResponse(userInput, isMCQRequest) {
       this.isLoading = true;
       this.updateBody();
 
@@ -895,6 +933,7 @@
               userInput,
               userId: this.config.userId,
               agentId: this.config.agentId,
+              isMCQRequest,
             }),
           }
         );

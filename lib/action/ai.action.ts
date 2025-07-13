@@ -74,16 +74,15 @@ export const generateGptResponse = async ({
 
 export const generateMcqResponse = async ({
   userInput,
+  isMCQRequest,
 }: {
   userInput: string;
+  isMCQRequest: boolean;
 }) => {
   if (openai instanceof Error) {
     throw openai;
   }
 
-  const userInputLower = userInput.toLowerCase();
-  const isMCQRequest =
-    userInputLower.includes("mcq") || userInputLower.includes("test");
   const systemMessage = isMCQRequest
     ? `Generate 10 MCQs in JSON format. Structure:
     {
@@ -104,6 +103,9 @@ export const generateMcqResponse = async ({
       { role: "system", content: systemMessage },
       { role: "user", content: userInput },
     ],
+    max_tokens: 900,
+
+    temperature: 1,
   });
 
   return completion.choices[0]?.message?.content || "";

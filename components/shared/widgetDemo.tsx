@@ -96,11 +96,12 @@ export default function WidgetDemoPage() {
       "data-mcq-chatbot",
       JSON.stringify({
         userId: "user_2zSxTB9PwSs67PGtuSzFw37CpNv",
+        chatbotName: "AiBot",
         isAuthorized: true,
-        // filename: "morningside.ai.json",
+        filename: "morningside.ai.json",
         chatbotType: "chatbot-education",
         apiUrl: "https://ainspiretech.com",
-        primaryColor: "bg-gray-800/50",
+        primaryColor: "red",
         position: "bottom-right",
         welcomeMessage: "HI,welcome my name is Bot",
       })

@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { userInput, userId, agentId } = await request.json();
+    const { userInput, userId, agentId, isMCQRequest } = await request.json();
 
     if (!userInput || !userId || !agentId) {
       return NextResponse.json(
@@ -64,6 +64,7 @@ export async function POST(request: Request) {
 
     const response = await generateMcqResponse({
       userInput: userInput,
+      isMCQRequest,
     });
 
     return NextResponse.json(
