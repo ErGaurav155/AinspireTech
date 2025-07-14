@@ -487,7 +487,6 @@
               align-items: center;
               gap: 4px;
               color: #888;
-              background: transparent;
               font-size: 12px;
               margin-top: 8px;
               padding: 0 16px;
@@ -577,11 +576,19 @@
           <div class="mcq-body" id="mcq-body">
             ${this.renderBody()}
           </div>
-          
+          <div class="chatbot-typing" id="chatbot-typing" style="display: none;" >
+              <span>AI is typing</span>
+              <div class="chatbot-typing-dots">
+                  <div class="chatbot-typing-dot"></div>
+                  <div class="chatbot-typing-dot"></div>
+                  <div class="chatbot-typing-dot"></div>
+              </div>
+          </div>
           ${
             this.config.isAuthorized && !this.quizData
               ? `
           <div class="mcq-input-area">
+          
             <div class="mcq-input-container">
               <textarea 
                 class="mcq-input" 
@@ -633,6 +640,7 @@
 
       return `
         ${this.renderForm()}
+
         <div id="mcq-messages">
           ${this.messages
             .map(
@@ -643,17 +651,11 @@
           `
             )
             .join("")}
-          <div class="chatbot-typing" id="chatbot-typing" style="display: none;" >
-              <span>AI is typing</span>
-              <div class="chatbot-typing-dots">
-                  <div class="chatbot-typing-dot"></div>
-                  <div class="chatbot-typing-dot"></div>
-                  <div class="chatbot-typing-dot"></div>
-              </div>
-          </div>
+          
 
 
         </div>
+        
       `;
     }
 
@@ -829,21 +831,15 @@
       });
     }
     showTyping() {
-      console.log("Hi i am showtyping");
-
       const typingIndicator = document.getElementById("chatbot-typing");
       if (typingIndicator) {
-        console.log("Hi i am indicattor typing");
-
         typingIndicator.style.display = "flex";
       }
     }
 
     hideTyping() {
-      console.log("Hi i am hidetyping");
       const typingIndicator = document.getElementById("chatbot-typing");
       if (typingIndicator) {
-        console.log("Hi i am hide typing");
         typingIndicator.style.display = "none";
       }
     }
@@ -874,6 +870,8 @@
     async handleFormSubmit(e) {
       e.preventDefault();
       this.isSending = true;
+      this.showTyping();
+
       this.updateBody();
 
       const topic = document.getElementById("mcq-topic").value;
@@ -888,8 +886,7 @@
       this.updateBody();
 
       try {
-        const rawResponse = await this.generateMcqResponse(message, true);
-        console.log("rawResponse:", rawResponse);
+        const response = await this.generateMcqResponse(message, true);
 
         function extractJsonFromMarkdown(markdownText) {
           const match = markdownText.match(/```json\s*([\s\S]*?)\s*```/);
@@ -902,14 +899,18 @@
         // Try to parse as quiz data
 
         try {
-          const parsed = extractJsonFromMarkdown(rawResponse);
+          const jsonString = extractJsonFromMarkdown(response);
+          const parsed = JSON.parse(jsonString);
+
           if (parsed.questions && Array.isArray(parsed.questions)) {
             this.quizData = parsed;
             this.selectedAnswers = new Array(parsed.questions.length).fill(-1);
             this.isQuizSubmitted = false;
             this.score = 0;
           }
-        } catch (e) {}
+        } catch (error) {
+          console.error("Error:", error);
+        }
       } catch (error) {
         console.error("Error:", error);
         this.messages.push({
@@ -918,6 +919,7 @@
         });
       } finally {
         this.isSending = false;
+        this.hideTyping();
         this.updateBody();
       }
     }
@@ -937,7 +939,6 @@
       try {
         const response = await this.generateMcqResponse(message, false);
         this.hideTyping();
-        console.log("response:", response);
 
         this.messages.push({ sender: "AI Bot", text: response });
       } catch (error) {
@@ -959,13 +960,17 @@
     }
 
     handleQuizSubmit() {
-      let correct = 0;
-      this.quizData.questions.forEach((q, i) => {
-        if (this.selectedAnswers[i] === q.correctAnswer) correct++;
-      });
-      this.score = correct;
-      this.isQuizSubmitted = true;
-      this.updateBody();
+      try {
+        let correct = 0;
+        this.quizData.questions.forEach((q, i) => {
+          if (this.selectedAnswers[i] === q.correctAnswer) correct++;
+        });
+        this.score = correct;
+        this.isQuizSubmitted = true;
+        this.updateBody();
+      } catch (error) {
+        console.error("Quiz submission failed:", error.message);
+      }
     }
 
     resetQuiz() {
@@ -1014,7 +1019,6 @@
         }
 
         const data = await response.json();
-        console.log("data:", data);
 
         return data.response || "I couldn't process your request.";
       } catch (error) {

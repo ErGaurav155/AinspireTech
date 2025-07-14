@@ -105,10 +105,5 @@ export const generateMcqResponse = async ({
     ],
   });
 
-  const gptArgs = completion.choices[0]?.message?.content || "";
-  if (!gptArgs) {
-    throw new Error("Bad response from OpenAI");
-  }
-
-  return JSON.parse(JSON.stringify(gptArgs));
+  return completion.choices[0]?.message?.content || "";
 };
