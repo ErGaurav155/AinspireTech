@@ -404,6 +404,7 @@
 
         .mcq-explanation {
           margin-top: 12px;
+          margin-bottom: 12px;
           padding: 12px;
           background: rgba(26, 26, 26, 0.8);
           border-radius: 8px;
@@ -481,6 +482,37 @@
           border-radius: 8px;
           border: 1px solid rgba(0, 240, 255, 0.2);
         }
+          .chatbot-typing {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              color: #888;
+              background: transparent;
+              font-size: 12px;
+              margin-top: 8px;
+              padding: 0 16px;
+            }
+
+            .chatbot-typing-dots {
+              display: flex;
+              gap: 2px;
+            }
+
+            .chatbot-typing-dot {
+              width: 4px;
+              height: 4px;
+              border-radius: 50%;
+              background: cyan;
+              animation: typing 1.4s infinite;
+            }
+
+            .chatbot-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+            .chatbot-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+            
+            @keyframes typing {
+              0%, 60%, 100% { opacity: 0.3; }
+              30% { opacity: 1; }
+            }
 
         @media (max-width: 480px) {
           .mcq-window {
@@ -611,6 +643,16 @@
           `
             )
             .join("")}
+          <div class="chatbot-typing" id="chatbot-typing" style="display: none;" >
+              <span>AI is typing</span>
+              <div class="chatbot-typing-dots">
+                  <div class="chatbot-typing-dot"></div>
+                  <div class="chatbot-typing-dot"></div>
+                  <div class="chatbot-typing-dot"></div>
+              </div>
+          </div>
+
+
         </div>
       `;
     }
@@ -650,7 +692,6 @@
     }
 
     renderQuiz() {
-      console.log("i am render");
       return `
         <div class="mcq-quiz">
           <div id="mcq-messages">
@@ -787,6 +828,26 @@
         }
       });
     }
+    showTyping() {
+      console.log("Hi i am showtyping");
+
+      const typingIndicator = document.getElementById("chatbot-typing");
+      if (typingIndicator) {
+        console.log("Hi i am indicattor typing");
+
+        typingIndicator.style.display = "flex";
+      }
+    }
+
+    hideTyping() {
+      console.log("Hi i am hidetyping");
+      const typingIndicator = document.getElementById("chatbot-typing");
+      if (typingIndicator) {
+        console.log("Hi i am hide typing");
+        typingIndicator.style.display = "none";
+      }
+    }
+
     closeWidget() {
       const window = document.getElementById("mcq-window");
       const toggle = document.getElementById("mcq-toggle");
@@ -830,36 +891,25 @@
         const rawResponse = await this.generateMcqResponse(message, true);
         console.log("rawResponse:", rawResponse);
 
-        const parsedResponse = JSON.parse(rawResponse);
-        console.log("parsedResponse:", parsedResponse);
-
         function extractJsonFromMarkdown(markdownText) {
           const match = markdownText.match(/```json\s*([\s\S]*?)\s*```/);
           return match ? match[1] : null;
         }
-        console.log("parsedResponse.response:", parsedResponse.response);
 
-        const jsonText = extractJsonFromMarkdown(parsedResponse.response);
         // Add bot response
         // this.messages.push({ sender: "AI Bot", text: response });
 
         // Try to parse as quiz data
-        console.log("jsonText:", jsonText);
 
         try {
-          const parsed = JSON.parse(jsonText);
-          console.log("parsed:", parsed);
-
+          const parsed = extractJsonFromMarkdown(rawResponse);
           if (parsed.questions && Array.isArray(parsed.questions)) {
-            console.log("I am Here Hello");
             this.quizData = parsed;
             this.selectedAnswers = new Array(parsed.questions.length).fill(-1);
             this.isQuizSubmitted = false;
             this.score = 0;
           }
-        } catch (e) {
-          console.log("Response is not quiz data");
-        }
+        } catch (e) {}
       } catch (error) {
         console.error("Error:", error);
         this.messages.push({
@@ -881,10 +931,14 @@
       // Add user message
       this.messages.push({ sender: "You", text: message });
       input.value = "";
+      this.showTyping();
       this.updateBody();
 
       try {
         const response = await this.generateMcqResponse(message, false);
+        this.hideTyping();
+        console.log("response:", response);
+
         this.messages.push({ sender: "AI Bot", text: response });
       } catch (error) {
         console.error("Error:", error);
@@ -959,7 +1013,10 @@
           throw new Error(`API error: ${response.status}`);
         }
 
-        return await response.text();
+        const data = await response.json();
+        console.log("data:", data);
+
+        return data.response || "I couldn't process your request.";
       } catch (error) {
         console.error("API Error:", error);
         return "I'm having trouble connecting to the server. Please try again later.";

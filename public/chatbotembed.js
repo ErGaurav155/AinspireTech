@@ -651,7 +651,6 @@
       const message = input.value.trim();
 
       if (!message) return;
-      console.log(message);
       this.addMessage(message, "user");
       input.value = "";
       input.style.height = "auto";
@@ -734,13 +733,11 @@
             }),
           }
         );
-        console.log("response:", response);
         if (!response.ok) {
           throw new Error(`API error: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log("data:", data);
 
         return data.response || "I couldn't process your request.";
       } catch (error) {

@@ -95,7 +95,7 @@ export const generateMcqResponse = async ({
         }
       ]
     }`
-    : "You are an AI assistant...";
+    : "You are an AI assistant.Your work is to give satified answer of there question in plain text format";
 
   const completion = await openai.chat.completions.create({
     model: "deepseek-chat",
@@ -105,5 +105,10 @@ export const generateMcqResponse = async ({
     ],
   });
 
-  return completion.choices[0]?.message?.content || "";
+  const gptArgs = completion.choices[0]?.message?.content || "";
+  if (!gptArgs) {
+    throw new Error("Bad response from OpenAI");
+  }
+
+  return JSON.parse(JSON.stringify(gptArgs));
 };
