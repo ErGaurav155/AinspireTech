@@ -78,28 +78,30 @@ export default function WidgetDemoPage() {
 
   const loadWidget = () => {
     // Remove existing widget if any
-    const existingWidget = document.querySelector(".mcq-chatbot-widget");
+    const existingWidget = document.querySelector(".chatbot-widget");
     if (existingWidget) {
       existingWidget.remove();
     }
 
     // Remove existing script
-    const existingScript = document.querySelector("script[data-mcq-chatbot]");
+    const existingScript = document.querySelector(
+      "script[data-chatbot-config]"
+    );
     if (existingScript) {
       existingScript.remove();
     }
 
     // Create new script with current config
     const script = document.createElement("script");
-    script.src = "http://localhost:3000/mcqchatbotembed.js";
+    script.src = "http://localhost:3000/chatbotembed.js";
     script.setAttribute(
-      "data-mcq-chatbot",
+      "data-chatbot-config",
       JSON.stringify({
         userId: "user_2zSxTB9PwSs67PGtuSzFw37CpNv",
         chatbotName: "AiBot",
         isAuthorized: true,
         filename: "morningside.ai.json",
-        chatbotType: "chatbot-education",
+        chatbotType: "chatbot-customer-support",
         apiUrl: "https://ainspiretech.com",
         primaryColor: "red",
         position: "bottom-right",

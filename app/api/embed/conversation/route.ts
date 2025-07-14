@@ -110,11 +110,13 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     };
     const result = await WebConversation.create(newConversation);
-    await sendAppointmentEmailToUser({
-      email: user.email,
-      data: formData,
-    });
-    await sendWhatsAppInfo({ data: formData, userId });
+    if (chatbotType === "chatbot-lead-generation") {
+      await sendAppointmentEmailToUser({
+        email: user.email,
+        data: formData,
+      });
+      await sendWhatsAppInfo({ data: formData, userId });
+    }
 
     return NextResponse.json(
       {

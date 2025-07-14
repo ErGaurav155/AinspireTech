@@ -540,18 +540,18 @@
                   <div class="chatbot-message bot">
                     <div class="chatbot-message-content">${this.config.welcomeMessage}</div>
                   </div>
-                  <div class="chatbot-typing" id="chatbot-typing" style="display: none;">
+                  
+                </div>
+                
+                
+                <div class="chatbot-typing" id="chatbot-typing" style="display: none;">
                     <div class="chatbot-typing-dots">
                       <div class="chatbot-typing-dot"></div>
                       <div class="chatbot-typing-dot"></div>
                       <div class="chatbot-typing-dot"></div>
                     </div>
                     <span>AI is typing</span>
-                  </div>
                 </div>
-                
-                
-                
                 <div class="chatbot-input-area">
                   <div class="chatbot-input-container">
                     <textarea class="chatbot-input" id="chatbot-input" placeholder="Type your message..." rows="1"></textarea>
