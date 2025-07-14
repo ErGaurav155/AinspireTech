@@ -828,9 +828,11 @@
 
       try {
         const rawResponse = await this.generateMcqResponse(message, true);
-        const parsedResponse = JSON.parse(rawResponse);
+        console.log("rawResponse:", rawResponse);
 
+        const parsedResponse = JSON.parse(rawResponse);
         console.log("parsedResponse:", parsedResponse);
+
         function extractJsonFromMarkdown(markdownText) {
           const match = markdownText.match(/```json\s*([\s\S]*?)\s*```/);
           return match ? match[1] : null;
@@ -899,7 +901,7 @@
       const newAnswers = [...this.selectedAnswers];
       newAnswers[questionIndex] = optionIndex;
       this.selectedAnswers = newAnswers;
-      this.updateBody();
+      // this.updateBody();
     }
 
     handleQuizSubmit() {
