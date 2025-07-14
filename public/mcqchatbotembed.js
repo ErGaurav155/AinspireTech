@@ -827,18 +827,29 @@
       this.updateBody();
 
       try {
-        const response = await this.generateMcqResponse(message, true);
-        console.log("response:", response);
+        const rawResponse = await this.generateMcqResponse(message, true);
+        const parsedResponse = JSON.parse(rawResponse);
 
+        console.log("parsedResponse:", parsedResponse);
+        function extractJsonFromMarkdown(markdownText) {
+          const match = markdownText.match(/```json\s*([\s\S]*?)\s*```/);
+          return match ? match[1] : null;
+        }
+        console.log("parsedResponse.response:", parsedResponse.response);
+
+        const jsonText = extractJsonFromMarkdown(parsedResponse.response);
         // Add bot response
-        this.messages.push({ sender: "AI Bot", text: response });
+        // this.messages.push({ sender: "AI Bot", text: response });
 
         // Try to parse as quiz data
+        console.log("jsonText:", jsonText);
+
         try {
-          const parsed = JSON.parse(response);
+          const parsed = JSON.parse(jsonText);
           console.log("parsed:", parsed);
 
           if (parsed.questions && Array.isArray(parsed.questions)) {
+            console.log("I am Here Hello");
             this.quizData = parsed;
             this.selectedAnswers = new Array(parsed.questions.length).fill(-1);
             this.isQuizSubmitted = false;

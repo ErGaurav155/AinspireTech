@@ -84,7 +84,7 @@ export const generateMcqResponse = async ({
   }
 
   const systemMessage = isMCQRequest
-    ? `Generate 10 MCQs in JSON format.dont provide any other text only follow this structure must:
+    ? `Generate 10 MCQs in JSON format.Must follow below structure also dont provide any heading and json word text:
     {
       "questions": [
         {
