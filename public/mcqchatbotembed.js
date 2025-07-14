@@ -650,6 +650,7 @@
     }
 
     renderQuiz() {
+      console.log("i am render");
       return `
         <div class="mcq-quiz">
           <div id="mcq-messages">
@@ -827,6 +828,7 @@
 
       try {
         const response = await this.generateMcqResponse(message, true);
+        console.log("response:", response);
 
         // Add bot response
         this.messages.push({ sender: "AI Bot", text: response });
@@ -834,6 +836,8 @@
         // Try to parse as quiz data
         try {
           const parsed = JSON.parse(response);
+          console.log("parsed:", parsed);
+
           if (parsed.questions && Array.isArray(parsed.questions)) {
             this.quizData = parsed;
             this.selectedAnswers = new Array(parsed.questions.length).fill(-1);

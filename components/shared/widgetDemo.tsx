@@ -91,7 +91,7 @@ export default function WidgetDemoPage() {
 
     // Create new script with current config
     const script = document.createElement("script");
-    script.src = "https://ainspiretech.com/mcqchatbotembed.js";
+    script.src = "http://localhost:3000/mcqchatbotembed.js";
     script.setAttribute(
       "data-mcq-chatbot",
       JSON.stringify({
