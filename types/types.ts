@@ -48,30 +48,3 @@ export type PricingPlan = {
   features: string[];
   popular: boolean;
 };
-// types/facebook.d.ts
-declare global {
-  interface Window {
-    fbAsyncInit: () => void;
-    FB: {
-      init: (config: {
-        appId: string;
-        cookie: boolean;
-        xfbml: boolean;
-        version: string;
-      }) => void;
-      login: (
-        callback: (response: any) => void,
-        options: { scope: string; return_scopes?: boolean }
-      ) => void;
-      api: (
-        path: string,
-        params: any,
-        callback?: (response: any) => void
-      ) => void;
-      getLoginStatus: (callback: (response: any) => void) => void;
-      // Add other FB methods as needed
-    };
-  }
-}
-
-export {};

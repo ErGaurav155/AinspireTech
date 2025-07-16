@@ -1,4 +1,5 @@
 // types/facebook.d.ts
+// types/facebook.d.ts
 declare namespace FB {
   function init(params: {
     appId: string;

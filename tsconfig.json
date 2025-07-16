@@ -20,14 +20,16 @@
     ],
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "types": ["node", "facebook-js-sdk"]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "facebook.d.ts"
+    "types/**/*.d.ts"
   ],
   "exclude": ["node_modules"]
 }
