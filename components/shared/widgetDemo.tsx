@@ -93,7 +93,7 @@ export default function WidgetDemoPage() {
 
     // Create new script with current config
     const script = document.createElement("script");
-    script.src = "http://localhost:3000/chatbotembed.js";
+    script.src = "https://ainspiretech.com/chatbotembed.js";
     script.setAttribute(
       "data-chatbot-config",
       JSON.stringify({
