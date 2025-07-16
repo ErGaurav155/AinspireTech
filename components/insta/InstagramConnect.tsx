@@ -10,7 +10,15 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Instagram, Briefcase, User, Check } from "lucide-react";
+import {
+  Loader2,
+  Instagram,
+  Briefcase,
+  User,
+  Check,
+  UserPlus,
+  LogOut,
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -25,18 +33,9 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 import {
   convertToProfessionalAccount,
   getInstagramAccounts,
-  refreshAccessTokenIfNeeded,
 } from "@/lib/action/insta.action";
 import { IInstagramAccount } from "@/lib/database/models/insta/InstagramAccount.model";
 
-// interface InstagramBasicAccount {
-//   instagramId: string;
-//   username: string;
-//   isProfessional: boolean;
-//   accountType: "BUSINESS" | "CREATOR" | "PERSONAL";
-// }
-
-// Add FB SDK loading status
 type FBStatus = "loading" | "ready" | "error";
 interface AccountVerificationProps {
   onVerified: () => void;
@@ -50,6 +49,9 @@ export const InstagramConnectDialog = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [accessToken, setAccessToken] = useState<string>("");
+  const [cachedAccounts, setCachedAccounts] = useState<any[]>([]);
+  const [showAccountSelector, setShowAccountSelector] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
 
   const [accounts, setAccounts] = useState<IInstagramAccount[]>([]);
   const [selectedAccount, setSelectedAccount] =
@@ -62,11 +64,11 @@ export const InstagramConnectDialog = ({
   >("idle");
   const [error, setError] = useState<string | null>(null);
   const [fbStatus, setFbStatus] = useState<FBStatus>("loading");
-  const [status, setStatus] = useState<string>(""); // For Facebook login status
+  const [status, setStatus] = useState<string>("");
 
-  // Wrap fetchInstagramAccounts in useCallback
+  // Fetch Instagram accounts
   const fetchInstagramAccounts = useCallback(
-    async (accessToken: string) => {
+    async (token: string) => {
       if (!userId) {
         router.push("/sign-in");
         return;
@@ -75,7 +77,7 @@ export const InstagramConnectDialog = ({
       setError(null);
 
       try {
-        const accounts = await getInstagramAccounts(accessToken, userId);
+        const accounts = await getInstagramAccounts(token, userId);
         setAccounts(accounts);
         setIsOpen(true);
       } catch (err: any) {
@@ -88,15 +90,29 @@ export const InstagramConnectDialog = ({
     [userId, router]
   );
 
-  // Wrap statusChangeCallback in useCallback
+  // Facebook status change callback
   const statusChangeCallback = useCallback(
     (response: any) => {
       if (response.status === "connected") {
         const token = response.authResponse.accessToken;
         setAccessToken(token);
+
+        // Get user info
+        window.FB.api("/me", (userResponse: any) => {
+          if (userResponse && !userResponse.error) {
+            setUserData(userResponse);
+            setStatus(`Welcome, ${userResponse.name}!`);
+          }
+        });
+
+        // Get connected accounts
+        window.FB.api("/me/accounts", (accountsResponse: any) => {
+          setCachedAccounts(accountsResponse.data || []);
+        });
+
         fetchInstagramAccounts(token);
       } else {
-        setStatus("Please log into this webpage.");
+        setStatus("Please log in to continue");
       }
     },
     [fetchInstagramAccounts]
@@ -105,6 +121,18 @@ export const InstagramConnectDialog = ({
   // Initialize Facebook SDK
   useEffect(() => {
     const initFacebookSDK = () => {
+      // Only initialize in secure contexts
+      if (
+        window.location.protocol !== "https:" &&
+        window.location.hostname !== "localhost"
+      ) {
+        setFbStatus("error");
+        setError(
+          "Facebook login requires HTTPS. Please use secure connection."
+        );
+        return;
+      }
+
       window.fbAsyncInit = function () {
         window.FB.init({
           appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID!,
@@ -113,10 +141,15 @@ export const InstagramConnectDialog = ({
           version: "v23.0",
         });
 
-        // Check login status after initialization
-        window.FB.getLoginStatus(function (response: any) {
-          statusChangeCallback(response);
-        });
+        // Check login status only in secure contexts
+        if (
+          window.location.protocol === "https:" ||
+          window.location.hostname === "localhost"
+        ) {
+          window.FB.getLoginStatus(statusChangeCallback, true);
+        }
+
+        setFbStatus("ready");
       };
 
       // Load the Facebook SDK script
@@ -137,13 +170,13 @@ export const InstagramConnectDialog = ({
 
     if (typeof window !== "undefined" && !window.FB) {
       initFacebookSDK();
-      setFbStatus("ready");
     } else if (window.FB) {
       setFbStatus("ready");
     }
   }, [statusChangeCallback]);
 
-  const handleInstagramLogin = () => {
+  // Handle Instagram login with account switching options
+  const handleInstagramLogin = (useCached: boolean = false) => {
     if (!userId) {
       setError("User not authenticated");
       return;
@@ -154,18 +187,24 @@ export const InstagramConnectDialog = ({
       return;
     }
 
-    // Use FB.login from the Facebook example
-    window.FB.login(
-      function (response: any) {
-        statusChangeCallback(response);
-      },
-      {
-        scope: "public_profile,instagram_basic,pages_read_engagement",
-        return_scopes: true,
-      }
-    );
+    window.FB.login(statusChangeCallback, {
+      scope: "public_profile,instagram_basic,pages_read_engagement",
+      return_scopes: true,
+      auth_type: useCached ? undefined : "reauthenticate",
+      enable_profile_selector: true,
+    });
   };
 
+  // Handle Facebook logout
+  const handleLogout = () => {
+    window.FB.logout(() => {
+      setCachedAccounts([]);
+      setUserData(null);
+      setStatus("Please log in again");
+    });
+  };
+
+  // Handle account conversion to professional
   const handleAccountConversion = async () => {
     if (!selectedAccount || !userId || !accessToken) return;
 
@@ -193,7 +232,7 @@ export const InstagramConnectDialog = ({
           },
           body: JSON.stringify({
             userId: userId,
-            instagramId: selectedAccount.instagramId,
+            instagramId: selectedAccount.id,
             username: selectedAccount.username,
             isProfessional: true,
             accountType: conversionResponse.accountType,
@@ -206,37 +245,34 @@ export const InstagramConnectDialog = ({
         if (!response.ok) {
           throw new Error("Failed to create/update account");
         }
-        const savedAccount = await response.json();
 
-        if (savedAccount.success && savedAccount.instaAccount) {
-          accounts.push(savedAccount.instaAccount);
-        }
+        const savedAccount = await response.json();
+        setConversionStatus("success");
+        onVerified();
+
+        // Refresh page data
+        setTimeout(() => {
+          router.refresh();
+          setIsOpen(false);
+        }, 2000);
       } catch (error) {
         console.error("Error:", error);
         throw error;
       }
-      setConversionStatus("success");
-      onVerified();
-
-      // Refresh page data
-      setTimeout(() => {
-        router.refresh();
-        setIsOpen(false);
-      }, 2000);
     } catch (err: any) {
       setConversionStatus("error");
       setError(err.message || "Account conversion failed");
       console.error("Conversion error:", err);
     }
   };
-  const startAutomation = async (accountId: string) => {
-    try {
-      const refreshedToken = await refreshAccessTokenIfNeeded(accountId);
-      // Use refreshedToken for API calls
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-    }
+
+  // Select account from cached accounts
+  const selectAccount = (account: any) => {
+    // For demo purposes - in real app you'd switch tokens
+    setStatus(`Selected account: ${account.name}`);
+    setShowAccountSelector(false);
   };
+
   return (
     <div className="w-full max-w-md">
       <AlertDialog defaultOpen>
@@ -261,18 +297,85 @@ export const InstagramConnectDialog = ({
           </AlertDialogHeader>
 
           <div className="space-y-4">
-            <Button
-              onClick={handleInstagramLogin}
-              disabled={isLoading}
-              className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Instagram className="mr-2 h-5 w-5" />
-              )}
-              Connect Instagram Account
-            </Button>
+            {showAccountSelector ? (
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {cachedAccounts.length > 0 ? (
+                  <>
+                    {cachedAccounts.map((account) => (
+                      <div
+                        key={account.id}
+                        onClick={() => selectAccount(account)}
+                        className="p-3 rounded-lg border border-gray-700 hover:border-[#00F0FF] cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16" />
+                          <div>
+                            <h4 className="font-bold">{account.name}</h4>
+                            <p className="text-sm text-gray-400">
+                              {account.id}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <Button
+                      onClick={() => handleInstagramLogin(false)}
+                      className="w-full mt-4"
+                    >
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Add New Account
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-gray-400">No connected accounts found</p>
+                    <Button
+                      onClick={() => handleInstagramLogin(false)}
+                      className="w-full mt-4"
+                    >
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Add New Account
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Button
+                  onClick={() => setShowAccountSelector(true)}
+                  disabled={isLoading || cachedAccounts.length === 0}
+                  className={`w-full py-6 rounded-full font-bold text-lg ${
+                    cachedAccounts.length === 0
+                      ? "bg-gray-700 cursor-not-allowed"
+                      : "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
+                  }`}
+                >
+                  <User className="mr-2 h-5 w-5" />
+                  Switch Account
+                </Button>
+
+                <Button
+                  onClick={() => handleInstagramLogin(true)}
+                  disabled={isLoading}
+                  className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
+                >
+                  <Instagram className="mr-2 h-5 w-5" />
+                  Continue as {userData?.name || "Current User"}
+                </Button>
+              </>
+            )}
+
+            {cachedAccounts.length > 0 && (
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="w-full text-red-500 border-red-500 hover:bg-red-500/10"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout All Accounts
+              </Button>
+            )}
 
             <div className="text-center text-sm text-gray-400">
               {status && <p className="mb-2">{status}</p>}

@@ -27,7 +27,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "globals.d.ts"
+    "facebook.d.ts"
   ],
   "exclude": ["node_modules"]
 }
