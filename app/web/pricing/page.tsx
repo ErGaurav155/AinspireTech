@@ -316,13 +316,19 @@ const Pricing = () => {
                 <tbody className="divide-y divide-[#333]">
                   {[
                     "24/7 Availability",
+                    "Live Chat Interface",
                     "Multi-language Support",
+                    "Dashboard Availability",
+                    "Automated Responses",
                     "CRM Integration",
                     "Advanced Analytics",
                     "Custom Workflows",
-                    "Lead Generation",
+                    "Lead qualification",
                     "Email Notifications",
                     "Priority Support",
+                    "User Data Collection",
+                    "Personalized learning",
+                    "Interactive quizzes",
                   ].map((feature, index) => (
                     <tr key={index} className="hover:bg-[#1a1a1a]/50">
                       <td className="py-4 px-6 font-medium text-gray-300">
@@ -330,8 +336,10 @@ const Pricing = () => {
                       </td>
                       {Object.values(productSubscriptionDetails).map(
                         (product) => {
-                          const hasFeature = product.inclusions.some((inc) =>
-                            inc.label.includes(feature.split(" ")[0])
+                          const hasFeature = product.inclusions.some(
+                            (inc) =>
+                              inc.label.includes(feature.split(" ")[0]) &&
+                              inc.isIncluded
                           );
                           return (
                             <td

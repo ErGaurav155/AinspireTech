@@ -4,15 +4,18 @@ export interface IInstagramAccount extends Document {
   userId: string;
   instagramId: string;
   username: string;
-  isProfessional: Boolean;
+  isProfessional: boolean;
   accountType: string;
   accessToken: string;
   displayName?: string;
   profilePicture?: string;
-  isActive: boolean;
-  lastActivity: Date;
+  isActive?: boolean;
+  lastActivity?: Date;
   followersCount?: number;
   postsCount?: number;
+  lastTokenRefresh?: Date;
+  pageId?: string;
+  pageAccessToken?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +53,12 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
       type: Date,
       default: Date.now,
     },
+    lastTokenRefresh: {
+      type: Date,
+      default: Date.now,
+    },
+    pageId: { type: String },
+    pageAccessToken: { type: String },
     followersCount: {
       type: Number,
       default: 0,

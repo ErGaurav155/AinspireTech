@@ -1,4 +1,6 @@
-import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
+import InstagramAccount, {
+  IInstagramAccount,
+} from "@/lib/database/models/insta/InstagramAccount.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { NextResponse } from "next/server";
 
@@ -22,41 +24,68 @@ export async function GET() {
     );
   }
 }
-
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
     await connectToDatabase();
 
-    const body = await req.json();
-    const { username, displayName } = body;
+    const body: IInstagramAccount = await request.json();
 
-    // In a real app, you'd get the user ID from authentication
-    const userId = "demo-user";
+    const {
+      userId,
+      instagramId,
+      username,
+      isProfessional,
+      accountType,
+      accessToken,
+      pageId,
+      pageAccessToken,
+    } = body;
 
-    // Check if account already exists
-    const existingAccount = await InstagramAccount.findOne({ username });
-    if (existingAccount) {
+    // Validate required fields
+    if (!instagramId || !username || !accessToken || !userId) {
       return NextResponse.json(
-        { error: "Account already exists" },
+        {
+          error: "Missing required fields (instagramId, username, accessToken)",
+        },
         { status: 400 }
       );
     }
 
-    const account = new InstagramAccount({
-      userId,
-      username,
-      displayName,
-      isActive: true,
-      lastActivity: new Date(),
-    });
+    // Find by instagramId
+    let instaAccount = await InstagramAccount.findOne({ instagramId });
 
-    await account.save();
+    if (instaAccount) {
+      // Update existing account
+      instaAccount.username = username;
+      instaAccount.isProfessional = isProfessional;
+      instaAccount.accountType = accountType;
+      instaAccount.accessToken = accessToken;
+      instaAccount.pageId = pageId;
+      instaAccount.pageAccessToken = pageAccessToken;
+    } else {
+      // Create new account
+      instaAccount = new InstagramAccount({
+        userId,
+        instagramId,
+        username,
+        isProfessional,
+        accountType,
+        accessToken,
+        pageId,
+        pageAccessToken,
+      });
+    }
 
-    return NextResponse.json(account, { status: 201 });
-  } catch (error) {
-    console.error("Error creating account:", error);
+    await instaAccount.save();
+
     return NextResponse.json(
-      { error: "Failed to create account" },
+      { success: true, data: instaAccount },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("Account creation/update error:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to create/update account" },
       { status: 500 }
     );
   }

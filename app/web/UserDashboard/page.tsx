@@ -89,6 +89,21 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 // Chatbot types configuration
 const chatbotTypes = [
   {
+    id: "chatbot-lead-generation",
+    name: "Lead Generation",
+    icon: Target,
+    description: "Convert visitors into qualified leads",
+    category: "Website",
+    color: "text-[#B026FF]",
+    gradient: "from-[#B026FF] to-[#FF2E9F]",
+    features: [
+      "Lead qualification",
+      "Contact forms",
+      "CRM integration",
+      "Follow-up automation",
+    ],
+  },
+  {
     id: "chatbot-customer-support",
     name: "Customer Support",
     icon: MessageCircle,
@@ -103,6 +118,7 @@ const chatbotTypes = [
       "FAQ automation",
     ],
   },
+
   // {
   //   id: "chatbot-e-commerce",
   //   name: "E-Commerce",
@@ -118,21 +134,6 @@ const chatbotTypes = [
   //     "Inventory queries",
   //   ],
   // },
-  {
-    id: "chatbot-lead-generation",
-    name: "Lead Generation",
-    icon: Target,
-    description: "Convert visitors into qualified leads",
-    category: "Website",
-    color: "text-[#B026FF]",
-    gradient: "from-[#B026FF] to-[#FF2E9F]",
-    features: [
-      "Lead qualification",
-      "Contact forms",
-      "CRM integration",
-      "Follow-up automation",
-    ],
-  },
   {
     id: "chatbot-education",
     name: "Chatbot Education",
@@ -154,7 +155,6 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
-  // const [user, setUser] = useState<any>(null);
   const [selectedChatbot, setSelectedChatbot] = useState(
     "chatbot-customer-support"
   );
@@ -199,6 +199,8 @@ export default function DashboardPage() {
     },
   ]);
   const [analytics, setAnalytics] = useState<any>(null);
+  const [defaultValue, setDefaultValue] = useState("overview");
+
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -226,7 +228,11 @@ export default function DashboardPage() {
         {}
       );
       setSubscriptions(subscriptionsMap);
-
+      if (selectedChatbot === "chatbot-education") {
+        setDefaultValue("integration");
+      } else {
+        setDefaultValue("overview");
+      }
       // Load website data for selected chatbot
       const websiteDataResponse = await apiClient.getWebsiteData(
         selectedChatbot
@@ -240,10 +246,17 @@ export default function DashboardPage() {
       setAppointmentQuestions(questionsResponse.appointmentQuestions.questions);
 
       // Load analytics if subscribed
-      if (subscriptionsMap[selectedChatbot]?.status === "active") {
-        const analyticsData = await apiClient.getAnalytics(selectedChatbot);
-        setAnalytics(analyticsData.analytics);
-
+      // {selectedChatbot === "chatbot-lead-generation" ||
+      //           (selectedChatbot === "chatbot-customer-support"
+      if (
+        (selectedChatbot === "chatbot-lead-generation" ||
+          selectedChatbot === "chatbot-customer-support") &&
+        subscriptionsMap[selectedChatbot]?.status === "active"
+      ) {
+        if (selectedChatbot === "chatbot-lead-generation") {
+          const analyticsData = await apiClient.getAnalytics(selectedChatbot);
+          setAnalytics(analyticsData.analytics);
+        }
         // Load conversations
         const conversationsData = await apiClient.getConversations(
           selectedChatbot
@@ -284,10 +297,6 @@ export default function DashboardPage() {
     navigator.clipboard.writeText(chatbotCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleLogout = () => {
-    signOut(() => router.push("/"));
   };
 
   // const handleCancelSubscription = async (chatbotId: string) => {
@@ -702,22 +711,28 @@ export default function DashboardPage() {
 
         {/* Main Content Tabs - Only show if subscribed */}
         {isSubscribed ? (
-          <Tabs defaultValue="overview" className="space-y-6">
+          <Tabs defaultValue={`${defaultValue}`} className="space-y-6">
             <TabsList className="bg-[#0a0a0a]/60 border min-h-max flex flex-wrap max-w-max gap-1 md:gap-3 text-white border-gray-800">
-              <TabsTrigger
-                value="overview"
-                className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
-              >
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger
-                value="conversations"
-                className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
-              >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Chatting
-              </TabsTrigger>
+              {(selectedChatbot === "chatbot-lead-generation" ||
+                selectedChatbot === "chatbot-customer-support") && (
+                <TabsTrigger
+                  value="overview"
+                  className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Overview
+                </TabsTrigger>
+              )}
+              {(selectedChatbot === "chatbot-lead-generation" ||
+                selectedChatbot === "chatbot-customer-support") && (
+                <TabsTrigger
+                  value="conversations"
+                  className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Chatting
+                </TabsTrigger>
+              )}
               <TabsTrigger
                 value="integration"
                 className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
@@ -735,10 +750,10 @@ export default function DashboardPage() {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
-              {analytics && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Conversation Trends */}
-                  {currentChatbot?.id === "chatbot-lead-generation" && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Conversation Trends */}
+                {analytics &&
+                  currentChatbot?.id === "chatbot-lead-generation" && (
                     <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
                       <CardHeader>
                         <CardTitle className="text-white">
@@ -794,8 +809,9 @@ export default function DashboardPage() {
                     </Card>
                   )}
 
-                  {/* Response Time Distribution */}
-                  {currentChatbot?.id === "chatbot-lead-generation" && (
+                {/* Response Time Distribution */}
+                {analytics &&
+                  currentChatbot?.id === "chatbot-lead-generation" && (
                     <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
                       <CardHeader>
                         <CardTitle className="text-white">
@@ -843,8 +859,9 @@ export default function DashboardPage() {
                     </Card>
                   )}
 
-                  {/* Customer Satisfaction */}
-                  {currentChatbot?.id === "chatbot-lead-generation" && (
+                {/* Customer Satisfaction */}
+                {analytics &&
+                  currentChatbot?.id === "chatbot-lead-generation" && (
                     <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
                       <CardHeader className="p-2">
                         <CardTitle className="text-white">
@@ -891,7 +908,9 @@ export default function DashboardPage() {
                     </Card>
                   )}
 
-                  {/* Recent Conversations */}
+                {/* Recent Conversations */}
+                {(selectedChatbot === "chatbot-lead-generation" ||
+                  selectedChatbot === "chatbot-customer-support") && (
                   <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
                     <CardHeader className="p-2">
                       <CardTitle className="text-white">
@@ -945,8 +964,8 @@ export default function DashboardPage() {
                       </div>
                     </CardContent>
                   </Card>
-                </div>
-              )}
+                )}
+              </div>
             </TabsContent>
 
             <TabsContent value="conversations" className="space-y-6">

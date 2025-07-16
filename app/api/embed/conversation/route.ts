@@ -75,12 +75,7 @@ export async function POST(request: NextRequest) {
     const subscriptions = await WebSubscription.find({
       clerkId: userId,
       chatbotType: {
-        $in: [
-          "chatbot-customer-support",
-          "chatbot-e-commerce",
-          "chatbot-lead-generation",
-          "chatbot-education",
-        ],
+        $in: ["chatbot-customer-support", "chatbot-lead-generation"],
       },
       status: "active",
     });
