@@ -19,12 +19,16 @@ export default function InstagramConnectDialog({
   const [accountType, setAccountType] = useState<AccountType>("PERSONAL");
   const [conversionInProgress, setConversionInProgress] = useState(false);
   const checkLoginStatus = useCallback(() => {
+    console.log("Checking login status...");
     window.FB.getLoginStatus((response: any) => {
+      console.log("Login status response:", response);
       if (response.status === "connected") {
+        console.log("User is logged in and connected to Facebook");
         setUser(response.authResponse);
         fetchAccounts(response.authResponse);
         setStep(1);
       } else {
+        console.log("User is not logged in or not connected to Facebook");
         setLoading(false);
       }
     });
@@ -36,7 +40,7 @@ export default function InstagramConnectDialog({
         appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID!,
         cookie: true,
         xfbml: true,
-        version: "v18.0",
+        version: "v23.0",
       });
       checkLoginStatus();
     };
