@@ -1,50 +1,26 @@
 // types/facebook.d.ts
-// types/facebook.d.ts
-declare namespace FB {
-  function init(params: {
-    appId: string;
-    cookie?: boolean;
-    xfbml?: boolean;
-    version: string;
-  }): void;
-
-  function login(
-    callback: (response: AuthResponse) => void,
-    options?: LoginOptions
-  ): void;
-
-  function logout(callback: (response: { status: string }) => void): void;
-
-  function getLoginStatus(
-    callback: (response: AuthResponse) => void,
-    force?: boolean
-  ): void;
-
-  function api(path: string, callback: (response: any) => void): void;
-  function api(
-    path: string,
-    params: any,
-    callback: (response: any) => void
-  ): void;
-
-  interface AuthResponse {
-    status: string;
-    authResponse: {
-      accessToken: string;
-      expiresIn: string;
-      signedRequest: string;
-      userID: string;
+declare global {
+  interface Window {
+    fbAsyncInit: () => void;
+    FB: {
+      init: (config: {
+        appId: string;
+        cookie: boolean;
+        xfbml: boolean;
+        version: string;
+      }) => void;
+      getLoginStatus: (callback: (response: any) => void) => void;
+      login: (
+        callback: (response: any) => void,
+        options: { scope: string }
+      ) => void;
+      api: (
+        path: string,
+        method: string,
+        callback: (response: any) => void
+      ) => void;
     };
   }
-
-  interface LoginOptions {
-    scope?: string;
-    return_scopes?: boolean;
-    enable_profile_selector?: boolean;
-    auth_type?: string;
-  }
 }
 
-interface Window {
-  FB: typeof FB;
-}
+export {};

@@ -25,7 +25,7 @@ import React from "react";
 import Script from "next/script";
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { toast } from "../ui/use-toast";
-import { InstagramConnectDialog } from "./InstagramConnect";
+import InstagramConnectDialog from "./InstagramConnect";
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -344,7 +344,7 @@ export default function PaymentModal({
         <InstagramConnectDialog
           onVerified={() => {
             setFeedInfo(false);
-            // handleRazorpayPayment();
+            //   // handleRazorpayPayment();
           }}
         />
       )}
