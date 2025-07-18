@@ -1,35 +1,38 @@
-import InstagramAccount, {
-  IInstagramAccount,
-} from "@/lib/database/models/insta/InstagramAccount.model";
+import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
 
-    // In a real app, you'd get the user ID from authentication
-    const userId = "demo-user";
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
 
-    const accounts = await InstagramAccount.find({ userId }).sort({
-      createdAt: -1,
-    });
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json(accounts);
+    const accounts = await InstagramAccount.find({ userId });
+
+    return NextResponse.json({ accounts });
   } catch (error) {
-    console.error("Error fetching accounts:", error);
+    console.error("Error fetching Instagram accounts:", error);
     return NextResponse.json(
       { error: "Failed to fetch accounts" },
       { status: 500 }
     );
   }
 }
-export async function POST(request: Request) {
+
+export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
 
-    const body: IInstagramAccount = await request.json();
-
+    const body = await request.json();
     const {
       userId,
       instagramId,
@@ -37,55 +40,66 @@ export async function POST(request: Request) {
       isProfessional,
       accountType,
       accessToken,
+      displayName,
+      profilePicture,
+      followersCount,
+      postsCount,
       pageId,
       pageAccessToken,
     } = body;
 
-    // Validate required fields
-    if (!instagramId || !username || !accessToken || !userId) {
-      return NextResponse.json(
-        {
-          error: "Missing required fields (instagramId, username, accessToken)",
-        },
-        { status: 400 }
-      );
-    }
+    // Check if account already exists
+    const existingAccount = await InstagramAccount.findOne({
+      $or: [{ instagramId }, { username: username.toLowerCase() }],
+    });
 
-    // Find by instagramId
-    let instaAccount = await InstagramAccount.findOne({ instagramId });
-
-    if (instaAccount) {
+    if (existingAccount) {
       // Update existing account
-      instaAccount.username = username;
-      instaAccount.isProfessional = isProfessional;
-      instaAccount.accountType = accountType;
-      instaAccount.accessToken = accessToken;
-      instaAccount.pageId = pageId;
-      instaAccount.pageAccessToken = pageAccessToken;
-    } else {
-      // Create new account
-      instaAccount = new InstagramAccount({
-        userId,
-        instagramId,
-        username,
-        isProfessional,
-        accountType,
-        accessToken,
-        pageId,
-        pageAccessToken,
-      });
+      const updatedAccount = await InstagramAccount.findByIdAndUpdate(
+        existingAccount._id,
+        {
+          userId,
+          isProfessional,
+          accountType,
+          accessToken,
+          displayName,
+          profilePicture,
+          followersCount,
+          postsCount,
+          pageId,
+          pageAccessToken,
+          lastTokenRefresh: new Date(),
+          lastActivity: new Date(),
+        },
+        { new: true }
+      );
+
+      return NextResponse.json({ account: updatedAccount });
     }
 
-    await instaAccount.save();
+    // Create new account
+    const newAccount = new InstagramAccount({
+      userId,
+      instagramId,
+      username: username.toLowerCase(),
+      isProfessional,
+      accountType,
+      accessToken,
+      displayName,
+      profilePicture,
+      followersCount,
+      postsCount,
+      pageId,
+      pageAccessToken,
+    });
 
+    await newAccount.save();
+
+    return NextResponse.json({ account: newAccount });
+  } catch (error) {
+    console.error("Error creating/updating Instagram account:", error);
     return NextResponse.json(
-      { success: true, data: instaAccount },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error("Account creation/update error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to create/update account" },
+      { error: "Failed to save account" },
       { status: 500 }
     );
   }

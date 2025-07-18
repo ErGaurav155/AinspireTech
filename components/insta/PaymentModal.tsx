@@ -25,7 +25,8 @@ import React from "react";
 import Script from "next/script";
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { toast } from "../ui/use-toast";
-import InstagramConnectDialog from "./InstagramConnect";
+
+import InstagramAutomationWizard from "./InstagramAutomationWizard";
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -301,7 +302,10 @@ export default function PaymentModal({
               ) : (
                 <Button
                   className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
-                  onClick={() => setFeedInfo(true)}
+                  onClick={() => {
+                    setFeedInfo(true);
+                    onClose();
+                  }}
                   disabled={isProcessing}
                 >
                   <CreditCard className="mr-2 h-5 w-5" />
@@ -332,7 +336,10 @@ export default function PaymentModal({
           </div>
         </DialogContent>
       </Dialog>
-      {/* {feedInfo && (
+
+      {feedInfo && (
+        <InstagramAutomationWizard />
+
         // <AddAccount
         //   onVerified={() => {
         //     setFeedInfo(false);
@@ -341,15 +348,14 @@ export default function PaymentModal({
         //   }}
         //   buyerId={buyerId}
         // />
-        
-      )} */}
-      <InstagramConnectDialog
+      )}
+
+      {/* <InstagramConnectDialog
         onVerified={() => {
           setFeedInfo(false);
-          onClose();
           //   // handleRazorpayPayment();
         }}
-      />
+      /> */}
       <div>
         <Script
           id="razorpay-checkout-js"

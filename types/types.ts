@@ -48,3 +48,43 @@ export type PricingPlan = {
   features: string[];
   popular: boolean;
 };
+export interface FacebookLoginResponse {
+  authResponse: {
+    accessToken: string;
+    expiresIn: number;
+    userID: string;
+  };
+  status: "connected" | "not_authorized" | "unknown";
+}
+
+export interface InstagramAccount {
+  id: string;
+  username: string;
+  account_type: "BUSINESS" | "CREATOR" | "PERSONAL";
+  media_count: number;
+  followers_count: number;
+  name?: string;
+  profile_picture_url?: string;
+}
+
+export interface FacebookPage {
+  id: string;
+  name: string;
+  access_token: string;
+  instagram_business_account?: {
+    id: string;
+  };
+}
+
+export interface ProcessStep {
+  id: number;
+  title: string;
+  description: string;
+  completed: boolean;
+  current: boolean;
+}
+
+export interface AccountTypeConversion {
+  accountId: string;
+  newAccountType: "BUSINESS" | "CREATOR";
+}
