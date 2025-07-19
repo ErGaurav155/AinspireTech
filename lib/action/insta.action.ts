@@ -181,3 +181,20 @@ export const refreshAccessTokenIfNeeded = async (accountId: string) => {
 
   return account.accessToken;
 };
+
+export async function getInstaAccount(userId: string) {
+  try {
+    await connectToDatabase();
+
+    // Insert dummy data
+    const response = await InstagramAccount.findOne({ userId: userId });
+
+    if (!response) {
+      throw new Error("No matching subscription found.");
+    }
+
+    return JSON.parse(JSON.stringify(response));
+  } catch (error) {
+    console.error("Error seeding subscriptions:", error);
+  }
+}

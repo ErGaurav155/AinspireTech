@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { setSubsciptionCanceled } from "@/lib/action/subscription.action";
 import { Button } from "@/components/ui/button";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
+import { getInstaAccount } from "@/lib/action/insta.action";
 
 export default function Pricing() {
   const { userId } = useAuth();
@@ -57,8 +58,7 @@ export default function Pricing() {
 
         setBuyerId(buyer._id);
         setIslogged(true);
-        const account = await InstagramAccount.findOne({ userId: userId });
-
+        const account = await getInstaAccount(userId);
         if (!account) {
           setIsInstaAccount(false);
         } else {
