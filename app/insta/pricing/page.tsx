@@ -17,6 +17,7 @@ import { instagramPricingPlans } from "@/constant";
 import { toast } from "sonner";
 import { setSubsciptionCanceled } from "@/lib/action/subscription.action";
 import { Button } from "@/components/ui/button";
+import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 
 export default function Pricing() {
   const { userId } = useAuth();
@@ -28,6 +29,8 @@ export default function Pricing() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [buyerId, setBuyerId] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isInstaAccount, setIsInstaAccount] = useState(false);
+
   const [islogged, setIslogged] = useState(false);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -54,6 +57,13 @@ export default function Pricing() {
 
         setBuyerId(buyer._id);
         setIslogged(true);
+        const account = await InstagramAccount.findById(userId);
+
+        if (!account) {
+          setIsInstaAccount(false);
+        } else {
+          setIsInstaAccount(true);
+        }
 
         // Fetch subscription info
         const subscriptionInfo = await getInstaSubscriptionInfo(userId);
@@ -580,6 +590,7 @@ export default function Pricing() {
           billingCycle={billingCycle}
           buyerId={buyerId}
           isSubscribed={isSubscribed}
+          isInstaAccount={isInstaAccount}
           onSuccess={(newSubscription) => {
             setCurrentSubscription(newSubscription);
             setIsSubscribed(true);

@@ -26,7 +26,6 @@ import Script from "next/script";
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { toast } from "../ui/use-toast";
 
-import InstagramAutomationWizard from "./InstagramAutomationWizard";
 import LoginPage from "./InstagramAutomationWizard";
 interface PaymentModalProps {
   isOpen: boolean;
@@ -36,6 +35,7 @@ interface PaymentModalProps {
   billingCycle: "monthly" | "yearly";
   buyerId: string;
   isSubscribed: boolean;
+  isInstaAccount: boolean;
 }
 
 declare global {
@@ -43,12 +43,6 @@ declare global {
     Razorpay: any;
   }
 }
-const phoneFormSchema = z.object({
-  MobileNumber: z
-    .string()
-    .min(10, "MOBILE number is required")
-    .regex(/^\d+$/, "invalid number"),
-});
 
 export default function PaymentModal({
   isOpen,
@@ -57,6 +51,7 @@ export default function PaymentModal({
   billingCycle,
   buyerId,
   isSubscribed,
+  isInstaAccount,
   onSuccess,
 }: PaymentModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -65,7 +60,6 @@ export default function PaymentModal({
     "razorpay"
   );
 
-  const [feedInfo, setFeedInfo] = useState(false);
   const razorpayplanId = useRef<string | null>(null);
   const router = useRouter();
 
@@ -180,6 +174,7 @@ export default function PaymentModal({
 
   const onCheckout = async () => {
     try {
+      setIsProcessing(true);
       // Fetch plan data
       const info = await getRazerpayPlanInfo(plan.id);
       if (!info.razorpaymonthlyplanId || !info.razorpayyearlyplanId) {
@@ -199,164 +194,152 @@ export default function PaymentModal({
       console.error("Error fetching plan info:", error);
       return false;
     } finally {
-      setFeedInfo(true);
+      setIsProcessing(false);
       onClose();
-      // await handleRazorpayPayment();
+      await handleRazorpayPayment();
     }
   };
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-md bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-center text-white font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-              Complete Your Subscription
-            </DialogTitle>
-          </DialogHeader>
+      {!isInstaAccount ? (
+        <LoginPage />
+      ) : (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogContent className="max-w-md bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
+            <DialogHeader>
+              <DialogTitle className="text-center text-white font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                Complete Your Subscription
+              </DialogTitle>
+            </DialogHeader>
 
-          <div className="space-y-6">
-            {/* Plan Summary */}
-            <div className="bg-[#1a1a1a]/50 backdrop-blur-sm p-4 rounded-xl border border-[#333]">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-gray-300">
-                  {plan.name} Plan
-                </span>
-                <Badge className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white">
-                  {billingCycle}
-                </Badge>
+            <div className="space-y-6">
+              {/* Plan Summary */}
+              <div className="bg-[#1a1a1a]/50 backdrop-blur-sm p-4 rounded-xl border border-[#333]">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-gray-300">
+                    {plan.name} Plan
+                  </span>
+                  <Badge className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white">
+                    {billingCycle}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center text-xl font-bold mt-4">
+                  <span className="text-gray-300">Total</span>
+                  <span className="text-white">${price.toLocaleString()}</span>
+                </div>
+                {billingCycle === "yearly" && (
+                  <p className="text-sm text-green-400 mt-3 font-medium">
+                    Save ₹
+                    {(
+                      plan.monthlyPrice * 12 -
+                      plan.yearlyPrice
+                    ).toLocaleString()}{" "}
+                    with yearly billing
+                  </p>
+                )}
               </div>
-              <div className="flex justify-between items-center text-xl font-bold mt-4">
-                <span className="text-gray-300">Total</span>
-                <span className="text-white">${price.toLocaleString()}</span>
+
+              <Separator className="bg-[#333]" />
+
+              {/* Payment Method Selection */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-gray-300 text-center">
+                  Price in <span className="text-[#00F0FF]">USD</span> and{" "}
+                  <span className="text-[#B026FF]">INR</span>
+                </h3>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div
+                    className={`rounded-xl p-4 flex flex-col items-center gap-2 cursor-pointer transition-all duration-300 border ${
+                      paymentMethod === "razorpay"
+                        ? "border-[#00F0FF] bg-[#00F0FF]/10"
+                        : "border-[#333] hover:border-[#00F0FF]/50"
+                    }`}
+                    onClick={() => setPaymentMethod("razorpay")}
+                  >
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-[#00F0FF]" />
+                      <span className="text-xs font-medium text-gray-300">
+                        International
+                      </span>
+                    </div>
+                    <span className="text-md font-medium text-white mt-2">
+                      Razorpay
+                    </span>
+                    <span className="font-bold text-white">
+                      ${price.toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div
+                    className={`rounded-xl p-4 flex flex-col items-center gap-2 cursor-pointer transition-all duration-300 border ${
+                      paymentMethod === "paypal"
+                        ? "border-[#B026FF] bg-[#B026FF]/10"
+                        : "border-[#333] hover:border-[#B026FF]/50"
+                    }`}
+                    onClick={() => setPaymentMethod("paypal")}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-[#B026FF]" />
+                      <span className="text-xs font-medium text-gray-300">
+                        India
+                      </span>
+                    </div>
+                    <span className="text-md font-medium text-white mt-2">
+                      Razorpay
+                    </span>
+                    <span className="font-bold text-white">
+                      ₹{inrPrice.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
               </div>
-              {billingCycle === "yearly" && (
-                <p className="text-sm text-green-400 mt-3 font-medium">
-                  Save ₹
-                  {(plan.monthlyPrice * 12 - plan.yearlyPrice).toLocaleString()}{" "}
-                  with yearly billing
+
+              {/* Payment Button */}
+              <SignedIn>
+                {isSubscribed ? (
+                  <Button className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#33e49d] to-[#044624] hover:from-[#79b59b]/90 hover:to-[#30d472]/90">
+                    Subscribed
+                  </Button>
+                ) : (
+                  <Button
+                    className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
+                    onClick={() => {
+                      onCheckout();
+                    }}
+                    disabled={isProcessing}
+                  >
+                    <CreditCard className="mr-2 h-5 w-5" />
+                    {isProcessing ? "Processing..." : `Pay with Razorpay`}
+                  </Button>
+                )}
+              </SignedIn>
+              <SignedOut>
+                <Button
+                  className="w-full min-w- py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
+                  onClick={() => {
+                    router.push("/sign-in?redirect_to=/pricing");
+                  }}
+                >
+                  Sign-in
+                </Button>
+              </SignedOut>
+              {isSubscribed ? (
+                <p className="text-xs text-gray-400 text-center px-4">
+                  Your subscription will be activated immediately after
+                  successful payment. You can cancel anytime from your
+                  dashboard.
+                </p>
+              ) : (
+                <p className="text-xs text-gray-400 text-center px-4">
+                  You had already take one of those subscription.
                 </p>
               )}
             </div>
-
-            <Separator className="bg-[#333]" />
-
-            {/* Payment Method Selection */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-300 text-center">
-                Price in <span className="text-[#00F0FF]">USD</span> and{" "}
-                <span className="text-[#B026FF]">INR</span>
-              </h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div
-                  className={`rounded-xl p-4 flex flex-col items-center gap-2 cursor-pointer transition-all duration-300 border ${
-                    paymentMethod === "razorpay"
-                      ? "border-[#00F0FF] bg-[#00F0FF]/10"
-                      : "border-[#333] hover:border-[#00F0FF]/50"
-                  }`}
-                  onClick={() => setPaymentMethod("razorpay")}
-                >
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-[#00F0FF]" />
-                    <span className="text-xs font-medium text-gray-300">
-                      International
-                    </span>
-                  </div>
-                  <span className="text-md font-medium text-white mt-2">
-                    Razorpay
-                  </span>
-                  <span className="font-bold text-white">
-                    ${price.toLocaleString()}
-                  </span>
-                </div>
-
-                <div
-                  className={`rounded-xl p-4 flex flex-col items-center gap-2 cursor-pointer transition-all duration-300 border ${
-                    paymentMethod === "paypal"
-                      ? "border-[#B026FF] bg-[#B026FF]/10"
-                      : "border-[#333] hover:border-[#B026FF]/50"
-                  }`}
-                  onClick={() => setPaymentMethod("paypal")}
-                >
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-[#B026FF]" />
-                    <span className="text-xs font-medium text-gray-300">
-                      India
-                    </span>
-                  </div>
-                  <span className="text-md font-medium text-white mt-2">
-                    Razorpay
-                  </span>
-                  <span className="font-bold text-white">
-                    ₹{inrPrice.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Payment Button */}
-            <SignedIn>
-              {isSubscribed ? (
-                <Button className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#33e49d] to-[#044624] hover:from-[#79b59b]/90 hover:to-[#30d472]/90">
-                  Subscribed
-                </Button>
-              ) : (
-                <Button
-                  className="w-full py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
-                  onClick={() => {
-                    setFeedInfo(true);
-                    onClose();
-                  }}
-                  disabled={isProcessing}
-                >
-                  <CreditCard className="mr-2 h-5 w-5" />
-                  {isProcessing ? "Processing..." : `Pay with Razorpay`}
-                </Button>
-              )}
-            </SignedIn>
-            <SignedOut>
-              <Button
-                className="w-full min-w- py-6 rounded-full font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90"
-                onClick={() => {
-                  router.push("/sign-in?redirect_to=/pricing");
-                }}
-              >
-                Sign-in
-              </Button>
-            </SignedOut>
-            {isSubscribed ? (
-              <p className="text-xs text-gray-400 text-center px-4">
-                Your subscription will be activated immediately after successful
-                payment. You can cancel anytime from your dashboard.
-              </p>
-            ) : (
-              <p className="text-xs text-gray-400 text-center px-4">
-                You had already take one of those subscription.
-              </p>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {feedInfo && (
-        <LoginPage />
-
-        // <AddAccount
-        //   onVerified={() => {
-        //     setFeedInfo(false);
-        //     onClose();
-        //     handleRazorpayPayment();
-        //   }}
-        //   buyerId={buyerId}
-        // />
+          </DialogContent>
+        </Dialog>
       )}
 
-      {/* <InstagramConnectDialog
-        onVerified={() => {
-          setFeedInfo(false);
-          //   // handleRazorpayPayment();
-        }}
-      /> */}
       <div>
         <Script
           id="razorpay-checkout-js"

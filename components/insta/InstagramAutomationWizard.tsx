@@ -11,7 +11,7 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 import { Instagram } from "lucide-react";
 export default function LoginPage() {
   const [showCancelSubDialog, setShowCancelSubDialog] = useState(true);
-  const instagramAuthUrl = `https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=${process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID}&redirect_uri=https://ainspiretech.com/api/insta/callback&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cinstagram_business_content_publish%2Cinstagram_business_manage_insights`;
+  const instagramAuthUrl = `https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=${process.env.INSTAGRAM_APP_ID}&redirect_uri=https://ainspiretech.com/api/insta/callback&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cinstagram_business_content_publish%2Cinstagram_business_manage_insights`;
   return (
     <AlertDialog
       open={showCancelSubDialog}
