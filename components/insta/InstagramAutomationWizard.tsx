@@ -11,7 +11,7 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 import { Instagram } from "lucide-react";
 export default function LoginPage() {
   const [showCancelSubDialog, setShowCancelSubDialog] = useState(true);
-
+  const instagramAuthUrl = `https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=${process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID}&redirect_uri=https://ainspiretech.com/api/insta/callback&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cinstagram_business_content_publish%2Cinstagram_business_manage_insights`;
   return (
     <AlertDialog
       open={showCancelSubDialog}
@@ -34,7 +34,7 @@ export default function LoginPage() {
               Instagram Business Login
             </h1>
             <Link
-              href="https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=1511412526959481&redirect_uri=https://ainspiretech.com/insta/pricing&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cinstagram_business_content_publish%2Cinstagram_business_manage_insights"
+              href={instagramAuthUrl}
               className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
             >
               Connect Instagram Account

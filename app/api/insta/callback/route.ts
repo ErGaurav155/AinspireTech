@@ -19,12 +19,6 @@ export async function GET(req: NextRequest) {
     }
 
     // Exchange code for short-lived token
-    const tokenParams = new URLSearchParams();
-    tokenParams.append("client_id", process.env.INSTAGRAM_APP_ID!);
-    tokenParams.append("client_secret", process.env.INSTAGRAM_APP_SECRET!);
-    tokenParams.append("grant_type", "authorization_code");
-    tokenParams.append("redirect_uri", process.env.INSTAGRAM_REDIRECT_URI!);
-    tokenParams.append("code", code);
 
     const tokenRes = await fetch(
       "https://api.instagram.com/oauth/access_token",
@@ -33,7 +27,13 @@ export async function GET(req: NextRequest) {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: tokenParams,
+        body: new URLSearchParams({
+          client_id: process.env.INSTAGRAM_APP_ID!,
+          client_secret: process.env.INSTAGRAM_APP_SECRET!,
+          grant_type: "authorization_code",
+          redirect_uri: `https://ainspiretech.com/api/insta/callback`,
+          code: code,
+        }),
       }
     );
 
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
     const expiresAt = new Date(Date.now() + expiresIn * 1000);
 
     // Save to MongoDB
-    const tokenRecord = await InstagramAccount.findOneAndUpdate(
+    await InstagramAccount.findOneAndUpdate(
       { userId },
       {
         accessToken: longLivedData.access_token,
@@ -77,11 +77,11 @@ export async function GET(req: NextRequest) {
       { upsert: true, new: true }
     );
 
-    return NextResponse.redirect("http://localhost:3000/insta/pricing");
+    return NextResponse.redirect("https://ainspiretech.com/insta/pricing");
   } catch (error: any) {
     console.error("Instagram callback error:", error);
     return NextResponse.redirect(
-      `http://localhost:3000/login?error=${encodeURIComponent(error.message)}`
+      `https://ainspiretech.com?error=${encodeURIComponent(error.message)}`
     );
   }
 }
