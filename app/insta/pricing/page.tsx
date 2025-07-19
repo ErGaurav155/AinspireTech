@@ -57,7 +57,7 @@ export default function Pricing() {
 
         setBuyerId(buyer._id);
         setIslogged(true);
-        const account = await InstagramAccount.findById(userId);
+        const account = await InstagramAccount.findOne({ userId: userId });
 
         if (!account) {
           setIsInstaAccount(false);
