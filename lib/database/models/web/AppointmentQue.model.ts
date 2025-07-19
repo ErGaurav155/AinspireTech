@@ -46,7 +46,7 @@ const AppointmentQuestionSchema = new Schema<IAppointmentQuestion>({
 });
 
 export const WebAppointmentQuestion =
-  mongoose.models.WebAppointmentQuestion ||
+  mongoose.models?.WebAppointmentQuestion ||
   mongoose.model<IAppointmentQuestion>(
     "WebAppointmentQuestion",
     AppointmentQuestionSchema

@@ -79,7 +79,7 @@ MessageSchema.index({ "metadata.intent": 1 });
 MessageSchema.index({ "metadata.sentiment": 1 });
 
 const WebMessage =
-  mongoose.models.WebMessage ||
+  mongoose.models?.WebMessage ||
   mongoose.model<IMessage>("WebMessage", MessageSchema);
 
 export default WebMessage;

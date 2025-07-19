@@ -49,7 +49,7 @@ WebsiteDataSchema.index({ clerkId: 1 });
 WebsiteDataSchema.index({ updatedAt: -1 });
 
 const WebsiteData =
-  mongoose.models.WebsiteData ||
+  mongoose.models?.WebsiteData ||
   mongoose.model<IWebsiteData>("WebsiteData", WebsiteDataSchema);
 
 export default WebsiteData;

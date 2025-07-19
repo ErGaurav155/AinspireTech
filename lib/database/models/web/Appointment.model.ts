@@ -105,7 +105,7 @@ AppointmentSchema.index({ clerkId: 1, status: 1 });
 AppointmentSchema.index({ chatbotType: 1, status: 1 });
 
 const WebAppointment =
-  mongoose.models.WebAppointment ||
+  mongoose.models?.WebAppointment ||
   mongoose.model<IAppointment>("WebAppointment", AppointmentSchema);
 
 export default WebAppointment;

@@ -81,6 +81,6 @@ const AnalyticsSchema = new Schema<IAnalytics>(
 AnalyticsSchema.index({ accountId: 1, date: 1 }, { unique: true });
 
 const InstaAnalytics =
-  mongoose.models.InstaAnalytics ||
+  mongoose.models?.InstaAnalytics ||
   mongoose.model<IAnalytics>("InstaAnalytics", AnalyticsSchema);
 export default InstaAnalytics;

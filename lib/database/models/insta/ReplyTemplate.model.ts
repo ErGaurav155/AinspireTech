@@ -64,6 +64,6 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
 );
 
 const InstaReplyTemplate =
-  mongoose.models.InstaReplyTemplate ||
+  mongoose.models?.InstaReplyTemplate ||
   mongoose.model<IReplyTemplate>("InstaReplyTemplate", ReplyTemplateSchema);
 export default InstaReplyTemplate;

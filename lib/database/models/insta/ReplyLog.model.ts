@@ -73,6 +73,6 @@ const ReplyLogSchema = new Schema<IReplyLog>(
 );
 
 const InstaReplyLog =
-  mongoose.models.InstaReplyLog ||
+  mongoose.models?.InstaReplyLog ||
   mongoose.model<IReplyLog>("InstaReplyLog", ReplyLogSchema);
 export default InstaReplyLog;

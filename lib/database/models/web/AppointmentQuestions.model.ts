@@ -97,7 +97,7 @@ AppointmentQuestionsSchema.index({ chatbotType: 1 }, { unique: true });
 AppointmentQuestionsSchema.index({ clerkId: 1 });
 
 const WebAppointmentQuestions =
-  mongoose.models.WebAppointmentQuestions ||
+  mongoose.models?.WebAppointmentQuestions ||
   mongoose.model<IAppointmentQuestions>(
     "WebAppointmentQuestions",
     AppointmentQuestionsSchema

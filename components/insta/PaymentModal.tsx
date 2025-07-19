@@ -27,6 +27,7 @@ import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { toast } from "../ui/use-toast";
 
 import InstagramAutomationWizard from "./InstagramAutomationWizard";
+import LoginPage from "./InstagramAutomationWizard";
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -338,7 +339,7 @@ export default function PaymentModal({
       </Dialog>
 
       {feedInfo && (
-        <InstagramAutomationWizard />
+        <LoginPage />
 
         // <AddAccount
         //   onVerified={() => {

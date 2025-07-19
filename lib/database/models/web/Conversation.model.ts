@@ -153,7 +153,7 @@ ConversationSchema.index({ "messages.timestamp": 1 });
 ConversationSchema.index({ clerkId: 1, status: 1 });
 
 const WebConversation =
-  mongoose.models.WebConversation ||
+  mongoose.models?.WebConversation ||
   mongoose.model<IConversation>("WebConversation", ConversationSchema);
 
 export default WebConversation;

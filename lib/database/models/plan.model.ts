@@ -20,6 +20,6 @@ const PlanSchema = new Schema<IPlan>({
 });
 
 // Create the Plan model
-const Plan = mongoose.models.Plan || model<IPlan>("Plan", PlanSchema);
+const Plan = mongoose.models?.Plan || model<IPlan>("Plan", PlanSchema);
 
 export default Plan;

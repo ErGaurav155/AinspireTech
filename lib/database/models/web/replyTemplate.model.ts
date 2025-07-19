@@ -75,7 +75,7 @@ ReplyTemplateSchema.index({ chatbotType: 1, isActive: 1 });
 ReplyTemplateSchema.index({ name: "text", triggers: "text", response: "text" });
 
 const WebReplyTemplate =
-  mongoose.models.ReplyTemplate ||
+  mongoose.models?.ReplyTemplate ||
   mongoose.model<IReplyTemplate>("WebReplyTemplate", ReplyTemplateSchema);
 
 export default WebReplyTemplate;

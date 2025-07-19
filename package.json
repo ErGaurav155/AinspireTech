@@ -44,7 +44,6 @@
     "@react-google-maps/api": "^2.20.3",
     "@tanstack/react-table": "^8.20.6",
     "@twilio/voice-sdk": "^2.12.3",
-    "@types/react-facebook-login": "^4.1.11",
     "@types/twilio": "^3.19.3",
     "add": "^2.0.6",
     "apify-client": "^2.12.0",
@@ -87,7 +86,6 @@
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
-    "@types/facebook-js-sdk": "^3.3.12",
     "@types/node": "20.17.12",
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^19.1.8",

@@ -71,7 +71,7 @@ AppointmentFormDataSchema.index({ date: 1 });
 AppointmentFormDataSchema.index({ service: 1 });
 
 const WebAppointmentFormData =
-  mongoose.models.WebAppointmentFormData ||
+  mongoose.models?.WebAppointmentFormData ||
   mongoose.model<IAppointmentFormData>(
     "WebAppointmentFormData",
     AppointmentFormDataSchema

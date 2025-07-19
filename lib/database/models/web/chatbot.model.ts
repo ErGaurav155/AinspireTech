@@ -150,6 +150,7 @@ ChatbotSchema.index({ clerkId: 1 });
 ChatbotSchema.index({ type: 1, isActive: 1 });
 
 const Chatbot =
-  mongoose.models.Chatbot || mongoose.model<IChatbot>("Chatbot", ChatbotSchema);
+  mongoose.models?.Chatbot ||
+  mongoose.model<IChatbot>("Chatbot", ChatbotSchema);
 
 export default Chatbot;

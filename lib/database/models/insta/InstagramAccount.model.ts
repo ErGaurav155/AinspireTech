@@ -10,12 +10,8 @@ export interface IInstagramAccount extends Document {
   displayName?: string;
   profilePicture?: string;
   isActive?: boolean;
-  lastActivity?: Date;
-  followersCount?: number;
-  postsCount?: number;
   lastTokenRefresh?: Date;
-  pageId?: string;
-  pageAccessToken?: string;
+  expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -49,23 +45,13 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
       type: Boolean,
       default: true,
     },
-    lastActivity: {
+    expiresAt: {
       type: Date,
-      default: Date.now,
+      default: () => new Date(Date.now() + 60 * 60 * 24 * 1000), // Default to 24 hours from now
     },
     lastTokenRefresh: {
       type: Date,
       default: Date.now,
-    },
-    pageId: { type: String },
-    pageAccessToken: { type: String },
-    followersCount: {
-      type: Number,
-      default: 0,
-    },
-    postsCount: {
-      type: Number,
-      default: 0,
     },
   },
   {
@@ -74,6 +60,6 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
 );
 
 const InstagramAccount =
-  mongoose.models.InstagramAccount ||
+  mongoose.models?.InstagramAccount ||
   mongoose.model<IInstagramAccount>("InstagramAccount", InstagramAccountSchema);
 export default InstagramAccount;

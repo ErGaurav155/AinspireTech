@@ -64,7 +64,7 @@ const SubscriptionSchema = new mongoose.Schema(
 
 // Ensure the model is only created once in development
 const InstaSubscription =
-  mongoose.models.InstaSubscription ||
+  mongoose.models?.InstaSubscription ||
   mongoose.model("InstaSubscription", SubscriptionSchema);
 
 export default InstaSubscription;
