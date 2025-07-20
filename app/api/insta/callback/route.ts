@@ -23,8 +23,10 @@ export async function GET(req: NextRequest) {
     if (!userId) {
       throw new Error("No authorization userid received");
     }
-    const { user } = auth();
+    const { user } = await auth();
+    console.log("User from auth:", user);
     if (!user || user.id !== userId) {
+      console.log("Unauthorized access attempt by user:", user, " ", userId);
       throw new Error("Unauthorized access");
     }
     // Exchange code for short-lived token
