@@ -24,9 +24,7 @@ export async function GET(req: NextRequest) {
       throw new Error("No authorization userid received");
     }
     const { userId } = auth();
-    console.log("User from auth:", userId);
     if (!userId || userId !== userid) {
-      console.log("Unauthorized access attempt by user:", userId, " ", userid);
       throw new Error("Unauthorized access");
     }
     // Exchange code for short-lived token
@@ -47,20 +45,12 @@ export async function GET(req: NextRequest) {
         }),
       }
     );
-    console.log("Token response :", tokenRes);
     const tokenData = await tokenRes.json();
-    console.log("Token response in json :", tokenData);
-
-    if (!tokenData.data || !tokenData.data[0].access_token) {
-      console.log("Token in data :", tokenData.data);
-
+    if (!tokenData || !tokenData.access_token) {
       throw new Error("Failed to obtain access token");
     }
 
-    const {
-      access_token: shortLivedToken,
-      // user_id: userId
-    } = tokenData.data[0];
+    const { access_token: shortLivedToken, user_id: instgramId } = tokenData;
 
     // Exchange for long-lived token
     const longLivedUrl = new URL("https://graph.instagram.com/access_token");
@@ -86,6 +76,7 @@ export async function GET(req: NextRequest) {
     const InstaAcc = await InstagramAccount.findOneAndUpdate(
       { userId: userid },
       {
+        instagramId: instgramId,
         accessToken: longLivedData.access_token,
         lastTokenRefresh: Date.now(),
         expiresAt,
