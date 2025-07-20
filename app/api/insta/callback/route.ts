@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const code = searchParams.get("code");
-    const userId = searchParams.get("userId");
+    const userid = searchParams.get("userId");
 
     const error = searchParams.get("error");
 
@@ -20,13 +20,13 @@ export async function GET(req: NextRequest) {
     if (!code) {
       throw new Error("No authorization code received");
     }
-    if (!userId) {
+    if (!userid) {
       throw new Error("No authorization userid received");
     }
-    const { user } = await auth();
-    console.log("User from auth:", user);
-    if (!user || user.id !== userId) {
-      console.log("Unauthorized access attempt by user:", user, " ", userId);
+    const { userId } = auth();
+    console.log("User from auth:", userId);
+    if (!userId || userId !== userid) {
+      console.log("Unauthorized access attempt by user:", userId, " ", userid);
       throw new Error("Unauthorized access");
     }
     // Exchange code for short-lived token
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
 
     // Save to MongoDB
     const InstaAcc = await InstagramAccount.findOneAndUpdate(
-      { userId },
+      { userId: userid },
       {
         accessToken: longLivedData.access_token,
         lastTokenRefresh: Date.now(),
