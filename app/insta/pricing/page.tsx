@@ -37,6 +37,8 @@ export default function Pricing() {
   const [islogged, setIslogged] = useState(false);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isgettingAcc, setIsGettingAcc] = useState(false);
+
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -64,6 +66,7 @@ export default function Pricing() {
         if (!account) {
           setIsInstaAccount(false);
           if (activeProductId) {
+            setIsGettingAcc(true);
             const response = await fetch(
               `/api/insta/callback?code=${activeProductId}&userId=${userId}`,
               {
@@ -81,6 +84,7 @@ export default function Pricing() {
             } else {
               throw new Error(data.error || "Failed to connect account");
             }
+            setIsGettingAcc(false);
           }
         } else {
           setIsInstaAccount(true);
@@ -612,6 +616,7 @@ export default function Pricing() {
           buyerId={buyerId}
           isSubscribed={isSubscribed}
           isInstaAccount={isInstaAccount}
+          isgettingAcc={isgettingAcc}
           onSuccess={(newSubscription) => {
             setCurrentSubscription(newSubscription);
             setIsSubscribed(true);

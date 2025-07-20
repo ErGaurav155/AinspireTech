@@ -36,6 +36,7 @@ interface PaymentModalProps {
   buyerId: string;
   isSubscribed: boolean;
   isInstaAccount: boolean;
+  isgettingAcc: boolean;
 }
 
 declare global {
@@ -52,6 +53,7 @@ export default function PaymentModal({
   buyerId,
   isSubscribed,
   isInstaAccount,
+  isgettingAcc,
   onSuccess,
 }: PaymentModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -68,7 +70,9 @@ export default function PaymentModal({
   const price =
     billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
   const inrPrice = Math.round(price * 87); // Approximate INR to USD conversion
-
+  if (isgettingAcc) {
+    setIsProcessing(true);
+  }
   const handleRazorpayPayment = async () => {
     setIsProcessing(true);
     try {
@@ -199,6 +203,7 @@ export default function PaymentModal({
       await handleRazorpayPayment();
     }
   };
+
   return (
     <>
       {!isInstaAccount ? (
@@ -310,7 +315,11 @@ export default function PaymentModal({
                     disabled={isProcessing}
                   >
                     <CreditCard className="mr-2 h-5 w-5" />
-                    {isProcessing ? "Processing..." : `Pay with Razorpay`}
+                    {isProcessing
+                      ? "Processing..."
+                      : isInstaAccount
+                      ? `Pay with Razorpay`
+                      : "Connect Instagram "}
                   </Button>
                 )}
               </SignedIn>
