@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
         }),
       }
     );
-
+    console.log("Token response :", tokenRes);
     const tokenData = await tokenRes.json();
 
     if (!tokenData.data || !tokenData.data[0].access_token) {
