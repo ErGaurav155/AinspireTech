@@ -1,5 +1,6 @@
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
+import { auth } from "@clerk/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -8,6 +9,8 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const code = searchParams.get("code");
+    const userId = searchParams.get("userId");
+
     const error = searchParams.get("error");
 
     if (error) {
@@ -17,7 +20,13 @@ export async function GET(req: NextRequest) {
     if (!code) {
       throw new Error("No authorization code received");
     }
-
+    if (!userId) {
+      throw new Error("No authorization userid received");
+    }
+    const { user } = auth();
+    if (!user || user.id !== userId) {
+      throw new Error("Unauthorized access");
+    }
     // Exchange code for short-lived token
 
     const tokenRes = await fetch(
@@ -31,7 +40,7 @@ export async function GET(req: NextRequest) {
           client_id: process.env.INSTAGRAM_APP_ID!,
           client_secret: process.env.INSTAGRAM_APP_SECRET!,
           grant_type: "authorization_code",
-          redirect_uri: `https://ainspiretech.com/api/insta/callback`,
+          redirect_uri: `https://ainspiretech.com/insta/pricing`,
           code: code,
         }),
       }
@@ -43,8 +52,10 @@ export async function GET(req: NextRequest) {
       throw new Error("Failed to obtain access token");
     }
 
-    const { access_token: shortLivedToken, user_id: userId } =
-      tokenData.data[0];
+    const {
+      access_token: shortLivedToken,
+      // user_id: userId
+    } = tokenData.data[0];
 
     // Exchange for long-lived token
     const longLivedUrl = new URL("https://graph.instagram.com/access_token");
@@ -67,7 +78,7 @@ export async function GET(req: NextRequest) {
     const expiresAt = new Date(Date.now() + expiresIn * 1000);
 
     // Save to MongoDB
-    await InstagramAccount.findOneAndUpdate(
+    const InstaAcc = await InstagramAccount.findOneAndUpdate(
       { userId },
       {
         accessToken: longLivedData.access_token,
@@ -76,12 +87,12 @@ export async function GET(req: NextRequest) {
       },
       { upsert: true, new: true }
     );
-
-    return NextResponse.redirect("https://ainspiretech.com/insta/pricing");
+    return NextResponse.json({ account: InstaAcc, status: 200 });
   } catch (error: any) {
     console.error("Instagram callback error:", error);
-    return NextResponse.redirect(
-      `https://ainspiretech.com?error=${encodeURIComponent(error.message)}`
+    return NextResponse.json(
+      { error: "Failed to save account" },
+      { status: 500 }
     );
   }
 }

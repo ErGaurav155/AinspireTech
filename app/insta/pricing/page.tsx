@@ -6,7 +6,7 @@ import { Check, Zap, X, Loader2, BadgeCheck } from "lucide-react";
 import PaymentModal from "@/components/insta/PaymentModal";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { getUserById } from "@/lib/action/user.actions";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PricingPlan } from "@/types/types";
 import {
   getInstaSubscriptionInfo,
@@ -23,6 +23,8 @@ import { getInstaAccount } from "@/lib/action/insta.action";
 export default function Pricing() {
   const { userId } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeProductId = searchParams.get("code");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
     "monthly"
   );
@@ -61,6 +63,25 @@ export default function Pricing() {
         const account = await getInstaAccount(userId);
         if (!account) {
           setIsInstaAccount(false);
+          if (activeProductId) {
+            const response = await fetch(
+              `/api/insta/callback?code=${activeProductId}&userId=${userId}`,
+              {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            const data = await response.json();
+
+            if (response.ok) {
+              setIsInstaAccount(true);
+              // Handle successful connection
+            } else {
+              throw new Error(data.error || "Failed to connect account");
+            }
+          }
         } else {
           setIsInstaAccount(true);
         }
@@ -83,7 +104,7 @@ export default function Pricing() {
     };
 
     fetchUserData();
-  }, [userId, router]);
+  }, [userId, router, activeProductId]);
 
   const handleSubscribe = async (
     plan: PricingPlan,
