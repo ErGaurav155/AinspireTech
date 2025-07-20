@@ -49,8 +49,11 @@ export async function GET(req: NextRequest) {
     );
     console.log("Token response :", tokenRes);
     const tokenData = await tokenRes.json();
+    console.log("Token response in json :", tokenData);
 
     if (!tokenData.data || !tokenData.data[0].access_token) {
+      console.log("Token in data :", tokenData.data);
+
       throw new Error("Failed to obtain access token");
     }
 
