@@ -91,10 +91,18 @@ export default function Pricing() {
         }
 
         // Fetch subscription info
-        const subscriptionInfo = await getInstaSubscriptionInfo(userId);
-        if (subscriptionInfo.length > 0) {
+
+        const response = await fetch(`/api/insta/subscription/list`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await response.json();
+
+        if (response.ok) {
           setIsSubscribed(true);
-          setCurrentSubscription(subscriptionInfo[0]);
+          setCurrentSubscription(data[0]);
         } else {
           setIsSubscribed(false);
           setCurrentSubscription(null);
