@@ -63,7 +63,7 @@ export default function Pricing() {
         setBuyerId(buyer._id);
         setIslogged(true);
         const account = await getInstaAccount(userId);
-        if (!account) {
+        if (!account?.success || account.account === "No account found") {
           setIsInstaAccount(false);
           if (activeProductId) {
             setIsGettingAcc(true);

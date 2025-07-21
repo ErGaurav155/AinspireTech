@@ -190,11 +190,23 @@ export async function getInstaAccount(userId: string) {
     const response = await InstagramAccount.findOne({ userId: userId });
 
     if (!response) {
-      throw new Error("No matching subscription found.");
+      // throw new Error("No matching subscription found.");
+      return {
+        success: false,
+        account: "No account found",
+      };
     }
 
-    return JSON.parse(JSON.stringify(response));
-  } catch (error) {
-    console.error("Error seeding subscriptions:", error);
+    return JSON.parse(
+      JSON.stringify({
+        success: true,
+        account: response,
+      })
+    );
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || "Account conversion failed",
+    };
   }
 }
