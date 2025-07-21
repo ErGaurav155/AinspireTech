@@ -99,13 +99,16 @@ export default function Pricing() {
           },
         });
         const data = await response.json();
-
         if (response.ok) {
-          setIsSubscribed(true);
-          setCurrentSubscription(data[0]);
+          if (data.length > 0) {
+            setIsSubscribed(true);
+            setCurrentSubscription(data[0]);
+          } else {
+            setIsSubscribed(false);
+            setCurrentSubscription(null);
+          }
         } else {
-          setIsSubscribed(false);
-          setCurrentSubscription(null);
+          throw new Error(data.error || "Failed to fetch subscription data");
         }
       } catch (error) {
         console.error("Error fetching user info:", error);
