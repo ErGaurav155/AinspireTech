@@ -13,6 +13,7 @@ export default authMiddleware({
     "/web/product/:path*",
     "/new/product",
     "/api/webhooks/clerk",
+    "/api/webhooks/instagram",
     "/api/embed/chatbot",
     "/api/embed/mcqchatbot",
     "/api/embed/conversation",
