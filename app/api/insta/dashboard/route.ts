@@ -10,7 +10,37 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
+    //  const timeRange = searchParams.get("timeRange") || "7d";
 
+    //     // Calculate date range
+    //     const endDate = new Date();
+    //     const startDate = new Date();
+
+    //     switch (timeRange) {
+    //       case "24h":
+    //         startDate.setDate(startDate.getDate() - 1);
+    //         break;
+    //       case "7d":
+    //         startDate.setDate(startDate.getDate() - 7);
+    //         break;
+    //       case "30d":
+    //         startDate.setDate(startDate.getDate() - 30);
+    //         break;
+    //       case "90d":
+    //         startDate.setDate(startDate.getDate() - 90);
+    //         break;
+    //       default:
+    //         startDate.setDate(startDate.getDate() - 7);
+    //     }
+
+    //     // Build query filter
+    //     const filter: any = {
+    //       createdAt: { $gte: startDate, $lte: endDate },
+    //     };
+
+    //     if (accountId && accountId !== "all") {
+    //       filter.accountId = accountId;
+    //     }
     if (!userId) {
       return NextResponse.json(
         { error: "User ID is required" },
