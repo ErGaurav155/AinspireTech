@@ -1,4 +1,3 @@
-import { getInstagramProfileAction as getInstagramProfile } from "@/lib/action/instaApi.action";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
@@ -25,16 +24,9 @@ export async function GET(
 
     // Mock Instagram API data (replace with real API calls)
 
-    const profile = await getInstagramProfile("mock_token");
-
     const accountData = {
       ...account.toObject(),
       templatesCount,
-      followersCount: profile.followers_count,
-      postsCount: profile.media_count,
-      profilePicture: profile.profile_picture_url,
-      engagementRate: Math.random() * 5 + 2, // Mock engagement rate
-      avgResponseTime: Math.random() * 3 + 1, // Mock response time
     };
 
     return NextResponse.json(accountData);

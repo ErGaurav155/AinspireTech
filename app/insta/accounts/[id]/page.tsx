@@ -183,7 +183,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [account, setAccount] = useState<InstagramAccount>(dummyAccountData);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [isStale, setIsStale] = useState(false);
   const { userId } = useAuth();
   const [newTemplate, setNewTemplate] = useState({
@@ -479,30 +478,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       accountUsername: "fashionista_jane",
     });
     setIsCreateDialogOpen(false);
-  };
-  const handleSyncAccount = async () => {
-    setIsSyncing(true);
-
-    try {
-      const response = await fetch(`/api/insta/accounts/${account.id}/sync`, {
-        method: "POST",
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAccount({
-          ...account,
-          ...data.account,
-          lastSync: new Date().toISOString(),
-        });
-      } else {
-        console.error("Failed to sync account");
-      }
-    } catch (error) {
-      console.error("Error syncing account:", error);
-    } finally {
-      setIsSyncing(false);
-    }
   };
 
   const formatLastActivity = (dateString: string) => {
