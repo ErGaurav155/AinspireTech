@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IAnalytics extends Document {
-  accountId: mongoose.Types.ObjectId;
+  accountId: string;
   date: Date;
   totalReplies: number;
   successfulReplies: number;
@@ -9,7 +9,7 @@ export interface IAnalytics extends Document {
   avgResponseTime: number;
   engagementRate: number;
   topTemplates: Array<{
-    templateId: mongoose.Types.ObjectId;
+    templateId: string;
     usageCount: number;
   }>;
   commentsProcessed: number;
@@ -21,8 +21,7 @@ export interface IAnalytics extends Document {
 const AnalyticsSchema = new Schema<IAnalytics>(
   {
     accountId: {
-      type: Schema.Types.ObjectId,
-      ref: "InstagramAccount",
+      type: String,
       required: true,
       index: true,
     },
@@ -54,8 +53,7 @@ const AnalyticsSchema = new Schema<IAnalytics>(
     topTemplates: [
       {
         templateId: {
-          type: Schema.Types.ObjectId,
-          ref: "ReplyTemplate",
+          type: String,
         },
         usageCount: {
           type: Number,

@@ -267,7 +267,7 @@ export default function Pricing() {
                   </p>
                   <p className="text-sm text-gray-500 mt-1">Status: Active</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
                     onClick={handleCancelSubscription}

@@ -218,3 +218,69 @@ export async function refreshInstagramToken(userId: string) {
 
   return updatedToken;
 }
+// lib/cacheUtils.ts
+const ACCOUNTS_CACHE_KEY = "instagramAccounts";
+
+export interface InstagramAccount {
+  id: string;
+  accountId: string;
+  username: string;
+  displayName: string;
+  profilePicture: string;
+  followersCount: number;
+  postsCount: number;
+  isActive: boolean;
+  templatesCount: number;
+  repliesCount: number;
+  lastActivity: string;
+  engagementRate: number;
+  avgResponseTime: string;
+  accessToken: string;
+}
+
+// Get all cached accounts
+export function getCachedAccounts(): InstagramAccount[] | null {
+  try {
+    const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
+    if (!cachedData) return null;
+
+    const { data } = JSON.parse(cachedData);
+    return data;
+  } catch (error) {
+    console.error("Error reading account cache:", error);
+    return null;
+  }
+}
+
+// Get specific account by ID
+export function getCachedAccountById(
+  accountId: string
+): InstagramAccount | null {
+  try {
+    const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
+    if (!cachedData) return null;
+
+    const { data } = JSON.parse(cachedData);
+    return (
+      data.find((account: InstagramAccount) => account.id === accountId) || null
+    );
+  } catch (error) {
+    console.error("Error reading account cache:", error);
+    return null;
+  }
+}
+
+// Check if cache is valid
+export function isCacheValid(): boolean {
+  try {
+    const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
+    if (!cachedData) return false;
+
+    const { timestamp } = JSON.parse(cachedData);
+    const cacheDuration = 15 * 60 * 1000; // 15 minutes
+    return Date.now() - timestamp < cacheDuration;
+  } catch (error) {
+    console.error("Error checking cache validity:", error);
+    return false;
+  }
+}

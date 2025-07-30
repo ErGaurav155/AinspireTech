@@ -17,6 +17,11 @@ module.exports = {
         hostname: "images.pexels.com",
         port: "",
       },
+      {
+        protocol: "https",
+        hostname: "scontent.cdninstagram.com",
+        port: "",
+      },
     ],
   },
 };

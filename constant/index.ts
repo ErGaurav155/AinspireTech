@@ -745,36 +745,3 @@ function getFutureDate(days: number): Date {
   date.setDate(date.getDate() + days);
   return date;
 }
-
-export const dummySubscriptions = [
-  {
-    clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
-    chatbotType: "chatbot-customer-support",
-    subscriptionId: "zSNO5jX4zsrdIay5jX4zC7ZA",
-    plan: "Premium Support",
-    billingCycle: "monthly",
-    status: "active",
-    expiresAt: getFutureDate(30), // 1 month from now
-  },
-  {
-    clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
-    chatbotType: "chatbot-e-commerce",
-    subscriptionId: "zSNO5jX4zsrdIaysrdIayC7ZA",
-
-    plan: "Business Plus",
-    billingCycle: "yearly",
-    status: "active",
-    expiresAt: getFutureDate(365), // 1 year from now
-  },
-  {
-    clerkId: "user_2zSNO5jX4zsrdIayC7ZAop9ktLr",
-    chatbotType: "chatbot-lead-generation",
-    subscriptionId: "zSNO5jX4zsrdIayzSNO5C7ZA",
-
-    plan: "Starter",
-    billingCycle: "monthly",
-    status: "cancelled",
-    expiresAt: getFutureDate(15),
-    cancelledAt: new Date(),
-  },
-];

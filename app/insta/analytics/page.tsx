@@ -31,144 +31,273 @@ import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { AnalyticsDashboard } from "@/components/insta/Analytics-dashboard";
+import { useAuth } from "@clerk/nextjs";
 
 // Dummy analytics data fallback
-const dummyAnalyticsData = {
-  overview: {
-    totalReplies: 1247,
-    successRate: 94.2,
-    avgResponseTime: 2.3,
-    engagementIncrease: 23.5,
-  },
-  accountPerformance: [
-    {
-      id: "1",
-      username: "fashionista_jane",
-      profilePicture:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
-      replies: 456,
-      successRate: 96.1,
-      engagementRate: 4.2,
-      avgResponseTime: 1.8,
-      topTemplate: "Welcome Message",
-    },
-    {
-      id: "2",
-      username: "tech_guru_mike",
-      profilePicture:
-        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
-      replies: 234,
-      successRate: 91.3,
-      engagementRate: 3.8,
-      avgResponseTime: 2.1,
-      topTemplate: "Product Inquiry",
-    },
-    {
-      id: "3",
-      username: "food_lover_sarah",
-      profilePicture:
-        "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
-      replies: 557,
-      successRate: 95.8,
-      engagementRate: 5.1,
-      avgResponseTime: 1.2,
-      topTemplate: "Recipe Request",
-    },
-  ],
-  templatePerformance: [
-    {
-      name: "Welcome Message",
-      usage: 234,
-      successRate: 97.2,
-      avgEngagement: 4.5,
-      triggers: ["hello", "hi", "new follower"],
-    },
-    {
-      name: "Product Inquiry",
-      usage: 189,
-      successRate: 93.1,
-      avgEngagement: 3.8,
-      triggers: ["price", "cost", "buy"],
-    },
-    {
-      name: "Recipe Request",
-      usage: 156,
-      successRate: 95.5,
-      avgEngagement: 4.2,
-      triggers: ["recipe", "ingredients", "how to make"],
-    },
-    {
-      name: "Compliment Response",
-      usage: 123,
-      successRate: 98.4,
-      avgEngagement: 5.1,
-      triggers: ["love", "beautiful", "amazing"],
-    },
-  ],
-  recentActivity: [
-    {
-      id: "1",
-      type: "reply_sent",
-      account: "fashionista_jane",
-      template: "Welcome Message",
-      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-      success: true,
-    },
-    {
-      id: "2",
-      type: "reply_sent",
-      account: "food_lover_sarah",
-      template: "Recipe Request",
-      timestamp: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
-      success: true,
-    },
-    {
-      id: "3",
-      type: "reply_failed",
-      account: "tech_guru_mike",
-      template: "Product Inquiry",
-      timestamp: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
-      success: false,
-    },
-    {
-      id: "4",
-      type: "reply_sent",
-      account: "fashionista_jane",
-      template: "Compliment Response",
-      timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-      success: true,
-    },
-  ],
-};
+// const dummyAnalyticsData = {
+//   overview: {
+//     totalReplies: 1247,
+//     successRate: 94.2,
+//     avgResponseTime: 2.3,
+//     engagementIncrease: 23.5,
+//   },
+//   accountPerformance: [
+//     {
+//       id: "1",
+//       username: "fashionista_jane",
+//       profilePicture:
+//         "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
+//       replies: 456,
+//       successRate: 96.1,
+//       engagementRate: 4.2,
+//       avgResponseTime: 1.8,
+//       topTemplate: "Welcome Message",
+//     },
+//     {
+//       id: "2",
+//       username: "tech_guru_mike",
+//       profilePicture:
+//         "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
+//       replies: 234,
+//       successRate: 91.3,
+//       engagementRate: 3.8,
+//       avgResponseTime: 2.1,
+//       topTemplate: "Product Inquiry",
+//     },
+//     {
+//       id: "3",
+//       username: "food_lover_sarah",
+//       profilePicture:
+//         "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
+//       replies: 557,
+//       successRate: 95.8,
+//       engagementRate: 5.1,
+//       avgResponseTime: 1.2,
+//       topTemplate: "Recipe Request",
+//     },
+//   ],
+
+//   recentActivity: [
+//     {
+//       id: "1",
+//       type: "reply_sent",
+//       account: "fashionista_jane",
+//       template: "Welcome Message",
+//       timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+//       success: true,
+//     },
+//     {
+//       id: "2",
+//       type: "reply_sent",
+//       account: "food_lover_sarah",
+//       template: "Recipe Request",
+//       timestamp: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
+//       success: true,
+//     },
+//     {
+//       id: "3",
+//       type: "reply_failed",
+//       account: "tech_guru_mike",
+//       template: "Product Inquiry",
+//       timestamp: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
+//       success: false,
+//     },
+//     {
+//       id: "4",
+//       type: "reply_sent",
+//       account: "fashionista_jane",
+//       template: "Compliment Response",
+//       timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+//       success: true,
+//     },
+//   ],
+// };
+const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
 export default function AnalyticsPage() {
+  const { userId } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+
   const [timeRange, setTimeRange] = useState("7d");
+  const [analyticsData, setAnalyticsData] = useState<any>();
+
   const [selectedAccount, setSelectedAccount] = useState("all");
-  const [analyticsData, setAnalyticsData] = useState(dummyAnalyticsData);
   const [isLoading, setIsLoading] = useState(true);
+  // const fetchAnalyticsData = useCallback(async () => {
+  //   try {
+  //     const params = new URLSearchParams({
+  //       timeRange,
+  //       accountId: selectedAccount,
+  //     });
+
+  //     const response = await fetch(`/api/insta/analytics?${params}`);
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setAnalyticsData(data);
+  //     } else {
+  //       console.log("API not available, using dummy data");
+  //       setAnalyticsData(dummyAnalyticsData);
+  //     }
+  //   } catch (error) {
+  //     console.log("API error, using dummy data:", error);
+  //     setAnalyticsData(dummyAnalyticsData);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }, [selectedAccount, timeRange]);
+
+  const fetchAccounts = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      // Check cache first
+      const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
+      const cacheDuration = 15 * 60 * 1000; // 15 minutes
+
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData);
+        if (Date.now() - timestamp < cacheDuration) {
+          setIsLoading(false);
+          const stats = {
+            totalAccounts: data.length,
+            activeAccounts: data.filter((account: any) => account?.isActive)
+              .length,
+            totalTemplates: data.reduce(
+              (sum: number, account: any) =>
+                sum + (account?.templatesCount || 0),
+              0
+            ),
+            totalReplies: data.reduce(
+              (sum: number, account: any) => sum + (account?.repliesCount || 0),
+              0
+            ),
+            engagementRate: 87, // Mock data
+            successRate: 94, // Mock data
+            avgResponseTime: 2.3,
+            accounts: data,
+            recentActivity: [], // No recent activity in cache
+          };
+          setAnalyticsData(stats);
+          return stats;
+        }
+      }
+
+      // Fetch from API
+      const accountsResponse = await fetch(
+        `/api/insta/dashboard?userId=${userId}`
+      );
+      if (!accountsResponse.ok) throw new Error("Failed to fetch accounts");
+
+      const { accounts: dbAccounts } = await accountsResponse.json();
+      if (!dbAccounts?.length) {
+        return null;
+      }
+
+      // Fetch Instagram data for each account
+      const completeAccounts = await Promise.all(
+        dbAccounts.map(async (dbAccount: any) => {
+          try {
+            const instaResponse = await fetch(
+              `/api/insta/user-info?accessToken=${dbAccount.accessToken}&fields=username,user_id,followers_count,media_count,profile_picture_url`
+            );
+
+            if (!instaResponse.ok) throw new Error("Instagram API failed");
+
+            const instaData = await instaResponse.json();
+
+            return {
+              id: dbAccount._id,
+              accountId: dbAccount.instagramId,
+              username: instaData.username || dbAccount.username,
+              displayName:
+                dbAccount.displayName || instaData.username || "No Name",
+              profilePicture:
+                dbAccount.profilePicture ||
+                instaData.profile_picture_url ||
+                "/public/assets/img/default-img.jpg",
+              followersCount:
+                instaData.followers_count || dbAccount.followersCount || 0,
+              postsCount: instaData.media_count || dbAccount.postsCount || 0,
+              isActive: dbAccount.isActive || false,
+              templatesCount: dbAccount.templatesCount || 0,
+              repliesCount: dbAccount.repliesCount || 0,
+              lastActivity: dbAccount.lastActivity || new Date().toISOString(),
+              engagementRate: dbAccount.engagementRate || 0,
+              avgResponseTime: dbAccount.avgResponseTime || "0s",
+              accessToken: dbAccount.accessToken,
+            };
+          } catch (instaError) {
+            console.error(
+              `Failed to fetch Instagram data for account ${dbAccount._id}:`,
+              instaError
+            );
+            return null;
+          }
+        })
+      );
+      const validAccounts = completeAccounts.filter(Boolean);
+
+      const stats = {
+        totalAccounts: validAccounts.length,
+        activeAccounts: validAccounts.filter((account) => account?.isActive)
+          .length,
+        totalTemplates: validAccounts.reduce(
+          (sum, account) => sum + (account?.templatesCount || 0),
+          0
+        ),
+        totalReplies: validAccounts.reduce(
+          (sum, account) => sum + (account?.repliesCount || 0),
+          0
+        ),
+        engagementRate: 87, // Mock data
+        successRate: 94, // Mock data
+        avgResponseTime: 2.3,
+
+        accounts: validAccounts,
+      };
+
+      localStorage.setItem(
+        ACCOUNTS_CACHE_KEY,
+        JSON.stringify({
+          data: validAccounts,
+          timestamp: Date.now(),
+        })
+      );
+      return stats;
+    } catch (error) {
+      console.error("Failed to fetch accounts:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to load accounts"
+      );
+    }
+  }, [userId]);
+
   const fetchAnalyticsData = useCallback(async () => {
     try {
-      const params = new URLSearchParams({
-        timeRange,
-        accountId: selectedAccount,
-      });
-
-      const response = await fetch(`/api/insta/analytics?${params}`);
+      const accountsData = await fetchAccounts();
+      const response = await fetch(`/api/insta/replylogs?userId=${userId}`);
+      let recentActivity;
       if (response.ok) {
-        const data = await response.json();
-        setAnalyticsData(data);
+        recentActivity = await response.json();
       } else {
-        console.log("API not available, using dummy data");
-        setAnalyticsData(dummyAnalyticsData);
+        console.error(
+          "Using dummy data for recent activity - API not available"
+        );
       }
+
+      const updatedData = {
+        ...accountsData,
+        recentActivity: recentActivity?.replyLogs,
+      };
+      await setAnalyticsData(updatedData);
     } catch (error) {
-      console.log("API error, using dummy data:", error);
-      setAnalyticsData(dummyAnalyticsData);
+      console.error("Using dummy data - API error:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedAccount, timeRange]);
-
+  }, [userId, fetchAccounts]);
   useEffect(() => {
     fetchAnalyticsData();
   }, [timeRange, selectedAccount, fetchAnalyticsData]);
@@ -236,13 +365,11 @@ export default function AnalyticsPage() {
               </SelectTrigger>
               <SelectContent className="card-hover group">
                 <SelectItem value="all">All Accounts</SelectItem>
-                <SelectItem value="fashionista_jane">
-                  @fashionista_jane
-                </SelectItem>
-                <SelectItem value="tech_guru_mike">@tech_guru_mike</SelectItem>
-                <SelectItem value="food_lover_sarah">
-                  @food_lover_sarah
-                </SelectItem>
+                {analyticsData.accounts.map((account: any) => (
+                  <SelectItem key={account.accountId} value={account.username}>
+                    {account.username}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -258,8 +385,8 @@ export default function AnalyticsPage() {
               <MessageSquare className="h-4 w-4 text-[#00F0FF]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
-                {analyticsData.overview.totalReplies.toLocaleString()}
+              <div className="text-2xl font-bold text-[#B026FF]">
+                {analyticsData.totalReplies.toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
@@ -276,8 +403,8 @@ export default function AnalyticsPage() {
               <Target className="h-4 w-4 text-[#B026FF]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
-                {analyticsData.overview.successRate}%
+              <div className="text-2xl font-bold text-[#FF2E9F]">
+                {analyticsData.successRate}%
               </div>
               <p className="text-xs text-muted-foreground flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
@@ -294,8 +421,8 @@ export default function AnalyticsPage() {
               <Clock className="h-4 w-4 text-[#FF2E9F]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
-                {analyticsData.overview.avgResponseTime}s
+              <div className="text-2xl font-bold text-[#10B981]">
+                {analyticsData.avgResponseTime}s
               </div>
               <p className="text-xs text-gray-400 flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
@@ -312,8 +439,8 @@ export default function AnalyticsPage() {
               <BarChart3 className="h-4 w-4 text-[#00F0FF]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
-                +{analyticsData.overview.engagementIncrease}%
+              <div className="text-2xl font-bold text-[#00F0FF]">
+                +{analyticsData.engagementRate}%
               </div>
               <p className="text-xs text-gray-400">
                 Since auto-replies enabled
@@ -334,7 +461,7 @@ export default function AnalyticsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 w-full  p-2">
-              {analyticsData.accountPerformance.map((account) => (
+              {analyticsData.accounts.map((account: any) => (
                 <div
                   key={account.id}
                   className="flex flex-col w-full items-center justify-between p-4 gap-3 border rounded-lg"
@@ -352,8 +479,7 @@ export default function AnalyticsPage() {
                         @{account.username}
                       </h4>
                       <p className="text-sm text-muted-foreground">
-                        {account.replies} replies • {account.successRate}%
-                        success
+                        {account.repliesCount} replies
                       </p>
                     </div>
                   </div>
@@ -373,123 +499,60 @@ export default function AnalyticsPage() {
           <Card className="card-hover group">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
-                <MessageSquare className="h-5 w-5 text-[#B026FF]" />
-                Template Performance
+                <Clock className="h-5 w-5 text-[#FF2E9F]" />
+                Recent Activity
               </CardTitle>
               <CardDescription className="text-gray-400 font-mono">
-                See which templates are performing best
+                Latest auto-reply activities across all accounts
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 p-2">
-              {analyticsData.templatePerformance.map((template, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold text-white">
-                      {template.name}
-                    </h4>
-                    <Badge
-                      variant="outline"
-                      className="border-white/20 text-gray-300"
-                    >
-                      {template.usage} uses
-                    </Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">Success Rate</span>
-                      <span className="text-gray-400">
-                        {template.successRate}%
-                      </span>
+            <CardContent className="p-2">
+              <div className="space-y-4">
+                {analyticsData.recentActivity.map((activity: any) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className={`h-2 w-2 rounded-full ${"bg-[#00F0FF]"}`}
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-white">
+                          {activity.type === "reply_sent"
+                            ? "Reply sent"
+                            : "Reply failed"}
+                          <span className="text-gray-400">
+                            {" "}
+                            to @{activity.account}
+                          </span>
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          Template: {activity.template}
+                        </p>
+                      </div>
                     </div>
-                    <Progress
-                      value={template.successRate}
-                      className="h-2 bg-white/10"
-                    />
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {template.triggers.slice(0, 3).map((trigger, i) => (
+                    <div className="text-right">
                       <Badge
-                        key={i}
-                        variant="secondary"
-                        className="text-xs bg-white/10 text-gray-300"
+                        variant={"default"}
+                        className={
+                          "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
+                        }
                       >
-                        {trigger}
+                        Success
                       </Badge>
-                    ))}
-                    {template.triggers.length > 3 && (
-                      <Badge
-                        variant="secondary"
-                        className="text-xs text-gray-300"
-                      >
-                        +{template.triggers.length - 3} more
-                      </Badge>
-                    )}
+                      <p className="text-xs text-gray-400 mt-1">
+                        {formatTimestamp(activity.timestamp)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
         <AnalyticsDashboard />
         {/* Recent Activity */}
-        <Card className="card-hover group">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Clock className="h-5 w-5 text-[#FF2E9F]" />
-              Recent Activity
-            </CardTitle>
-            <CardDescription className="text-gray-400 font-mono">
-              Latest auto-reply activities across all accounts
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-2">
-            <div className="space-y-4">
-              {analyticsData.recentActivity.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className={`h-2 w-2 rounded-full ${
-                        activity.success ? "bg-[#00F0FF]" : "bg-[#FF2E9F]"
-                      }`}
-                    />
-                    <div>
-                      <p className="text-sm font-medium text-white">
-                        {activity.type === "reply_sent"
-                          ? "Reply sent"
-                          : "Reply failed"}
-                        <span className="text-gray-400">
-                          {" "}
-                          to @{activity.account}
-                        </span>
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        Template: {activity.template}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge
-                      variant={activity.success ? "default" : "destructive"}
-                      className={
-                        activity.success
-                          ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
-                          : "bg-[#FF2E9F]/20 text-[#FF2E9F] border-[#FF2E9F]/30"
-                      }
-                    >
-                      {activity.success ? "Success" : "Failed"}
-                    </Badge>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {formatTimestamp(activity.timestamp)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

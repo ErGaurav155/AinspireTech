@@ -1,35 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+import { getInstagramUser } from "@/lib/action/insta.action";
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const accessToken = searchParams.get("accessToken");
+// For use in API routes
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const accessToken = searchParams.get("accessToken");
+  const fields = searchParams.get("fields")?.split(",") || [
+    "user_id",
+    "username",
+  ];
 
-    if (!accessToken) {
-      return NextResponse.json(
-        { error: "Access token is required" },
-        { status: 400 }
-      );
-    }
-
-    // Get Facebook user info
-    const userResponse = await fetch(
-      `https://graph.facebook.com/v18.0/me?access_token=${accessToken}`
+  if (!accessToken) {
+    return Response.json(
+      { error: "Access token is required" },
+      { status: 400 }
     );
-    const userData = await userResponse.json();
+  }
+  if (fields.length === 0) {
+    return Response.json(
+      { error: "Fields array cannot be empty" },
+      { status: 400 }
+    );
+  }
 
-    if (!userResponse.ok) {
-      return NextResponse.json(
-        { error: userData.error || "Failed to fetch user info" },
-        { status: userResponse.status }
-      );
-    }
-
-    return NextResponse.json({ user: userData });
+  try {
+    const user = await getInstagramUser(accessToken, fields);
+    return Response.json(user);
   } catch (error) {
-    console.error("Error fetching user info:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch user info" },
+    return Response.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch Instagram user",
+      },
       { status: 500 }
     );
   }

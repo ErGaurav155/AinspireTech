@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ArrowLeft,
   Settings,
@@ -27,6 +27,31 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  getCachedAccountById,
+  isCacheValid,
+  InstagramAccount,
+} from "@/lib/utils";
+
 import {
   Card,
   CardContent,
@@ -47,10 +72,12 @@ import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@clerk/nextjs";
 
 // Mock data
 const dummyAccountData = {
   id: "1",
+  accountId: "dummy_account_1",
   username: "fashionista_jane",
   displayName: "Jane Fashion",
   profilePicture:
@@ -64,38 +91,85 @@ const dummyAccountData = {
   engagementRate: 4.2,
   avgResponseTime: "2.3s",
   lastSync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  accessToken: "dummy_access_token",
 };
+
 const mockTemplates = [
   {
-    id: "1",
+    userId: "1",
+    accountId: "1",
     name: "Welcome Message",
     content: "Thanks for following! 🌟 Check out our latest collection in bio!",
-    triggers: ["follow", "new", "hello"],
+    triggers: ["follow", "new", "hello", "hi"],
     isActive: true,
     priority: 1,
-    usageCount: 45,
+    usageCount: 234,
+    // successRate: 97.2,
     lastUsed: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    accountUsername: "fashionista_jane",
+    category: "greeting",
   },
   {
-    id: "2",
+    userId: "2",
+    accountId: "2",
+
     name: "Product Inquiry",
     content:
       "Hi! 👋 For product details and pricing, please DM us or visit our website!",
-    triggers: ["price", "cost", "buy", "purchase"],
+    triggers: ["price", "cost", "buy", "purchase", "shop"],
     isActive: true,
     priority: 2,
-    usageCount: 78,
+    usageCount: 189,
+    // successRate: 93.1,
     lastUsed: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+    accountUsername: "fashionista_jane",
+    category: "sales",
   },
   {
-    id: "3",
+    userId: "3",
+    accountId: "3",
+
+    name: "Recipe Request",
+    content:
+      "Love that you're interested! 👩‍🍳 Full recipe is in my highlights or DM me!",
+    triggers: ["recipe", "ingredients", "how to make", "tutorial"],
+    isActive: true,
+    priority: 1,
+    usageCount: 156,
+    // successRate: 95.5,
+    lastUsed: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    accountUsername: "food_lover_sarah",
+    category: "content",
+  },
+  {
+    userId: "4",
+    accountId: "4",
     name: "Compliment Response",
     content: "Thank you so much! 💕 Your support means everything to us!",
-    triggers: ["love", "beautiful", "amazing", "gorgeous"],
+    triggers: ["love", "beautiful", "amazing", "gorgeous", "stunning"],
     isActive: false,
     priority: 3,
-    usageCount: 23,
+    usageCount: 123,
+    // successRate: 98.4,
     lastUsed: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    accountUsername: "fashionista_jane",
+    category: "engagement",
+  },
+  {
+    userId: "5",
+    accountId: "5",
+
+    name: "Tech Support",
+    content:
+      "Thanks for reaching out! 🔧 For technical questions, please check our FAQ or contact support.",
+    triggers: ["help", "problem", "issue", "bug", "error"],
+    isActive: true,
+    priority: 1,
+    usageCount: 67,
+    // successRate: 91.3,
+    lastUsed: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+    accountUsername: "tech_guru_mike",
+    category: "support",
   },
 ];
 
@@ -105,20 +179,84 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
-  const [account, setAccount] = useState(dummyAccountData);
+
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [account, setAccount] = useState<InstagramAccount>(dummyAccountData);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isStale, setIsStale] = useState(false);
+  const { userId } = useAuth();
+  const [newTemplate, setNewTemplate] = useState({
+    name: "",
+    content: "",
+    triggers: "",
+    priority: 1,
+    category: "greeting",
+    accountUsername: "fashionista_jane",
+  });
+  const handleToggleTemplate = async (templateId: string) => {
+    const template = templates.find((t) => t.accountId === templateId);
+    if (!template) return;
 
-  const handleDeleteTemplate = (templateId: string) => {
-    setTemplates(templates.filter((t) => t.id !== templateId));
-  };
+    const newActiveState = !template.isActive;
 
-  const handleToggleTemplate = (templateId: string) => {
+    // Optimistically update UI
     setTemplates(
       templates.map((t) =>
-        t.id === templateId ? { ...t, isActive: !t.isActive } : t
+        t.accountId === templateId ? { ...t, isActive: newActiveState } : t
       )
     );
+    try {
+      const response = await fetch(`/api/insta/templates/${templateId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...template,
+          isActive: newActiveState,
+        }),
+      });
+
+      if (!response.ok) {
+        // Revert on error
+        setTemplates(
+          templates.map((t) =>
+            t.accountId === templateId ? { ...t, isActive: !newActiveState } : t
+          )
+        );
+        console.error("Failed to update template status");
+      }
+    } catch (error) {
+      // Revert on error
+      setTemplates(
+        templates.map((t) =>
+          t.accountId === templateId ? { ...t, isActive: !newActiveState } : t
+        )
+      );
+      console.error("Error updating template:", error);
+    }
+  };
+  const handleDeleteTemplate = async (templateId: string) => {
+    try {
+      const response = await fetch(`/api/insta/templates/${templateId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setTemplates(
+          templates.filter((template) => template.accountId !== templateId)
+        );
+      } else {
+        console.error("Failed to delete template");
+      }
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      // For demo purposes, still remove from UI
+      setTemplates(
+        templates.filter((template) => template.accountId !== templateId)
+      );
+    }
   };
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
@@ -150,27 +288,131 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       setShowDeleteDialog(false);
     }
   };
+  const fetchTemplates = useCallback(
+    async (accountId: string) => {
+      try {
+        // For now, we'll use a mock account ID since we don't have account selection
+        const response = await fetch(
+          `/api/insta/templates?userId=${userId}&accountId=${accountId}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (data.length >= 0) {
+            setTemplates(
+              data.map((template: any) => ({
+                ...template,
+                lastUsed: template.lastUsed
+                  ? new Date(template.lastUsed).toISOString()
+                  : new Date().toISOString(),
+                successRate: template.successRate || 0,
+              }))
+            );
+          } else {
+            setTemplates(mockTemplates);
+          }
+        } else {
+          setTemplates(mockTemplates);
+        }
+      } catch (error) {
+        setTemplates(mockTemplates);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [userId]
+  );
   useEffect(() => {
-    if (params.id) {
-      fetchAccountData(params.id as string);
-    }
-  }, [params.id]);
+    const loadData = async () => {
+      if (!params.id || !userId) {
+        router.push("/sign-in");
+        return;
+      }
 
+      const cachedAccount = getCachedAccountById(params.id);
+
+      if (cachedAccount) {
+        setAccount(cachedAccount);
+        setIsStale(!isCacheValid());
+        await fetchTemplates(cachedAccount.accountId);
+      } else {
+        await fetchAccountData(params.id as string);
+        setIsStale(true);
+        await fetchTemplates(account.accountId);
+      }
+
+      setIsLoading(false);
+    };
+
+    loadData(); // Execute the async function
+  }, [params.id, router, userId, fetchTemplates, account.accountId]); // Removed account.accountId (causes infinite loops)
   const fetchAccountData = async (accountId: string) => {
     try {
-      const response = await fetch(`/api/insta/accounts/${accountId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setAccount(data);
-      } else if (response.status === 404) {
-        console.log("Account not found, using dummy data");
+      const accountResponse = await fetch(`/api/insta/accounts/${accountId}`);
+      // { accountData: dbAccount }
+      if (accountResponse.ok) {
+        const data = await accountResponse.json();
+        const dbAccount = data.accountData;
+        // Fetch Instagram data for each account
+
+        try {
+          const instaResponse = await fetch(
+            `/api/insta/user-info?accessToken=${dbAccount.accessToken}&fields=username,user_id,followers_count,media_count,profile_picture_url`
+          );
+
+          if (!instaResponse.ok) throw new Error("Instagram API failed");
+
+          const instaData = await instaResponse.json();
+
+          setAccount({
+            id: dbAccount._id,
+            accountId: dbAccount.instagramId,
+            username: instaData.username || dbAccount.username,
+            displayName:
+              dbAccount.displayName || instaData.username || "No Name",
+            profilePicture:
+              dbAccount.profilePicture ||
+              instaData.profile_picture_url ||
+              "/public/assets/img/default-img.jpg",
+            followersCount:
+              instaData.followers_count || dbAccount.followersCount || 0,
+            postsCount: instaData.media_count || dbAccount.postsCount || 0,
+            isActive: dbAccount.isActive || false,
+            templatesCount: dbAccount.templatesCount || 0,
+            repliesCount: dbAccount.repliesCount || 0,
+            lastActivity: dbAccount.lastActivity || new Date().toISOString(),
+            engagementRate: dbAccount.engagementRate || 0,
+            avgResponseTime: dbAccount.avgResponseTime || "0s",
+            accessToken: dbAccount.accessToken,
+          });
+        } catch (instaError) {
+          console.error(
+            `Failed to fetch Instagram data for account ${dbAccount._id}:`,
+            instaError
+          );
+          setAccount({
+            id: dbAccount._id,
+            accountId: dbAccount.instagramId,
+            username: dbAccount.username,
+            displayName: dbAccount.displayName || "No Name",
+            profilePicture:
+              dbAccount.profilePicture || "/public/assets/img/default-img.jpg",
+            followersCount: dbAccount.followersCount || 0,
+            postsCount: dbAccount.postsCount || 0,
+            isActive: dbAccount.isActive || false,
+            templatesCount: dbAccount.templatesCount || 0,
+            repliesCount: dbAccount.repliesCount || 0,
+            lastActivity: dbAccount.lastActivity || new Date().toISOString(),
+            engagementRate: dbAccount.engagementRate || 0,
+            avgResponseTime: dbAccount.avgResponseTime || "0s",
+            accessToken: dbAccount.accessToken,
+          });
+        }
+      } else if (accountResponse.status === 404) {
         setAccount({ ...dummyAccountData, id: accountId });
       } else {
-        console.log("API not available, using dummy data");
         setAccount({ ...dummyAccountData, id: accountId });
       }
     } catch (error) {
-      console.log("API error, using dummy data:", error);
       setAccount({ ...dummyAccountData, id: accountId });
     } finally {
       setIsLoading(false);
@@ -203,7 +445,41 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       console.error("Error updating account:", error);
     }
   };
+  const handleCreateTemplate = async () => {
+    try {
+      const response = await fetch("/api/insta/templates", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: userId,
+          accountId: account.accountId,
+          ...newTemplate,
+          triggers: newTemplate.triggers.split(",").map((t) => t.trim()),
+        }),
+      });
 
+      if (response.ok) {
+        const createdTemplate = await response.json();
+        setTemplates([createdTemplate, ...templates]);
+      } else {
+        console.error("Failed to create template");
+      }
+    } catch (error) {
+      console.error("Error creating template:", error);
+    }
+
+    setNewTemplate({
+      name: "",
+      content: "",
+      triggers: "",
+      priority: 1,
+      category: "greeting",
+      accountUsername: "fashionista_jane",
+    });
+    setIsCreateDialogOpen(false);
+  };
   const handleSyncAccount = async () => {
     setIsSyncing(true);
 
@@ -360,37 +636,150 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                 Create and manage automated reply templates for this account
               </p>
             </div>
-            <Button onClick={() => setShowTemplateForm(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Template
-            </Button>
-          </div>
-
-          {showTemplateForm && (
-            <Card
-              className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#FF2E9F]/10 to-[#FF2E9F]/5 border-[#FF2E9F]/10 hover:bg-[#FF2E9F]/10  bg-transparent backdrop-blur-sm border`}
+            <Dialog
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
             >
-              <CardHeader className="p-3">
-                <CardTitle>Create New Template</CardTitle>
-                <CardDescription>
-                  Set up an automated reply that triggers when specific keywords
-                  are detected
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-3">
-                <TemplateForm
-                  accountId={params.id}
-                  onSuccess={() => setShowTemplateForm(false)}
-                  onCancel={() => setShowTemplateForm(false)}
-                />
-              </CardContent>
-            </Card>
-          )}
+              <DialogTrigger asChild>
+                <Button className="btn-gradient-cyan hover:opacity-90 hover:shadow-cyan-500 shadow-lg transition-opacity ">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Template
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px] bg-transparent bg-gradient-to-br  border-[#B026FF]/20 hover:border-[#B026FF]/40 backdrop-blur-md border">
+                <DialogHeader>
+                  <DialogTitle className="text-white">
+                    Create New Template
+                  </DialogTitle>
+                  <DialogDescription className="text-gray-400">
+                    Set up an automated reply that triggers when specific
+                    keywords are detected
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-gray-300">
+                        Template Name
+                      </Label>
+                      <Input
+                        id="name"
+                        value={newTemplate.name}
+                        onChange={(e) =>
+                          setNewTemplate({
+                            ...newTemplate,
+                            name: e.target.value,
+                          })
+                        }
+                        placeholder="e.g., Welcome Message"
+                        className="bg-white/5 border-white/20 text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="category" className="text-gray-300">
+                        Category
+                      </Label>
+                      <Select
+                        value={newTemplate.category}
+                        onValueChange={(value) =>
+                          setNewTemplate({ ...newTemplate, category: value })
+                        }
+                      >
+                        <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="greeting">Greeting</SelectItem>
+                          <SelectItem value="sales">Sales</SelectItem>
+                          <SelectItem value="content">Content</SelectItem>
+                          <SelectItem value="engagement">Engagement</SelectItem>
+                          <SelectItem value="support">Support</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="content" className="text-gray-300">
+                      Reply Content
+                    </Label>
+                    <Textarea
+                      id="content"
+                      value={newTemplate.content}
+                      onChange={(e) =>
+                        setNewTemplate({
+                          ...newTemplate,
+                          content: e.target.value,
+                        })
+                      }
+                      placeholder="Write your automated reply message..."
+                      className="min-h-[100px] bg-white/5 border-white/20 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="triggers" className="text-gray-300">
+                      Trigger Keywords (comma separated)
+                    </Label>
+                    <Input
+                      id="triggers"
+                      value={newTemplate.triggers}
+                      onChange={(e) =>
+                        setNewTemplate({
+                          ...newTemplate,
+                          triggers: e.target.value,
+                        })
+                      }
+                      placeholder="hello, hi, welcome, new"
+                      className="bg-white/5 border-white/20 text-white"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="priority" className="text-gray-300">
+                        Priority (1-10)
+                      </Label>
+                      <Input
+                        id="priority"
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={newTemplate.priority}
+                        onChange={(e) =>
+                          setNewTemplate({
+                            ...newTemplate,
+                            priority: parseInt(e.target.value),
+                          })
+                        }
+                        className="bg-white/5 border-white/20 text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsCreateDialogOpen(false)}
+                    className="border-white/20 text-gray-300"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreateTemplate}
+                    className="btn-gradient-cyan"
+                  >
+                    Create Template
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
 
           <div className="grid gap-6">
             {templates.map((template) => (
               <TemplateCard
-                key={template.id}
+                key={template.accountId}
                 template={template}
                 onDelete={handleDeleteTemplate}
                 onToggle={handleToggleTemplate}
@@ -410,7 +799,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     Create your first reply template to start automating
                     responses
                   </p>
-                  <Button onClick={() => setShowTemplateForm(true)}>
+                  <Button onClick={() => setIsCreateDialogOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     Create Template
                   </Button>
@@ -553,9 +942,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                       <div className="flex justify-between items-center text-sm mt-2">
                         <span className="text-gray-300">Last Sync</span>
                         <span className="text-gray-400">
-                          {formatLastActivity(
-                            account.lastSync || account.lastActivity
-                          )}
+                          {formatLastActivity(account.lastActivity)}
                         </span>
                       </div>
                     </div>

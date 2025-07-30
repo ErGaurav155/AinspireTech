@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Plus,
   Instagram,
@@ -32,77 +32,11 @@ import {
 } from "@/lib/action/subscription.action";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
-
-// Dummy data fallback
-const dummyData = {
-  totalAccounts: 3,
-  activeAccounts: 2,
-  totalTemplates: 8,
-  totalReplies: 779,
-  engagementRate: 87,
-  successRate: 94,
-  accounts: [
-    {
-      id: "1",
-      username: "fashionista_jane",
-      displayName: "Jane Fashion",
-      profilePicture:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
-      followersCount: 15420,
-      postsCount: 892,
-      isActive: true,
-      templatesCount: 5,
-      repliesCount: 234,
-      lastActivity: new Date().toISOString(),
-      engagementRate: 4.2,
-      avgResponseTime: "2.3s",
-    },
-    {
-      id: "2",
-      username: "tech_guru_mike",
-      displayName: "Mike Tech",
-      profilePicture:
-        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
-      followersCount: 8930,
-      postsCount: 456,
-      isActive: false,
-      templatesCount: 3,
-      repliesCount: 89,
-      lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      engagementRate: 3.8,
-      avgResponseTime: "1.9s",
-    },
-  ],
-  recentActivity: [
-    {
-      id: "1",
-      type: "reply_sent",
-      account: "fashionista_jane",
-      template: "Welcome Message",
-      timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-      message: "Auto-reply sent to @user123",
-    },
-    {
-      id: "2",
-      type: "reply_sent",
-      account: "tech_guru_mike",
-      template: "Product Inquiry",
-      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-      message: "Auto-reply sent to @customer456",
-    },
-    {
-      id: "3",
-      type: "reply_sent",
-      account: "fashionista_jane",
-      template: "Compliment Response",
-      timestamp: new Date(Date.now() - 8 * 60 * 1000).toISOString(),
-      message: "Auto-reply sent to @follower789",
-    },
-  ],
-};
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   const { userId } = useAuth();
+  const router = useRouter();
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [selectedSubscriptionId, setSelectedSubscriptionId] = useState("");
@@ -111,30 +45,163 @@ export default function Dashboard() {
   >("End-of-term");
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
-  const [dashboardData, setDashboardData] = useState(dummyData);
+  const [dashboardData, setDashboardData] = useState<any>();
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  const fetchAccounts = useCallback(async () => {
+    if (!userId) {
+      router.push("/sign-in");
+      return;
+    }
 
-  const fetchDashboardData = async () => {
     try {
-      const response = await fetch("/api/insta/dashboard");
-      if (response.ok) {
-        const data = await response.json();
-        setDashboardData(data);
-      } else {
-        console.log("Using dummy data - API not available");
-        setDashboardData(dummyData);
+      setIsLoading(true);
+      setError(null);
+      // Check cache first
+      const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
+      const cacheDuration = 15 * 60 * 1000; // 15 minutes
+
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData);
+        if (Date.now() - timestamp < cacheDuration) {
+          const stats = {
+            totalAccounts: data.length,
+            activeAccounts: data.filter((account: any) => account?.isActive)
+              .length,
+            totalTemplates: data.reduce(
+              (sum: number, account: any) =>
+                sum + (account?.templatesCount || 0),
+              0
+            ),
+            totalReplies: data.reduce(
+              (sum: number, account: any) => sum + (account?.repliesCount || 0),
+              0
+            ),
+            engagementRate: 87, // Mock data
+            successRate: 94, // Mock data
+            accounts: data,
+            recentActivity: [], // No recent activity in cache
+          };
+          setDashboardData(stats);
+
+          return stats;
+        }
       }
+
+      // Fetch from API
+      const accountsResponse = await fetch(
+        `/api/insta/dashboard?userId=${userId}`
+      );
+      if (!accountsResponse.ok) throw new Error("Failed to fetch accounts");
+
+      const { accounts: dbAccounts } = await accountsResponse.json();
+      if (!dbAccounts?.length) {
+        return null;
+      }
+
+      // Fetch Instagram data for each account
+      const completeAccounts = await Promise.all(
+        dbAccounts.map(async (dbAccount: any) => {
+          try {
+            const instaResponse = await fetch(
+              `/api/insta/user-info?accessToken=${dbAccount.accessToken}&fields=username,user_id,followers_count,media_count,profile_picture_url`
+            );
+
+            if (!instaResponse.ok) throw new Error("Instagram API failed");
+
+            const instaData = await instaResponse.json();
+
+            return {
+              id: dbAccount._id,
+              accountId: dbAccount.instagramId,
+              username: instaData.username || dbAccount.username,
+              displayName:
+                dbAccount.displayName || instaData.username || "No Name",
+              profilePicture:
+                dbAccount.profilePicture ||
+                instaData.profile_picture_url ||
+                "/public/assets/img/default-img.jpg",
+              followersCount:
+                instaData.followers_count || dbAccount.followersCount || 0,
+              postsCount: instaData.media_count || dbAccount.postsCount || 0,
+              isActive: dbAccount.isActive || false,
+              templatesCount: dbAccount.templatesCount || 0,
+              repliesCount: dbAccount.repliesCount || 0,
+              lastActivity: dbAccount.lastActivity || new Date().toISOString(),
+              engagementRate: dbAccount.engagementRate || 0,
+              avgResponseTime: dbAccount.avgResponseTime || "0s",
+              accessToken: dbAccount.accessToken,
+            };
+          } catch (instaError) {
+            console.error(
+              `Failed to fetch Instagram data for account ${dbAccount._id}:`,
+              instaError
+            );
+            return null;
+          }
+        })
+      );
+      const validAccounts = completeAccounts.filter(Boolean);
+
+      const stats = {
+        totalAccounts: validAccounts.length,
+        activeAccounts: validAccounts.filter((account) => account?.isActive)
+          .length,
+        totalTemplates: validAccounts.reduce(
+          (sum, account) => sum + (account?.templatesCount || 0),
+          0
+        ),
+        totalReplies: validAccounts.reduce(
+          (sum, account) => sum + (account?.repliesCount || 0),
+          0
+        ),
+        engagementRate: 87, // Mock data
+        successRate: 94, // Mock data
+        accounts: validAccounts,
+      };
+
+      localStorage.setItem(
+        ACCOUNTS_CACHE_KEY,
+        JSON.stringify({
+          data: validAccounts,
+          timestamp: Date.now(),
+        })
+      );
+      return stats;
     } catch (error) {
-      console.log("Using dummy data - API error:", error);
-      setDashboardData(dummyData);
+      console.error("Failed to fetch accounts:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to load accounts"
+      );
+    }
+  }, [userId, router]);
+
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      const accountsData = await fetchAccounts();
+      const response = await fetch(`/api/insta/replylogs?userId=${userId}`);
+      let recentActivity;
+      if (response.ok) {
+        recentActivity = await response.json();
+      } else {
+        console.error(
+          "Using dummy data for recent activity - API not available"
+        );
+      }
+
+      const updatedData = {
+        ...accountsData,
+        recentActivity: recentActivity?.replyLogs,
+      };
+      setDashboardData(updatedData);
+    } catch (error) {
+      console.error("Using dummy data - API error:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId, fetchAccounts]);
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -167,7 +234,8 @@ export default function Dashboard() {
     };
 
     fetchSubscriptions();
-  }, [userId]);
+    fetchDashboardData();
+  }, [userId, fetchDashboardData]);
 
   const handleCancelSubscription = async () => {
     if (!selectedSubscriptionId) return;
@@ -303,10 +371,12 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {dashboardData.activeAccounts}
+                {dashboardData.activeAccounts || 0}
               </div>
               <p className="text-xs text-gray-400">
-                {dashboardData.totalAccounts - dashboardData.activeAccounts}{" "}
+                {dashboardData.totalAccounts ||
+                  0 - dashboardData.activeAccounts ||
+                  0}{" "}
                 inactive
               </p>
             </CardContent>
@@ -321,7 +391,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {dashboardData.totalTemplates}
+                {dashboardData.totalTemplates || 0}
               </div>
               <p className="text-xs text-gray-400">Across all accounts</p>
             </CardContent>
@@ -336,7 +406,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {dashboardData.totalReplies}
+                {dashboardData.totalReplies || 0}
               </div>
               <p className="text-xs text-gray-400">+23% from last month</p>
             </CardContent>
@@ -351,7 +421,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {dashboardData.engagementRate}%
+                {dashboardData.engagementRate || 0}%
               </div>
               <p className="text-xs text-gray-400">+5% from last week</p>
             </CardContent>
@@ -372,61 +442,62 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 p-2">
-              {dashboardData.accounts.map((account) => (
-                <div
-                  key={account.id}
-                  className="flex flex-wrap gap-3 md:gap-0 items-center justify-between p-2 md:p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
-                >
-                  <div className="flex items-center space-x-2 md:space-x-4">
-                    <div className="relative">
-                      <Image
-                        width={48}
-                        height={48}
-                        src={account.profilePicture}
-                        alt={account.displayName}
-                        className="h-12 w-12 rounded-full object-cover"
-                      />
-                      <div
-                        className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-[#0a0a0a] ${
-                          account.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
-                        }`}
-                      />
+              {dashboardData?.accounts &&
+                dashboardData.accounts.map((account: any) => (
+                  <div
+                    key={account.id}
+                    className="flex flex-wrap gap-3 md:gap-0 items-center justify-between p-2 md:p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
+                  >
+                    <div className="flex items-center space-x-2 md:space-x-4">
+                      <div className="relative">
+                        <Image
+                          width={48}
+                          height={48}
+                          src={account.profilePicture}
+                          alt={account.displayName}
+                          className="h-12 w-12 rounded-full object-cover"
+                        />
+                        <div
+                          className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-[#0a0a0a] ${
+                            account.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm md:text-base text-white">
+                          @{account.username}
+                        </h3>
+                        <p className="text-sm text-gray-400">
+                          {account.followersCount.toLocaleString()} followers
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-sm md:text-base text-white">
-                        @{account.username}
-                      </h3>
-                      <p className="text-sm text-gray-400">
-                        {account.followersCount.toLocaleString()} followers
-                      </p>
+                    <div className="flex items-center space-x-2">
+                      <Badge
+                        variant={account.isActive ? "default" : "secondary"}
+                        className={
+                          account.isActive
+                            ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
+                            : ""
+                        }
+                      >
+                        {account.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-white/20 text-gray-300 hover:bg-white/10"
+                        asChild
+                      >
+                        <Link href={`/insta/accounts/${account.id}`}>
+                          <Settings className="h-4 w-4" />
+                        </Link>
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge
-                      variant={account.isActive ? "default" : "secondary"}
-                      className={
-                        account.isActive
-                          ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
-                          : ""
-                      }
-                    >
-                      {account.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-white/20 text-gray-300 hover:bg-white/10"
-                      asChild
-                    >
-                      <Link href={`/insta/accounts/${account.id}`}>
-                        <Settings className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))}
 
-              {dashboardData.accounts.length === 0 && (
+              {dashboardData?.accounts?.length === 0 && (
                 <div className="text-center py-8">
                   <Instagram className="h-12 w-12 mx-auto text-gray-500 mb-4" />
                   <p className="text-gray-400 mb-4 font-mono">
@@ -460,11 +531,11 @@ export default function Dashboard() {
                     Reply Success Rate
                   </span>
                   <span className="text-sm text-gray-400">
-                    {dashboardData.successRate}%
+                    {dashboardData.successRate || 0}%
                   </span>
                 </div>
                 <Progress
-                  value={dashboardData.successRate}
+                  value={dashboardData.successRate || 0}
                   className="h-2 bg-white/10"
                 />
               </div>
@@ -494,17 +565,21 @@ export default function Dashboard() {
                   Recent Activity
                 </h4>
                 <div className="space-y-2">
-                  {dashboardData.recentActivity.slice(0, 3).map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="flex items-center justify-between text-sm"
-                    >
-                      <span className="text-gray-300">{activity.message}</span>
-                      <span className="text-gray-500">
-                        {formatTimestamp(activity.timestamp)}
-                      </span>
-                    </div>
-                  ))}
+                  {dashboardData?.recentActivity
+                    ?.slice(0, 3)
+                    .map((activity: any) => (
+                      <div
+                        key={activity.id}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <span className="text-gray-300">
+                          {activity.message}
+                        </span>
+                        <span className="text-gray-500">
+                          {formatTimestamp(activity.timestamp)}
+                        </span>
+                      </div>
+                    ))}
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-300">
                       Template Welcome triggered

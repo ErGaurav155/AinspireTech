@@ -107,3 +107,33 @@ export const generateMcqResponse = async ({
 
   return completion.choices[0]?.message?.content || "";
 };
+export const generateCommentResponse = async ({
+  userInput,
+  templates,
+}: {
+  userInput: string;
+  templates: string[];
+}) => {
+  if (openai instanceof Error) {
+    throw openai;
+  }
+
+  const systemMessage = `Choose one template name from this array ${JSON.stringify(
+    templates
+  )} that mostly matches this user comment: "${userInput}". 
+  Must respond with exactly this JSON structure (no other text):
+  {
+    "matchedtemplate": "template_name_here"
+  }`;
+
+  const completion = await openai.chat.completions.create({
+    model: "deepseek-chat",
+    messages: [
+      { role: "system", content: systemMessage },
+      { role: "user", content: userInput },
+    ],
+    response_format: { type: "json_object" },
+  });
+
+  return completion.choices[0]?.message?.content || "";
+};

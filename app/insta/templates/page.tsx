@@ -51,87 +51,26 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 // Dummy templates data fallback
-const dummyTemplates = [
-  {
-    id: "1",
-    name: "Welcome Message",
-    content: "Thanks for following! 🌟 Check out our latest collection in bio!",
-    triggers: ["follow", "new", "hello", "hi"],
-    isActive: true,
-    priority: 1,
-    usageCount: 234,
-    successRate: 97.2,
-    lastUsed: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    accountUsername: "fashionista_jane",
-    category: "greeting",
-  },
-  {
-    id: "2",
-    name: "Product Inquiry",
-    content:
-      "Hi! 👋 For product details and pricing, please DM us or visit our website!",
-    triggers: ["price", "cost", "buy", "purchase", "shop"],
-    isActive: true,
-    priority: 2,
-    usageCount: 189,
-    successRate: 93.1,
-    lastUsed: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    accountUsername: "fashionista_jane",
-    category: "sales",
-  },
-  {
-    id: "3",
-    name: "Recipe Request",
-    content:
-      "Love that you're interested! 👩‍🍳 Full recipe is in my highlights or DM me!",
-    triggers: ["recipe", "ingredients", "how to make", "tutorial"],
-    isActive: true,
-    priority: 1,
-    usageCount: 156,
-    successRate: 95.5,
-    lastUsed: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-    accountUsername: "food_lover_sarah",
-    category: "content",
-  },
-  {
-    id: "4",
-    name: "Compliment Response",
-    content: "Thank you so much! 💕 Your support means everything to us!",
-    triggers: ["love", "beautiful", "amazing", "gorgeous", "stunning"],
-    isActive: false,
-    priority: 3,
-    usageCount: 123,
-    successRate: 98.4,
-    lastUsed: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    accountUsername: "fashionista_jane",
-    category: "engagement",
-  },
-  {
-    id: "5",
-    name: "Tech Support",
-    content:
-      "Thanks for reaching out! 🔧 For technical questions, please check our FAQ or contact support.",
-    triggers: ["help", "problem", "issue", "bug", "error"],
-    isActive: true,
-    priority: 1,
-    usageCount: 67,
-    successRate: 91.3,
-    lastUsed: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    accountUsername: "tech_guru_mike",
-    category: "support",
-  },
-];
 
+interface accountDataType {
+  instagramId: string;
+  username: string;
+}
 export default function TemplatesPage() {
-  const [templates, setTemplates] = useState(dummyTemplates);
+  const [templates, setTemplates] = useState<any>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterAccount, setFilterAccount] = useState("all");
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
+  const [accounts, setAccounts] = useState<accountDataType[]>([]);
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
+  const { userId } = useAuth();
+  const router = useRouter();
   // New template form state
   const [newTemplate, setNewTemplate] = useState({
     name: "",
@@ -143,48 +82,76 @@ export default function TemplatesPage() {
   });
 
   useEffect(() => {
-    fetchTemplates();
-  }, []);
-
-  const fetchTemplates = async () => {
-    try {
-      // For now, we'll use a mock account ID since we don't have account selection
-      const response = await fetch(
-        "/api/insta/templates?accountId=mock-account-id"
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.length > 0) {
-          setTemplates(data);
-        } else {
-          console.log("No templates found, using dummy data");
-          setTemplates(dummyTemplates);
-        }
-      } else {
-        console.log("API not available, using dummy data");
-        setTemplates(dummyTemplates);
-      }
-    } catch (error) {
-      console.log("API error, using dummy data:", error);
-      setTemplates(dummyTemplates);
-    } finally {
-      setIsLoading(false);
+    if (!userId) {
+      router.push("/sign-in");
+      return;
     }
-  };
+    const fetchAccounts = async () => {
+      try {
+        const response = await fetch(`/api/insta/accounts?userId=${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.accounts && Array.isArray(data.accounts)) {
+            setAccounts(
+              data.accounts.map((acc: any) => ({
+                instagramId: acc.instagramId,
+                username: acc.userName,
+              }))
+            );
+          } else {
+            setAccounts([]);
+          }
+        } else {
+          setAccounts([]);
+        }
+      } catch (error) {
+        setAccounts([]);
+      }
+    };
+    const fetchTemplates = async () => {
+      try {
+        // For now, we'll use a mock account ID since we don't have account selection
+        const response = await fetch(`/api/insta/templates?userId=${userId} `);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.length >= 0) {
+            setTemplates(
+              data.map((template: any) => ({
+                ...template,
+                lastUsed: template.lastUsed
+                  ? new Date(template.lastUsed).toISOString()
+                  : new Date().toISOString(),
+                successRate: template.successRate || 0,
+              }))
+            );
+          } else {
+            setTemplates([]);
+          }
+        } else {
+          setTemplates([]);
+        }
+      } catch (error) {
+        setTemplates([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAccounts();
+    fetchTemplates();
+  }, [router, userId]);
 
   const handleToggleTemplate = async (templateId: string) => {
-    const template = templates.find((t) => t.id === templateId);
+    const template = templates.find((t: any) => t.accountId === templateId);
     if (!template) return;
 
     const newActiveState = !template.isActive;
 
     // Optimistically update UI
     setTemplates(
-      templates.map((t) =>
-        t.id === templateId ? { ...t, isActive: newActiveState } : t
+      templates.map((t: any) =>
+        t.accountId === templateId ? { ...t, isActive: newActiveState } : t
       )
     );
-
     try {
       const response = await fetch(`/api/insta/templates/${templateId}`, {
         method: "PUT",
@@ -200,8 +167,8 @@ export default function TemplatesPage() {
       if (!response.ok) {
         // Revert on error
         setTemplates(
-          templates.map((t) =>
-            t.id === templateId ? { ...t, isActive: !newActiveState } : t
+          templates.map((t: any) =>
+            t.accountId === templateId ? { ...t, isActive: !newActiveState } : t
           )
         );
         console.error("Failed to update template status");
@@ -209,8 +176,8 @@ export default function TemplatesPage() {
     } catch (error) {
       // Revert on error
       setTemplates(
-        templates.map((t) =>
-          t.id === templateId ? { ...t, isActive: !newActiveState } : t
+        templates.map((t: any) =>
+          t.accountId === templateId ? { ...t, isActive: !newActiveState } : t
         )
       );
       console.error("Error updating template:", error);
@@ -225,7 +192,7 @@ export default function TemplatesPage() {
 
       if (response.ok) {
         setTemplates(
-          templates.filter((template) => template.id !== templateId)
+          templates.filter((template: any) => template.accountId !== templateId)
         );
       } else {
         console.error("Failed to delete template");
@@ -233,19 +200,30 @@ export default function TemplatesPage() {
     } catch (error) {
       console.error("Error deleting template:", error);
       // For demo purposes, still remove from UI
-      setTemplates(templates.filter((template) => template.id !== templateId));
+      setTemplates(
+        templates.filter((template: any) => template.accountId !== templateId)
+      );
     }
   };
 
   const handleCreateTemplate = async () => {
     try {
+      const selectedAccount = accounts.find(
+        (acc) => acc.username === newTemplate.accountUsername
+      );
+      if (!selectedAccount) {
+        console.error("No account found with this username");
+        return;
+      }
+
       const response = await fetch("/api/insta/templates", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          accountId: "mock-account-id",
+          userId: userId,
+          accountId: selectedAccount.instagramId,
           ...newTemplate,
           triggers: newTemplate.triggers.split(",").map((t) => t.trim()),
         }),
@@ -256,31 +234,9 @@ export default function TemplatesPage() {
         setTemplates([createdTemplate, ...templates]);
       } else {
         console.error("Failed to create template");
-        // For demo purposes, still add to UI
-        const template = {
-          id: Date.now().toString(),
-          ...newTemplate,
-          triggers: newTemplate.triggers.split(",").map((t) => t.trim()),
-          isActive: true,
-          usageCount: 0,
-          successRate: 0,
-          lastUsed: new Date().toISOString(),
-        };
-        setTemplates([template, ...templates]);
       }
     } catch (error) {
       console.error("Error creating template:", error);
-      // For demo purposes, still add to UI
-      const template = {
-        id: Date.now().toString(),
-        ...newTemplate,
-        triggers: newTemplate.triggers.split(",").map((t) => t.trim()),
-        isActive: true,
-        usageCount: 0,
-        successRate: 0,
-        lastUsed: new Date().toISOString(),
-      };
-      setTemplates([template, ...templates]);
     }
 
     setNewTemplate({
@@ -294,11 +250,11 @@ export default function TemplatesPage() {
     setIsCreateDialogOpen(false);
   };
 
-  const filteredTemplates = templates.filter((template) => {
+  const filteredTemplates = templates.filter((template: any) => {
     const matchesSearch =
       template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       template.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.triggers.some((trigger) =>
+      template.triggers.some((trigger: any) =>
         trigger.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
@@ -500,18 +456,17 @@ export default function TemplatesPage() {
                       }
                     >
                       <SelectTrigger className="bg-white/5 border-white/20 text-white">
-                        <SelectValue />
+                        <SelectValue placeholder="Select an account" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="fashionista_jane">
-                          @fashionista_jane
-                        </SelectItem>
-                        <SelectItem value="tech_guru_mike">
-                          @tech_guru_mike
-                        </SelectItem>
-                        <SelectItem value="food_lover_sarah">
-                          @food_lover_sarah
-                        </SelectItem>
+                        {accounts.map((account) => (
+                          <SelectItem
+                            key={account.instagramId}
+                            value={account.username}
+                          >
+                            {account.username}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -565,21 +520,19 @@ export default function TemplatesPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Accounts</SelectItem>
-              <SelectItem value="fashionista_jane">
-                @fashionista_jane
-              </SelectItem>
-              <SelectItem value="tech_guru_mike">@tech_guru_mike</SelectItem>
-              <SelectItem value="food_lover_sarah">
-                @food_lover_sarah
-              </SelectItem>
+              {accounts.map((account) => (
+                <SelectItem key={account.instagramId} value={account.username}>
+                  {account.username}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
         {/* Templates Grid */}
         <div className="grid gap-6">
-          {filteredTemplates.map((template) => (
+          {filteredTemplates.map((template: any) => (
             <Card
-              key={template.id}
+              key={template.accountId}
               className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${
                 template.isActive
                   ? "from-[#B026FF]/20 to-[#B026FF]/5 border-[#B026FF]/20 hover:border-[#B026FF]/40"
@@ -604,13 +557,15 @@ export default function TemplatesPage() {
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-400">
-                      @{template.accountUsername}
+                      {template.accountUsername}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 md:gap-2">
                     <Switch
                       checked={template.isActive}
-                      onCheckedChange={() => handleToggleTemplate(template.id)}
+                      onCheckedChange={() => {
+                        handleToggleTemplate(template.accountId);
+                      }}
                       className="data-[state=checked]:bg-[#00F0FF]"
                     />
                     <Button
@@ -645,7 +600,9 @@ export default function TemplatesPage() {
                             Cancel
                           </AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() => handleDeleteTemplate(template.id)}
+                            onClick={() =>
+                              handleDeleteTemplate(template.accountId)
+                            }
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
                             Delete
@@ -670,7 +627,7 @@ export default function TemplatesPage() {
                     Trigger Keywords:
                   </p>
                   <div className="flex flex-wrap gap-1">
-                    {template.triggers.map((trigger, index) => (
+                    {template.triggers.map((trigger: any, index: number) => (
                       <Badge
                         key={index}
                         variant="outline"
@@ -688,7 +645,7 @@ export default function TemplatesPage() {
                       <BarChart3 className="h-3 w-3" />
                       {template.usageCount} uses
                     </div>
-                    <div>{template.successRate}% success rate</div>
+                    {/* <div>{template.successRate}% success rate</div> */}
                     <div>Last used: {formatLastUsed(template.lastUsed)}</div>
                   </div>
                   <Badge

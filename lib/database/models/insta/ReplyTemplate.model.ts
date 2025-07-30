@@ -1,12 +1,15 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IReplyTemplate extends Document {
-  accountId: mongoose.Types.ObjectId;
+  userId: string;
+  accountId: string;
   name: string;
   content: string;
   triggers: string[];
   isActive: boolean;
   priority: number;
+  category: string;
+  accountUsername: string;
   usageCount: number;
   lastUsed?: Date;
   createdAt: Date;
@@ -15,11 +18,13 @@ export interface IReplyTemplate extends Document {
 
 const ReplyTemplateSchema = new Schema<IReplyTemplate>(
   {
-    accountId: {
-      type: Schema.Types.ObjectId,
-      ref: "InstagramAccount",
+    userId: {
+      type: String,
       required: true,
-      index: true,
+    },
+    accountId: {
+      type: String,
+      required: true,
     },
     name: {
       type: String,
@@ -49,6 +54,17 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
       default: 1,
       min: 1,
       max: 10,
+    },
+    category: {
+      type: String,
+      required: true,
+      default: "content",
+    },
+    accountUsername: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
     },
     usageCount: {
       type: Number,

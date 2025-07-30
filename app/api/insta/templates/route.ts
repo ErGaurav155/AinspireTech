@@ -7,21 +7,31 @@ export async function GET(req: Request) {
     await connectToDatabase();
 
     const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
     const accountId = searchParams.get("accountId");
 
-    if (!accountId) {
+    if (!userId) {
       return NextResponse.json(
-        { error: "Account ID is required" },
+        { error: "userId ID is required" },
         { status: 400 }
       );
     }
+    if (userId && !accountId) {
+      const templates = await InstaReplyTemplate.find({ userId }).sort({
+        priority: 1,
+        createdAt: -1,
+      });
 
-    const templates = await InstaReplyTemplate.find({ accountId }).sort({
-      priority: 1,
-      createdAt: -1,
-    });
+      return NextResponse.json(templates);
+    }
+    if (userId && accountId) {
+      const templates = await InstaReplyTemplate.find({
+        accountId,
+        userId,
+      }).sort({ priority: 1, createdAt: -1 });
 
-    return NextResponse.json(templates);
+      return NextResponse.json(templates);
+    }
   } catch (error) {
     console.error("Error fetching templates:", error);
     return NextResponse.json(
@@ -36,9 +46,26 @@ export async function POST(req: Request) {
     await connectToDatabase();
 
     const body = await req.json();
-    const { accountId, name, content, triggers, priority = 1 } = body;
+    const {
+      userId,
+      accountId,
+      name,
+      content,
+      triggers,
+      priority,
+      category,
+      accountUsername,
+    } = body;
 
-    if (!accountId || !name || !content || !triggers) {
+    if (
+      !userId ||
+      !accountId ||
+      !name ||
+      !content ||
+      !triggers ||
+      !category ||
+      !accountUsername
+    ) {
       return NextResponse.json(
         { error: "All fields are required" },
         { status: 400 }
@@ -46,6 +73,7 @@ export async function POST(req: Request) {
     }
 
     const template = new InstaReplyTemplate({
+      userId,
       accountId,
       name,
       content,
@@ -53,6 +81,8 @@ export async function POST(req: Request) {
         ? triggers
         : triggers.split(",").map((t: string) => t.trim()),
       priority,
+      category: category!,
+      accountUsername: accountUsername.toLowerCase()!,
       isActive: true,
       usageCount: 0,
     });

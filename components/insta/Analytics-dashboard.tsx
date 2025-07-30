@@ -8,6 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@clerk/nextjs";
+import { useCallback, useState } from "react";
 import {
   LineChart,
   Line,
@@ -46,8 +48,56 @@ const sentimentData = [
   { category: "Neutral", value: 18, color: "#6B7280" },
   { category: "Negative", value: 4, color: "#EF4444" },
 ];
+const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
 export function AnalyticsDashboard() {
+  const { userId } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  // const fetchAccounts = async () => {
+  //   if (!userId) return;
+
+  //   try {
+  //     setIsLoading(true);
+  //     setError(null);
+  //     // Check cache first
+  //     const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
+  //     const cacheDuration = 15 * 60 * 1000; // 15 minutes
+
+  //     if (cachedData) {
+  //       const { data, timestamp } = JSON.parse(cachedData);
+  //       if (Date.now() - timestamp < cacheDuration) {
+  //         setIsLoading(false);
+  //         const stats = {
+  //           totalAccounts: data.length,
+  //           activeAccounts: data.filter((account: any) => account?.isActive)
+  //             .length,
+  //           totalTemplates: data.reduce(
+  //             (sum: number, account: any) =>
+  //               sum + (account?.templatesCount || 0),
+  //             0
+  //           ),
+  //           totalReplies: data.reduce(
+  //             (sum: number, account: any) => sum + (account?.repliesCount || 0),
+  //             0
+  //           ),
+  //           engagementRate: 87, // Mock data
+  //           successRate: 94, // Mock data
+  //           avgResponseTime: 2.3,
+  //           accounts: data,
+  //           recentActivity: [], // No recent activity in cache
+  //         };
+  //         // setAnalyticsData(stats);
+  //         return stats;
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch accounts:", error);
+  //     setError(
+  //       error instanceof Error ? error.message : "Failed to load accounts"
+  //     );
+  //   }
+  // };
   return (
     <div className="space-y-8 mb-10">
       <div>
@@ -88,53 +138,6 @@ export function AnalyticsDashboard() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="flex items-center justify-center bg-transparent backdrop-blur-sm border-gray-900 p-0">
-              <CardHeader className="p-2">
-                <CardTitle className="text-sm font-medium text-gray-300 p-2">
-                  Total Comments
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-2">
-                <div className="text-2xl font-bold text-[#00F0FF]">2,847</div>
-                <p className="text-xs text-gray-400">+12.5% from last month</p>
-              </CardContent>
-            </Card>
-            <Card className="flex items-center justify-center bg-transparent backdrop-blur-sm border-gray-900">
-              <CardHeader className="p-2">
-                <CardTitle className="text-sm font-medium text-gray-300 p-2">
-                  Replies Sent
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-2">
-                <div className="text-2xl font-bold text-[#B026FF]">2,795</div>
-                <p className="text-xs text-gray-400">+11.8% from last month</p>
-              </CardContent>
-            </Card>
-            <Card className="flex items-center justify-center bg-transparent backdrop-blur-sm border-gray-900">
-              <CardHeader className="p-2">
-                <CardTitle className="text-sm font-medium text-gray-300">
-                  Response Rate
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-2">
-                <div className="text-2xl font-bold text-[#FF2E9F]">98.2%</div>
-                <p className="text-xs text-gray-400">+1.2% from last month</p>
-              </CardContent>
-            </Card>
-            <Card className="flex  items-center justify-center bg-transparent backdrop-blur-sm border-gray-900">
-              <CardHeader className="p-2">
-                <CardTitle className="text-sm font-medium text-gray-300">
-                  Avg Response Time
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-2">
-                <div className="text-2xl font-bold text-[#10B981]">2.3s</div>
-                <p className="text-xs text-gray-400">-0.5s from last month</p>
-              </CardContent>
-            </Card>
-          </div>
-
           <Card className="bg-transparent backdrop-blur-sm border-gray-900">
             <CardHeader className="p-2">
               <CardTitle className="text-white">Daily Activity</CardTitle>
@@ -143,7 +146,7 @@ export function AnalyticsDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
-              <ResponsiveContainer width={1000} height={300}>
+              <ResponsiveContainer minWidth={1000} width="100%" height={300}>
                 <LineChart data={dailyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                   <XAxis dataKey="date" stroke="#9CA3AF" />
@@ -184,7 +187,7 @@ export function AnalyticsDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
-              <ResponsiveContainer width={1000} height={300}>
+              <ResponsiveContainer minWidth={1000} width="100%" height={300}>
                 <LineChart data={dailyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                   <XAxis dataKey="date" stroke="#9CA3AF" />
@@ -218,7 +221,7 @@ export function AnalyticsDashboard() {
             </CardHeader>
             <CardContent className="p-2">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 ">
-                <ResponsiveContainer className={``} width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart className="">
                     <Pie
                       className=""

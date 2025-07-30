@@ -1,31 +1,15 @@
+// lib/action/instaApi.action.ts
 "use server";
 
-import crypto from "crypto";
 import { connectToDatabase } from "../database/mongoose";
 import InstagramAccount from "../database/models/insta/InstagramAccount.model";
 import InstaReplyLog from "../database/models/insta/ReplyLog.model";
-import InstaReplyTemplate from "../database/models/insta/ReplyTemplate.model";
-import Analytics from "../database/models/insta/Analytics.model";
+import InstaReplyTemplate, {
+  IReplyTemplate,
+} from "../database/models/insta/ReplyTemplate.model";
+import { generateCommentResponse } from "./ai.action";
 
-const CRYPTO_SECRET =
-  process.env.CRYPTO_SECRET || "your-32-character-encryption-key-here";
-
-// Encryption utilities for sensitive data (internal only)
-const encrypt = (text: string): string => {
-  const cipher = crypto.createCipher("aes-256-cbc", CRYPTO_SECRET);
-  let encrypted = cipher.update(text, "utf8", "hex");
-  encrypted += cipher.final("hex");
-  return encrypted;
-};
-
-const decrypt = (encryptedText: string): string => {
-  const decipher = crypto.createDecipher("aes-256-cbc", CRYPTO_SECRET);
-  let decrypted = decipher.update(encryptedText, "hex", "utf8");
-  decrypted += decipher.final("utf8");
-  return decrypted;
-};
-
-// Internal interfaces
+// Interfaces
 interface InstagramComment {
   id: string;
   text: string;
@@ -33,17 +17,6 @@ interface InstagramComment {
   timestamp: string;
   media_id: string;
   user_id: string;
-}
-
-interface InstagramMedia {
-  id: string;
-  caption: string;
-  media_type: string;
-  media_url: string;
-  permalink: string;
-  timestamp: string;
-  comments_count: number;
-  like_count: number;
 }
 
 interface InstagramProfile {
@@ -56,9 +29,9 @@ interface InstagramProfile {
   profile_picture_url: string;
 }
 
-// Rate Limiter implementation (converted to module-scoped functions)
+// Rate Limiter
 const rateLimiterRequests = new Map<string, number[]>();
-const RATE_LIMIT_MAX_REQUESTS = 200;
+const RATE_LIMIT_MAX_REQUESTS = 180;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 
 function canMakeRequest(accountId: string): boolean {
@@ -72,8 +45,7 @@ function canMakeRequest(accountId: string): boolean {
     return false;
   }
 
-  validRequests.push(now);
-  rateLimiterRequests.set(accountId, validRequests);
+  rateLimiterRequests.set(accountId, [...validRequests, now]);
   return true;
 }
 
@@ -86,276 +58,349 @@ function getRemainingRequests(accountId: string): number {
   return Math.max(0, RATE_LIMIT_MAX_REQUESTS - validRequests.length);
 }
 
-// Instagram API functions (converted from class)
-async function getInstagramProfile(
+function isMeaningfulComment(text: string): boolean {
+  const cleanedText = text.replace(/\s+/g, "").replace(/[^\w]/g, "");
+  const emojiOnly = /^[\p{Emoji_Presentation}\p{Emoji}\uFE0F]+$/u.test(text);
+  const isGifComment =
+    text.includes("sent a GIF") || text.includes("GIF") || text.match(/gif/i);
+
+  return cleanedText.length > 0 && !emojiOnly && !isGifComment;
+}
+
+// Instagram API Functions
+export async function getInstagramProfile(
   accessToken: string
 ): Promise<InstagramProfile> {
-  return {
-    id: "12345",
-    username: "demo_account",
-    account_type: "BUSINESS",
-    media_count: 150,
-    followers_count: Math.floor(Math.random() * 50000) + 1000,
-    follows_count: Math.floor(Math.random() * 1000) + 100,
-    profile_picture_url:
-      "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
-  };
-}
+  const response = await fetch(
+    `https://graph.instagram.com/v19.0/me?fields=id,username,account_type,media_count,followers_count,follows_count,profile_picture_url&access_token=${accessToken}`
+  );
 
-export async function getRecentMedia(
-  accessToken: string,
-  limit: number = 25
-): Promise<InstagramMedia[]> {
-  const mockMedia: InstagramMedia[] = [];
-  for (let i = 0; i < limit; i++) {
-    mockMedia.push({
-      id: `media_${i}`,
-      caption: `Sample post caption ${i + 1}`,
-      media_type: "IMAGE",
-      media_url: `https://images.pexels.com/photos/${
-        1000000 + i
-      }/pexels-photo-${1000000 + i}.jpeg?auto=compress&cs=tinysrgb&w=400`,
-      permalink: `https://instagram.com/p/sample${i}`,
-      timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-      comments_count: Math.floor(Math.random() * 50),
-      like_count: Math.floor(Math.random() * 500),
-    });
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch profile: ${response.status} ${response.statusText}`
+    );
   }
-  return mockMedia;
-}
 
-export async function getMediaComments(
-  accessToken: string,
-  mediaId: string
-): Promise<InstagramComment[]> {
-  const mockComments: InstagramComment[] = [];
-  const commentTexts = [
-    "Love this post! 😍",
-    "Amazing content!",
-    "Where can I buy this?",
-    "Beautiful! 💕",
-    "Can you share the recipe?",
-    "What camera did you use?",
-    "This is so inspiring!",
-    "Hello! New follower here 👋",
-    "Price please?",
-    "Tutorial please!",
-  ];
-
-  for (let i = 0; i < Math.floor(Math.random() * 10) + 1; i++) {
-    mockComments.push({
-      id: `comment_${mediaId}_${i}`,
-      text: commentTexts[Math.floor(Math.random() * commentTexts.length)],
-      username: `user_${Math.floor(Math.random() * 1000)}`,
-      timestamp: new Date(Date.now() - i * 60 * 60 * 1000).toISOString(),
-      media_id: mediaId,
-      user_id: `user_id_${i}`,
-    });
-  }
-  return mockComments;
+  return response.json();
 }
 
 async function replyToComment(
+  accountId: string,
   accessToken: string,
   commentId: string,
+  mediaId: string,
   message: string
 ): Promise<boolean> {
-  console.log(`Replying to comment ${commentId} with: ${message}`);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return Math.random() > 0.05;
+  try {
+    // Verify media ownership
+    const mediaResponse = await fetch(
+      `https://graph.instagram.com/v23.0/${mediaId}?fields=id,username&access_token=${accessToken}`
+    );
+
+    if (!mediaResponse.ok) {
+      const error = await mediaResponse.json();
+      throw new Error(
+        `Failed to verify media ownership: ${JSON.stringify(error)}`
+      );
+    }
+
+    const mediaData = await mediaResponse.json();
+    const isOwner = mediaData.owner?.id === accountId;
+
+    if (!isOwner) {
+      throw new Error("User is not the owner of this media");
+    }
+
+    // Reply to comment
+    const replyResponse = await fetch(
+      `https://graph.instagram.com/v23.0/${commentId}/replies`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ message }),
+      }
+    );
+
+    if (!replyResponse.ok) {
+      const error = await replyResponse.json();
+      console.error("Instagram Reply Error:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Failed to reply to comment:", error);
+    return false;
+  }
+}
+
+async function sendDirectMessage(
+  accountId: string,
+  accessToken: string,
+  recipientId: string,
+  message: string
+): Promise<boolean> {
+  try {
+    const sendResponse = await fetch(
+      `https://graph.instagram.com/v23.0/${accountId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          recipient: { id: recipientId },
+          message: { text: message },
+        }),
+      }
+    );
+
+    if (!sendResponse.ok) {
+      const error = await sendResponse.json();
+      console.error("Instagram DM Error:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Failed to send Instagram DM:", error);
+    return false;
+  }
 }
 
 async function validateAccessToken(accessToken: string): Promise<boolean> {
-  return true;
+  try {
+    const response = await fetch(
+      `https://graph.instagram.com/v19.0/me?fields=id&access_token=${accessToken}`
+    );
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
 }
 
-// Comment processing helper functions
+// AI Template Matching
 async function findMatchingTemplate(
   commentText: string,
-  templates: any[]
-): Promise<any | null> {
-  const lowerCommentText = commentText.toLowerCase();
+  templates: IReplyTemplate[]
+): Promise<IReplyTemplate | null> {
+  const lowerComment = commentText.toLowerCase();
 
+  // Database trigger matching
   for (const template of templates) {
-    for (const trigger of template.triggers) {
-      if (lowerCommentText.includes(trigger.toLowerCase())) {
-        return template;
-      }
+    if (!template.isActive) continue;
+
+    const hasMatch = template.triggers?.some((trigger) => {
+      if (!trigger) return false;
+      return lowerComment.includes(trigger.toLowerCase().replace(/\s+/g, ""));
+    });
+
+    if (hasMatch) return template;
+  }
+
+  // AI fallback
+  try {
+    const relatedTemplate = await generateCommentResponse({
+      userInput: commentText,
+      templates: templates.map((t) => t.name),
+    });
+
+    const parsed = JSON.parse(relatedTemplate);
+    if (parsed.matchedtemplate) {
+      const normalizedMatch = parsed.matchedtemplate
+        .toLowerCase()
+        .replace(/\s+/g, "");
+      return (
+        templates.find(
+          (t) => t.name.toLowerCase().replace(/\s+/g, "") === normalizedMatch
+        ) || null
+      );
     }
+  } catch (error) {
+    console.error("AI template matching failed:", error);
   }
 
   return null;
 }
 
-async function updateAnalytics(
-  accountId: string,
-  success: boolean,
-  responseTime: number
-): Promise<void> {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  let analytics = await Analytics.findOne({
-    accountId: accountId,
-    date: today,
-  });
-
-  if (!analytics) {
-    analytics = new Analytics({
-      accountId: accountId,
-      date: today,
-      totalReplies: 0,
-      successfulReplies: 0,
-      failedReplies: 0,
-      avgResponseTime: 0,
-      engagementRate: 0,
-      topTemplates: [],
-      commentsProcessed: 0,
-      newFollowers: 0,
-    });
-  }
-
-  analytics.totalReplies += 1;
-  analytics.commentsProcessed += 1;
-
-  if (success) {
-    analytics.successfulReplies += 1;
-  } else {
-    analytics.failedReplies += 1;
-  }
-
-  const totalSuccessful = analytics.successfulReplies;
-  if (totalSuccessful > 0) {
-    analytics.avgResponseTime =
-      (analytics.avgResponseTime * (totalSuccessful - 1) + responseTime) /
-      totalSuccessful;
-  }
-
-  await analytics.save();
-}
-
+// Core Comment Processing
 export async function processComment(
-  accessToken: string,
   accountId: string,
-  comment: InstagramComment,
-  mediaId: string
+  userId: string,
+  comment: InstagramComment
 ): Promise<void> {
+  let success = false;
+  let dmMessage = false;
+  let responseTime = 0;
+  let matchingTemplate: IReplyTemplate | null = null;
+
   try {
+    await connectToDatabase();
+
+    // Check duplicate processing
     const existingLog = await InstaReplyLog.findOne({ commentId: comment.id });
     if (existingLog) return;
 
+    const account = await InstagramAccount.findById(accountId);
+    if (!account || !account.isActive) return;
+
+    // Validate access token
+    const isValidToken = await validateAccessToken(account.accessToken);
+    if (!isValidToken) {
+      account.isActive = false;
+      await account.save();
+      return;
+    }
+
+    // Check rate limits
+    if (!canMakeRequest(accountId)) return;
+
+    // Find matching template
     const templates = await InstaReplyTemplate.find({
-      accountId: accountId,
+      accountId,
       isActive: true,
     }).sort({ priority: 1 });
 
-    const matchingTemplate = await findMatchingTemplate(
-      comment.text,
-      templates
-    );
+    matchingTemplate = await findMatchingTemplate(comment.text, templates);
     if (!matchingTemplate) return;
 
     const startTime = Date.now();
-    const success = await replyToComment(
-      accessToken,
-      comment.id,
-      matchingTemplate.content
-    );
-    const responseTime = Date.now() - startTime;
 
-    const replyLog = new InstaReplyLog({
-      accountId: accountId,
+    // Process based on template type
+    if (["Sales", "Support"].includes(matchingTemplate.category)) {
+      try {
+        dmMessage = await sendDirectMessage(
+          account.instagramId,
+          account.accessToken,
+          comment.user_id,
+          matchingTemplate.content
+        );
+      } catch (dmError) {
+        console.error(`DM failed:`, dmError);
+      }
+
+      try {
+        success = await replyToComment(
+          account.instagramId,
+          account.accessToken,
+          comment.id,
+          comment.media_id,
+          "Please check your DMs for assistance!"
+        );
+      } catch (replyError) {
+        console.error(`Reply failed:`, replyError);
+      }
+    } else {
+      try {
+        success = await replyToComment(
+          account.instagramId,
+          account.accessToken,
+          comment.id,
+          comment.media_id,
+          matchingTemplate.content
+        );
+      } catch (replyError) {
+        console.error(`Reply failed:`, replyError);
+      }
+    }
+
+    responseTime = Date.now() - startTime;
+
+    // Save log
+    await InstaReplyLog.create({
+      userId,
+      accountId,
       templateId: matchingTemplate._id,
+      templateName: matchingTemplate.name,
       commentId: comment.id,
       commentText: comment.text,
       replyText: matchingTemplate.content,
-      success,
+      success: success || dmMessage,
       responseTime,
-      mediaId,
+      mediaId: comment.media_id,
       commenterUsername: comment.username,
       timestamp: new Date(comment.timestamp),
     });
 
-    await replyLog.save();
-
-    if (success) {
-      matchingTemplate.usageCount += 1;
-      matchingTemplate.lastUsed = new Date();
-      await matchingTemplate.save();
+    // Update template usage
+    if (success || dmMessage) {
+      await InstaReplyTemplate.findByIdAndUpdate(matchingTemplate._id, {
+        $inc: { usageCount: 1 },
+        $set: { lastUsed: new Date() },
+      });
     }
 
-    await updateAnalytics(accountId, success, responseTime);
+    // Update account activity
+    account.lastActivity = new Date();
+    await account.save();
   } catch (error) {
     console.error("Error processing comment:", error);
   }
 }
 
-// Server Actions (exported)
-export async function processAllAccountComments(): Promise<void> {
+// Webhook Handler
+export async function handleInstagramWebhook(
+  payload: any
+): Promise<{ success: boolean; message: string }> {
   try {
     await connectToDatabase();
-    const activeAccounts = await InstagramAccount.find({ isActive: true });
 
-    for (const account of activeAccounts) {
-      const accessToken = "mock_access_token"; // Replace with: decrypt(account.accessToken)
-
-      if (!canMakeRequest(account._id.toString())) {
-        console.log(`Rate limit exceeded for account ${account._id}`);
-        continue;
-      }
-
-      if (!account.isActive) continue;
-
-      const recentMedia = await getRecentMedia(accessToken, 10);
-
-      for (const media of recentMedia) {
-        const comments = await getMediaComments(accessToken, media.id);
-        for (const comment of comments) {
-          await processComment(
-            accessToken,
-            account._id.toString(),
-            comment,
-            media.id
-          );
-        }
-      }
-
-      account.lastActivity = new Date();
-      await account.save();
-
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Validate payload structure
+    if (
+      !payload.object ||
+      payload.object !== "instagram" ||
+      !payload.entry?.length
+    ) {
+      return { success: false, message: "Invalid payload structure" };
     }
+
+    for (const entry of payload.entry) {
+      if (!entry.changes?.length) continue;
+
+      for (const change of entry.changes) {
+        if (change.field !== "comments") continue;
+
+        const commentData = change.value;
+        if (!commentData?.id || !commentData.text) continue;
+
+        const comment: InstagramComment = {
+          id: commentData.id,
+          text: commentData.text,
+          username: commentData.from?.username || "unknown",
+          timestamp: commentData.timestamp,
+          media_id: commentData.media?.id || "",
+          user_id: commentData.from?.id || "",
+        };
+
+        // Skip non-meaningful comments
+        if (!isMeaningfulComment(comment.text)) {
+          console.log(`Skipping comment: ${comment.id}`);
+          continue;
+        }
+
+        const account = await InstagramAccount.findOne({
+          instagramId: entry.id,
+        });
+
+        if (!account) {
+          console.warn(`Account not found: ${entry.id}`);
+          continue;
+        }
+
+        await processComment(account._id.toString(), account.userId, comment);
+      }
+    }
+
+    return { success: true, message: "Webhook processed" };
   } catch (error) {
-    console.error("Error processing all account comments:", error);
-    throw error;
+    console.error("Webhook processing error:", error);
+    return {
+      success: false,
+      message: "Internal server error",
+    };
   }
-}
-
-export async function getInstagramProfileAction(
-  accessToken: string
-): Promise<InstagramProfile> {
-  return await getInstagramProfile(accessToken);
-}
-
-export async function replyToCommentAction(
-  accessToken: string,
-  commentId: string,
-  message: string
-): Promise<boolean> {
-  return await replyToComment(accessToken, commentId, message);
-}
-
-export async function validateAccessTokenAction(
-  accessToken: string
-): Promise<boolean> {
-  return await validateAccessToken(accessToken);
-}
-
-export async function getRateLimitStatusAction(
-  accountId: string
-): Promise<{ canMakeRequest: boolean; remaining: number }> {
-  return {
-    canMakeRequest: canMakeRequest(accountId),
-    remaining: getRemainingRequests(accountId),
-  };
 }

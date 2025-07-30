@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface Template {
-  id: string;
+  userId: string;
+  accountId: string;
   name: string;
   content: string;
   triggers: string[];
@@ -27,6 +28,7 @@ interface Template {
   priority: number;
   usageCount: number;
   lastUsed?: string;
+  accountUsername: string;
 }
 
 interface TemplateCardProps {
@@ -46,7 +48,7 @@ export default function TemplateCard({
     setIsDeleting(true);
     // Simulate API call
     setTimeout(() => {
-      onDelete(template.id);
+      onDelete(template.accountId);
       setIsDeleting(false);
     }, 500);
   };
@@ -72,9 +74,9 @@ export default function TemplateCard({
   return (
     <Card
       className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br ${
-        template.id === "1"
+        template.priority === 1
           ? "from-[#FF2E9F]/10 to-[#FF2E9F]/5 border-[#FF2E9F]/10 hover:bg-[#FF2E9F]/10 "
-          : template.id === "2"
+          : template.priority >= 1
           ? "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/10 hover:bg-[#00F0FF]/10 "
           : "from-[#ca7030]/10 to-[#ca7030]/5 border-[#ca7030]/10 hover:bg-[#ca7030]/10 "
       }bg-transparent backdrop-blur-sm border`}
@@ -95,7 +97,7 @@ export default function TemplateCard({
           <div className="flex items-center gap-2">
             <Switch
               checked={template.isActive}
-              onCheckedChange={() => onToggle(template.id)}
+              onCheckedChange={() => onToggle(template.accountId)}
             />
             <Button variant="ghost" size="sm">
               <Edit2 className="h-4 w-4" />

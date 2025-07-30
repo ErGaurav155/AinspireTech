@@ -17,27 +17,28 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Instagram, Shield, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import LoginPage from "./InstagramAutomationWizard";
 interface AccountVerificationProps {
   onVerified: () => void;
   buyerId: string | null;
 }
 const AddAccount = ({ onVerified, buyerId }: AccountVerificationProps) => {
   const [username, setUsername] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [isLoad, setIsLoad] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    onVerified();
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsSubmitting(true);
+  //   onVerified();
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      router.push("/dashboard");
-    }, 2000);
-  };
+  //   // Simulate API call
+  //   setTimeout(() => {
+  //     setIsSubmitting(false);
+  //     router.push("/dashboard");
+  //   }, 2000);
+  // };
   return (
     <div>
       <div className="text-center mb-8">
@@ -57,8 +58,9 @@ const AddAccount = ({ onVerified, buyerId }: AccountVerificationProps) => {
         <Shield className="h-4 w-4" />
         <AlertDescription className="">
           <strong>Important:</strong> For security and compliance with Instagram
-          Terms of Service, we recommend using Instagram official Business API.
-          Direct password authentication may result in account restrictions.
+          Terms of Service, we are using Instagram official Business API.So Dont
+          Worry about Password,We did not get your Instagram provide us only
+          access key not your Password.
         </AlertDescription>
       </Alert>
 
@@ -67,62 +69,30 @@ const AddAccount = ({ onVerified, buyerId }: AccountVerificationProps) => {
           <CardTitle>Account Information</CardTitle>
           <CardDescription>
             Enter your Instagram account details. We use secure encryption to
-            protect your data.
+            protect your Access key.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-2">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2 ">
-              <Label htmlFor="username">Instagram Username</Label>
-              <Input
-                id="username"
-                type="text"
-                className="card-hover group"
-                placeholder="Enter your username (without @)"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter your Instagram username without the @ symbol
-              </p>
-            </div>
+          {isLoad && <LoginPage />}
 
-            <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name (Optional)</Label>
-              <Input
-                id="displayName"
-                type="text"
-                className="card-hover group"
-                placeholder="How you'd like this account to be displayed"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-              />
-            </div>
-
-            <Alert className="card-hover group">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Demo Mode:</strong> This is a demonstration version. In
-                production, you would integrate with Instagram official Business
-                API or use OAuth authentication for secure account connection.
-              </AlertDescription>
-            </Alert>
-
-            <div className="flex gap-2 md:gap-4">
-              <Button type="submit" disabled={isSubmitting} className="flex-1">
-                {isSubmitting ? "Connecting..." : "Connect Account"}
-              </Button>
-              <Button
-                className="card-hover group"
-                type="button"
-                variant="outline"
-                asChild
-              >
-                <Link href="/insta/dashboard">Cancel</Link>
-              </Button>
-            </div>
-          </form>
+          <div className="flex gap-2 md:gap-4">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              onClick={() => setIsLoad(true)}
+              className="flex-1"
+            >
+              {isSubmitting ? "Connecting..." : "Connect Account"}
+            </Button>
+            <Button
+              className="card-hover group"
+              type="button"
+              variant="outline"
+              asChild
+            >
+              <Link href="/insta/dashboard">Cancel</Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -146,10 +116,7 @@ const AddAccount = ({ onVerified, buyerId }: AccountVerificationProps) => {
           <p>
             🔐 Your data is stored securely and never shared with third parties
           </p>
-          <p>
-            ⚡ We recommend using Instagram Business API for production
-            applications
-          </p>
+          <p>⚡ We are using Instagram Business API for our applications</p>
         </CardContent>
       </Card>
     </div>

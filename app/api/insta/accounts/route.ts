@@ -1,4 +1,5 @@
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
+import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -16,9 +17,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const accounts = await InstagramAccount.find({ userId });
+    const accounts = await InstagramAccount.find({ userId: userId });
 
-    return NextResponse.json({ accounts });
+    const accountsWithTemplateCounts = await Promise.all(
+      accounts.map(async (account) => {
+        const templatesCount = await InstaReplyTemplate.countDocuments({
+          accountId: account.instagramId, // Use account._id as the accountId
+          isActive: true,
+        });
+
+        return {
+          ...account.toObject(), // Convert Mongoose document to plain object
+          templatesCount,
+        };
+      })
+    );
+    return NextResponse.json({ accounts: accountsWithTemplateCounts });
   } catch (error) {
     console.error("Error fetching Instagram accounts:", error);
     return NextResponse.json(

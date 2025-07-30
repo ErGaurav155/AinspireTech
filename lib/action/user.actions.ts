@@ -7,7 +7,8 @@ import { connectToDatabase } from "../database/mongoose";
 import { handleError } from "../utils";
 import { CreateUserParams, UpdateUserParams } from "@/types/types";
 import WebSubscription from "../database/models/web/Websubcription.model";
-import { dummySubscriptions } from "@/constant";
+import InstaReplyLog from "../database/models/insta/ReplyLog.model";
+import InstaSubscription from "../database/models/insta/InstaSubscription.model";
 
 // CREATE
 export async function createUser(user: CreateUserParams) {
@@ -171,14 +172,14 @@ export async function deleteUser(clerkId: string) {
     handleError(error);
   }
 }
-export async function seedSubscriptions() {
-  try {
-    await connectToDatabase();
+// export async function seedSubscriptions() {
+//   try {
+//     await connectToDatabase();
 
-    // Insert dummy data
-    const created = await WebSubscription.insertMany(dummySubscriptions);
-    console.log(`Created ${created.length} dummy subscriptions`);
-  } catch (error) {
-    console.error("Error seeding subscriptions:", error);
-  }
-}
+//     // Insert dummy data
+//     const created = await InstaSubscription.insertMany(dummySubscriptions);
+//     console.log(`Created ${created.length} dummy subscriptions`);
+//   } catch (error) {
+//     console.error("Error seeding subscriptions:", error);
+//   }
+// }

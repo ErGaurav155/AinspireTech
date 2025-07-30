@@ -1,14 +1,15 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IReplyLog extends Document {
-  accountId: mongoose.Types.ObjectId;
-  templateId: mongoose.Types.ObjectId;
+  userId: string;
+  accountId: string;
+  templateId: string;
+  templateName: string;
   commentId: string;
   commentText: string;
   replyText: string;
   success: boolean;
   responseTime: number;
-  errorMessage?: string;
   mediaId: string;
   commenterUsername: string;
   timestamp: Date;
@@ -17,21 +18,25 @@ export interface IReplyLog extends Document {
 
 const ReplyLogSchema = new Schema<IReplyLog>(
   {
-    accountId: {
-      type: Schema.Types.ObjectId,
-      ref: "InstagramAccount",
+    userId: {
+      type: String,
       required: true,
-      index: true,
+    },
+    accountId: {
+      type: String,
+      required: true,
     },
     templateId: {
-      type: Schema.Types.ObjectId,
-      ref: "ReplyTemplate",
+      type: String,
+      required: true,
+    },
+    templateName: {
+      type: String,
       required: true,
     },
     commentId: {
       type: String,
       required: true,
-      unique: true,
     },
     commentText: {
       type: String,
@@ -44,15 +49,12 @@ const ReplyLogSchema = new Schema<IReplyLog>(
     success: {
       type: Boolean,
       required: true,
-      index: true,
     },
     responseTime: {
       type: Number,
       required: true,
     },
-    errorMessage: {
-      type: String,
-    },
+
     mediaId: {
       type: String,
       required: true,
@@ -64,7 +66,6 @@ const ReplyLogSchema = new Schema<IReplyLog>(
     timestamp: {
       type: Date,
       required: true,
-      index: true,
     },
   },
   {

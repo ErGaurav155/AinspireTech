@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { templateId: string } }
 ) {
   try {
     await connectToDatabase();
@@ -12,8 +12,8 @@ export async function PUT(
     const body = await req.json();
     const { name, content, triggers, priority, isActive } = body;
 
-    const template = await InstaReplyTemplate.findByIdAndUpdate(
-      params.id,
+    const template = await InstaReplyTemplate.findOneAndUpdate(
+      { accountId: params?.templateId },
       {
         name,
         content,
@@ -25,7 +25,6 @@ export async function PUT(
       },
       { new: true }
     );
-
     if (!template) {
       return NextResponse.json(
         { error: "Template not found" },
@@ -45,12 +44,14 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { templateId: string } }
 ) {
   try {
     await connectToDatabase();
 
-    const template = await InstaReplyTemplate.findByIdAndDelete(params.id);
+    const template = await InstaReplyTemplate.findOneAndDelete({
+      accountId: params.templateId,
+    });
 
     if (!template) {
       return NextResponse.json(

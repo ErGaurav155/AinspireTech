@@ -1,120 +1,163 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Plus,
   Instagram,
   Settings,
-  Power,
-  PowerOff,
   Users,
   BarChart3,
   Zap,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
-// Dummy data fallback
-const dummyAccounts = [
-  {
-    id: "1",
-    username: "fashionista_jane",
-    displayName: "Jane Fashion",
-    profilePicture:
-      "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
-    followersCount: 15420,
-    postsCount: 892,
-    isActive: true,
-    templatesCount: 5,
-    repliesCount: 234,
-    lastActivity: new Date().toISOString(),
-    engagementRate: 4.2,
-    avgResponseTime: "2.3s",
-  },
-  {
-    id: "2",
-    username: "tech_guru_mike",
-    displayName: "Mike Tech",
-    profilePicture:
-      "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
-    followersCount: 8930,
-    postsCount: 456,
-    isActive: false,
-    templatesCount: 3,
-    repliesCount: 89,
-    lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    engagementRate: 3.8,
-    avgResponseTime: "1.9s",
-  },
-  {
-    id: "3",
-    username: "food_lover_sarah",
-    displayName: "Sarah Foodie",
-    profilePicture:
-      "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
-    followersCount: 23150,
-    postsCount: 1203,
-    isActive: true,
-    templatesCount: 8,
-    repliesCount: 456,
-    lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    engagementRate: 5.1,
-    avgResponseTime: "1.2s",
-  },
-];
+// Cache key
+const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
 export default function AccountsPage() {
-  const [accounts, setAccounts] = useState(dummyAccounts);
+  const [accounts, setAccounts] = useState<any>();
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { userId } = useAuth();
+  const router = useRouter();
 
-  useEffect(() => {
-    fetchAccounts();
-  }, []);
-
-  const fetchAccounts = async () => {
+  // Fetch accounts with caching
+  const fetchAccounts = useCallback(async () => {
+    if (!userId) {
+      router.push("/sign-in");
+      return;
+    }
     try {
-      const response = await fetch("/api/insta/accounts");
-      if (response.ok) {
-        const data = await response.json();
-        if (data.length > 0) {
+      setIsLoading(true);
+      setError(null);
+      // Check cache first
+      const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
+      const cacheDuration = 15 * 60 * 1000; // 15 minutes
+
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData);
+        if (Date.now() - timestamp < cacheDuration) {
           setAccounts(data);
-        } else {
-          console.log("No accounts found, using dummy data");
-          setAccounts(dummyAccounts);
+          setIsLoading(false);
+          return;
         }
-      } else {
-        console.log("API not available, using dummy data");
-        setAccounts(dummyAccounts);
       }
+
+      // Fetch from API
+      const accountsResponse = await fetch(
+        `/api/insta/dashboard?userId=${userId}`
+      );
+      if (!accountsResponse.ok) throw new Error("Failed to fetch accounts");
+
+      const { accounts: dbAccounts } = await accountsResponse.json();
+      if (!dbAccounts?.length) {
+        return null;
+      }
+
+      // Fetch Instagram data for each account
+      const completeAccounts = await Promise.all(
+        dbAccounts.map(async (dbAccount: any) => {
+          try {
+            const instaResponse = await fetch(
+              `/api/insta/user-info?accessToken=${dbAccount.accessToken}&fields=username,user_id,followers_count,media_count,profile_picture_url`
+            );
+
+            if (!instaResponse.ok) throw new Error("Instagram API failed");
+
+            const instaData = await instaResponse.json();
+
+            return {
+              id: dbAccount._id,
+              accountId: dbAccount.instagramId,
+              username: instaData.username || dbAccount.username,
+              displayName:
+                dbAccount.displayName || instaData.username || "No Name",
+              profilePicture:
+                dbAccount.profilePicture ||
+                instaData.profile_picture_url ||
+                "/public/assets/img/default-img.jpg",
+              followersCount:
+                instaData.followers_count || dbAccount.followersCount || 0,
+              postsCount: instaData.media_count || dbAccount.postsCount || 0,
+              isActive: dbAccount.isActive || false,
+              templatesCount: dbAccount.templatesCount || 0,
+              repliesCount: dbAccount.repliesCount || 0,
+              lastActivity: dbAccount.lastActivity || new Date().toISOString(),
+              engagementRate: dbAccount.engagementRate || 0,
+              avgResponseTime: dbAccount.avgResponseTime || "0s",
+              accessToken: dbAccount.accessToken,
+            };
+          } catch (instaError) {
+            console.error(
+              `Failed to fetch Instagram data for account ${dbAccount._id}:`,
+              instaError
+            );
+            return {
+              id: dbAccount._id,
+              accountId: dbAccount.instagramId,
+              username: dbAccount.username,
+              displayName: dbAccount.displayName || "No Name",
+              profilePicture:
+                dbAccount.profilePicture ||
+                "/public/assets/img/default-img.jpg",
+              followersCount: dbAccount.followersCount || 0,
+              postsCount: dbAccount.postsCount || 0,
+              isActive: dbAccount.isActive || false,
+              templatesCount: dbAccount.templatesCount || 0,
+              repliesCount: dbAccount.repliesCount || 0,
+              lastActivity: dbAccount.lastActivity || new Date().toISOString(),
+              engagementRate: dbAccount.engagementRate || 0,
+              avgResponseTime: dbAccount.avgResponseTime || "0s",
+              accessToken: dbAccount.accessToken,
+            };
+          }
+        })
+      );
+      setAccounts(completeAccounts);
+      localStorage.setItem(
+        ACCOUNTS_CACHE_KEY,
+        JSON.stringify({
+          data: completeAccounts,
+          timestamp: Date.now(),
+        })
+      );
     } catch (error) {
-      console.log("API error, using dummy data:", error);
-      setAccounts(dummyAccounts);
+      console.error("Failed to fetch accounts:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to load accounts"
+      );
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId, router]);
+
+  useEffect(() => {
+    if (!userId) {
+      router.push("/sign-in");
+      return;
+    }
+    fetchAccounts();
+  }, [userId, router, fetchAccounts]);
 
   const handleToggleAccount = async (accountId: string) => {
-    const account = accounts.find((acc) => acc.id === accountId);
+    const account = accounts.find((acc: any) => acc.id === accountId);
     if (!account) return;
 
     const newActiveState = !account.isActive;
 
-    // Optimistically update UI
-    setAccounts(
-      accounts.map((acc) =>
+    // Optimistic UI update
+    setAccounts((prev: any) =>
+      prev.map((acc: any) =>
         acc.id === accountId ? { ...acc, isActive: newActiveState } : acc
       )
     );
@@ -130,20 +173,30 @@ export default function AccountsPage() {
 
       if (!response.ok) {
         // Revert on error
-        setAccounts(
-          accounts.map((acc) =>
+        setAccounts((prev: any) =>
+          prev.map((acc: any) =>
             acc.id === accountId ? { ...acc, isActive: !newActiveState } : acc
           )
         );
-        console.error("Failed to update account status");
+        throw new Error("Failed to update account status");
+      }
+
+      // Update cache
+      const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData);
+        const updatedData = data.map((acc: any) =>
+          acc.id === accountId ? { ...acc, isActive: newActiveState } : acc
+        );
+        localStorage.setItem(
+          ACCOUNTS_CACHE_KEY,
+          JSON.stringify({
+            data: updatedData,
+            timestamp,
+          })
+        );
       }
     } catch (error) {
-      // Revert on error
-      setAccounts(
-        accounts.map((acc) =>
-          acc.id === accountId ? { ...acc, isActive: !newActiveState } : acc
-        )
-      );
       console.error("Error updating account:", error);
     }
   };
@@ -155,13 +208,9 @@ export default function AccountsPage() {
       (now.getTime() - date.getTime()) / (1000 * 60)
     );
 
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes}m ago`;
-    } else if (diffInMinutes < 1440) {
-      return `${Math.floor(diffInMinutes / 60)}h ago`;
-    } else {
-      return `${Math.floor(diffInMinutes / 1440)}d ago`;
-    }
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
   if (isLoading) {
@@ -175,19 +224,55 @@ export default function AccountsPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen text-white flex items-center justify-center">
+        <div className="text-center p-6 bg-red-900/20 rounded-lg max-w-md">
+          <h2 className="text-xl font-bold mb-4">Error Loading Accounts</h2>
+          <p className="text-gray-300 mb-6">{error}</p>
+          <Button onClick={fetchAccounts} className="btn-gradient-cyan">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const displayedAccounts = accounts.length > 0 ? accounts : null;
+  const activeAccounts = displayedAccounts.filter(
+    (a: any) => a.isActive
+  ).length;
+  const totalFollowers = displayedAccounts.reduce(
+    (sum: number, acc: any) => sum + acc.followersCount,
+    0
+  );
+  const totalReplies = displayedAccounts.reduce(
+    (sum: number, acc: any) => sum + acc.repliesCount,
+    0
+  );
+  const avgEngagement =
+    displayedAccounts.length > 0
+      ? (
+          displayedAccounts.reduce(
+            (sum: number, acc: any) => sum + acc.engagementRate,
+            0
+          ) / displayedAccounts.length
+        ).toFixed(1)
+      : "0.0";
+
   return (
     <div className="min-h-screen text-white">
       <BreadcrumbsDefault />
 
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="flex flex-wrap gap-3 md:gap-0 justify-between items-center mb-8">
           <div>
             <div className="inline-flex items-center bg-blue-100/10 text-blue-400 border border-blue-400/30 rounded-full px-4 py-1 mb-4">
               <Instagram className="h-4 w-4 mr-1" />
               <span className="text-sm font-medium">Account Management</span>
             </div>
-            <h1 className=" text-3xl md:text-4xl lg:text-5xl font-bold mb-2 gradient-text-main">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 gradient-text-main">
               Instagram Accounts
             </h1>
             <p className="text-gray-300 text-lg font-mono">
@@ -195,15 +280,25 @@ export default function AccountsPage() {
               settings
             </p>
           </div>
-          <Button
-            className="btn-gradient-cyan hover:opacity-90 transition-opacity"
-            asChild
-          >
-            <Link href="/insta/accounts/add">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Account
-            </Link>
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={fetchAccounts}
+              variant="outline"
+              className="border-white/20 text-gray-300 hover:bg-white/10"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
+            <Button
+              className="btn-gradient-cyan hover:opacity-90 transition-opacity"
+              asChild
+            >
+              <Link href="/insta/accounts/add">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Account
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Stats Overview */}
@@ -217,10 +312,10 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {accounts.length}
+                {displayedAccounts.length || 0}
               </div>
               <p className="text-xs text-gray-400">
-                {accounts.filter((a) => a.isActive).length} active
+                {activeAccounts || 0} active
               </p>
             </CardContent>
           </Card>
@@ -234,9 +329,7 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {accounts
-                  .reduce((sum, acc) => sum + acc.followersCount, 0)
-                  .toLocaleString()}
+                {totalFollowers.toLocaleString() || 0}
               </div>
               <p className="text-xs text-gray-400">Across all accounts</p>
             </CardContent>
@@ -251,7 +344,7 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {accounts.reduce((sum, acc) => sum + acc.repliesCount, 0)}
+                {totalReplies || 0}
               </div>
               <p className="text-xs text-gray-400">Total sent</p>
             </CardContent>
@@ -266,15 +359,7 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {accounts.length > 0
-                  ? (
-                      accounts.reduce(
-                        (sum, acc) => sum + acc.engagementRate,
-                        0
-                      ) / accounts.length
-                    ).toFixed(1)
-                  : 0}
-                %
+                {avgEngagement || 0}%
               </div>
               <p className="text-xs text-gray-400">Engagement rate</p>
             </CardContent>
@@ -283,19 +368,19 @@ export default function AccountsPage() {
 
         {/* Accounts Grid */}
         <div className="grid gap-6">
-          {accounts.map((account) => (
-            <Card
-              key={account.id}
-              className={`card-hover  transition-all duration-300 ${
-                account.isActive
-                  ? "border-[#00F0FF]/30 bg-gradient-to-r from-[#00F0FF]/5 to-transparent"
-                  : "border-white/10"
-              }`}
-            >
-              <CardContent className="pt-6 p-2 md:p-4">
-                <div className="flex flex-col md:flex-row gap-5 md:gap-0 w-full  items-center justify-between">
-                  <div className="flex  flex-col  gap-2 md:gap-0 items-center space-x-4">
-                    <div className="flex items-center justify-between w-full">
+          {displayedAccounts &&
+            displayedAccounts.map((account: any) => (
+              <Card
+                key={account.id}
+                className={`card-hover transition-all duration-300 ${
+                  account.isActive
+                    ? "border-[#00F0FF]/30 bg-gradient-to-r from-[#00F0FF]/5 to-transparent"
+                    : "border-white/10"
+                }`}
+              >
+                <CardContent className="pt-6 p-2 md:p-4">
+                  <div className="flex flex-col md:flex-row gap-4 justify-between">
+                    <div className="flex items-center gap-4">
                       <div className="relative">
                         <Image
                           src={account.profilePicture}
@@ -310,61 +395,62 @@ export default function AccountsPage() {
                           }`}
                         />
                       </div>
-                      <div className="flex flex-col items-center justify-between w-full">
-                        <h3 className="text-lg md:text-xl font-bold text-white">
+                      <div>
+                        <h3 className="text-lg font-bold text-white">
                           @{account.username}
                         </h3>
                         <p className="text-gray-400">{account.displayName}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex  items-center gap-4 mt-1">
-                        <span className="text-sm text-gray-400">
-                          {account.followersCount.toLocaleString()} followers
-                        </span>
-                        <span className="text-sm text-gray-400">
-                          {account.postsCount} posts
-                        </span>
-                        <span className="text-sm text-gray-400">
-                          {account.engagementRate}% engagement
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col lg:flex-row items-center gap-3 md:gap-0 md:space-x-4">
-                    <div className=" flex items-start justify-center gap-3 w-full">
-                      <div className="text-xs font-light text-white">
-                        {account.templatesCount}
-                        <span className="inline-block">templates</span>
-                      </div>
-                      <div className="text-xs font-light text-white">
-                        {account.repliesCount}{" "}
-                        <span className="inline-block">replies sent</span>
-                      </div>
-                      <div className="text-xs font-light text-white">
-                        {formatLastActivity(account.lastActivity)}
-                        <span className="inline-block ">:Last active </span>
+                        <div className="flex flex-wrap gap-3 mt-2">
+                          <span className="text-sm text-gray-400">
+                            {account.followersCount.toLocaleString()} followers
+                          </span>
+                          <span className="text-sm text-gray-400">
+                            {account.postsCount} posts
+                          </span>
+                          <span className="text-sm text-gray-400">
+                            {account.engagementRate}% engagement
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row items-center gap-3 w-full ">
-                      <div className="flex flex-row items-center justify-between w-full ">
-                        <Label
-                          htmlFor={`toggle-${account.id}`}
-                          className="text-sm text-gray-300"
-                        >
-                          Auto-replies
-                        </Label>
-                        <Switch
-                          id={`toggle-${account.id}`}
-                          checked={account.isActive}
-                          onCheckedChange={() =>
-                            handleToggleAccount(account.id)
-                          }
-                          className="data-[state=checked]:bg-[#00F0FF]"
-                        />
+                    <div className="flex flex-col md:flex-row items-center gap-4 mt-4 md:mt-0">
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col items-center">
+                          <span className="font-bold">
+                            {account.templatesCount}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            Templates
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span className="font-bold">
+                            {account.repliesCount}
+                          </span>
+                          <span className="text-xs text-gray-400">Replies</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span className="font-bold">
+                            {formatLastActivity(account.lastActivity)}
+                          </span>
+                          <span className="text-xs text-gray-400">Active</span>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between w-full">
+
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center">
+                          <Label className="text-sm text-gray-300 mr-2">
+                            Auto-replies
+                          </Label>
+                          <Switch
+                            checked={account.isActive}
+                            onCheckedChange={() =>
+                              handleToggleAccount(account.id)
+                            }
+                            className="data-[state=checked]:bg-[#00F0FF]"
+                          />
+                        </div>
                         <Badge
                           variant={account.isActive ? "default" : "secondary"}
                           className={
@@ -382,19 +468,17 @@ export default function AccountsPage() {
                           asChild
                         >
                           <Link href={`/insta/accounts/${account.id}`}>
-                            <Settings className="h-4 w-4 mr-2" />
-                            Manage
+                            <Settings className="h-4 w-4 mr-1" /> Manage
                           </Link>
                         </Button>
                       </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
 
-          {accounts.length === 0 && (
+          {displayedAccounts?.length === 0 && (
             <Card className="card-hover">
               <CardContent className="text-center py-12">
                 <div className="mx-auto w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-4">
@@ -408,7 +492,7 @@ export default function AccountsPage() {
                   replies
                 </p>
                 <Button className="btn-gradient-cyan" asChild>
-                  <Link href="/accounts/add">
+                  <Link href="/insta/accounts/add">
                     <Plus className="mr-2 h-4 w-4" />
                     Connect Account
                   </Link>
