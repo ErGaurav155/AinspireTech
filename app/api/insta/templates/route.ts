@@ -27,7 +27,6 @@ export async function GET(req: Request) {
     if (userId && accountId) {
       const templates = await InstaReplyTemplate.find({
         accountId,
-        userId,
       }).sort({ priority: 1, createdAt: -1 });
 
       return NextResponse.json(templates);
@@ -57,6 +56,7 @@ export async function POST(req: Request) {
       accountUsername,
     } = body;
 
+    // Validate required fields
     if (
       !userId ||
       !accountId ||
@@ -67,11 +67,30 @@ export async function POST(req: Request) {
       !accountUsername
     ) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { ok: false, error: "All fields are required" },
         { status: 400 }
       );
     }
 
+    // Check for existing templates with same category
+    const existingTemplates = await InstaReplyTemplate.find({
+      accountId,
+      category,
+    });
+
+    if (existingTemplates.length > 0) {
+      // Changed condition from === 0 to > 0
+      return NextResponse.json(
+        {
+          ok: false,
+          message: `Template with ${category} category already exists`,
+          error: "Duplicate category",
+        },
+        { status: 409 } // Using 409 Conflict for duplicate resources
+      );
+    }
+
+    // Create new template
     const template = new InstaReplyTemplate({
       userId,
       accountId,
@@ -80,20 +99,29 @@ export async function POST(req: Request) {
       triggers: Array.isArray(triggers)
         ? triggers
         : triggers.split(",").map((t: string) => t.trim()),
-      priority,
-      category: category!,
-      accountUsername: accountUsername.toLowerCase()!,
+      priority: priority || 5, // Default priority if not provided
+      category,
+      accountUsername: accountUsername.toLowerCase(),
       isActive: true,
       usageCount: 0,
     });
 
     await template.save();
 
-    return NextResponse.json(template, { status: 201 });
+    return NextResponse.json(
+      {
+        ok: true,
+        template,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error creating template:", error);
     return NextResponse.json(
-      { error: "Failed to create template" },
+      {
+        ok: false,
+        error: "Internal server error",
+      },
       { status: 500 }
     );
   }

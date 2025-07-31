@@ -373,12 +373,14 @@ export default function Dashboard() {
               <div className="text-2xl font-bold text-white">
                 {dashboardData.activeAccounts || 0}
               </div>
-              <p className="text-xs text-gray-400">
-                {dashboardData.totalAccounts ||
-                  0 - dashboardData.activeAccounts ||
-                  0}{" "}
-                inactive
-              </p>
+              {dashboardData.totalAccounts ? (
+                <p className="text-xs text-gray-400">
+                  {dashboardData.totalAccounts - dashboardData.activeAccounts}{" "}
+                  inactive
+                </p>
+              ) : (
+                <p className="text-xs text-gray-400">0 inactive</p>
+              )}
             </CardContent>
           </Card>
 

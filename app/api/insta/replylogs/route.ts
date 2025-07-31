@@ -1,6 +1,5 @@
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaReplyLog from "@/lib/database/models/insta/ReplyLog.model";
-import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { NextRequest, NextResponse } from "next/server";
 

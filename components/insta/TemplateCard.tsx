@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface Template {
+  _id: string;
   userId: string;
   accountId: string;
   name: string;
@@ -34,12 +35,14 @@ interface Template {
 interface TemplateCardProps {
   template: Template;
   onDelete: (id: string) => void;
+  onEdit: (id: Template) => void;
   onToggle: (id: string) => void;
 }
 
 export default function TemplateCard({
   template,
   onDelete,
+  onEdit,
   onToggle,
 }: TemplateCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -48,7 +51,7 @@ export default function TemplateCard({
     setIsDeleting(true);
     // Simulate API call
     setTimeout(() => {
-      onDelete(template.accountId);
+      onDelete(template._id);
       setIsDeleting(false);
     }, 500);
   };
@@ -74,9 +77,9 @@ export default function TemplateCard({
   return (
     <Card
       className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br ${
-        template.priority === 1
+        template.priority <= 3
           ? "from-[#FF2E9F]/10 to-[#FF2E9F]/5 border-[#FF2E9F]/10 hover:bg-[#FF2E9F]/10 "
-          : template.priority >= 1
+          : template.priority <= 6
           ? "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/10 hover:bg-[#00F0FF]/10 "
           : "from-[#ca7030]/10 to-[#ca7030]/5 border-[#ca7030]/10 hover:bg-[#ca7030]/10 "
       }bg-transparent backdrop-blur-sm border`}
@@ -97,9 +100,9 @@ export default function TemplateCard({
           <div className="flex items-center gap-2">
             <Switch
               checked={template.isActive}
-              onCheckedChange={() => onToggle(template.accountId)}
+              onCheckedChange={() => onToggle(template._id)}
             />
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => onEdit(template)}>
               <Edit2 className="h-4 w-4" />
             </Button>
             <AlertDialog>

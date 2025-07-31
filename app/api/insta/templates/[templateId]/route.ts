@@ -13,7 +13,7 @@ export async function PUT(
     const { name, content, triggers, priority, isActive } = body;
 
     const template = await InstaReplyTemplate.findOneAndUpdate(
-      { accountId: params?.templateId },
+      { _id: params?.templateId },
       {
         name,
         content,
@@ -50,7 +50,7 @@ export async function DELETE(
     await connectToDatabase();
 
     const template = await InstaReplyTemplate.findOneAndDelete({
-      accountId: params.templateId,
+      _id: params.templateId,
     });
 
     if (!template) {

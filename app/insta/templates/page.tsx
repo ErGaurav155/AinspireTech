@@ -53,6 +53,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { toast } from "@/components/ui/use-toast";
 // Dummy templates data fallback
 
 interface accountDataType {
@@ -76,9 +77,9 @@ export default function TemplatesPage() {
     name: "",
     content: "",
     triggers: "",
-    priority: 1,
-    category: "greeting",
-    accountUsername: "fashionista_jane",
+    priority: 5,
+    category: "",
+    accountUsername: "",
   });
 
   useEffect(() => {
@@ -139,19 +140,49 @@ export default function TemplatesPage() {
     fetchAccounts();
     fetchTemplates();
   }, [router, userId]);
+  const handleEditClick = (template: any) => {
+    setEditingTemplate(template);
+    setIsCreateDialogOpen(true);
+  };
+  const handleUpdateTemplate = async (template: any) => {
+    try {
+      const templateId = template._id;
+      const response = await fetch(`/api/insta/templates/${templateId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(template),
+      });
 
+      if (response.ok) {
+        // Update your templates state
+        const updated = await response.json();
+        setTemplates(
+          templates.map((t: any) => (t._id === updated._id ? updated : t))
+        );
+        setIsCreateDialogOpen(false);
+        setEditingTemplate(null);
+        toast({
+          title: "Template updated successfully",
+          duration: 3000,
+          className: "success-toast",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to update template",
+        duration: 3000,
+        className: "error-toast",
+      });
+    }
+  };
   const handleToggleTemplate = async (templateId: string) => {
-    const template = templates.find((t: any) => t.accountId === templateId);
+    const template = templates.find((t: any) => t._id === templateId);
     if (!template) return;
 
     const newActiveState = !template.isActive;
 
     // Optimistically update UI
-    setTemplates(
-      templates.map((t: any) =>
-        t.accountId === templateId ? { ...t, isActive: newActiveState } : t
-      )
-    );
+
     try {
       const response = await fetch(`/api/insta/templates/${templateId}`, {
         method: "PUT",
@@ -168,16 +199,21 @@ export default function TemplatesPage() {
         // Revert on error
         setTemplates(
           templates.map((t: any) =>
-            t.accountId === templateId ? { ...t, isActive: !newActiveState } : t
+            t._id === templateId ? { ...t, isActive: !newActiveState } : t
           )
         );
         console.error("Failed to update template status");
       }
+      setTemplates(
+        templates.map((t: any) =>
+          t._id === templateId ? { ...t, isActive: newActiveState } : t
+        )
+      );
     } catch (error) {
       // Revert on error
       setTemplates(
         templates.map((t: any) =>
-          t.accountId === templateId ? { ...t, isActive: !newActiveState } : t
+          t._id === templateId ? { ...t, isActive: !newActiveState } : t
         )
       );
       console.error("Error updating template:", error);
@@ -192,7 +228,7 @@ export default function TemplatesPage() {
 
       if (response.ok) {
         setTemplates(
-          templates.filter((template: any) => template.accountId !== templateId)
+          templates.filter((template: any) => template._id !== templateId)
         );
       } else {
         console.error("Failed to delete template");
@@ -201,7 +237,7 @@ export default function TemplatesPage() {
       console.error("Error deleting template:", error);
       // For demo purposes, still remove from UI
       setTemplates(
-        templates.filter((template: any) => template.accountId !== templateId)
+        templates.filter((template: any) => template._id !== templateId)
       );
     }
   };
@@ -228,26 +264,47 @@ export default function TemplatesPage() {
           triggers: newTemplate.triggers.split(",").map((t) => t.trim()),
         }),
       });
+      const result = await response.json();
+      console.log(result);
+      if (response.ok && result.ok) {
+        console.log(result.template);
 
-      if (response.ok) {
-        const createdTemplate = await response.json();
-        setTemplates([createdTemplate, ...templates]);
+        setTemplates([result.template, ...templates]);
+        setIsCreateDialogOpen(false);
+
+        toast({
+          title: "Template created successfully",
+          duration: 3000,
+          className: "success-toast",
+        });
+        setNewTemplate({
+          name: "",
+          category: "",
+          content: "",
+          triggers: "",
+          priority: 5,
+          accountUsername: "",
+        });
       } else {
-        console.error("Failed to create template");
+        setIsCreateDialogOpen(false);
+
+        toast({
+          title: result.message || "Failed to create template",
+          description: result.error || "Please try again",
+          duration: 3000,
+          className: "error-toast",
+        });
       }
     } catch (error) {
-      console.error("Error creating template:", error);
-    }
+      setIsCreateDialogOpen(false);
 
-    setNewTemplate({
-      name: "",
-      content: "",
-      triggers: "",
-      priority: 1,
-      category: "greeting",
-      accountUsername: "fashionista_jane",
-    });
-    setIsCreateDialogOpen(false);
+      toast({
+        title: "Network error",
+        description: "Could not connect to server",
+        duration: 3000,
+        className: "error-toast",
+      });
+    }
   };
 
   const filteredTemplates = templates.filter((template: any) => {
@@ -339,11 +396,12 @@ export default function TemplatesPage() {
             <DialogContent className="sm:max-w-[600px] bg-transparent bg-gradient-to-br  border-[#B026FF]/20 hover:border-[#B026FF]/40 backdrop-blur-md border">
               <DialogHeader>
                 <DialogTitle className="text-white">
-                  Create New Template
+                  {editingTemplate ? "Edit Template" : "Create New Template"}
                 </DialogTitle>
                 <DialogDescription className="text-gray-400">
-                  Set up an automated reply that triggers when specific keywords
-                  are detected
+                  {editingTemplate
+                    ? "Update your automated reply content and triggers"
+                    : "Set up an automated reply that triggers when specific keywords are detected"}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
@@ -352,37 +410,70 @@ export default function TemplatesPage() {
                     <Label htmlFor="name" className="text-gray-300">
                       Template Name
                     </Label>
-                    <Input
-                      id="name"
-                      value={newTemplate.name}
-                      onChange={(e) =>
-                        setNewTemplate({ ...newTemplate, name: e.target.value })
-                      }
-                      placeholder="e.g., Welcome Message"
-                      className="bg-white/5 border-white/20 text-white"
-                    />
+                    {editingTemplate ? (
+                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600">
+                        {editingTemplate.name}
+                      </div>
+                    ) : (
+                      <Input
+                        id="name"
+                        value={newTemplate.name}
+                        onChange={(e) =>
+                          setNewTemplate({
+                            ...newTemplate,
+                            name: e.target.value,
+                          })
+                        }
+                        placeholder="e.g., Welcome Message"
+                        className="bg-white/5 border-white/20 text-white"
+                      />
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="category" className="text-gray-300">
                       Category
                     </Label>
-                    <Select
-                      value={newTemplate.category}
-                      onValueChange={(value) =>
-                        setNewTemplate({ ...newTemplate, category: value })
-                      }
-                    >
-                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="greeting">Greeting</SelectItem>
-                        <SelectItem value="sales">Sales</SelectItem>
-                        <SelectItem value="content">Content</SelectItem>
-                        <SelectItem value="engagement">Engagement</SelectItem>
-                        <SelectItem value="support">Support</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {editingTemplate ? (
+                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600 capitalize">
+                        {editingTemplate.category}
+                      </div>
+                    ) : (
+                      <Select
+                        value={newTemplate.category}
+                        onValueChange={(value) =>
+                          setNewTemplate({ ...newTemplate, category: value })
+                        }
+                      >
+                        <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                          <SelectValue placeholder="Choose Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[
+                            { value: "greeting", label: "Greeting" },
+                            { value: "sales", label: "Sales" },
+                            { value: "content", label: "Content" },
+                            { value: "engagement", label: "Engagement" },
+                            { value: "support", label: "Support" },
+                          ]
+                            .filter(
+                              (category) =>
+                                // Exclude categories that already exist in templates
+                                !templates.some(
+                                  (template: any) =>
+                                    template.category === category.value
+                                )
+                            )
+                            .map((category) => (
+                              <SelectItem
+                                key={category.value}
+                                value={category.value}
+                              >
+                                {category.label}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 </div>
 
@@ -392,12 +483,21 @@ export default function TemplatesPage() {
                   </Label>
                   <Textarea
                     id="content"
-                    value={newTemplate.content}
+                    value={
+                      editingTemplate
+                        ? editingTemplate.content
+                        : newTemplate.content
+                    }
                     onChange={(e) =>
-                      setNewTemplate({
-                        ...newTemplate,
-                        content: e.target.value,
-                      })
+                      editingTemplate
+                        ? setEditingTemplate({
+                            ...editingTemplate,
+                            content: e.target.value,
+                          })
+                        : setNewTemplate({
+                            ...newTemplate,
+                            content: e.target.value,
+                          })
                     }
                     placeholder="Write your automated reply message..."
                     className="min-h-[100px] bg-white/5 border-white/20 text-white"
@@ -410,12 +510,21 @@ export default function TemplatesPage() {
                   </Label>
                   <Input
                     id="triggers"
-                    value={newTemplate.triggers}
+                    value={
+                      editingTemplate
+                        ? editingTemplate.triggers
+                        : newTemplate.triggers
+                    }
                     onChange={(e) =>
-                      setNewTemplate({
-                        ...newTemplate,
-                        triggers: e.target.value,
-                      })
+                      editingTemplate
+                        ? setEditingTemplate({
+                            ...editingTemplate,
+                            triggers: e.target.value,
+                          })
+                        : setNewTemplate({
+                            ...newTemplate,
+                            triggers: e.target.value,
+                          })
                     }
                     placeholder="hello, hi, welcome, new"
                     className="bg-white/5 border-white/20 text-white"
@@ -432,13 +541,29 @@ export default function TemplatesPage() {
                       type="number"
                       min="1"
                       max="10"
-                      value={newTemplate.priority}
-                      onChange={(e) =>
-                        setNewTemplate({
-                          ...newTemplate,
-                          priority: parseInt(e.target.value),
-                        })
+                      value={
+                        editingTemplate
+                          ? editingTemplate.priority || 5
+                          : newTemplate.priority || 5
                       }
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        if (editingTemplate) {
+                          setEditingTemplate({
+                            ...editingTemplate,
+                            priority: isNaN(value)
+                              ? 5
+                              : Math.min(Math.max(value, 1), 10),
+                          });
+                        } else {
+                          setNewTemplate({
+                            ...newTemplate,
+                            priority: isNaN(value)
+                              ? 5
+                              : Math.min(Math.max(value, 1), 10),
+                          });
+                        }
+                      }}
                       className="bg-white/5 border-white/20 text-white"
                     />
                   </div>
@@ -446,45 +571,63 @@ export default function TemplatesPage() {
                     <Label htmlFor="account" className="text-gray-300">
                       Account
                     </Label>
-                    <Select
-                      value={newTemplate.accountUsername}
-                      onValueChange={(value) =>
-                        setNewTemplate({
-                          ...newTemplate,
-                          accountUsername: value,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
-                        <SelectValue placeholder="Select an account" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {accounts.map((account) => (
-                          <SelectItem
-                            key={account.instagramId}
-                            value={account.username}
-                          >
-                            {account.username}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {editingTemplate ? (
+                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600">
+                        {accounts.find(
+                          (a) => a.username === editingTemplate.accountUsername
+                        )?.username || editingTemplate.accountUsername}
+                      </div>
+                    ) : (
+                      <Select
+                        value={newTemplate.accountUsername}
+                        onValueChange={(value) =>
+                          setNewTemplate({
+                            ...newTemplate,
+                            accountUsername: value,
+                          })
+                        }
+                      >
+                        <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                          <SelectValue
+                            className="text-white block"
+                            placeholder="Choose account"
+                          />
+                        </SelectTrigger>
+                        <SelectContent className="block">
+                          {accounts.map((account) => (
+                            <SelectItem
+                              key={account.instagramId}
+                              value={account.username}
+                            >
+                              {account.username}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 </div>
               </div>
               <DialogFooter>
                 <Button
                   variant="outline"
-                  onClick={() => setIsCreateDialogOpen(false)}
+                  onClick={() => {
+                    setIsCreateDialogOpen(false);
+                    setEditingTemplate(null);
+                  }}
                   className="border-white/20 text-gray-300"
                 >
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleCreateTemplate}
+                  onClick={() =>
+                    editingTemplate
+                      ? handleUpdateTemplate(editingTemplate)
+                      : handleCreateTemplate()
+                  }
                   className="btn-gradient-cyan"
                 >
-                  Create Template
+                  {editingTemplate ? "Update Template" : "Create Template"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -532,7 +675,7 @@ export default function TemplatesPage() {
         <div className="grid gap-6">
           {filteredTemplates.map((template: any) => (
             <Card
-              key={template.accountId}
+              key={template._id}
               className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${
                 template.isActive
                   ? "from-[#B026FF]/20 to-[#B026FF]/5 border-[#B026FF]/20 hover:border-[#B026FF]/40"
@@ -564,7 +707,7 @@ export default function TemplatesPage() {
                     <Switch
                       checked={template.isActive}
                       onCheckedChange={() => {
-                        handleToggleTemplate(template.accountId);
+                        handleToggleTemplate(template._id);
                       }}
                       className="data-[state=checked]:bg-[#00F0FF]"
                     />
@@ -572,6 +715,7 @@ export default function TemplatesPage() {
                       variant="ghost"
                       size="sm"
                       className="text-gray-300 hover:text-white"
+                      onClick={() => handleEditClick(template)}
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -600,9 +744,7 @@ export default function TemplatesPage() {
                             Cancel
                           </AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() =>
-                              handleDeleteTemplate(template.accountId)
-                            }
+                            onClick={() => handleDeleteTemplate(template._id)}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
                             Delete
