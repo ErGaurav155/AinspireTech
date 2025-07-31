@@ -19,8 +19,13 @@ module.exports = {
       },
       {
         protocol: "https",
-        hostname: "scontent.cdninstagram.com",
-        port: "",
+        // Allow all Instagram CDN subdomains
+        hostname: "**.cdninstagram.com",
+      },
+      {
+        protocol: "https",
+        // Allow all other Instagram domains
+        hostname: "**.instagram.com",
       },
     ],
   },
