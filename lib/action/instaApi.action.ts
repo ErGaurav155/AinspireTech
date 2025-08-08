@@ -112,6 +112,7 @@ async function replyToComment(
     }
 
     const mediaData = await mediaResponse.json();
+    console.log("mediaData :", mediaData);
     const isOwner = mediaData.owner?.id === accountId;
 
     if (!isOwner) {
