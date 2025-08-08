@@ -9,6 +9,7 @@ import {
   BarChart3,
   Search,
   Filter,
+  Instagram,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +55,7 @@ import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
+import Link from "next/link";
 // Dummy templates data fallback
 
 interface accountDataType {
@@ -805,7 +807,29 @@ export default function TemplatesPage() {
             </Card>
           ))}
 
-          {filteredTemplates.length === 0 && (
+          {accounts.length === 0 && (
+            <Card className="card-hover">
+              <CardContent className="text-center py-12">
+                <div className="mx-auto w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                  <Instagram className="h-8 w-8 text-gray-500" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-white">
+                  No accounts connected
+                </h3>
+                <p className="text-gray-400 mb-4 font-mono">
+                  Connect your first Instagram account to start automating
+                  replies
+                </p>
+                <Button className="btn-gradient-cyan" asChild>
+                  <Link href="/insta/accounts/add">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Connect Account
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+          {accounts.length > 0 && filteredTemplates.length === 0 && (
             <Card className="card-hover">
               <CardContent className="text-center py-12">
                 <div className="mx-auto w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-4">

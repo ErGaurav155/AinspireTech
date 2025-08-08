@@ -10,6 +10,7 @@ import {
   Target,
   Calendar,
   Filter,
+  RefreshCw,
 } from "lucide-react";
 import {
   Card,
@@ -119,7 +120,7 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [timeRange, setTimeRange] = useState("7d");
-  const [analyticsData, setAnalyticsData] = useState<any>();
+  const [analyticsData, setAnalyticsData] = useState<any>([]);
 
   const [selectedAccount, setSelectedAccount] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
@@ -179,7 +180,9 @@ export default function AnalyticsPage() {
             accounts: data,
             recentActivity: [], // No recent activity in cache
           };
-          setAnalyticsData(stats);
+          if (stats) {
+            setAnalyticsData(stats);
+          }
           return stats;
         }
       }
@@ -291,7 +294,9 @@ export default function AnalyticsPage() {
         ...accountsData,
         recentActivity: recentActivity?.replyLogs,
       };
-      await setAnalyticsData(updatedData);
+      if (updatedData) {
+        await setAnalyticsData(updatedData);
+      }
     } catch (error) {
       console.error("Using dummy data - API error:", error);
     } finally {
@@ -324,6 +329,20 @@ export default function AnalyticsPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
           <p className="text-gray-300">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="min-h-screen text-white flex items-center justify-center">
+        <div className="text-center p-6 bg-red-900/20 rounded-lg max-w-md">
+          <h2 className="text-xl font-bold mb-4">Error Loading Accounts</h2>
+          <p className="text-gray-300 mb-6">{error}</p>
+          <Button onClick={fetchAccounts} className="btn-gradient-cyan">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </Button>
         </div>
       </div>
     );
@@ -365,11 +384,16 @@ export default function AnalyticsPage() {
               </SelectTrigger>
               <SelectContent className="card-hover group">
                 <SelectItem value="all">All Accounts</SelectItem>
-                {analyticsData.accounts.map((account: any) => (
-                  <SelectItem key={account.accountId} value={account.username}>
-                    {account.username}
-                  </SelectItem>
-                ))}
+                {analyticsData &&
+                  analyticsData?.accounts &&
+                  analyticsData?.accounts.map((account: any) => (
+                    <SelectItem
+                      key={account.accountId}
+                      value={account.username}
+                    >
+                      {account.username}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
@@ -386,7 +410,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#B026FF]">
-                {analyticsData.totalReplies.toLocaleString()}
+                {analyticsData?.totalReplies?.toLocaleString() || 0}
               </div>
               <p className="text-xs text-muted-foreground flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
@@ -404,7 +428,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#FF2E9F]">
-                {analyticsData.successRate}%
+                {analyticsData?.successRate || 0}%
               </div>
               <p className="text-xs text-muted-foreground flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
@@ -422,7 +446,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#10B981]">
-                {analyticsData.avgResponseTime}s
+                {analyticsData?.avgResponseTime || 0}s
               </div>
               <p className="text-xs text-gray-400 flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
@@ -440,7 +464,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#00F0FF]">
-                +{analyticsData.engagementRate}%
+                +{analyticsData?.engagementRate || 0}%
               </div>
               <p className="text-xs text-gray-400">
                 Since auto-replies enabled
@@ -461,38 +485,40 @@ export default function AnalyticsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 w-full  p-2">
-              {analyticsData.accounts.map((account: any) => (
-                <div
-                  key={account.id}
-                  className="flex flex-col w-full items-center justify-between p-4 gap-3 border rounded-lg"
-                >
-                  <div className="flex  items-center space-x-2 lg:space-x-4">
-                    <Image
-                      width={48}
-                      height={48}
-                      src={account.profilePicture}
-                      alt={account.username}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <h4 className="text-base lg:text-lg font-medium lg:font-semibold">
-                        @{account.username}
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {account.repliesCount} replies
-                      </p>
+              {analyticsData &&
+                analyticsData?.accounts &&
+                analyticsData?.accounts.map((account: any) => (
+                  <div
+                    key={account.id}
+                    className="flex flex-col w-full items-center justify-between p-4 gap-3 border rounded-lg"
+                  >
+                    <div className="flex  items-center space-x-2 lg:space-x-4">
+                      <Image
+                        width={48}
+                        height={48}
+                        src={account.profilePicture}
+                        alt={account.username}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <h4 className="text-base lg:text-lg font-medium lg:font-semibold">
+                          @{account.username}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {account.repliesCount} replies
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="text-sm font-medium text-white">
+                        {account.engagementRate}% engagement
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {account.avgResponseTime}s avg time
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between w-full">
-                    <div className="text-sm font-medium text-white">
-                      {account.engagementRate}% engagement
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {account.avgResponseTime}s avg time
-                    </div>
-                  </div>
-                </div>
-              ))}
+                ))}
             </CardContent>
           </Card>
 
@@ -508,45 +534,47 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent className="p-2">
               <div className="space-y-4">
-                {analyticsData.recentActivity.map((activity: any) => (
-                  <div
-                    key={activity.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`h-2 w-2 rounded-full ${"bg-[#00F0FF]"}`}
-                      />
-                      <div>
-                        <p className="text-sm font-medium text-white">
-                          {activity.type === "reply_sent"
-                            ? "Reply sent"
-                            : "Reply failed"}
-                          <span className="text-gray-400">
-                            {" "}
-                            to @{activity.account}
-                          </span>
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          Template: {activity.template}
+                {analyticsData &&
+                  analyticsData.recentActivity &&
+                  analyticsData.recentActivity.map((activity: any) => (
+                    <div
+                      key={activity.id}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`h-2 w-2 rounded-full ${"bg-[#00F0FF]"}`}
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-white">
+                            {activity.type === "reply_sent"
+                              ? "Reply sent"
+                              : "Reply failed"}
+                            <span className="text-gray-400">
+                              {" "}
+                              to @{activity.account}
+                            </span>
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            Template: {activity.template}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge
+                          variant={"default"}
+                          className={
+                            "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
+                          }
+                        >
+                          Success
+                        </Badge>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {formatTimestamp(activity.timestamp)}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <Badge
-                        variant={"default"}
-                        className={
-                          "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
-                        }
-                      >
-                        Success
-                      </Badge>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {formatTimestamp(activity.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </CardContent>
           </Card>

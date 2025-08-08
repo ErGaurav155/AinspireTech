@@ -85,6 +85,7 @@ export async function getInstagramProfile(
 }
 
 async function replyToComment(
+  username: string,
   accountId: string,
   accessToken: string,
   commentId: string,
@@ -113,7 +114,7 @@ async function replyToComment(
 
     const mediaData = await mediaResponse.json();
     console.log("mediaData :", mediaData);
-    const isOwner = mediaData.owner?.id === accountId;
+    const isOwner = mediaData.username === username;
 
     if (!isOwner) {
       throw new Error("User is not the owner of this media");
@@ -321,6 +322,7 @@ export async function processComment(
 
       try {
         success = await replyToComment(
+          account.userName,
           account.instagramId,
           account.accessToken,
           comment.id,
@@ -334,6 +336,7 @@ export async function processComment(
     } else {
       try {
         success = await replyToComment(
+          account.userName,
           account.instagramId,
           account.accessToken,
           comment.id,

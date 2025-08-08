@@ -1,4 +1,6 @@
+import { defaultTemplates } from "@/constant";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
+import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { auth } from "@clerk/nextjs";
 import { NextRequest, NextResponse } from "next/server";
@@ -46,11 +48,16 @@ export async function GET(req: NextRequest) {
       }
     );
     const tokenData = await tokenRes.json();
+    console.log("tokenData :", tokenData);
     if (!tokenData || !tokenData.access_token) {
       throw new Error("Failed to obtain access token");
     }
 
-    const { access_token: shortLivedToken, user_id: instgramId } = tokenData;
+    const {
+      access_token: shortLivedToken,
+      user_id: instgramId,
+      username,
+    } = tokenData;
 
     // Exchange for long-lived token
     const longLivedUrl = new URL("https://graph.instagram.com/access_token");
@@ -77,12 +84,27 @@ export async function GET(req: NextRequest) {
       { userId: userid },
       {
         instagramId: instgramId,
+        username: username,
         accessToken: longLivedData.access_token,
         lastTokenRefresh: Date.now(),
+        isActive: true,
         expiresAt,
       },
       { upsert: true, new: true }
     );
+    const template = await Promise.all(
+      defaultTemplates.map(async (template) => {
+        const newTemplate = new InstaReplyTemplate({
+          ...template,
+          userId,
+          accountId: InstaAcc.instagramId,
+          accountUsername: InstaAcc.username,
+        });
+        await newTemplate.save();
+      })
+    );
+    console.log("template:", template);
+
     return NextResponse.json({ account: InstaAcc, status: 200 });
   } catch (error: any) {
     console.error("Instagram callback error:", error);

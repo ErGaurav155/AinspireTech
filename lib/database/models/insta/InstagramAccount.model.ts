@@ -4,10 +4,7 @@ export interface IInstagramAccount extends Document {
   userId: string;
   instagramId: string;
   username: string;
-  isProfessional: boolean;
-  accountType: string;
   accessToken: string;
-  displayName?: string;
   profilePicture?: string;
   isActive?: boolean;
   lastTokenRefresh?: Date;
@@ -30,14 +27,8 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
       trim: true,
       lowercase: true,
     },
-    isProfessional: Boolean,
-    accountType: { type: String, enum: ["BUSINESS", "CREATOR", "PERSONAL"] },
     accessToken: String,
 
-    displayName: {
-      type: String,
-      trim: true,
-    },
     profilePicture: {
       type: String,
     },

@@ -745,3 +745,46 @@ function getFutureDate(days: number): Date {
   date.setDate(date.getDate() + days);
   return date;
 }
+export const defaultTemplates = [
+  {
+    name: "Product Inquiry",
+    content: "Link send to your Dm/Inbox please check.",
+    triggers: ["link", "buy", "price"], // Array of triggers (empty in your example)
+    isActive: true,
+    priority: 10,
+    category: "sales",
+    usageCount: 0,
+    __v: 0,
+  },
+  {
+    name: "Welcome Message",
+    content: "Plz follow for more reels.",
+    triggers: ["hi", "hello"], // Array of triggers (empty in your example)
+    isActive: true,
+    priority: 2,
+    category: "greeting",
+    usageCount: 0,
+    __v: 0,
+  },
+  {
+    name: "Engagement Template",
+    content: "Thank You!",
+    triggers: ["nice", "good"], // Array of triggers (empty in your example)
+    isActive: true,
+    priority: 1,
+    category: "engagement",
+    usageCount: 0,
+    __v: 0,
+  },
+  {
+    name: "Support Template",
+    content:
+      "If you have any issue then plz go to our website tell your issue link:…",
+    triggers: ["problem"], // Array of triggers (empty in your example)
+    isActive: true,
+    priority: 4,
+    category: "support",
+    usageCount: 0,
+    __v: 0,
+  },
+];

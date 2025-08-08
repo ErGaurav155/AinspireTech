@@ -42,79 +42,79 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    await connectToDatabase();
+// export async function POST(request: NextRequest) {
+//   try {
+//     await connectToDatabase();
 
-    const body = await request.json();
-    const {
-      userId,
-      instagramId,
-      username,
-      isProfessional,
-      accountType,
-      accessToken,
-      displayName,
-      profilePicture,
-      followersCount,
-      postsCount,
-      pageId,
-      pageAccessToken,
-    } = body;
+//     const body = await request.json();
+//     const {
+//       userId,
+//       instagramId,
+//       username,
+//       isProfessional,
+//       accountType,
+//       accessToken,
+//       displayName,
+//       profilePicture,
+//       followersCount,
+//       postsCount,
+//       pageId,
+//       pageAccessToken,
+//     } = body;
 
-    // Check if account already exists
-    const existingAccount = await InstagramAccount.findOne({
-      $or: [{ instagramId }, { username: username.toLowerCase() }],
-    });
+//     // Check if account already exists
+//     const existingAccount = await InstagramAccount.findOne({
+//       $or: [{ instagramId }, { username: username.toLowerCase() }],
+//     });
 
-    if (existingAccount) {
-      // Update existing account
-      const updatedAccount = await InstagramAccount.findByIdAndUpdate(
-        existingAccount._id,
-        {
-          userId,
-          isProfessional,
-          accountType,
-          accessToken,
-          displayName,
-          profilePicture,
-          followersCount,
-          postsCount,
-          pageId,
-          pageAccessToken,
-          lastTokenRefresh: new Date(),
-          lastActivity: new Date(),
-        },
-        { new: true }
-      );
+//     if (existingAccount) {
+//       // Update existing account
+//       const updatedAccount = await InstagramAccount.findByIdAndUpdate(
+//         existingAccount._id,
+//         {
+//           userId,
+//           isProfessional,
+//           accountType,
+//           accessToken,
+//           displayName,
+//           profilePicture,
+//           followersCount,
+//           postsCount,
+//           pageId,
+//           pageAccessToken,
+//           lastTokenRefresh: new Date(),
+//           lastActivity: new Date(),
+//         },
+//         { new: true }
+//       );
 
-      return NextResponse.json({ account: updatedAccount });
-    }
+//       return NextResponse.json({ account: updatedAccount });
+//     }
 
-    // Create new account
-    const newAccount = new InstagramAccount({
-      userId,
-      instagramId,
-      username: username.toLowerCase(),
-      isProfessional,
-      accountType,
-      accessToken,
-      displayName,
-      profilePicture,
-      followersCount,
-      postsCount,
-      pageId,
-      pageAccessToken,
-    });
+//     // Create new account
+//     const newAccount = new InstagramAccount({
+//       userId,
+//       instagramId,
+//       username: username.toLowerCase(),
+//       isProfessional,
+//       accountType,
+//       accessToken,
+//       displayName,
+//       profilePicture,
+//       followersCount,
+//       postsCount,
+//       pageId,
+//       pageAccessToken,
+//     });
 
-    await newAccount.save();
+//     await newAccount.save();
 
-    return NextResponse.json({ account: newAccount });
-  } catch (error) {
-    console.error("Error creating/updating Instagram account:", error);
-    return NextResponse.json(
-      { error: "Failed to save account" },
-      { status: 500 }
-    );
-  }
-}
+//     return NextResponse.json({ account: newAccount });
+//   } catch (error) {
+//     console.error("Error creating/updating Instagram account:", error);
+//     return NextResponse.json(
+//       { error: "Failed to save account" },
+//       { status: 500 }
+//     );
+//   }
+// }

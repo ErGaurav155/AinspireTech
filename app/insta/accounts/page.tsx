@@ -25,7 +25,7 @@ import { useRouter } from "next/navigation";
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
 export default function AccountsPage() {
-  const [accounts, setAccounts] = useState<any>();
+  const [accounts, setAccounts] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { userId } = useAuth();
@@ -47,7 +47,9 @@ export default function AccountsPage() {
       if (cachedData) {
         const { data, timestamp } = JSON.parse(cachedData);
         if (Date.now() - timestamp < cacheDuration) {
-          setAccounts(data);
+          if (data) {
+            setAccounts(data);
+          }
           setIsLoading(false);
           return;
         }
@@ -123,7 +125,10 @@ export default function AccountsPage() {
           }
         })
       );
-      setAccounts(completeAccounts);
+
+      if (completeAccounts) {
+        setAccounts(completeAccounts);
+      }
       localStorage.setItem(
         ACCOUNTS_CACHE_KEY,
         JSON.stringify({
@@ -239,7 +244,7 @@ export default function AccountsPage() {
     );
   }
 
-  const displayedAccounts = accounts.length > 0 ? accounts : null;
+  const displayedAccounts = accounts.length > 0 ? accounts : [];
   const activeAccounts = displayedAccounts.filter(
     (a: any) => a.isActive
   ).length;
@@ -280,7 +285,7 @@ export default function AccountsPage() {
               settings
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 mt-1 md:mt-3">
             <Button
               onClick={fetchAccounts}
               variant="outline"
