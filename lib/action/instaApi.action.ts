@@ -271,7 +271,7 @@ export async function processComment(
 
     if (existingLog) return;
 
-    const account = await InstagramAccount.findById(accountId);
+    const account = await InstagramAccount.findOne({ instagramId: accountId });
     console.log("account : ", account);
 
     if (!account || !account.isActive) return;
