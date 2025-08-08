@@ -291,6 +291,7 @@ export async function processComment(
 
     // Find matching template
     const templates = await InstaReplyTemplate.find({
+      userId,
       accountId,
       isActive: true,
     }).sort({ priority: 1 });
@@ -427,7 +428,7 @@ export async function handleInstagramWebhook(
           continue;
         }
 
-        await processComment(account._id.toString(), account.userId, comment);
+        await processComment(account.instagramId, account.userId, comment);
       }
     }
 
