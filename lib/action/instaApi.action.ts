@@ -306,7 +306,7 @@ export async function processComment(
     const startTime = Date.now();
 
     // Process based on template type
-    if (["Sales", "Support"].includes(matchingTemplate.category)) {
+    if (["sales", "support"].includes(matchingTemplate.category)) {
       try {
         dmMessage = await sendDirectMessage(
           account.instagramId,
