@@ -92,10 +92,17 @@ async function replyToComment(
   message: string
 ): Promise<boolean> {
   try {
+    console.log("accountId : ", accountId);
+    console.log("accessToken : ", accessToken);
+    console.log("commentId : ", commentId);
+    console.log("mediaId : ", mediaId);
+    console.log("message : ", message);
+
     // Verify media ownership
     const mediaResponse = await fetch(
       `https://graph.instagram.com/v23.0/${mediaId}?fields=id,username&access_token=${accessToken}`
     );
+    console.log("mediaResponse : ", mediaResponse);
 
     if (!mediaResponse.ok) {
       const error = await mediaResponse.json();
@@ -123,6 +130,7 @@ async function replyToComment(
         body: JSON.stringify({ message }),
       }
     );
+    console.log("replyResponse : ", replyResponse);
 
     if (!replyResponse.ok) {
       const error = await replyResponse.json();
@@ -144,6 +152,11 @@ async function sendDirectMessage(
   message: string
 ): Promise<boolean> {
   try {
+    console.log("accountId : ", accountId);
+    console.log("accessToken : ", accessToken);
+    console.log("recipientId : ", recipientId);
+    console.log("message : ", message);
+
     const sendResponse = await fetch(
       `https://graph.instagram.com/v23.0/${accountId}/messages`,
       {
@@ -158,9 +171,12 @@ async function sendDirectMessage(
         }),
       }
     );
+    console.log("sendResponse : ", sendResponse);
 
     if (!sendResponse.ok) {
       const error = await sendResponse.json();
+      console.log("error : ", error);
+
       console.error("Instagram DM Error:", error);
       return false;
     }
@@ -189,6 +205,8 @@ async function findMatchingTemplate(
   templates: IReplyTemplate[]
 ): Promise<IReplyTemplate | null> {
   const lowerComment = commentText.toLowerCase();
+  console.log("commentText : ", commentText);
+  console.log("templates : ", templates);
 
   // Database trigger matching
   for (const template of templates) {
@@ -208,8 +226,11 @@ async function findMatchingTemplate(
       userInput: commentText,
       templates: templates.map((t) => t.name),
     });
+    console.log("relatedTemplate : ", relatedTemplate);
 
     const parsed = JSON.parse(relatedTemplate);
+    console.log("parsed : ", parsed);
+
     if (parsed.matchedtemplate) {
       const normalizedMatch = parsed.matchedtemplate
         .toLowerCase()
@@ -237,19 +258,28 @@ export async function processComment(
   let dmMessage = false;
   let responseTime = 0;
   let matchingTemplate: IReplyTemplate | null = null;
+  console.log("accountId : ", accountId);
+  console.log("userId : ", userId);
+  console.log("comment : ", comment);
 
   try {
     await connectToDatabase();
 
     // Check duplicate processing
     const existingLog = await InstaReplyLog.findOne({ commentId: comment.id });
+    console.log("existingLog : ", existingLog);
+
     if (existingLog) return;
 
     const account = await InstagramAccount.findById(accountId);
+    console.log("account : ", account);
+
     if (!account || !account.isActive) return;
 
     // Validate access token
     const isValidToken = await validateAccessToken(account.accessToken);
+    console.log("isValidToken : ", isValidToken);
+
     if (!isValidToken) {
       account.isActive = false;
       await account.save();
@@ -257,15 +287,18 @@ export async function processComment(
     }
 
     // Check rate limits
-    if (!canMakeRequest(accountId)) return;
+    // if (!canMakeRequest(accountId)) return;
 
     // Find matching template
     const templates = await InstaReplyTemplate.find({
       accountId,
       isActive: true,
     }).sort({ priority: 1 });
+    console.log("templates : ", templates);
 
     matchingTemplate = await findMatchingTemplate(comment.text, templates);
+    console.log("matchingTemplate : ", matchingTemplate);
+
     if (!matchingTemplate) return;
 
     const startTime = Date.now();
@@ -279,6 +312,7 @@ export async function processComment(
           comment.user_id,
           matchingTemplate.content
         );
+        console.log("dmMessage : ", dmMessage);
       } catch (dmError) {
         console.error(`DM failed:`, dmError);
       }
@@ -291,6 +325,7 @@ export async function processComment(
           comment.media_id,
           "Please check your DMs for assistance!"
         );
+        console.log("success : ", success);
       } catch (replyError) {
         console.error(`Reply failed:`, replyError);
       }
@@ -303,6 +338,7 @@ export async function processComment(
           comment.media_id,
           matchingTemplate.content
         );
+        console.log("success : ", success);
       } catch (replyError) {
         console.error(`Reply failed:`, replyError);
       }
