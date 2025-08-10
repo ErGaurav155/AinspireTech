@@ -14,6 +14,7 @@ export default authMiddleware({
     "/new/product",
     "/api/webhooks/clerk",
     "/api/webhooks/instagram",
+    "/api/webhooks/instagram/infoupdate",
     "/api/embed/chatbot",
     "/api/embed/mcqchatbot",
     "/api/embed/conversation",
