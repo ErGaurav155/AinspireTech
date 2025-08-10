@@ -171,6 +171,8 @@ async function sendDirectMessage(
         body: JSON.stringify({
           recipient: { id: recipientId },
           message: { text: message },
+          messaging_type: "RESPONSE",
+          tags: ["NON_PROMOTIONAL_SUBSCRIPTION"], // Special permission tag
         }),
       }
     );
