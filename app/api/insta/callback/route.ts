@@ -1,4 +1,5 @@
 import { defaultTemplates } from "@/constant";
+import { getInstagramUser } from "@/lib/action/insta.action";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
@@ -48,16 +49,11 @@ export async function GET(req: NextRequest) {
       }
     );
     const tokenData = await tokenRes.json();
-    console.log("tokenData :", tokenData);
     if (!tokenData || !tokenData.access_token) {
       throw new Error("Failed to obtain access token");
     }
 
-    const {
-      access_token: shortLivedToken,
-      user_id: instgramId,
-      username,
-    } = tokenData;
+    const { access_token: shortLivedToken, user_id: instgramId } = tokenData;
 
     // Exchange for long-lived token
     const longLivedUrl = new URL("https://graph.instagram.com/access_token");
@@ -79,12 +75,19 @@ export async function GET(req: NextRequest) {
     const expiresIn = longLivedData.expires_in;
     const expiresAt = new Date(Date.now() + expiresIn * 1000);
 
+    const user = await getInstagramUser(longLivedData.access_token, [
+      "username",
+      "profile_picture_url",
+    ]);
+    console.log("user :", user);
+
     // Save to MongoDB
     const InstaAcc = await InstagramAccount.findOneAndUpdate(
       { userId: userid },
       {
         instagramId: instgramId,
-        username: username,
+        username: user.username,
+        profilePicture: user.profile_picture_url,
         accessToken: longLivedData.access_token,
         lastTokenRefresh: Date.now(),
         isActive: true,
@@ -92,7 +95,7 @@ export async function GET(req: NextRequest) {
       },
       { upsert: true, new: true }
     );
-    const template = await Promise.all(
+    await Promise.all(
       defaultTemplates.map(async (template) => {
         const newTemplate = new InstaReplyTemplate({
           ...template,
@@ -103,7 +106,6 @@ export async function GET(req: NextRequest) {
         await newTemplate.save();
       })
     );
-    console.log("template:", template);
 
     return NextResponse.json({ account: InstaAcc, status: 200 });
   } catch (error: any) {

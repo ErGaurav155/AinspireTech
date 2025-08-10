@@ -3,10 +3,7 @@
 import InstagramAccount from "../database/models/insta/InstagramAccount.model";
 import { connectToDatabase } from "../database/mongoose";
 
-export async function getInstagramUser(
-  accessToken: string,
-  fields: string[] = ["user_id", "username"]
-) {
+export async function getInstagramUser(accessToken: string, fields: string[]) {
   const fieldsStr = fields.join(",");
   const url = `https://graph.instagram.com/v23.0/me?fields=${fieldsStr}&access_token=${accessToken}`;
 
