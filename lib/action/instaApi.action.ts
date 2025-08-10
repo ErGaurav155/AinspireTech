@@ -93,6 +93,7 @@ async function replyToComment(
   message: string
 ): Promise<boolean> {
   try {
+    console.log("username : ", username);
     console.log("accountId : ", accountId);
     console.log("accessToken : ", accessToken);
     console.log("commentId : ", commentId);
@@ -322,7 +323,7 @@ export async function processComment(
 
       try {
         success = await replyToComment(
-          account.userName,
+          account.username,
           account.instagramId,
           account.accessToken,
           comment.id,
@@ -336,7 +337,7 @@ export async function processComment(
     } else {
       try {
         success = await replyToComment(
-          account.userName,
+          account.username,
           account.instagramId,
           account.accessToken,
           comment.id,
