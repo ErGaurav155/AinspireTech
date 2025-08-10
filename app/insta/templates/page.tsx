@@ -702,7 +702,7 @@ export default function TemplatesPage() {
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-400">
-                      {template.accountUsername}
+                      @{template.accountUsername}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 md:gap-2">
