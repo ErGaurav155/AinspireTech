@@ -317,11 +317,6 @@ export async function processComment(
           matchingTemplate.content
         );
         console.log("dmMessage : ", dmMessage);
-      } catch (dmError) {
-        console.error(`DM failed:`, dmError);
-      }
-
-      try {
         success = await replyToComment(
           account.username,
           account.instagramId,
@@ -331,8 +326,8 @@ export async function processComment(
           "Please check your DMs for assistance!"
         );
         console.log("success : ", success);
-      } catch (replyError) {
-        console.error(`Reply failed:`, replyError);
+      } catch (error) {
+        console.error(`Error :`, error);
       }
     } else {
       try {
@@ -365,7 +360,6 @@ export async function processComment(
       responseTime,
       mediaId: comment.media_id,
       commenterUsername: comment.username,
-      timestamp: new Date(comment.timestamp),
     });
 
     // Update template usage

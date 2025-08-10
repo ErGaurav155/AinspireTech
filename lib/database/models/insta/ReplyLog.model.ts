@@ -12,7 +12,6 @@ export interface IReplyLog extends Document {
   responseTime: number;
   mediaId: string;
   commenterUsername: string;
-  timestamp: Date;
   createdAt: Date;
 }
 
@@ -61,10 +60,6 @@ const ReplyLogSchema = new Schema<IReplyLog>(
     },
     commenterUsername: {
       type: String,
-      required: true,
-    },
-    timestamp: {
-      type: Date,
       required: true,
     },
   },
