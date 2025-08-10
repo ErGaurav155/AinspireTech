@@ -172,7 +172,7 @@ async function sendDirectMessage(
           recipient: { id: recipientId },
           message: { text: message },
           messaging_type: "MESSAGE_TAG", // Required for non-replies
-          tag: "POST_PURCHASE_UPDATE", // Special permission tag
+          tag: "NON_PROMOTIONAL_SUBSCRIPTION", // Special permission tag
         }),
       }
     );
