@@ -151,13 +151,13 @@ async function replyToComment(
 async function sendDirectMessage(
   accountId: string,
   accessToken: string,
-  recipientId: string,
+  commentId: string,
   message: string
 ): Promise<boolean> {
   try {
     console.log("accountId : ", accountId);
     console.log("accessToken : ", accessToken);
-    console.log("recipientId : ", recipientId);
+    console.log("recipientId : ", commentId);
     console.log("message : ", message);
 
     const sendResponse = await fetch(
@@ -169,10 +169,10 @@ async function sendDirectMessage(
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          recipient: { id: recipientId },
+          recipient: { comment_id: commentId },
           message: { text: message },
-          messaging_type: "MESSAGE_TAG", // Required for non-replies
-          tag: "NON_PROMOTIONAL_SUBSCRIPTION", // Special permission tag
+          // messaging_type: "MESSAGE_TAG", // Required for non-replies
+          // tag: "NON_PROMOTIONAL_SUBSCRIPTION", // Special permission tag
         }),
       }
     );
@@ -315,7 +315,7 @@ export async function processComment(
         dmMessage = await sendDirectMessage(
           account.instagramId,
           account.accessToken,
-          comment.user_id,
+          comment.id,
           matchingTemplate.content
         );
         console.log("dmMessage : ", dmMessage);
