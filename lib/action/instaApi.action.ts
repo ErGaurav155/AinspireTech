@@ -171,8 +171,6 @@ async function sendDirectMessage(
         body: JSON.stringify({
           recipient: { comment_id: commentId },
           message: { text: message },
-          // messaging_type: "MESSAGE_TAG", // Required for non-replies
-          // tag: "NON_PROMOTIONAL_SUBSCRIPTION", // Special permission tag
         }),
       }
     );
@@ -426,6 +424,10 @@ export async function handleInstagramWebhook(
 
         if (!account) {
           console.warn(`Account not found: ${entry.id}`);
+          continue;
+        }
+        if (account.instagramId === comment.user_id) {
+          console.log(`Owner commented Skipping now: ${comment.id}`);
           continue;
         }
 
