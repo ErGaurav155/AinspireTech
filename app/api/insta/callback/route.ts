@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
     const InstaAcc = await InstagramAccount.findOneAndUpdate(
       { userId: userid },
       {
-        instagramId: instgramId,
+        instagramId: user._id,
         username: user.username,
         profilePicture: user.profile_picture_url,
         accessToken: longLivedData.access_token,

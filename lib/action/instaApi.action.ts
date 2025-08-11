@@ -90,7 +90,7 @@ async function replyToComment(
   accessToken: string,
   commentId: string,
   mediaId: string,
-  message: string
+  message: string[]
 ): Promise<boolean> {
   try {
     console.log("username : ", username);
@@ -99,7 +99,6 @@ async function replyToComment(
     console.log("commentId : ", commentId);
     console.log("mediaId : ", mediaId);
     console.log("message : ", message);
-
     // Verify media ownership
     const mediaResponse = await fetch(
       `https://graph.instagram.com/v23.0/${mediaId}?fields=id,username&access_token=${accessToken}`
@@ -130,7 +129,9 @@ async function replyToComment(
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify(
+          message[Math.floor(Math.random() * message.length)]
+        ),
       }
     );
     console.log("replyResponse : ", replyResponse);
@@ -152,7 +153,7 @@ async function sendDirectMessage(
   accountId: string,
   accessToken: string,
   commentId: string,
-  message: string
+  message: string[]
 ): Promise<boolean> {
   try {
     console.log("accountId : ", accountId);
@@ -170,7 +171,9 @@ async function sendDirectMessage(
         },
         body: JSON.stringify({
           recipient: { comment_id: commentId },
-          message: { text: message },
+          message: {
+            text: message[Math.floor(Math.random() * message.length)],
+          },
         }),
       }
     );
@@ -323,7 +326,7 @@ export async function processComment(
           account.accessToken,
           comment.id,
           comment.media_id,
-          "Please check your DMs for assistance!"
+          ["Please check your DMs for assistance!"]
         );
         console.log("success : ", success);
       } catch (error) {

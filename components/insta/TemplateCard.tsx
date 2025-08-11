@@ -23,7 +23,7 @@ interface Template {
   userId: string;
   accountId: string;
   name: string;
-  content: string;
+  content: string[];
   triggers: string[];
   isActive: boolean;
   priority: number;
@@ -142,7 +142,18 @@ export default function TemplateCard({
       <CardContent className="space-y-4 p-3">
         <div>
           <p className="text-sm text-muted-foreground mb-2">Reply Content:</p>
-          <p className="text-sm bg-muted p-3 rounded-md">{template.content}</p>
+          <div className="flex flex-wrap items-center justify-start w-full  gap-2">
+            {/* {template.content} */}
+            {template.content.map((content: any, index: number) => (
+              <Badge
+                key={index}
+                variant="outline"
+                className="text-sm text-wrap bg-white/5 p-3 rounded-md text-gray-300"
+              >
+                {content}
+              </Badge>
+            ))}
+          </div>
         </div>
 
         <div>

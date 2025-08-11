@@ -15,6 +15,7 @@ import {
   BarChart3,
   Zap,
   FolderSync as Sync,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -88,8 +89,8 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const { userId } = useAuth();
   const [newTemplate, setNewTemplate] = useState({
     name: "",
-    content: "",
-    triggers: "",
+    content: [""],
+    triggers: [""],
     priority: 5,
     category: "",
     accountUsername: account.username || "",
@@ -358,7 +359,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
           accountId: account.accountId,
           ...newTemplate,
           accountUsername: "@" + account.username,
-          triggers: newTemplate.triggers.split(",").map((t) => t.trim()),
+          triggers: newTemplate.triggers,
         }),
       });
 
@@ -376,8 +377,8 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         setNewTemplate({
           name: "",
           category: "",
-          content: "",
-          triggers: "",
+          content: [""],
+          triggers: [""],
           priority: 5,
           accountUsername: "",
         });
@@ -645,7 +646,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                             ]
                               .filter(
                                 (category) =>
-                                  // Exclude categories that already exist in templates
                                   !templates.some(
                                     (template: any) =>
                                       template.category === category.value
@@ -665,58 +665,219 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="content" className="text-gray-300">
-                      Reply Content
-                    </Label>
-                    <Textarea
-                      id="content"
-                      value={
-                        editingTemplate
-                          ? editingTemplate.content
-                          : newTemplate.content
-                      }
-                      onChange={(e) =>
-                        editingTemplate
-                          ? setEditingTemplate({
-                              ...editingTemplate,
-                              content: e.target.value,
-                            })
-                          : setNewTemplate({
-                              ...newTemplate,
-                              content: e.target.value,
-                            })
-                      }
-                      placeholder="Write your automated reply message..."
-                      className="min-h-[100px] bg-white/5 border-white/20 text-white"
-                    />
-                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-gray-300">Replies (up to 3)</Label>
+                      {(!editingTemplate ||
+                        (editingTemplate.content &&
+                          editingTemplate.content.length < 3)) && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            if (editingTemplate) {
+                              setEditingTemplate({
+                                ...editingTemplate,
+                                content: [
+                                  ...(editingTemplate.content || []),
+                                  "",
+                                ],
+                              });
+                            } else {
+                              setNewTemplate({
+                                ...newTemplate,
+                                content: [...(newTemplate.content || []), ""],
+                              });
+                            }
+                          }}
+                          className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10"
+                        >
+                          <Plus className="mr-1 h-3 w-3" /> Add Reply
+                        </Button>
+                      )}
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="triggers" className="text-gray-300">
-                      Trigger Keywords (comma separated)
-                    </Label>
-                    <Input
-                      id="triggers"
-                      value={
-                        editingTemplate
-                          ? editingTemplate.triggers
-                          : newTemplate.triggers
-                      }
-                      onChange={(e) =>
-                        editingTemplate
-                          ? setEditingTemplate({
-                              ...editingTemplate,
-                              triggers: e.target.value,
-                            })
-                          : setNewTemplate({
-                              ...newTemplate,
-                              triggers: e.target.value,
-                            })
-                      }
-                      placeholder="hello, hi, welcome, new"
-                      className="bg-white/5 border-white/20 text-white"
-                    />
+                    {(editingTemplate
+                      ? editingTemplate.content
+                      : newTemplate.content
+                    )?.map((content: any, index: number) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex justify-between">
+                          <Label
+                            htmlFor={`content-${index}`}
+                            className="text-gray-300"
+                          >
+                            Reply {index + 1}
+                          </Label>
+                          {(editingTemplate
+                            ? editingTemplate.content
+                            : newTemplate.content
+                          )?.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const updatedContent = editingTemplate
+                                  ? [...editingTemplate.content]
+                                  : [...newTemplate.content];
+                                updatedContent.splice(index, 1);
+
+                                if (editingTemplate) {
+                                  setEditingTemplate({
+                                    ...editingTemplate,
+                                    content: updatedContent,
+                                  });
+                                } else {
+                                  setNewTemplate({
+                                    ...newTemplate,
+                                    content: updatedContent,
+                                  });
+                                }
+                              }}
+                              className="text-red-500 hover:bg-red-500/10 h-6 w-6"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <Textarea
+                          id={`content-${index}`}
+                          value={content}
+                          onChange={(e) => {
+                            const updatedContent = editingTemplate
+                              ? [...editingTemplate.content]
+                              : [...newTemplate.content];
+
+                            updatedContent[index] = e.target.value;
+
+                            if (editingTemplate) {
+                              setEditingTemplate({
+                                ...editingTemplate,
+                                content: updatedContent,
+                              });
+                            } else {
+                              setNewTemplate({
+                                ...newTemplate,
+                                content: updatedContent,
+                              });
+                            }
+                          }}
+                          placeholder="Write your automated reply..."
+                          className="min-h-[80px] bg-white/5 border-white/20 text-white"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="triggers" className="text-gray-300">
+                        set triggers (up to 3)
+                      </Label>
+                      {(!editingTemplate ||
+                        (editingTemplate.triggers &&
+                          editingTemplate.triggers.length < 3)) && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            if (editingTemplate) {
+                              setEditingTemplate({
+                                ...editingTemplate,
+                                triggers: [
+                                  ...(editingTemplate.triggers || []),
+                                  "",
+                                ],
+                              });
+                            } else {
+                              setNewTemplate({
+                                ...newTemplate,
+                                triggers: [...(newTemplate.triggers || []), ""],
+                              });
+                            }
+                          }}
+                          className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10"
+                        >
+                          <Plus className="mr-1 h-3 w-3" /> Add Reply
+                        </Button>
+                      )}
+                    </div>
+
+                    {(editingTemplate
+                      ? editingTemplate.triggers
+                      : newTemplate.triggers
+                    )?.map((triggers: any, index: number) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex justify-between">
+                          <Label
+                            htmlFor={`content-${index}`}
+                            className="text-gray-300"
+                          >
+                            Reply {index + 1}
+                          </Label>
+                          {(editingTemplate
+                            ? editingTemplate.triggers
+                            : newTemplate.triggers
+                          )?.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const updatedContent = editingTemplate
+                                  ? [...editingTemplate.triggers]
+                                  : [...newTemplate.triggers];
+                                updatedContent.splice(index, 1);
+
+                                if (editingTemplate) {
+                                  setEditingTemplate({
+                                    ...editingTemplate,
+                                    triggers: updatedContent,
+                                  });
+                                } else {
+                                  setNewTemplate({
+                                    ...newTemplate,
+                                    triggers: updatedContent,
+                                  });
+                                }
+                              }}
+                              className="text-red-500 hover:bg-red-500/10 h-6 w-6"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <Input
+                          id={`content-${index}`}
+                          value={triggers}
+                          onChange={(e) => {
+                            const updatedContent = editingTemplate
+                              ? [...editingTemplate.triggers]
+                              : [...newTemplate.triggers];
+
+                            updatedContent[index] = e.target.value;
+
+                            if (editingTemplate) {
+                              setEditingTemplate({
+                                ...editingTemplate,
+                                triggers: updatedContent,
+                              });
+                            } else {
+                              setNewTemplate({
+                                ...newTemplate,
+                                triggers: updatedContent,
+                              });
+                            }
+                          }}
+                          placeholder="Write your automated reply..."
+                          className=" bg-white/5 border-white/20 text-white"
+                        />
+                      </div>
+                    ))}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

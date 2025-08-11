@@ -748,43 +748,53 @@ function getFutureDate(days: number): Date {
 export const defaultTemplates = [
   {
     name: "Product Inquiry",
-    content: "Link send to your Dm/Inbox please check.",
-    triggers: ["link", "buy", "price"], // Array of triggers (empty in your example)
+    content: ["Link sent to your DMs/Inbox. Please check!"],
+    triggers: ["link", "buy", "price", "cost", "how much"],
     isActive: true,
     priority: 10,
     category: "sales",
-    usageCount: 0,
+    accountUsername: "", // Will be populated when creating account
     __v: 0,
   },
   {
     name: "Welcome Message",
-    content: "Plz follow for more reels.",
-    triggers: ["hi", "hello"], // Array of triggers (empty in your example)
+    content: [
+      "Please follow us for more reels!",
+      "Thanks for reaching out! Follow for daily content.",
+    ],
+    triggers: ["hi", "hello", "hey", "welcome"],
     isActive: true,
     priority: 2,
     category: "greeting",
-    usageCount: 0,
+    accountUsername: "",
     __v: 0,
   },
   {
     name: "Engagement Template",
-    content: "Thank You!",
-    triggers: ["nice", "good"], // Array of triggers (empty in your example)
+    content: [
+      "Thank you! ❤️",
+      "We appreciate your support! 🙏",
+      "Thanks for the love!",
+    ],
+    triggers: ["nice", "good", "great", "awesome", "love"],
     isActive: true,
     priority: 1,
     category: "engagement",
-    usageCount: 0,
+    accountUsername: "",
     __v: 0,
   },
   {
     name: "Support Template",
-    content:
-      "If you have any issue then plz go to our website tell your issue link:…",
-    triggers: ["problem"], // Array of triggers (empty in your example)
+    content: [
+      "For issues, please visit our website: [link]",
+      "Our support team will help you at: [link]",
+      "Let us help you! Contact support at: [link]",
+    ],
+    triggers: ["problem", "issue", "help", "broken"],
     isActive: true,
     priority: 4,
     category: "support",
-    usageCount: 0,
+    accountUsername: "",
     __v: 0,
   },
 ];

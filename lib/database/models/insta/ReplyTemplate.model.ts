@@ -4,7 +4,7 @@ export interface IReplyTemplate extends Document {
   userId: string;
   accountId: string;
   name: string;
-  content: string;
+  content: string[];
   triggers: string[];
   isActive: boolean;
   priority: number;
@@ -32,12 +32,14 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
       trim: true,
       maxlength: 100,
     },
-    content: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 500,
-    },
+    content: [
+      {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 500,
+      },
+    ],
     triggers: [
       {
         type: String,
@@ -51,7 +53,7 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
     },
     priority: {
       type: Number,
-      default: 1,
+      default: 5,
       min: 1,
       max: 10,
     },

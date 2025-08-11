@@ -17,9 +17,7 @@ export async function PUT(
       {
         name,
         content,
-        triggers: Array.isArray(triggers)
-          ? triggers
-          : triggers.split(",").map((t: string) => t.trim()),
+        triggers,
         priority,
         isActive,
       },
