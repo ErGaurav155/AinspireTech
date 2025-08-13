@@ -18,25 +18,7 @@ export async function getInstagramUser(accessToken: string, fields: string[]) {
     throw error;
   }
 }
-export async function getInstagramAccountId(
-  accountId: string,
-  accessToken: string,
-  fields: string[]
-) {
-  const fieldsStr = fields.join(",");
-  const url = `https://graph.instagram.com/v23.0/${accountId}?fields=${fieldsStr}&access_token=${accessToken}`;
 
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Instagram API error: ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching Instagram user:", error);
-    throw error;
-  }
-}
 export async function getInstaAccount(userId: string) {
   try {
     await connectToDatabase();

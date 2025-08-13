@@ -1,8 +1,5 @@
 import { defaultTemplates } from "@/constant";
-import {
-  getInstagramAccountId,
-  getInstagramUser,
-} from "@/lib/action/insta.action";
+import { getInstagramUser } from "@/lib/action/insta.action";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
@@ -83,20 +80,14 @@ export async function GET(req: NextRequest) {
       "profile_picture_url",
     ]);
     console.log("user :", user);
-    const userAccountId = await getInstagramAccountId(
-      user.id,
-      longLivedData.access_token,
-      ["username", "profile_picture_url", "id"]
-    );
-    console.log("userAccountId :", userAccountId);
 
     // Save to MongoDB
     const InstaAcc = await InstagramAccount.findOneAndUpdate(
       { userId: userid },
       {
-        instagramId: userAccountId.id,
-        username: userAccountId.username,
-        profilePicture: userAccountId.profile_picture_url,
+        instagramId: user.id,
+        username: user.username,
+        profilePicture: user.profile_picture_url,
         accessToken: longLivedData.access_token,
         lastTokenRefresh: Date.now(),
         isActive: true,
