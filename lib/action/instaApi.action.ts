@@ -404,6 +404,8 @@ export async function handleInstagramWebhook(
         if (change.field !== "comments") continue;
 
         const commentData = change.value;
+        console.log("entry values:", change.value);
+
         if (!commentData?.id || !commentData.text) continue;
 
         const comment: InstagramComment = {
