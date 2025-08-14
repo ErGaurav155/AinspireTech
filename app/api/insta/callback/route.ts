@@ -77,6 +77,7 @@ export async function GET(req: NextRequest) {
 
     const user = await getInstagramUser(longLivedData.access_token, [
       "username",
+      "user_id",
       "profile_picture_url",
     ]);
     console.log("user :", user);
@@ -85,7 +86,7 @@ export async function GET(req: NextRequest) {
     const InstaAcc = await InstagramAccount.findOneAndUpdate(
       { userId: userid },
       {
-        instagramId: user.id,
+        instagramId: user.user_id,
         username: user.username,
         profilePicture: user.profile_picture_url,
         accessToken: longLivedData.access_token,

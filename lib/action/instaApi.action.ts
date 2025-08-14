@@ -387,7 +387,6 @@ export async function handleInstagramWebhook(
 ): Promise<{ success: boolean; message: string }> {
   try {
     await connectToDatabase();
-    console.log("payload:", payload);
     // Validate payload structure
     if (
       !payload.object ||
@@ -404,7 +403,6 @@ export async function handleInstagramWebhook(
         if (change.field !== "comments") continue;
 
         const commentData = change.value;
-        console.log("entry values:", change.value);
 
         if (!commentData?.id || !commentData.text) continue;
 
@@ -422,7 +420,6 @@ export async function handleInstagramWebhook(
           console.log(`Skipping comment: ${comment.id}`);
           continue;
         }
-        console.log("entry:", entry);
 
         const account = await InstagramAccount.findOne({
           instagramId: entry.id,
