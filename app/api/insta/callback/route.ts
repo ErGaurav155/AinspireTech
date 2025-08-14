@@ -80,7 +80,6 @@ export async function GET(req: NextRequest) {
       "user_id",
       "profile_picture_url",
     ]);
-    console.log("user :", user);
 
     // Save to MongoDB
     const InstaAcc = await InstagramAccount.findOneAndUpdate(

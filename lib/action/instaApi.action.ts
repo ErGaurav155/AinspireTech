@@ -119,6 +119,9 @@ async function replyToComment(
     if (!isOwner) {
       throw new Error("User is not the owner of this media");
     }
+    const ranNumber = Math.floor(Math.random() * message.length);
+    console.log("ranNumber:", ranNumber);
+    console.log("message:", message[ranNumber]);
 
     // Reply to comment
     const replyResponse = await fetch(
@@ -129,11 +132,10 @@ async function replyToComment(
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify(
-          message[Math.floor(Math.random() * message.length)]
-        ),
+        body: JSON.stringify(message[ranNumber]),
       }
     );
+
     console.log("replyResponse : ", replyResponse);
 
     if (!replyResponse.ok) {
