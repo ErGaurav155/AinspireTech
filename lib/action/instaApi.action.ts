@@ -122,6 +122,7 @@ async function replyToComment(
 
     const ranNumber = Math.floor(Math.random() * message.length);
     const replyMessage = message[ranNumber];
+
     console.log("ranNumber:", ranNumber);
     console.log("message:", message[ranNumber]);
 
@@ -136,7 +137,7 @@ async function replyToComment(
         },
         body: JSON.stringify({
           message: {
-            replyMessage,
+            text: replyMessage,
           },
         }),
       }
@@ -382,6 +383,7 @@ export async function processComment(
         $inc: { usageCount: 1 },
         $set: { lastUsed: new Date() },
       });
+      account.totalReplies += 1;
     }
 
     // Update account activity
