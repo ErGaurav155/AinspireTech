@@ -91,7 +91,7 @@ async function replyToComment(
   commentId: string,
   mediaId: string,
   message: string[]
-): Promise<boolean> {
+): Promise<string | boolean> {
   try {
     console.log("username : ", username);
     console.log("accountId : ", accountId);
@@ -134,7 +134,11 @@ async function replyToComment(
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ replyMessage }),
+        body: JSON.stringify({
+          message: {
+            replyMessage,
+          },
+        }),
       }
     );
 
@@ -147,7 +151,7 @@ async function replyToComment(
       return false;
     }
 
-    return true;
+    return replyMessage;
   } catch (error) {
     console.error("Failed to reply to comment:", error);
     return false;
@@ -265,7 +269,7 @@ export async function processComment(
   userId: string,
   comment: InstagramComment
 ): Promise<void> {
-  let success = false;
+  let success;
   let dmMessage = false;
   let responseTime = 0;
   let matchingTemplate: IReplyTemplate | null = null;
@@ -356,19 +360,21 @@ export async function processComment(
     responseTime = Date.now() - startTime;
 
     // Save log
-    await InstaReplyLog.create({
-      userId,
-      accountId,
-      templateId: matchingTemplate._id,
-      templateName: matchingTemplate.name,
-      commentId: comment.id,
-      commentText: comment.text,
-      replyText: matchingTemplate.content,
-      success: success || dmMessage,
-      responseTime,
-      mediaId: comment.media_id,
-      commenterUsername: comment.username,
-    });
+    if (success) {
+      await InstaReplyLog.create({
+        userId,
+        accountId,
+        templateId: matchingTemplate._id,
+        templateName: matchingTemplate.name,
+        commentId: comment.id,
+        commentText: comment.text,
+        replyText: success,
+        success: true || dmMessage,
+        responseTime,
+        mediaId: comment.media_id,
+        commenterUsername: comment.username,
+      });
+    }
 
     // Update template usage
     if (success || dmMessage) {
