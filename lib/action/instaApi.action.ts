@@ -136,9 +136,7 @@ async function replyToComment(
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          message: {
-            replyMessage,
-          },
+          message: replyMessage,
         }),
       }
     );
