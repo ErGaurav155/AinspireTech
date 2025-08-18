@@ -139,6 +139,7 @@ async function replyToComment(
     );
 
     console.log("replyResponse : ", replyResponse);
+    console.log("replyResponse body : ", replyResponse.body);
 
     if (!replyResponse.ok) {
       const error = await replyResponse.json();
