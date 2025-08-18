@@ -137,7 +137,7 @@ async function replyToComment(
         },
         body: JSON.stringify({
           message: {
-            text: replyMessage,
+            replyMessage,
           },
         }),
       }
