@@ -27,6 +27,7 @@ import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { toast } from "../ui/use-toast";
 
 import LoginPage from "./InstagramAutomationWizard";
+import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -136,6 +137,15 @@ export default function PaymentModal({
                 billingCycle: billingCycle,
               }),
             });
+            await InstagramAccount.findByIdAndUpdate(
+              { _id: buyerId },
+              {
+                isActive: true,
+                accountLimit: plan.limit,
+                totalReplies: 0,
+              },
+              { new: true }
+            );
             await onSuccess(plan.id);
             router.push("/insta/dashboard");
           } else {

@@ -291,6 +291,20 @@ export async function processComment(
     console.log("account : ", account);
 
     if (!account || !account.isActive) return;
+    if (account.totalReplies >= account.accountLimit) {
+      console.warn(
+        `Account ${accountId} has reached its reply limit (${account.totalReplies}/${account.accountLimit})`
+      );
+      if (account.isActive) {
+        account.isActive = false;
+        await account.save();
+
+        // Optional: Send notification
+
+        console.log(`Auto-replies paused for ${account.username}`);
+        return;
+      }
+    }
 
     // Validate access token
     const isValidToken = await validateAccessToken(account.accessToken);
