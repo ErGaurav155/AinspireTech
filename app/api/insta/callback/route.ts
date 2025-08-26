@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
       },
       status: "active",
     });
-
+    console.log("subscriptions", subscriptions);
     if (!subscriptions || subscriptions.length === 0) {
       const InstaAcc = await InstagramAccount.findOneAndUpdate(
         { userId: userid },
