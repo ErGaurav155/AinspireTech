@@ -1,6 +1,7 @@
 import { defaultTemplates } from "@/constant";
 import { getInstagramUser } from "@/lib/action/insta.action";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
+import InstaSubscription from "@/lib/database/models/insta/InstaSubscription.model";
 import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { auth } from "@clerk/nextjs";
@@ -80,10 +81,18 @@ export async function GET(req: NextRequest) {
       "user_id",
       "profile_picture_url",
     ]);
-    const subscriptionData = await fetch(`api/insta/subscription/list`, {
-      method: "GET",
+    const subscriptions = await InstaSubscription.find({
+      clerkId: userId,
+      chatbotType: {
+        $in: [
+          "Insta-Automation-Starter",
+          "Insta-Automation-Grow",
+          "Insta-Automation-Professional",
+        ],
+      },
+      status: "active",
     });
-    const subscriptions = await subscriptionData.json();
+
     if (!subscriptions || subscriptions.length === 0) {
       const InstaAcc = await InstagramAccount.findOneAndUpdate(
         { userId: userid },
