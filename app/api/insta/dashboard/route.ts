@@ -58,19 +58,24 @@ export async function GET(request: NextRequest) {
         const templatesCount = await InstaReplyTemplate.countDocuments({
           accountId: account.instagramId,
         });
-
-        // Get reply count from logs
-        const repliesCount = await InstaReplyLog.countDocuments({
-          accountId: account.instagramId,
-          success: true,
-        });
-
-        // Mock Instagram API data
-
+        const avgResTime = await InstaReplyLog.aggregate([
+          {
+            $match: {
+              accountId: account.instagramId,
+              success: true,
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              avgResponseTime: { $avg: "$responseTime" },
+            },
+          },
+        ]);
         return {
           ...account.toObject(), // Convert Mongoose document to plain object
           templatesCount,
-          repliesCount,
+          avgResTime,
         };
       })
     );

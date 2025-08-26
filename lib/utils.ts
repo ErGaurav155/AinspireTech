@@ -184,9 +184,7 @@ export async function refreshInstagramToken(userId: string) {
   if (!tokenRecord) throw new Error("Token not found");
 
   // Refresh if token expires in less than 24 hours
-  if (
-    tokenRecord.lastTokenRefresh > new Date(Date.now() + 24 * 60 * 60 * 1000)
-  ) {
+  if (tokenRecord.expiresAt > new Date(Date.now() + 24 * 60 * 60 * 1000)) {
     return tokenRecord;
   }
 
@@ -284,3 +282,93 @@ export function isCacheValid(): boolean {
     return false;
   }
 }
+export const formatResponseTimeSmart = (milliseconds: number): string => {
+  if (!milliseconds || milliseconds <= 0) return "0s";
+
+  const seconds = milliseconds / 1000;
+
+  if (seconds < 60) {
+    return `${Math.round(seconds)}s`;
+  }
+
+  const minutes = seconds / 60;
+  return `${minutes.toFixed(1)}m`;
+};
+import axios from "axios";
+
+// export async function getTotalComments(accountId: any, accessToken: string) {
+//   try {
+//     console.log("Fetching comments for account:", accountId);
+//     console.log("Access Token:", accessToken);
+//     // Get comments from posts, reels, and live videos
+//     const response = await axios.get(
+//       `https://graph.instagram.com/v23.0/${accountId}/insights`,
+//       {
+//         params: {
+//           metric: "comments",
+//           period: "day",
+//           access_token: accessToken,
+//         },
+//       }
+//     );
+//     console.log("Instagram API response:", response);
+//     console.log("Response data:", response.data);
+//     // The response contains comments data for the last 24 hours
+//     const commentsData = response.data.data[0];
+//     const totalComments = commentsData.values[0].value;
+
+//     console.log(`Total comments in last 24 hours: ${totalComments}`);
+//     return totalComments;
+//   } catch (error: any) {
+//     console.error(
+//       "Error fetching comments:",
+//       error.response?.data || error.message
+//     );
+//     throw error;
+//   }
+// }
+// export async function getCommentsForAllAccounts(accounts: any[]) {
+//   try {
+//     const results = [];
+//     console.log("accounts", accounts);
+//     for (const account of accounts) {
+//       try {
+//         console.log(`Processing account: ${account.username}`);
+
+//         const totalComments = await getTotalComments(
+//           account.accountId,
+//           account.accessToken
+//         );
+
+//         results.push({
+//           username: account.username,
+//           accountId: account.accountId,
+//           totalComments,
+//           timestamp: new Date().toISOString(),
+//           status: "success",
+//         });
+
+//         console.log(`✅ ${account.username}: ${totalComments} comments`);
+//       } catch (error: any) {
+//         console.error(`❌ Failed for ${account.username}:`, error.message);
+
+//         results.push({
+//           username: account.username,
+//           accountId: account.accountId,
+//           totalComments: 0,
+//           error: error.message,
+//           timestamp: new Date().toISOString(),
+//           status: "failed",
+//         });
+//       }
+
+//       // Add delay between requests to avoid rate limiting
+//       await new Promise((resolve) => setTimeout(resolve, 1000));
+//     }
+//     console.log("All accounts processed:", results);
+//     return results.length;
+//   } catch (error) {
+//     console.error("Error processing accounts:", error);
+//     throw error;
+//   }
+// }

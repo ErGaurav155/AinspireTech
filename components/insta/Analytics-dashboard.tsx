@@ -8,8 +8,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { tailwindHexColors } from "@/constant";
 import { useAuth } from "@clerk/nextjs";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -36,68 +37,122 @@ const dailyData = [
   { date: "2024-01-07", comments: 47, replies: 46, engagement: 97.9 },
 ];
 
-const templateData = [
-  { name: "Product Inquiry", value: 156, color: "#00F0FF" },
-  { name: "Shipping Info", value: 89, color: "#B026FF" },
-  { name: "Compliment Response", value: 234, color: "#FF2E9F" },
-  { name: "General Support", value: 67, color: "#10B981" },
-];
+// const templateData = [
+//   { name: "Product Inquiry", value: 156, color: "#00F0FF" },
+//   { name: "Shipping Info", value: 89, color: "#B026FF" },
+//   { name: "Compliment Response", value: 234, color: "#FF2E9F" },
+//   { name: "General Support", value: 67, color: "#10B981" },
+// ];
 
-const sentimentData = [
-  { category: "Positive", value: 78, color: "#10B981" },
-  { category: "Neutral", value: 18, color: "#6B7280" },
-  { category: "Negative", value: 4, color: "#EF4444" },
-];
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
+export interface TemplateChartData {
+  name: string;
+  value: number;
+  color: string;
+}
+export interface SentimentChartData {
+  category: string;
+  value: number;
+  color: string;
+}
 
-export function AnalyticsDashboard() {
+export function AnalyticsDashboard(templates: any) {
   const { userId } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  // const fetchAccounts = async () => {
-  //   if (!userId) return;
 
-  //   try {
-  //     setIsLoading(true);
-  //     setError(null);
-  //     // Check cache first
-  //     const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
-  //     const cacheDuration = 15 * 60 * 1000; // 15 minutes
+  const [templateData, setTemplateData] = useState<
+    { name: string; value: number; color: string }[]
+  >([]);
+  const [sentimentData, setSentimentData] = useState<
+    { category: string; value: number; color: string }[]
+  >([]);
 
-  //     if (cachedData) {
-  //       const { data, timestamp } = JSON.parse(cachedData);
-  //       if (Date.now() - timestamp < cacheDuration) {
-  //         setIsLoading(false);
-  //         const stats = {
-  //           totalAccounts: data.length,
-  //           activeAccounts: data.filter((account: any) => account?.isActive)
-  //             .length,
-  //           totalTemplates: data.reduce(
-  //             (sum: number, account: any) =>
-  //               sum + (account?.templatesCount || 0),
-  //             0
-  //           ),
-  //           totalReplies: data.reduce(
-  //             (sum: number, account: any) => sum + (account?.repliesCount || 0),
-  //             0
-  //           ),
-  //           engagementRate: 87, // Mock data
-  //           successRate: 94, // Mock data
-  //           avgResponseTime: 2.3,
-  //           accounts: data,
-  //           recentActivity: [], // No recent activity in cache
-  //         };
-  //         // setAnalyticsData(stats);
-  //         return stats;
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Failed to fetch accounts:", error);
-  //     setError(
-  //       error instanceof Error ? error.message : "Failed to load accounts"
-  //     );
-  //   }
-  // };
+  useEffect(() => {
+    if (templates.templates && templates.templates.length > 0) {
+      // Calculate total usage count
+      const totalUsageCount = templates.templates.reduce(
+        (sum: number, template: any) => sum + (template.usageCount || 0),
+        0
+      );
+
+      // Transform template data
+      const transformedData = templates.templates.map(
+        (template: any, index: number) => ({
+          name: template.name,
+          value: template.usageCount,
+          color: tailwindHexColors[index % tailwindHexColors.length],
+          percentage:
+            totalUsageCount > 0
+              ? (template.usageCount / totalUsageCount) * 100
+              : 0,
+        })
+      );
+
+      setTemplateData(transformedData);
+
+      // Calculate sentiment data (separate from templateData to avoid infinite loop)
+      const adjustSentimentPercentages = () => {
+        const supportTemplate = templates.templates.find(
+          (template: any) => template.name === "Support Template"
+        );
+
+        if (supportTemplate) {
+          const supportValue = supportTemplate.usageCount;
+          const totalForSentiment = totalUsageCount || 1; // Avoid division by zero
+
+          // Calculate percentages for sentiment
+          const neutralValue = Math.round(
+            ((supportValue + 4) / totalForSentiment) * 100
+          );
+          const negativeValue = Math.round(
+            (supportValue / 2 / totalForSentiment) * 100
+          );
+          const positiveValue = 100 - (neutralValue + negativeValue);
+          setSentimentData([
+            {
+              category: "Neutral",
+              value: Math.max(0, Math.min(100, neutralValue)), // Clamp between 0-100
+              color: "#6B7280",
+            },
+            {
+              category: "Negative",
+              value: Math.max(0, Math.min(100, negativeValue)),
+              color: "#EF4444", // Changed to standard negative color
+            },
+            {
+              category: "Positive",
+              value: Math.max(0, Math.min(100, positiveValue)),
+              color: "#10B981", // Changed to standard positive color
+            },
+          ]);
+        } else {
+          // Default sentiment data if no Support Template found
+          setSentimentData([
+            { category: "Positive", value: 78, color: "#10B981" },
+            { category: "Neutral", value: 18, color: "#6B7280" },
+            { category: "Negative", value: 4, color: "#EF4444" },
+          ]);
+        }
+      };
+
+      adjustSentimentPercentages();
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
+    }
+  }, [templates.templates]); // REMOVED templateData from dependencies
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading accounts...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="space-y-8 mb-10">
       <div>
@@ -220,11 +275,10 @@ export function AnalyticsDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-2">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 ">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ResponsiveContainer width="100%" height={300}>
-                  <PieChart className="">
+                  <PieChart>
                     <Pie
-                      className=""
                       data={templateData}
                       cx="50%"
                       cy="50%"
@@ -237,28 +291,37 @@ export function AnalyticsDashboard() {
                       dataKey="value"
                     >
                       {templateData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.color} // Use entry.color instead of templateData.color
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
+
                 <div className="space-y-4">
                   {templateData.map((item, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-[#0a0a0a]/60 border boder-[#208d7d] rounded-lg "
+                      className="flex items-center justify-between p-4 bg-[#0a0a0a]/60 border border-[#208d7d] rounded-lg"
                     >
                       <div className="flex items-center space-x-3">
                         <div
                           className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: item.color }}
+                          style={{
+                            backgroundColor: item.color, // Use the color from the item
+                          }}
                         />
                         <span className="text-white font-medium">
                           {item.name}
                         </span>
                       </div>
-                      <span className="text-gray-300">{item.value} uses</span>
+                      <span className="text-gray-300">
+                        {item.value} uses{" "}
+                        {/* Use item.value instead of item.usageCount */}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -286,8 +349,8 @@ export function AnalyticsDashboard() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name} ${(percent! * 100).toFixed(0)}%`
+                      label={({ category, percent }) =>
+                        `${category} ${(percent! * 100).toFixed(0)}%`
                       }
                       outerRadius={80}
                       fill="#8884d8"
@@ -309,7 +372,14 @@ export function AnalyticsDashboard() {
                       <div className="flex items-center space-x-3">
                         <div
                           className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: item.color }}
+                          style={{
+                            backgroundColor:
+                              tailwindHexColors[
+                                Math.floor(
+                                  Math.random() * tailwindHexColors.length
+                                )
+                              ],
+                          }}
                         />
                         <span className="text-white font-medium">
                           {item.category}

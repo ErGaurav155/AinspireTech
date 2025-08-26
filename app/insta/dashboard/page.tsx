@@ -10,6 +10,7 @@ import {
   Settings,
   Zap,
   X,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +34,8 @@ import {
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
-
+import defaultImg from "@/public/assets/img/default-img.jpg";
+import { formatResponseTimeSmart, refreshInstagramToken } from "@/lib/utils";
 export default function Dashboard() {
   const { userId } = useAuth();
   const router = useRouter();
@@ -48,6 +50,8 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<any>();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
+
   const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
   const fetchAccounts = useCallback(async () => {
@@ -79,13 +83,20 @@ export default function Dashboard() {
               (sum: number, account: any) => sum + (account?.repliesCount || 0),
               0
             ),
+            accountLimit: data[0]?.accountLimit || 1,
             engagementRate: 87, // Mock data
             successRate: 94, // Mock data
+            overallAvgResponseTime: data.reduce(
+              (sum: number, account: any) =>
+                sum + (account?.avgResponseTime || 0),
+              0
+            ),
             accounts: data,
             recentActivity: [], // No recent activity in cache
           };
-          setDashboardData(stats);
-
+          if (stats) {
+            setDashboardData(stats);
+          }
           return stats;
         }
       }
@@ -120,18 +131,20 @@ export default function Dashboard() {
               displayName:
                 dbAccount.displayName || instaData.username || "No Name",
               profilePicture:
-                dbAccount.profilePicture ||
                 instaData.profile_picture_url ||
+                dbAccount.profilePicture ||
                 "/public/assets/img/default-img.jpg",
               followersCount:
                 instaData.followers_count || dbAccount.followersCount || 0,
               postsCount: instaData.media_count || dbAccount.postsCount || 0,
               isActive: dbAccount.isActive || false,
+              expiryDate: dbAccount.expiresAt || null,
               templatesCount: dbAccount.templatesCount || 0,
-              repliesCount: dbAccount.repliesCount || 0,
+              repliesCount: dbAccount.totalReplies || 0,
+              accountLimit: dbAccount.accountLimit || 1,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: dbAccount.engagementRate || 0,
-              avgResponseTime: dbAccount.avgResponseTime || "0s",
+              avgResponseTime: dbAccount.avgResTime[0].avgResponseTime || 0,
               accessToken: dbAccount.accessToken,
             };
           } catch (instaError) {
@@ -157,8 +170,13 @@ export default function Dashboard() {
           (sum, account) => sum + (account?.repliesCount || 0),
           0
         ),
+        accountLimit: validAccounts[0]?.accountLimit || 1,
         engagementRate: 87, // Mock data
         successRate: 94, // Mock data
+        overallAvgResponseTime: validAccounts.reduce(
+          (sum: number, account: any) => sum + (account?.avgResponseTime || 0),
+          0
+        ),
         accounts: validAccounts,
       };
 
@@ -280,6 +298,13 @@ export default function Dashboard() {
       setCancellationReason("");
     }
   };
+  const handleError = () => {
+    setHasError(true);
+  };
+  const refresh = async () => {
+    await localStorage.removeItem(ACCOUNTS_CACHE_KEY);
+    await fetchDashboardData();
+  };
   if (isLoading) {
     return (
       <div className="min-h-screen text-white flex items-center justify-center">
@@ -290,7 +315,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen text-white">
       <BreadcrumbsDefault />{" "}
@@ -305,7 +329,15 @@ export default function Dashboard() {
               Manage your Instagram auto-reply system and monitor performance
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-2">
+            <Button
+              onClick={() => refresh()}
+              variant="outline"
+              className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
             {subscriptions.length > 0 && (
               <Button
                 variant="destructive"
@@ -408,7 +440,8 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {dashboardData.totalReplies || 0}
+                {dashboardData.totalReplies || 0} /{" "}
+                {dashboardData.accountLimit || 1}
               </div>
               <p className="text-xs text-gray-400">+23% from last month</p>
             </CardContent>
@@ -455,8 +488,9 @@ export default function Dashboard() {
                         <Image
                           width={48}
                           height={48}
-                          src={account.profilePicture}
+                          src={hasError ? defaultImg : account.profilePicture}
                           alt={account.displayName}
+                          onError={handleError}
                           className="h-12 w-12 rounded-full object-cover"
                         />
                         <div
@@ -470,11 +504,9 @@ export default function Dashboard() {
                           @{account.username}
                         </h3>
                         <p className="text-sm text-gray-400">
-                          {account.followersCount.toLocaleString()} followers
+                          {account.followersCount} followers
                         </p>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
                       <Badge
                         variant={account.isActive ? "default" : "secondary"}
                         className={
@@ -485,6 +517,22 @@ export default function Dashboard() {
                       >
                         {account.isActive ? "Active" : "Inactive"}
                       </Badge>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {new Date(account.expiryDate) <
+                        new Date(Date.now() + 24 * 60 * 60 * 1000) &&
+                        userId && (
+                          <Button
+                            onClick={() => refreshInstagramToken(userId)}
+                            variant="outline"
+                            size="sm"
+                            className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+                          >
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Refresh Token
+                          </Button>
+                        )}
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -492,7 +540,7 @@ export default function Dashboard() {
                         asChild
                       >
                         <Link href={`/insta/accounts/${account.id}`}>
-                          <Settings className="h-4 w-4" />
+                          <Settings className="h-4 w-4" /> Manage
                         </Link>
                       </Button>
                     </div>
@@ -557,7 +605,13 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-gray-300">
                     Response Time
                   </span>
-                  <span className="text-sm text-gray-400">2.3s avg</span>
+                  <span className="text-sm text-gray-400">
+                    {dashboardData?.overallAvgResponseTime
+                      ? formatResponseTimeSmart(
+                          dashboardData.overallAvgResponseTime
+                        )
+                      : "0s"}{" "}
+                  </span>
                 </div>
                 <Progress value={85} className="h-2 bg-white/10" />
               </div>
@@ -582,16 +636,6 @@ export default function Dashboard() {
                         </span>
                       </div>
                     ))}
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-300">
-                      Template Welcome triggered
-                    </span>
-                    <span className="text-gray-500">5m ago</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-300">New comment detected</span>
-                    <span className="text-gray-500">8m ago</span>
-                  </div>
                 </div>
               </div>
             </CardContent>

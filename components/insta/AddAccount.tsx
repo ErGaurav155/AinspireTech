@@ -3,7 +3,13 @@
 import React from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Card,
   CardContent,
@@ -73,8 +79,20 @@ const AddAccount = ({ onVerified, buyerId }: AccountVerificationProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-2">
-          {isLoad && <LoginPage />}
-
+          <Dialog open={isLoad} onOpenChange={() => setIsLoad(false)}>
+            <DialogContent className="max-w-md bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
+              <DialogHeader>
+                <DialogTitle className="text-start text-white font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                  Connect Instagram
+                </DialogTitle>
+              </DialogHeader>
+              <DialogDescription>
+                Make an instant payment to activate your subscription and
+                elevate your Instagram engagement!
+              </DialogDescription>
+              <LoginPage />
+            </DialogContent>
+          </Dialog>
           <div className="flex gap-2 md:gap-4">
             <Button
               type="submit"

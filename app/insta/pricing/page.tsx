@@ -9,6 +9,16 @@ import { getUserById } from "@/lib/action/user.actions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PricingPlan } from "@/types/types";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   getInstaSubscriptionInfo,
   cancelRazorPaySubscription,
 } from "@/lib/action/subscription.action";
@@ -33,6 +43,7 @@ export default function Pricing() {
   const [buyerId, setBuyerId] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isInstaAccount, setIsInstaAccount] = useState(false);
+  const [showSubCancelDialog, setShowSubCancelDialog] = useState(false);
 
   const [islogged, setIslogged] = useState(false);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
@@ -133,7 +144,7 @@ export default function Pricing() {
       return;
     }
 
-    if (currentSubscription && currentSubscription.productId !== plan.id) {
+    if (currentSubscription) {
       try {
         setIsUpgrading(true);
         setSelectedPlan(plan);
@@ -258,27 +269,18 @@ export default function Pricing() {
                     Your Current Plan
                   </h2>
                   <p className="text-gray-300">
-                    {
-                      instagramPricingPlans.find(
-                        (p) => p.id === currentSubscription.productId
-                      )?.name
-                    }{" "}
-                    ({currentSubscription.billingCycle})
+                    {currentSubscription.chatbotType} (
+                    {currentSubscription.billingCycle})
                   </p>
                   <p className="text-sm text-gray-500 mt-1">Status: Active</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
-                    onClick={handleCancelSubscription}
+                    onClick={() => setShowSubCancelDialog(true)}
                     disabled={isCancelling}
                     className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
                   >
-                    {isCancelling ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <X className="mr-2 h-4 w-4" />
-                    )}
                     Cancel Subscription
                   </Button>
                   <Button
@@ -306,7 +308,7 @@ export default function Pricing() {
                 setBillingCycle(checked ? "yearly" : "monthly")
               }
               className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#00F0FF] data-[state=checked]:to-[#FF2E9F]"
-              disabled={isSubscribed}
+              // disabled={isSubscribed}
             />
             <span
               className={`text-sm font-medium ${
@@ -321,17 +323,75 @@ export default function Pricing() {
           </div>
         </div>
       </section>
+
       <section className="px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-6xl mx-auto ">
+          <div
+            className={`relative mb-10 group rounded-lg backdrop-blur-sm border transition-all duration-300 border-[#00F0FF]/20 hover:border-[#00F0FF] `}
+          >
+            <div
+              className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity 
+                      
+                         from-[#FF2E9F]/10
+                     to-transparent`}
+            ></div>
+            <div className="relative z-10 h-full flex items-center justify-between p-6">
+              <div className="flex-[10%] flex flex-col  justify-between items-start">
+                <h3 className="text-xl font-bold mb-2 text-white">Free</h3>
+                <p className=" text-gray-400 mb-6 font-mono text-lg">
+                  Default plan for new users
+                </p>
+              </div>
+
+              <div className="flex-[20%] flex items-center justify-center text-center mb-6 text-3xl font-bold text-[#FF2E9F]">
+                $ 0
+              </div>
+
+              <ul className="flex-[30%] space-y-3 mb-8">
+                {[
+                  "500 comments/month",
+                  "3 reply templates",
+                  "Basic keyword triggers",
+                  "Email support",
+                  "Instagram API compliance",
+                  "Spam detection",
+                ].map((feature, idx) => (
+                  <li key={idx} className="flex items-start">
+                    <Check
+                      className={`h-5 w-5 mt-1 mr-3 ${"text-[#FF2E9F]"}`}
+                    />
+                    <span className="text-gray-300">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <SignedOut>
+                <button
+                  onClick={() => router.push("/sign-in")}
+                  className={`flex-[20%] w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${"bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"} text-black`}
+                >
+                  Get Started
+                </button>
+              </SignedOut>
+              <SignedIn>
+                <button
+                  className={`flex-[20%] w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
+                    currentSubscription
+                      ? "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
+                      : " bg-gradient-to-r from-[#0a994f]/80 to-[#033f23]"
+                  } text-black disabled:opacity-70 disabled:cursor-not-allowed`}
+                >
+                  {currentSubscription ? "Start Automating" : "Current Plan"}
+                </button>
+              </SignedIn>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {instagramPricingPlans.map((plan) => {
               const isCurrentPlan =
                 currentSubscription &&
-                currentSubscription.productId === plan.id &&
+                currentSubscription.chatbotType === plan.id &&
                 currentSubscription.billingCycle === billingCycle;
-              const isUpgradeOption =
-                currentSubscription &&
-                currentSubscription.productId !== plan.id;
+              const isUpgradeOption = currentSubscription;
 
               return (
                 <div
@@ -635,6 +695,37 @@ export default function Pricing() {
           }}
         />
       )}
+      <AlertDialog
+        open={showSubCancelDialog}
+        onOpenChange={setShowSubCancelDialog}
+      >
+        <AlertDialogContent className=" bg-[#6d1717]/5 backdrop-blur-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently cancelled the
+              Instagram automation subscription.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelSubscription}
+              disabled={isCancelling}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                "Cancel Subscription"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

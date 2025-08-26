@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -217,16 +218,32 @@ export default function PaymentModal({
   return (
     <>
       {!isInstaAccount ? (
-        <LoginPage />
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogContent className="max-w-md p-2   bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
+            <DialogHeader>
+              <DialogTitle className="text-start text-white font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                Step-1: Connect Instagram
+              </DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+              Please connect your Instagram Business account to proceed with the
+              payment.
+            </DialogDescription>
+            <LoginPage />
+          </DialogContent>
+        </Dialog>
       ) : (
         <Dialog open={isOpen} onOpenChange={onClose}>
           <DialogContent className="max-w-md bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
             <DialogHeader>
               <DialogTitle className="text-center text-white font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-                Complete Your Subscription
+                Step-2: Payment
               </DialogTitle>
             </DialogHeader>
-
+            <DialogDescription>
+              Make an instant payment to activate your subscription and elevate
+              your Instagram engagement!
+            </DialogDescription>
             <div className="space-y-6">
               {/* Plan Summary */}
               <div className="bg-[#1a1a1a]/50 backdrop-blur-sm p-4 rounded-xl border border-[#333]">
@@ -240,16 +257,12 @@ export default function PaymentModal({
                 </div>
                 <div className="flex justify-between items-center text-xl font-bold mt-4">
                   <span className="text-gray-300">Total</span>
-                  <span className="text-white">${price.toLocaleString()}</span>
+                  <span className="text-white">${price}</span>
                 </div>
                 {billingCycle === "yearly" && (
                   <p className="text-sm text-green-400 mt-3 font-medium">
-                    Save ₹
-                    {(
-                      plan.monthlyPrice * 12 -
-                      plan.yearlyPrice
-                    ).toLocaleString()}{" "}
-                    with yearly billing
+                    Save ${plan.monthlyPrice * 12 - plan.yearlyPrice} with
+                    yearly billing
                   </p>
                 )}
               </div>
@@ -281,9 +294,7 @@ export default function PaymentModal({
                     <span className="text-md font-medium text-white mt-2">
                       Razorpay
                     </span>
-                    <span className="font-bold text-white">
-                      ${price.toLocaleString()}
-                    </span>
+                    <span className="font-bold text-white">${price}</span>
                   </div>
 
                   <div
@@ -303,9 +314,7 @@ export default function PaymentModal({
                     <span className="text-md font-medium text-white mt-2">
                       Razorpay
                     </span>
-                    <span className="font-bold text-white">
-                      ₹{inrPrice.toLocaleString()}
-                    </span>
+                    <span className="font-bold text-white">₹{inrPrice}</span>
                   </div>
                 </div>
               </div>

@@ -33,7 +33,9 @@ import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { AnalyticsDashboard } from "@/components/insta/Analytics-dashboard";
 import { useAuth } from "@clerk/nextjs";
-
+import defaultImg from "@/public/assets/img/default-img.jpg";
+import { formatResponseTimeSmart, refreshInstagramToken } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 // Dummy analytics data fallback
 // const dummyAnalyticsData = {
 //   overview: {
@@ -118,12 +120,15 @@ const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 export default function AnalyticsPage() {
   const { userId } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<any>([]);
 
   const [timeRange, setTimeRange] = useState("7d");
   const [analyticsData, setAnalyticsData] = useState<any>([]);
+  const [hasError, setHasError] = useState(false);
 
   const [selectedAccount, setSelectedAccount] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
   // const fetchAnalyticsData = useCallback(async () => {
   //   try {
   //     const params = new URLSearchParams({
@@ -148,7 +153,10 @@ export default function AnalyticsPage() {
   // }, [selectedAccount, timeRange]);
 
   const fetchAccounts = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      router.push("/sign-in");
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -160,7 +168,6 @@ export default function AnalyticsPage() {
       if (cachedData) {
         const { data, timestamp } = JSON.parse(cachedData);
         if (Date.now() - timestamp < cacheDuration) {
-          setIsLoading(false);
           const stats = {
             totalAccounts: data.length,
             activeAccounts: data.filter((account: any) => account?.isActive)
@@ -174,15 +181,21 @@ export default function AnalyticsPage() {
               (sum: number, account: any) => sum + (account?.repliesCount || 0),
               0
             ),
+            accountLimit: data[0]?.accountLimit || 1,
             engagementRate: 87, // Mock data
             successRate: 94, // Mock data
-            avgResponseTime: 2.3,
+            overallAvgResponseTime: data.reduce(
+              (sum: number, account: any) =>
+                sum + (account?.avgResponseTime || 0),
+              0
+            ),
             accounts: data,
             recentActivity: [], // No recent activity in cache
           };
           if (stats) {
             setAnalyticsData(stats);
           }
+
           return stats;
         }
       }
@@ -209,7 +222,6 @@ export default function AnalyticsPage() {
             if (!instaResponse.ok) throw new Error("Instagram API failed");
 
             const instaData = await instaResponse.json();
-
             return {
               id: dbAccount._id,
               accountId: dbAccount.instagramId,
@@ -217,18 +229,20 @@ export default function AnalyticsPage() {
               displayName:
                 dbAccount.displayName || instaData.username || "No Name",
               profilePicture:
-                dbAccount.profilePicture ||
                 instaData.profile_picture_url ||
+                dbAccount.profilePicture ||
                 "/public/assets/img/default-img.jpg",
               followersCount:
                 instaData.followers_count || dbAccount.followersCount || 0,
               postsCount: instaData.media_count || dbAccount.postsCount || 0,
               isActive: dbAccount.isActive || false,
+              expiryDate: dbAccount.expiresAt || null,
               templatesCount: dbAccount.templatesCount || 0,
-              repliesCount: dbAccount.repliesCount || 0,
+              repliesCount: dbAccount.totalReplies || 0,
+              accountLimit: dbAccount.accountLimit || 1,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: dbAccount.engagementRate || 0,
-              avgResponseTime: dbAccount.avgResponseTime || "0s",
+              avgResponseTime: dbAccount.avgResTime[0].avgResponseTime || 0,
               accessToken: dbAccount.accessToken,
             };
           } catch (instaError) {
@@ -256,8 +270,11 @@ export default function AnalyticsPage() {
         ),
         engagementRate: 87, // Mock data
         successRate: 94, // Mock data
-        avgResponseTime: 2.3,
-
+        overallAvgResponseTime: validAccounts.reduce(
+          (sum: number, account: any) => sum + (account?.avgResponseTime || 0),
+          0
+        ),
+        accountLimit: validAccounts[0]?.accountLimit || 1,
         accounts: validAccounts,
       };
 
@@ -275,8 +292,33 @@ export default function AnalyticsPage() {
         error instanceof Error ? error.message : "Failed to load accounts"
       );
     }
+  }, [userId, router]);
+  const fetchTemplates = useCallback(async () => {
+    try {
+      // For now, we'll use a mock account ID since we don't have account selection
+      const response = await fetch(`/api/insta/templates?userId=${userId} `);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.length >= 0) {
+          setTemplates(
+            data.map((template: any) => ({
+              ...template,
+              lastUsed: template.lastUsed
+                ? new Date(template.lastUsed).toISOString()
+                : new Date().toISOString(),
+              successRate: template.successRate || 0,
+            }))
+          );
+        } else {
+          setTemplates([]);
+        }
+      } else {
+        setTemplates([]);
+      }
+    } catch (error) {
+      setTemplates([]);
+    }
   }, [userId]);
-
   const fetchAnalyticsData = useCallback(async () => {
     try {
       const accountsData = await fetchAccounts();
@@ -289,23 +331,28 @@ export default function AnalyticsPage() {
           "Using dummy data for recent activity - API not available"
         );
       }
-
       const updatedData = {
         ...accountsData,
         recentActivity: recentActivity?.replyLogs,
       };
-      if (updatedData) {
-        await setAnalyticsData(updatedData);
-      }
+
+      setAnalyticsData(updatedData);
+      await fetchTemplates();
     } catch (error) {
       console.error("Using dummy data - API error:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [userId, fetchAccounts]);
+  }, [userId, fetchAccounts, fetchTemplates]);
+
   useEffect(() => {
+    if (!userId) {
+      router.push("/sign-in");
+      return;
+    }
+
     fetchAnalyticsData();
-  }, [timeRange, selectedAccount, fetchAnalyticsData]);
+  }, [userId, fetchAnalyticsData, router]);
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -322,7 +369,13 @@ export default function AnalyticsPage() {
       return `${Math.floor(diffInMinutes / 1440)}d ago`;
     }
   };
-
+  const handleError = () => {
+    setHasError(true);
+  };
+  const refresh = async () => {
+    await localStorage.removeItem(ACCOUNTS_CACHE_KEY);
+    await fetchAnalyticsData();
+  };
   if (isLoading) {
     return (
       <div className="min-h-screen text-white flex items-center justify-center">
@@ -367,6 +420,14 @@ export default function AnalyticsPage() {
             </p>
           </div>
           <div className="flex  flex-col md:flex-row gap-4">
+            <Button
+              onClick={() => refresh()}
+              variant="outline"
+              className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
             <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger className="w-32 bg-[#0a0a0a]/60 border-white/20">
                 <SelectValue />
@@ -410,7 +471,8 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#B026FF]">
-                {analyticsData?.totalReplies?.toLocaleString() || 0}
+                {analyticsData.totalReplies || 0} /{" "}
+                {analyticsData.accountLimit || 1}
               </div>
               <p className="text-xs text-muted-foreground flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
@@ -446,7 +508,11 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#10B981]">
-                {analyticsData?.avgResponseTime || 0}s
+                {analyticsData?.overallAvgResponseTime
+                  ? formatResponseTimeSmart(
+                      analyticsData.overallAvgResponseTime
+                    )
+                  : "0s"}{" "}
               </div>
               <p className="text-xs text-gray-400 flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
@@ -496,7 +562,8 @@ export default function AnalyticsPage() {
                       <Image
                         width={48}
                         height={48}
-                        src={account.profilePicture}
+                        src={hasError ? defaultImg : account.profilePicture}
+                        onError={handleError}
                         alt={account.username}
                         className="h-10 w-10 rounded-full object-cover"
                       />
@@ -509,12 +576,28 @@ export default function AnalyticsPage() {
                         </p>
                       </div>
                     </div>
+                    {new Date(account.expiryDate) <
+                      new Date(Date.now() + 24 * 60 * 60 * 1000) &&
+                      userId && (
+                        <Button
+                          onClick={() => refreshInstagramToken(userId)}
+                          variant="outline"
+                          size="sm"
+                          className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+                        >
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Refresh Token
+                        </Button>
+                      )}
                     <div className="flex items-center justify-between w-full">
                       <div className="text-sm font-medium text-white">
                         {account.engagementRate}% engagement
                       </div>
                       <div className="text-xs text-gray-400">
-                        {account.avgResponseTime}s avg time
+                        {account?.avgResponseTime
+                          ? formatResponseTimeSmart(account.avgResponseTime)
+                          : "0s"}{" "}
+                        avg time
                       </div>
                     </div>
                   </div>
@@ -533,7 +616,7 @@ export default function AnalyticsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-2">
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-96 overflow-y-auto no-scrollbar">
                 {analyticsData &&
                   analyticsData.recentActivity &&
                   analyticsData.recentActivity.map((activity: any) => (
@@ -579,7 +662,7 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
         </div>
-        <AnalyticsDashboard />
+        {templates && <AnalyticsDashboard templates={templates} />}
         {/* Recent Activity */}
       </div>
     </div>

@@ -80,8 +80,46 @@ export async function GET(req: NextRequest) {
       "user_id",
       "profile_picture_url",
     ]);
+    const subscriptionData = await fetch(`api/insta/subscription/list`, {
+      method: "GET",
+    });
+    const subscriptions = await subscriptionData.json();
+    if (!subscriptions || subscriptions.length === 0) {
+      const InstaAcc = await InstagramAccount.findOneAndUpdate(
+        { userId: userid },
+        {
+          instagramId: user.user_id,
+          username: user.username,
+          profilePicture: user.profile_picture_url,
+          accessToken: longLivedData.access_token,
+          lastTokenRefresh: Date.now(),
+          isActive: true,
+          expiresAt,
+          totalReplies: 0,
+          accountLimit: 500,
+        },
+        { upsert: true, new: true }
+      );
+    }
 
     // Save to MongoDB
+    let limit = 0;
+    switch (subscriptions[0]?.chatbotType) {
+      case "Insta-Automation-Starter":
+        limit = 5000;
+
+        break;
+      case "Insta-Automation-Grow":
+        limit = 10000;
+
+        break;
+      case "Insta-Automation-Professional":
+        limit = 20000;
+        break;
+      default:
+        throw new Error("No active subscription found");
+    }
+
     const InstaAcc = await InstagramAccount.findOneAndUpdate(
       { userId: userid },
       {
@@ -92,6 +130,8 @@ export async function GET(req: NextRequest) {
         lastTokenRefresh: Date.now(),
         isActive: true,
         expiresAt,
+        totalReplies: 0,
+        accountLimit: limit,
       },
       { upsert: true, new: true }
     );

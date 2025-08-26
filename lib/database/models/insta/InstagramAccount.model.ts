@@ -45,11 +45,11 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
     },
     accountLimit: {
       type: Number,
-      default: 0,
+      default: 500,
     },
     expiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 60 * 60 * 24 * 1000), // Default to 24 hours from now
+      default: () => new Date(Date.now() + 60 * 60 * 24 * 1000),
     },
     lastTokenRefresh: {
       type: Date,

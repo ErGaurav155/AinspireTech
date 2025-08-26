@@ -494,7 +494,7 @@ export default function DashboardPage() {
         },
         {
           title: "Sales Assisted",
-          value: `$${overview.salesAssisted?.toLocaleString() || "0"}`,
+          value: `$${overview.salesAssisted || "0"}`,
           icon: TrendingUp,
           color: "text-green-400",
           change: "+25%",

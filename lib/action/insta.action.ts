@@ -47,3 +47,181 @@ export async function getInstaAccount(userId: string) {
     };
   }
 }
+
+/**
+ * Checks and refreshes Instagram access tokens that are about to expire
+ * Sends DM notifications to users when tokens need refresh
+ */
+export const refreshExpiringTokens = async (): Promise<void> => {
+  try {
+    // Find accounts with tokens expiring in less than 24 hours
+    const twentyFourHoursFromNow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const accountsNeedingRefresh = await InstagramAccount.find({
+      expiresAt: { $lte: twentyFourHoursFromNow },
+      isActive: true,
+    });
+
+    console.log(
+      `Found ${accountsNeedingRefresh.length} accounts needing token refresh`
+    );
+
+    for (const account of accountsNeedingRefresh) {
+      try {
+        await refreshAccountToken(account);
+      } catch (error) {
+        console.error(
+          `Failed to refresh token for ${account.username}:`,
+          error
+        );
+        // Send error notification to user
+        await sendTokenRefreshFailureDM(account);
+      }
+    }
+  } catch (error) {
+    console.error("Error in refreshExpiringTokens:", error);
+  }
+};
+
+/**
+ * Refresh a single account's access token
+ */
+const refreshAccountToken = async (account: any): Promise<void> => {
+  const { accessToken, _id, username } = account;
+
+  if (!accessToken) {
+    throw new Error("No access token available");
+  }
+
+  // Refresh the token using Instagram Graph API
+  const refreshUrl = `https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${accessToken}`;
+
+  const response = await fetch(refreshUrl, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      `Token refresh failed: ${response.status} ${JSON.stringify(errorData)}`
+    );
+  }
+
+  const tokenData = await response.json();
+
+  if (!tokenData.access_token) {
+    throw new Error("No access token in refresh response");
+  }
+
+  // Update account with new token and expiration
+  const expiresInMs = tokenData.expires_in * 1000;
+  const newExpiresAt = new Date(Date.now() + expiresInMs);
+
+  await InstagramAccount.findByIdAndUpdate(_id, {
+    accessToken: tokenData.access_token,
+    expiresAt: newExpiresAt,
+    lastTokenRefresh: new Date(),
+  });
+
+  console.log(
+    `Successfully refreshed token for ${username}, expires in ${Math.round(
+      expiresInMs / (24 * 60 * 60 * 1000)
+    )} days`
+  );
+
+  // Send success notification
+  await sendTokenRefreshSuccessDM(account, newExpiresAt);
+};
+
+/**
+ * Send DM notification for successful token refresh
+ */
+const sendTokenRefreshSuccessDM = async (
+  account: any,
+  newExpiresAt: Date
+): Promise<void> => {
+  const message = `🔐 Your Instagram access token has been automatically refreshed! 
+  
+Your new token will expire on ${newExpiresAt.toLocaleDateString()}. 
+
+No action needed from your side. Your auto-replies will continue working seamlessly.`;
+
+  try {
+    await sendInstagramDM(account.instagramId, message);
+    console.log(`Success DM sent to ${account.username}`);
+  } catch (dmError) {
+    console.error(`Failed to send success DM to ${account.username}:`, dmError);
+  }
+};
+
+/**
+ * Send DM notification for token refresh failure
+ */
+const sendTokenRefreshFailureDM = async (account: any): Promise<void> => {
+  const message = `⚠️ IMPORTANT: Your Instagram access token needs manual refresh!
+  
+Your token will expire soon and we couldn't refresh it automatically. 
+
+Please reconnect your Instagram account in your dashboard to continue using auto-replies.
+
+Go to: [Your Dashboard Link]`;
+
+  try {
+    await sendInstagramDM(account.instagramId, message);
+    console.log(`Failure DM sent to ${account.username}`);
+  } catch (dmError) {
+    console.error(`Failed to send failure DM to ${account.username}:`, dmError);
+  }
+};
+
+/**
+ * Send Instagram DM (You need to implement this based on your Instagram API setup)
+ */
+export const sendInstagramDM = async (
+  recipientId: string,
+  message: string
+): Promise<boolean> => {
+  try {
+    // This is a placeholder - implement based on your Instagram Business API setup
+    // You'll need page access token and proper permissions
+
+    const response = await fetch(
+      `https://graph.facebook.com/v18.0/me/messages?access_token=${process.env.INSTAGRAM_PAGE_ACCESS_TOKEN}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          recipient: { id: recipientId },
+          message: { text: message },
+          messaging_type: "MESSAGE_TAG",
+          tag: "ACCOUNT_UPDATE",
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`DM send failed: ${response.status}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error sending Instagram DM:", error);
+    throw error;
+  }
+};
+
+/**
+ * Cron job setup (run this function periodically)
+ */
+export const setupTokenRefreshCron = (): void => {
+  // Run every 6 hours to check for expiring tokens
+  setInterval(refreshExpiringTokens, 6 * 60 * 60 * 1000);
+
+  // Also run immediately on startup
+  refreshExpiringTokens();
+};

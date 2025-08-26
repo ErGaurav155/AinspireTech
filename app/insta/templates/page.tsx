@@ -406,7 +406,7 @@ export default function TemplatesPage() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-4 h-[70vh] overflow-y-auto no-scrollbar ">
+              <div className="space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar ">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-gray-300">

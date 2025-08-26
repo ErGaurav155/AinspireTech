@@ -20,7 +20,8 @@ import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-
+import defaultImg from "@/public/assets/img/default-img.jpg"; // Default image for error handling
+import { refreshInstagramToken } from "@/lib/utils";
 // Cache key
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
@@ -30,6 +31,7 @@ export default function AccountsPage() {
   const [error, setError] = useState<string | null>(null);
   const { userId } = useAuth();
   const router = useRouter();
+  const [hasError, setHasError] = useState(false);
 
   // Fetch accounts with caching
   const fetchAccounts = useCallback(async () => {
@@ -85,18 +87,20 @@ export default function AccountsPage() {
               displayName:
                 dbAccount.displayName || instaData.username || "No Name",
               profilePicture:
-                dbAccount.profilePicture ||
                 instaData.profile_picture_url ||
+                dbAccount.profilePicture ||
                 "/public/assets/img/default-img.jpg",
               followersCount:
                 instaData.followers_count || dbAccount.followersCount || 0,
               postsCount: instaData.media_count || dbAccount.postsCount || 0,
               isActive: dbAccount.isActive || false,
+              expiryDate: dbAccount.expiresAt || null,
               templatesCount: dbAccount.templatesCount || 0,
-              repliesCount: dbAccount.repliesCount || 0,
+              repliesCount: dbAccount.totalReplies || 0,
+              accountLimit: dbAccount.accountLimit || 1,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: dbAccount.engagementRate || 0,
-              avgResponseTime: dbAccount.avgResponseTime || "0s",
+              avgResponseTime: dbAccount.avgResTime[0].avgResponseTime || 0,
               accessToken: dbAccount.accessToken,
             };
           } catch (instaError) {
@@ -104,24 +108,7 @@ export default function AccountsPage() {
               `Failed to fetch Instagram data for account ${dbAccount._id}:`,
               instaError
             );
-            return {
-              id: dbAccount._id,
-              accountId: dbAccount.instagramId,
-              username: dbAccount.username,
-              displayName: dbAccount.displayName || "No Name",
-              profilePicture:
-                dbAccount.profilePicture ||
-                "/public/assets/img/default-img.jpg",
-              followersCount: dbAccount.followersCount || 0,
-              postsCount: dbAccount.postsCount || 0,
-              isActive: dbAccount.isActive || false,
-              templatesCount: dbAccount.templatesCount || 0,
-              repliesCount: dbAccount.repliesCount || 0,
-              lastActivity: dbAccount.lastActivity || new Date().toISOString(),
-              engagementRate: dbAccount.engagementRate || 0,
-              avgResponseTime: dbAccount.avgResponseTime || "0s",
-              accessToken: dbAccount.accessToken,
-            };
+            return null;
           }
         })
       );
@@ -217,7 +204,10 @@ export default function AccountsPage() {
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
-
+  const refresh = async () => {
+    await localStorage.removeItem(ACCOUNTS_CACHE_KEY);
+    await fetchAccounts();
+  };
   if (isLoading) {
     return (
       <div className="min-h-screen text-white flex items-center justify-center">
@@ -265,7 +255,9 @@ export default function AccountsPage() {
           ) / displayedAccounts.length
         ).toFixed(1)
       : "0.0";
-
+  const handleError = () => {
+    setHasError(true);
+  };
   return (
     <div className="min-h-screen text-white">
       <BreadcrumbsDefault />
@@ -287,9 +279,10 @@ export default function AccountsPage() {
           </div>
           <div className="flex gap-3 mt-1 md:mt-3">
             <Button
-              onClick={fetchAccounts}
+              onClick={() => refresh()}
               variant="outline"
-              className="border-white/20 text-gray-300 hover:bg-white/10"
+              size="sm"
+              className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
@@ -334,7 +327,7 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {totalFollowers.toLocaleString() || 0}
+                {totalFollowers || 0}
               </div>
               <p className="text-xs text-gray-400">Across all accounts</p>
             </CardContent>
@@ -349,7 +342,7 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {totalReplies || 0}
+                {totalReplies || 0} / {displayedAccounts[0]?.accountLimit || 1}
               </div>
               <p className="text-xs text-gray-400">Total sent</p>
             </CardContent>
@@ -385,11 +378,12 @@ export default function AccountsPage() {
               >
                 <CardContent className="pt-6 p-2 md:p-4">
                   <div className="flex flex-col md:flex-row gap-4 justify-between">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col  items-center justify-center gap-4">
                       <div className="relative">
                         <Image
-                          src={account.profilePicture}
+                          src={hasError ? defaultImg : account.profilePicture}
                           alt={account.displayName}
+                          onError={handleError}
                           width={64}
                           height={64}
                           className="h-16 w-16 rounded-full object-cover"
@@ -400,14 +394,26 @@ export default function AccountsPage() {
                           }`}
                         />
                       </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-white">
-                          @{account.username}
-                        </h3>
+                      <div className="flex flex-col items-center text-center">
+                        <div className="flex items-center gap-2 ">
+                          <h3 className="text-lg font-bold text-white">
+                            @{account.username}
+                          </h3>
+                          <Badge
+                            variant={account.isActive ? "default" : "secondary"}
+                            className={
+                              account.isActive
+                                ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
+                                : "bg-gray-800 text-gray-400"
+                            }
+                          >
+                            {account.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                        </div>
                         <p className="text-gray-400">{account.displayName}</p>
-                        <div className="flex flex-wrap gap-3 mt-2">
+                        <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
                           <span className="text-sm text-gray-400">
-                            {account.followersCount.toLocaleString()} followers
+                            {account.followersCount} followers
                           </span>
                           <span className="text-sm text-gray-400">
                             {account.postsCount} posts
@@ -443,8 +449,8 @@ export default function AccountsPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center">
+                      <div className="flex flex-col lg:flex-row items-center gap-3 w-full">
+                        <div className="flex items-center justify-center gap-2">
                           <Label className="text-sm text-gray-300 mr-2">
                             Auto-replies
                           </Label>
@@ -456,26 +462,33 @@ export default function AccountsPage() {
                             className="data-[state=checked]:bg-[#00F0FF]"
                           />
                         </div>
-                        <Badge
-                          variant={account.isActive ? "default" : "secondary"}
-                          className={
-                            account.isActive
-                              ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
-                              : "bg-gray-800 text-gray-400"
-                          }
-                        >
-                          {account.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-white/20 text-gray-300 p-2 hover:bg-white/10"
-                          asChild
-                        >
-                          <Link href={`/insta/accounts/${account.id}`}>
-                            <Settings className="h-4 w-4 mr-1" /> Manage
-                          </Link>
-                        </Button>
+
+                        <div className="flex items-center justify-center gap-2">
+                          {new Date(account.expiryDate) <
+                            new Date(Date.now() + 24 * 60 * 60 * 1000) &&
+                            userId && (
+                              <Button
+                                onClick={() => refreshInstagramToken(userId)}
+                                variant="outline"
+                                size="sm"
+                                className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+                              >
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Refresh Token
+                              </Button>
+                            )}
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-white/20 text-gray-300 p-2 hover:bg-white/10"
+                            asChild
+                          >
+                            <Link href={`/insta/accounts/${account.id}`}>
+                              <Settings className="h-4 w-4 mr-1" /> Manage
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
