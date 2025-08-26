@@ -109,6 +109,7 @@ export async function GET(req: NextRequest) {
         },
         { upsert: true, new: true }
       );
+      return NextResponse.json({ account: InstaAcc, status: 200 });
     }
 
     // Save to MongoDB
