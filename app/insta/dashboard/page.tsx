@@ -105,11 +105,14 @@ export default function Dashboard() {
       const accountsResponse = await fetch(
         `/api/insta/dashboard?userId=${userId}`
       );
-      if (!accountsResponse.ok) throw new Error("Failed to fetch accounts");
+      if (!accountsResponse.ok) {
+        throw new Error("Failed to fetch accounts");
+      }
 
       const { accounts: dbAccounts } = await accountsResponse.json();
       if (!dbAccounts?.length) {
-        return null;
+        const validAccounts = dbAccounts.filter(Boolean);
+        return { accounts: validAccounts };
       }
 
       // Fetch Instagram data for each account
@@ -173,13 +176,13 @@ export default function Dashboard() {
         accountLimit: validAccounts[0]?.accountLimit || 1,
         engagementRate: 87, // Mock data
         successRate: 94, // Mock data
-        overallAvgResponseTime: validAccounts.reduce(
+        overallAvgResponseTime: validAccounts?.reduce(
           (sum: number, account: any) => sum + (account?.avgResponseTime || 0),
           0
         ),
         accounts: validAccounts,
       };
-      if (validAccounts && validAccounts.length > 0) {
+      if (validAccounts && validAccounts?.length > 0) {
         localStorage.setItem(
           ACCOUNTS_CACHE_KEY,
           JSON.stringify({
@@ -479,9 +482,9 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-4 p-2">
               {dashboardData?.accounts &&
-                dashboardData.accounts.map((account: any) => (
+                dashboardData?.accounts?.map((account: any) => (
                   <div
-                    key={account.id}
+                    key={account?.id}
                     className="flex flex-wrap gap-3 md:gap-0 items-center justify-between p-2 md:p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
                   >
                     <div className="flex items-center space-x-2 md:space-x-4">
@@ -489,38 +492,38 @@ export default function Dashboard() {
                         <Image
                           width={48}
                           height={48}
-                          src={hasError ? defaultImg : account.profilePicture}
-                          alt={account.displayName}
+                          src={hasError ? defaultImg : account?.profilePicture}
+                          alt={account?.displayName}
                           onError={handleError}
                           className="h-12 w-12 rounded-full object-cover"
                         />
                         <div
                           className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-[#0a0a0a] ${
-                            account.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
+                            account?.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
                           }`}
                         />
                       </div>
                       <div>
                         <h3 className="font-semibold text-sm md:text-base text-white">
-                          @{account.username}
+                          @{account?.username || "Unknown"}
                         </h3>
                         <p className="text-sm text-gray-400">
-                          {account.followersCount} followers
+                          {account?.followersCount || 0} followers
                         </p>
                       </div>
                       <Badge
-                        variant={account.isActive ? "default" : "secondary"}
+                        variant={account?.isActive ? "default" : "secondary"}
                         className={
-                          account.isActive
+                          account?.isActive
                             ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
                             : ""
                         }
                       >
-                        {account.isActive ? "Active" : "Inactive"}
+                        {account?.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {new Date(account.expiryDate) <
+                      {new Date(account?.expiryDate) <
                         new Date(Date.now() + 24 * 60 * 60 * 1000) &&
                         userId && (
                           <Button
@@ -540,7 +543,7 @@ export default function Dashboard() {
                         className="border-white/20 text-gray-300 hover:bg-white/10"
                         asChild
                       >
-                        <Link href={`/insta/accounts/${account.id}`}>
+                        <Link href={`/insta/accounts/${account?.id}`}>
                           <Settings className="h-4 w-4" /> Manage
                         </Link>
                       </Button>

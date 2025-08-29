@@ -51,7 +51,9 @@ export async function GET(request: NextRequest) {
     const accounts = await InstagramAccount.find({ userId: userId }).sort({
       createdAt: -1,
     });
-
+    if (accounts.length === 0) {
+      return NextResponse.json({ accounts: [] });
+    }
     const enhancedAccounts = await Promise.all(
       accounts.map(async (account) => {
         // Get template count
