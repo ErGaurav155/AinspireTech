@@ -179,14 +179,15 @@ export default function Dashboard() {
         ),
         accounts: validAccounts,
       };
-
-      localStorage.setItem(
-        ACCOUNTS_CACHE_KEY,
-        JSON.stringify({
-          data: validAccounts,
-          timestamp: Date.now(),
-        })
-      );
+      if (validAccounts && validAccounts.length > 0) {
+        localStorage.setItem(
+          ACCOUNTS_CACHE_KEY,
+          JSON.stringify({
+            data: validAccounts,
+            timestamp: Date.now(),
+          })
+        );
+      }
       return stats;
     } catch (error) {
       console.error("Failed to fetch accounts:", error);

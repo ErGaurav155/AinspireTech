@@ -64,6 +64,7 @@ export default function AccountsPage() {
       if (!accountsResponse.ok) throw new Error("Failed to fetch accounts");
 
       const { accounts: dbAccounts } = await accountsResponse.json();
+      console.log("Fetched accounts from DB:", dbAccounts);
       if (!dbAccounts?.length) {
         return null;
       }
@@ -112,17 +113,18 @@ export default function AccountsPage() {
           }
         })
       );
+      const validAccounts = completeAccounts.filter(Boolean);
 
-      if (completeAccounts) {
-        setAccounts(completeAccounts);
+      if (validAccounts && validAccounts.length > 0) {
+        setAccounts(validAccounts);
+        localStorage.setItem(
+          ACCOUNTS_CACHE_KEY,
+          JSON.stringify({
+            data: validAccounts,
+            timestamp: Date.now(),
+          })
+        );
       }
-      localStorage.setItem(
-        ACCOUNTS_CACHE_KEY,
-        JSON.stringify({
-          data: completeAccounts,
-          timestamp: Date.now(),
-        })
-      );
     } catch (error) {
       console.error("Failed to fetch accounts:", error);
       setError(
@@ -235,26 +237,26 @@ export default function AccountsPage() {
   }
 
   const displayedAccounts = accounts.length > 0 ? accounts : [];
-  const activeAccounts = displayedAccounts.filter(
-    (a: any) => a.isActive
+  const activeAccounts = displayedAccounts?.filter(
+    (a: any) => a?.isActive
   ).length;
-  const totalFollowers = displayedAccounts.reduce(
-    (sum: number, acc: any) => sum + acc.followersCount,
+  const totalFollowers = displayedAccounts?.reduce(
+    (sum: number, acc: any) => sum + acc?.followersCount,
     0
   );
-  const totalReplies = displayedAccounts.reduce(
-    (sum: number, acc: any) => sum + acc.repliesCount,
+  const totalReplies = displayedAccounts?.reduce(
+    (sum: number, acc: any) => sum + acc?.repliesCount,
     0
   );
   const avgEngagement =
-    displayedAccounts.length > 0
+    displayedAccounts?.length > 0
       ? (
-          displayedAccounts.reduce(
-            (sum: number, acc: any) => sum + acc.engagementRate,
+          displayedAccounts?.reduce(
+            (sum: number, acc: any) => sum + acc?.engagementRate,
             0
-          ) / displayedAccounts.length
+          ) / displayedAccounts?.length
         ).toFixed(1)
-      : "0.0";
+      : 0;
   const handleError = () => {
     setHasError(true);
   };
@@ -367,11 +369,12 @@ export default function AccountsPage() {
         {/* Accounts Grid */}
         <div className="grid gap-6">
           {displayedAccounts &&
-            displayedAccounts.map((account: any) => (
+            displayedAccounts?.length > 0 &&
+            displayedAccounts?.map((account: any) => (
               <Card
-                key={account.id}
+                key={account?.id}
                 className={`card-hover transition-all duration-300 ${
-                  account.isActive
+                  account?.isActive
                     ? "border-[#00F0FF]/30 bg-gradient-to-r from-[#00F0FF]/5 to-transparent"
                     : "border-white/10"
                 }`}
@@ -381,8 +384,8 @@ export default function AccountsPage() {
                     <div className="flex flex-col  items-center justify-center gap-4">
                       <div className="relative">
                         <Image
-                          src={hasError ? defaultImg : account.profilePicture}
-                          alt={account.displayName}
+                          src={hasError ? defaultImg : account?.profilePicture}
+                          alt={account?.displayName}
                           onError={handleError}
                           width={64}
                           height={64}
@@ -390,36 +393,40 @@ export default function AccountsPage() {
                         />
                         <div
                           className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-[#0a0a0a] ${
-                            account.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
+                            account?.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
                           }`}
                         />
                       </div>
                       <div className="flex flex-col items-center text-center">
                         <div className="flex items-center gap-2 ">
                           <h3 className="text-lg font-bold text-white">
-                            @{account.username}
+                            @{account?.username || "unknown"}
                           </h3>
                           <Badge
-                            variant={account.isActive ? "default" : "secondary"}
+                            variant={
+                              account?.isActive ? "default" : "secondary"
+                            }
                             className={
-                              account.isActive
+                              account?.isActive
                                 ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
                                 : "bg-gray-800 text-gray-400"
                             }
                           >
-                            {account.isActive ? "Active" : "Inactive"}
+                            {account?.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </div>
-                        <p className="text-gray-400">{account.displayName}</p>
+                        <p className="text-gray-400">
+                          {account?.displayName || "unknown"}
+                        </p>
                         <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
                           <span className="text-sm text-gray-400">
-                            {account.followersCount} followers
+                            {account?.followersCount || 0} followers
                           </span>
                           <span className="text-sm text-gray-400">
-                            {account.postsCount} posts
+                            {account?.postsCount || 0} posts
                           </span>
                           <span className="text-sm text-gray-400">
-                            {account.engagementRate}% engagement
+                            {account?.engagementRate || 0}% engagement
                           </span>
                         </div>
                       </div>
@@ -429,7 +436,7 @@ export default function AccountsPage() {
                       <div className="flex items-center gap-4">
                         <div className="flex flex-col items-center">
                           <span className="font-bold">
-                            {account.templatesCount}
+                            {account?.templatesCount || 0}
                           </span>
                           <span className="text-xs text-gray-400">
                             Templates
@@ -437,13 +444,13 @@ export default function AccountsPage() {
                         </div>
                         <div className="flex flex-col items-center">
                           <span className="font-bold">
-                            {account.repliesCount}
+                            {account?.repliesCount || 0}
                           </span>
                           <span className="text-xs text-gray-400">Replies</span>
                         </div>
                         <div className="flex flex-col items-center">
                           <span className="font-bold">
-                            {formatLastActivity(account.lastActivity)}
+                            {formatLastActivity(account?.lastActivity) || "N/A"}
                           </span>
                           <span className="text-xs text-gray-400">Active</span>
                         </div>
@@ -455,16 +462,16 @@ export default function AccountsPage() {
                             Auto-replies
                           </Label>
                           <Switch
-                            checked={account.isActive}
+                            checked={account?.isActive}
                             onCheckedChange={() =>
-                              handleToggleAccount(account.id)
+                              handleToggleAccount(account?.id)
                             }
                             className="data-[state=checked]:bg-[#00F0FF]"
                           />
                         </div>
 
                         <div className="flex items-center justify-center gap-2">
-                          {new Date(account.expiryDate) <
+                          {new Date(account?.expiryDate) <
                             new Date(Date.now() + 24 * 60 * 60 * 1000) &&
                             userId && (
                               <Button
@@ -484,7 +491,7 @@ export default function AccountsPage() {
                             className="border-white/20 text-gray-300 p-2 hover:bg-white/10"
                             asChild
                           >
-                            <Link href={`/insta/accounts/${account.id}`}>
+                            <Link href={`/insta/accounts/${account?.id}`}>
                               <Settings className="h-4 w-4 mr-1" /> Manage
                             </Link>
                           </Button>
