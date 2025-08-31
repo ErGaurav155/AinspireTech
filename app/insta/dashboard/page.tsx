@@ -109,10 +109,15 @@ export default function Dashboard() {
         throw new Error("Failed to fetch accounts");
       }
 
-      const { accounts: dbAccounts } = await accountsResponse.json();
+      const {
+        accounts: dbAccounts,
+        totalReplies,
+        accountLimit,
+        replyLimit,
+        totalAccounts,
+      } = await accountsResponse.json();
       if (!dbAccounts?.length) {
-        const validAccounts = dbAccounts.filter(Boolean);
-        return { accounts: validAccounts };
+        return null;
       }
 
       // Fetch Instagram data for each account
@@ -143,8 +148,10 @@ export default function Dashboard() {
               isActive: dbAccount.isActive || false,
               expiryDate: dbAccount.expiresAt || null,
               templatesCount: dbAccount.templatesCount || 0,
-              repliesCount: dbAccount.totalReplies || 0,
-              accountLimit: dbAccount.accountLimit || 1,
+              repliesCount: totalReplies || 0,
+              replyLimit: replyLimit || 500,
+              accountLimit: accountLimit || 1,
+              totalAccounts: totalAccounts || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: dbAccount.engagementRate || 0,
               avgResponseTime: dbAccount.avgResTime[0].avgResponseTime || 0,
@@ -407,11 +414,12 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {dashboardData.activeAccounts || 0}
+                {dashboardData?.activeAccounts || 0} /{" "}
+                {dashboardData?.accountLimit || 1}
               </div>
-              {dashboardData.totalAccounts ? (
+              {dashboardData?.totalAccounts ? (
                 <p className="text-xs text-gray-400">
-                  {dashboardData.totalAccounts - dashboardData.activeAccounts}{" "}
+                  {dashboardData?.totalAccounts - dashboardData?.activeAccounts}{" "}
                   inactive
                 </p>
               ) : (
@@ -445,7 +453,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-2xl font-bold text-white">
                 {dashboardData.totalReplies || 0} /{" "}
-                {dashboardData.accountLimit || 1}
+                {dashboardData.replyLimit || 1}
               </div>
               <p className="text-xs text-gray-400">+23% from last month</p>
             </CardContent>

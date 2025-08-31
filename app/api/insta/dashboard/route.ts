@@ -1,3 +1,4 @@
+import { getUserById } from "@/lib/action/user.actions";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaReplyLog from "@/lib/database/models/insta/ReplyLog.model";
 import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
@@ -47,6 +48,11 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+    const userData = await getUserById(userId);
+    if (!userData) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     // Get all accounts with enhanced data
     const accounts = await InstagramAccount.find({ userId: userId }).sort({
       createdAt: -1,
@@ -82,7 +88,13 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    return NextResponse.json({ accounts: enhancedAccounts });
+    return NextResponse.json({
+      accounts: enhancedAccounts,
+      totalReplies: userData.totalReplies,
+      accountLimit: userData.accountLimit,
+      replyLimit: userData.replyLimit,
+      totalAccounts: userData.totalAccounts,
+    });
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
     return NextResponse.json(

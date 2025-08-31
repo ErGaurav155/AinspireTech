@@ -29,6 +29,8 @@ import { toast } from "../ui/use-toast";
 
 import LoginPage from "./InstagramAutomationWizard";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
+import { getUserByDbId } from "@/lib/action/user.actions";
+import User from "@/lib/database/models/user.model";
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -138,12 +140,12 @@ export default function PaymentModal({
                 billingCycle: billingCycle,
               }),
             });
-            await InstagramAccount.findByIdAndUpdate(
+            await User.findByIdAndUpdate(
               { _id: buyerId },
               {
-                isActive: true,
-                accountLimit: plan.limit,
+                replyLimit: plan.limit,
                 totalReplies: 0,
+                accountLimit: plan.account,
               },
               { new: true }
             );

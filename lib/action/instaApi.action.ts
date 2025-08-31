@@ -8,6 +8,7 @@ import InstaReplyTemplate, {
   IReplyTemplate,
 } from "../database/models/insta/ReplyTemplate.model";
 import { generateCommentResponse } from "./ai.action";
+import { getUserById } from "./user.actions";
 
 // Interfaces
 interface InstagramComment {
@@ -289,9 +290,11 @@ export async function processComment(
     console.log("account : ", account);
 
     if (!account || !account.isActive) return;
-    if (account.totalReplies >= account.accountLimit) {
+    const userInfo = await getUserById(userId);
+    if (!userInfo) return; // Extra check to ensure user exists
+    if (userInfo.totalReplies >= userInfo.replyLimit) {
       console.warn(
-        `Account ${accountId} has reached its reply limit (${account.totalReplies}/${account.accountLimit})`
+        `Account ${accountId} has reached its reply limit (${userInfo.totalReplies}/${userInfo.replyLimit})`
       );
       if (account.isActive) {
         account.isActive = false;
@@ -303,7 +306,6 @@ export async function processComment(
         return;
       }
     }
-
     // Validate access token
     const isValidToken = await validateAccessToken(account.accessToken);
     console.log("isValidToken : ", isValidToken);
@@ -395,9 +397,9 @@ export async function processComment(
         $inc: { usageCount: 1 },
         $set: { lastUsed: new Date() },
       });
-      account.totalReplies += 1;
+      userInfo.totalReplies += 1;
+      await userInfo.save();
     }
-
     // Update account activity
     account.lastActivity = new Date();
     await account.save();

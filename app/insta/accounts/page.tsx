@@ -63,7 +63,13 @@ export default function AccountsPage() {
       );
       if (!accountsResponse.ok) throw new Error("Failed to fetch accounts");
 
-      const { accounts: dbAccounts } = await accountsResponse.json();
+      const {
+        accounts: dbAccounts,
+        totalReplies,
+        accountLimit,
+        replyLimit,
+        totalAccounts,
+      } = await accountsResponse.json();
       console.log("Fetched accounts from DB:", dbAccounts);
       if (!dbAccounts?.length) {
         return null;
@@ -97,8 +103,10 @@ export default function AccountsPage() {
               isActive: dbAccount.isActive || false,
               expiryDate: dbAccount.expiresAt || null,
               templatesCount: dbAccount.templatesCount || 0,
-              repliesCount: dbAccount.totalReplies || 0,
-              accountLimit: dbAccount.accountLimit || 1,
+              repliesCount: totalReplies || 0,
+              replyLimit: replyLimit || 500,
+              accountLimit: accountLimit || 1,
+              totalAccounts: totalAccounts || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: dbAccount.engagementRate || 0,
               avgResponseTime: dbAccount.avgResTime[0].avgResponseTime || 0,
@@ -312,7 +320,8 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {displayedAccounts.length || 0}
+                {displayedAccounts?.length || 0} /{" "}
+                {displayedAccounts[0]?.accountLimit || 1}
               </div>
               <p className="text-xs text-gray-400">
                 {activeAccounts || 0} active
@@ -344,7 +353,7 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {totalReplies || 0} / {displayedAccounts[0]?.accountLimit || 1}
+                {totalReplies || 0} / {displayedAccounts[0]?.replyLimit || 1}
               </div>
               <p className="text-xs text-gray-400">Total sent</p>
             </CardContent>

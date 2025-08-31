@@ -360,6 +360,7 @@ export const instagramPricingPlans: PricingPlan[] = [
     description: "For new creators",
     monthlyPrice: 6,
     yearlyPrice: 60,
+    account: 1,
     limit: 500,
     features: [
       "500 comments/month",
@@ -377,6 +378,7 @@ export const instagramPricingPlans: PricingPlan[] = [
     description: "For growing accounts",
     monthlyPrice: 18,
     yearlyPrice: 180,
+    account: 3,
     limit: 2000,
     features: [
       "2,000 comments/month",
@@ -395,6 +397,7 @@ export const instagramPricingPlans: PricingPlan[] = [
     description: "For high-traffic pages",
     monthlyPrice: 39,
     yearlyPrice: 390,
+    account: 5,
     limit: 5000,
     features: [
       "5,000 comments/month",

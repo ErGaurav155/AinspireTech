@@ -206,7 +206,13 @@ export default function AnalyticsPage() {
       );
       if (!accountsResponse.ok) throw new Error("Failed to fetch accounts");
 
-      const { accounts: dbAccounts } = await accountsResponse.json();
+      const {
+        accounts: dbAccounts,
+        totalReplies,
+        accountLimit,
+        replyLimit,
+        totalAccounts,
+      } = await accountsResponse.json();
       if (!dbAccounts?.length) {
         return null;
       }
@@ -238,8 +244,10 @@ export default function AnalyticsPage() {
               isActive: dbAccount.isActive || false,
               expiryDate: dbAccount.expiresAt || null,
               templatesCount: dbAccount.templatesCount || 0,
-              repliesCount: dbAccount.totalReplies || 0,
-              accountLimit: dbAccount.accountLimit || 1,
+              repliesCount: totalReplies || 0,
+              replyLimit: replyLimit || 500,
+              accountLimit: accountLimit || 1,
+              totalAccounts: totalAccounts || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: dbAccount.engagementRate || 0,
               avgResponseTime: dbAccount.avgResTime[0].avgResponseTime || 0,
@@ -472,8 +480,8 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#B026FF]">
-                {analyticsData.totalReplies || 0} /{" "}
-                {analyticsData.accountLimit || 1}
+                {analyticsData?.totalReplies || 0} /{" "}
+                {analyticsData?.replyLimit || 1}
               </div>
               <p className="text-xs text-muted-foreground flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600" />

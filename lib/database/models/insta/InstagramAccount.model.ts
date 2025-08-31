@@ -8,8 +8,6 @@ export interface IInstagramAccount extends Document {
   profilePicture?: string;
   isActive?: boolean;
   lastTokenRefresh?: Date;
-  totalReplies: number;
-  accountLimit?: number;
   expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -38,15 +36,7 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
       type: Boolean,
       default: true,
     },
-    totalReplies: {
-      required: true,
-      type: Number,
-      default: 0,
-    },
-    accountLimit: {
-      type: Number,
-      default: 500,
-    },
+
     expiresAt: {
       type: Date,
       default: () => new Date(Date.now() + 60 * 60 * 24 * 1000),

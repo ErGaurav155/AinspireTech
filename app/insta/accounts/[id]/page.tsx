@@ -266,7 +266,13 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         );
         if (!accountsResponse.ok) throw new Error("Failed to fetch accounts");
 
-        const { accounts: dbAccounts } = await accountsResponse.json();
+        const {
+          accounts: dbAccounts,
+          totalReplies,
+          accountLimit,
+          replyLimit,
+          totalAccounts,
+        } = await accountsResponse.json();
         if (!dbAccounts?.length) {
           return null;
         }
@@ -299,8 +305,10 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                 isActive: dbAccount.isActive || false,
                 expiryDate: dbAccount.expiresAt || null,
                 templatesCount: dbAccount.templatesCount || 0,
-                repliesCount: dbAccount.totalReplies || 0,
-                accountLimit: dbAccount.accountLimit || 1,
+                repliesCount: totalReplies || 0,
+                replyLimit: replyLimit || 500,
+                accountLimit: accountLimit || 1,
+                totalAccounts: totalAccounts || 0,
                 lastActivity:
                   dbAccount.lastActivity || new Date().toISOString(),
                 engagementRate: dbAccount.engagementRate || 0,
@@ -561,19 +569,19 @@ export default function AccountPage({ params }: { params: { id: string } }) {
               <div>
                 <div className="flex items-center justify-start w-full gap-1 md:gap-3">
                   <h1 className="text-2xl md:text-4xl font-bold  gradient-text-main">
-                    @{account.username}
+                    @{account?.username || "unknown"}
                   </h1>
                   <Badge variant={account.isActive ? "default" : "secondary"}>
                     {account.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </div>
                 <p className="text-xl text-gray-300 mb-2">
-                  {account.displayName}
+                  {account.displayName || "Instagram User"}
                 </p>
                 <div className="flex items-center gap-2 md:gap-6 text-gray-400">
-                  <span>{account.followersCount} followers</span>
-                  <span>{account.postsCount} posts</span>
-                  <span>{account.engagementRate}% engagement</span>
+                  <span>{account.followersCount || 0} followers</span>
+                  <span>{account.postsCount || 0} posts</span>
+                  <span>{account.engagementRate || 0}% engagement</span>
                 </div>
               </div>
             </div>
@@ -583,6 +591,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   <Label htmlFor="account-toggle">Auto-replies</Label>
                   <Switch
                     id="account-toggle"
+                    disabled={account.length > 0 ? false : true}
                     checked={account.isActive}
                     onCheckedChange={handleToggleAccount}
                   />
@@ -608,10 +617,11 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     onClick={() => refresh()}
                     variant="outline"
                     size="sm"
+                    disabled={account.length > 0 ? false : true}
                     className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Refresh
+                    Refresh Data
                   </Button>
                 </div>
 
@@ -619,6 +629,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   <Button
                     variant="destructive"
                     size="sm"
+                    disabled={account.length > 0 ? false : true}
                     onClick={() => setShowDeleteDialog(true)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
@@ -668,6 +679,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
               <DialogTrigger asChild>
                 <Button
                   onClick={() => setEditingTemplate(null)}
+                  disabled={account.length > 0 ? false : true}
                   className="btn-gradient-cyan hover:opacity-90 hover:shadow-cyan-500 shadow-lg transition-opacity "
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -1075,7 +1087,10 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     Create your first reply template to start automating
                     responses
                   </p>
-                  <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <Button
+                    onClick={() => setIsCreateDialogOpen(true)}
+                    disabled={account.length > 0 ? false : true}
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     Create Template
                   </Button>
@@ -1189,6 +1204,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                       </div>
                       <Switch
                         checked={account.isActive}
+                        disabled={account.length > 0 ? false : true}
                         onCheckedChange={handleToggleAccount}
                         className="data-[state=checked]:bg-[#00F0FF]"
                       />
@@ -1458,6 +1474,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                 </div>
                 <Switch
                   checked={account.isActive}
+                  disabled={account.length > 0 ? false : true}
                   onCheckedChange={handleToggleAccount}
                 />
               </div>
@@ -1468,7 +1485,10 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     Limit 1 reply per comment, 10 replies per hour
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  disabled={account.length > 0 ? false : true}
+                  defaultChecked
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -1477,7 +1497,10 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     Skip replies to spam or inappropriate comments
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  disabled={account.length > 0 ? false : true}
+                  defaultChecked
+                />
               </div>{" "}
               <div className="pt-4 border-t border-dashed">
                 <div className="flex flex-col space-y-4">
@@ -1491,6 +1514,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     </div>
                     <Button
                       variant="destructive"
+                      disabled={account.length > 0 ? false : true}
                       onClick={() => setShowDeleteDialog(true)}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />

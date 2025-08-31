@@ -81,6 +81,9 @@ export async function GET(req: NextRequest) {
       "user_id",
       "profile_picture_url",
     ]);
+    const InstagramAcc = await InstagramAccount.find({
+      instagramId: user.user_id,
+    });
     const subscriptions = await InstaSubscription.find({
       clerkId: userId,
       chatbotType: {
@@ -94,6 +97,11 @@ export async function GET(req: NextRequest) {
     });
     console.log("subscriptions", subscriptions);
     if (!subscriptions || subscriptions.length === 0) {
+      if (InstagramAcc && InstagramAcc.length >= 1) {
+        throw new Error(
+          "You have already added an Instagram account. Please upgrade your plan to add more accounts."
+        );
+      }
       const InstaAcc = await InstagramAccount.findOneAndUpdate(
         { userId: userid },
         {
@@ -104,8 +112,6 @@ export async function GET(req: NextRequest) {
           lastTokenRefresh: Date.now(),
           isActive: true,
           expiresAt,
-          totalReplies: 0,
-          accountLimit: 500,
         },
         { upsert: true, new: true }
       );
@@ -113,23 +119,28 @@ export async function GET(req: NextRequest) {
     }
 
     // Save to MongoDB
-    let limit = 0;
+    let noOfAccount = 0;
     switch (subscriptions[0]?.chatbotType) {
       case "Insta-Automation-Starter":
-        limit = 5000;
+        noOfAccount = 1;
 
         break;
       case "Insta-Automation-Grow":
-        limit = 10000;
+        noOfAccount = 3;
 
         break;
       case "Insta-Automation-Professional":
-        limit = 20000;
+        noOfAccount = 5;
         break;
       default:
         throw new Error("No active subscription found");
     }
 
+    if (InstagramAcc && InstagramAcc.length >= noOfAccount) {
+      throw new Error(
+        `You have reached the limit of ${noOfAccount} Instagram accounts. Please upgrade your plan to add more accounts.`
+      );
+    }
     const InstaAcc = await InstagramAccount.findOneAndUpdate(
       { userId: userid },
       {
@@ -140,8 +151,6 @@ export async function GET(req: NextRequest) {
         lastTokenRefresh: Date.now(),
         isActive: true,
         expiresAt,
-        totalReplies: 0,
-        accountLimit: limit,
       },
       { upsert: true, new: true }
     );

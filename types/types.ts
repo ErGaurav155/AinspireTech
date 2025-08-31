@@ -45,6 +45,7 @@ export type PricingPlan = {
   description: string;
   monthlyPrice: number;
   yearlyPrice: number;
+  account: number;
   limit: number;
   features: string[];
   popular: boolean;

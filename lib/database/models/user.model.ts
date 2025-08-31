@@ -20,7 +20,22 @@ const UserSchema = new Schema({
   phone: {
     type: String,
   },
-
+  totalReplies: {
+    type: Number,
+    default: 0,
+  },
+  replyLimit: {
+    type: Number,
+    default: 500,
+  },
+  totalAccounts: {
+    type: Number,
+    default: 0,
+  },
+  accountLimit: {
+    type: Number,
+    default: 1,
+  },
   scrappedFile: {
     type: String,
   },

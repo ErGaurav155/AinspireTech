@@ -68,8 +68,11 @@ export async function POST(req: Request) {
     const websiteUrl = (public_metadata?.websiteUrl as string) || null;
     const scrappedFile = (public_metadata?.scrappedFile as string) || null;
     const phone = (public_metadata?.phone as string) || null;
-
-    const isScrapped = public_metadata?.isScrapped as boolean;
+    const isScrapped = (public_metadata?.isScrapped as boolean) || false;
+    const totalReplies = (public_metadata?.totalReplies as number) || 0;
+    const replyLimit = (public_metadata?.replyLimit as number) || 500;
+    const totalAccounts = (public_metadata?.totalAccounts as number) || 0;
+    const accountLimit = (public_metadata?.accountLimit as number) || 1;
 
     const user = {
       clerkId: id,
@@ -79,9 +82,12 @@ export async function POST(req: Request) {
       lastName: last_name,
       websiteUrl: websiteUrl,
       isScrapped: isScrapped,
-      scrappedFile,
+      scrappedFile: scrappedFile,
       phone,
-
+      totalReplies: totalReplies,
+      replyLimit: replyLimit,
+      totalAccounts: totalAccounts,
+      accountLimit: accountLimit,
       photo: image_url,
     };
     const newUser = await createUser(user);
