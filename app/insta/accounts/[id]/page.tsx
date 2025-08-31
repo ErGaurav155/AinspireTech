@@ -1197,17 +1197,26 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-300">Template Usage</span>
-                        <span className="text-gray-400">85%</span>
+                        <span className="text-gray-400">
+                          {account?.repliesCount || 0}%
+                        </span>
                       </div>
-                      <Progress value={85} className="h-2 bg-white/10" />
+                      <Progress
+                        value={account?.repliesCount || 0}
+                        className="h-2 bg-white/10"
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-300">Success Rate</span>
-                        <span className="text-gray-400">94%</span>
+                        <span className="text-gray-300">Response Time</span>
+                        <span className="text-gray-400">
+                          {account?.avgResponseTime
+                            ? formatResponseTimeSmart(account.avgResponseTime)
+                            : 0}
+                        </span>
                       </div>
-                      <Progress value={94} className="h-2 bg-white/10" />
+                      <Progress value={85} className="h-2 bg-white/10" />
                     </div>
 
                     <div className="pt-4 border-t border-white/10">
@@ -1380,9 +1389,9 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                       ))} */}
 
                     <div className="space-y-4 max-h-96 overflow-y-auto no-scrollbar">
-                      {account &&
-                        account.recentActivity &&
-                        account.recentActivity.map((activity: any) => (
+                      {(account &&
+                        account?.recentActivity?.length > 0 &&
+                        account?.recentActivity?.map((activity: any) => (
                           <div
                             key={activity.id}
                             className="flex items-center justify-between p-3 border rounded-lg"
@@ -1420,7 +1429,9 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                               </p>
                             </div>
                           </div>
-                        ))}
+                        ))) || (
+                        <p className="text-gray-400">No recent activity</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -599,9 +599,14 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-gray-300">
                     Template Usage
                   </span>
-                  <span className="text-sm text-gray-400">78%</span>
+                  <span className="text-sm text-gray-400">
+                    {dashboardData?.totalReplies || 0}%
+                  </span>
                 </div>
-                <Progress value={78} className="h-2 bg-white/10" />
+                <Progress
+                  value={dashboardData?.totalReplies || 0}
+                  className="h-2 bg-white/10"
+                />
               </div>
 
               <div>
@@ -614,7 +619,7 @@ export default function Dashboard() {
                       ? formatResponseTimeSmart(
                           dashboardData.overallAvgResponseTime
                         )
-                      : "0s"}{" "}
+                      : 0}{" "}
                   </span>
                 </div>
                 <Progress value={85} className="h-2 bg-white/10" />
@@ -625,21 +630,25 @@ export default function Dashboard() {
                   Recent Activity
                 </h4>
                 <div className="space-y-2">
-                  {dashboardData?.recentActivity
-                    ?.slice(0, 3)
-                    .map((activity: any) => (
-                      <div
-                        key={activity.id}
-                        className="flex items-center justify-between text-sm"
-                      >
-                        <span className="text-gray-300">
-                          {activity.message}
-                        </span>
-                        <span className="text-gray-500">
-                          {formatTimestamp(activity.timestamp)}
-                        </span>
-                      </div>
-                    ))}
+                  {dashboardData?.recentActivity?.length > 0 ? (
+                    dashboardData?.recentActivity
+                      ?.slice(0, 3)
+                      .map((activity: any) => (
+                        <div
+                          key={activity.id}
+                          className="flex items-center justify-between text-sm"
+                        >
+                          <span className="text-gray-300">
+                            {activity.message}
+                          </span>
+                          <span className="text-gray-500">
+                            {formatTimestamp(activity.timestamp)}
+                          </span>
+                        </div>
+                      ))
+                  ) : (
+                    <p className="text-gray-400">No recent activity</p>
+                  )}
                 </div>
               </div>
             </CardContent>
