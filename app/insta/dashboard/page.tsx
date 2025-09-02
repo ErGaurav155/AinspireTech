@@ -84,6 +84,7 @@ export default function Dashboard() {
               0
             ),
             accountLimit: data[0]?.accountLimit || 1,
+            replyLimit: data[0]?.replyLimit || 1,
             engagementRate: 87, // Mock data
             successRate: 94, // Mock data
             overallAvgResponseTime: data.reduce(
@@ -181,6 +182,7 @@ export default function Dashboard() {
           0
         ),
         accountLimit: validAccounts[0]?.accountLimit || 1,
+        replyLimit: validAccounts[0]?.replyLimit || 1,
         engagementRate: 87, // Mock data
         successRate: 94, // Mock data
         overallAvgResponseTime: validAccounts?.reduce(
@@ -452,8 +454,8 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {dashboardData.totalReplies || 0} /{" "}
-                {dashboardData.replyLimit || 1}
+                {dashboardData?.repliesCount || 0} /{" "}
+                {dashboardData?.replyLimit || 1}
               </div>
               <p className="text-xs text-gray-400">+23% from last month</p>
             </CardContent>

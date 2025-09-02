@@ -182,6 +182,7 @@ export default function AnalyticsPage() {
               0
             ),
             accountLimit: data[0]?.accountLimit || 1,
+            replyLimit: data[0]?.replyLimit || 1,
             engagementRate: 87, // Mock data
             successRate: 94, // Mock data
             overallAvgResponseTime: data.reduce(
@@ -283,6 +284,7 @@ export default function AnalyticsPage() {
           0
         ),
         accountLimit: validAccounts[0]?.accountLimit || 1,
+        replyLimit: validAccounts[0]?.replyLimit || 1,
         accounts: validAccounts,
       };
       if (validAccounts && validAccounts.length > 0) {

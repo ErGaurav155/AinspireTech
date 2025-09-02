@@ -86,7 +86,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [account, setAccount] = useState<any>([]);
+  const [account, setAccount] = useState<any>({});
   const [imgSrc, setImgSrc] = useState(account.profilePicture);
   const [hasError, setHasError] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -591,7 +591,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   <Label htmlFor="account-toggle">Auto-replies</Label>
                   <Switch
                     id="account-toggle"
-                    disabled={account.length > 0 ? false : true}
+                    disabled={Object.keys(account).length <= 1 ? true : false}
                     checked={account.isActive}
                     onCheckedChange={handleToggleAccount}
                   />
@@ -617,7 +617,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     onClick={() => refresh()}
                     variant="outline"
                     size="sm"
-                    disabled={account.length > 0 ? false : true}
+                    disabled={Object.keys(account).length <= 1 ? true : false}
                     className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
@@ -629,7 +629,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   <Button
                     variant="destructive"
                     size="sm"
-                    disabled={account.length > 0 ? false : true}
+                    disabled={Object.keys(account).length <= 1 ? true : false}
                     onClick={() => setShowDeleteDialog(true)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
@@ -679,7 +679,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
               <DialogTrigger asChild>
                 <Button
                   onClick={() => setEditingTemplate(null)}
-                  disabled={account.length > 0 ? false : true}
+                  disabled={Object.keys(account).length <= 1 ? true : false}
                   className="btn-gradient-cyan hover:opacity-90 hover:shadow-cyan-500 shadow-lg transition-opacity "
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -1089,7 +1089,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   </p>
                   <Button
                     onClick={() => setIsCreateDialogOpen(true)}
-                    disabled={account.length > 0 ? false : true}
+                    disabled={Object.keys(account).length <= 1 ? true : false}
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Create Template
@@ -1204,7 +1204,9 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                       </div>
                       <Switch
                         checked={account.isActive}
-                        disabled={account.length > 0 ? false : true}
+                        disabled={
+                          Object.keys(account).length <= 1 ? true : false
+                        }
                         onCheckedChange={handleToggleAccount}
                         className="data-[state=checked]:bg-[#00F0FF]"
                       />
@@ -1474,7 +1476,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                 </div>
                 <Switch
                   checked={account.isActive}
-                  disabled={account.length > 0 ? false : true}
+                  disabled={Object.keys(account).length <= 1 ? true : false}
                   onCheckedChange={handleToggleAccount}
                 />
               </div>
@@ -1486,7 +1488,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   </p>
                 </div>
                 <Switch
-                  disabled={account.length > 0 ? false : true}
+                  disabled={Object.keys(account).length <= 1 ? true : false}
                   defaultChecked
                 />
               </div>
@@ -1498,7 +1500,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   </p>
                 </div>
                 <Switch
-                  disabled={account.length > 0 ? false : true}
+                  disabled={Object.keys(account).length <= 1 ? true : false}
                   defaultChecked
                 />
               </div>{" "}
@@ -1514,7 +1516,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     </div>
                     <Button
                       variant="destructive"
-                      disabled={account.length > 0 ? false : true}
+                      disabled={Object.keys(account).length <= 1 ? true : false}
                       onClick={() => setShowDeleteDialog(true)}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
