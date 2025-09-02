@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
       totalReplies: userData.totalReplies,
       accountLimit: userData.accountLimit,
       replyLimit: userData.replyLimit,
-      totalAccounts: userData.totalAccounts,
+      totalAccounts: accounts.length,
     });
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);

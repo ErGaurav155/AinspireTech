@@ -81,9 +81,12 @@ export async function GET(req: NextRequest) {
       "user_id",
       "profile_picture_url",
     ]);
+    console.log("Instagram User:", user);
+
     const InstagramAcc = await InstagramAccount.find({
-      instagramId: user.user_id,
+      userId: userId,
     });
+    console.log("InstagramAcc", InstagramAcc);
     const subscriptions = await InstaSubscription.find({
       clerkId: userId,
       chatbotType: {
@@ -96,13 +99,14 @@ export async function GET(req: NextRequest) {
       status: "active",
     });
     console.log("subscriptions", subscriptions);
+    let InstaAcc;
     if (!subscriptions || subscriptions.length === 0) {
       if (InstagramAcc && InstagramAcc.length >= 1) {
         throw new Error(
           "You have already added an Instagram account. Please upgrade your plan to add more accounts."
         );
       }
-      const InstaAcc = await InstagramAccount.findOneAndUpdate(
+      InstaAcc = await InstagramAccount.findOneAndUpdate(
         { userId: userid },
         {
           instagramId: user.user_id,
@@ -115,45 +119,45 @@ export async function GET(req: NextRequest) {
         },
         { upsert: true, new: true }
       );
-      return NextResponse.json({ account: InstaAcc, status: 200 });
-    }
+    } else {
+      // Save to MongoDB
+      let noOfAccount = 0;
+      switch (subscriptions[0]?.chatbotType) {
+        case "Insta-Automation-Starter":
+          noOfAccount = 1;
 
-    // Save to MongoDB
-    let noOfAccount = 0;
-    switch (subscriptions[0]?.chatbotType) {
-      case "Insta-Automation-Starter":
-        noOfAccount = 1;
+          break;
+        case "Insta-Automation-Grow":
+          noOfAccount = 3;
 
-        break;
-      case "Insta-Automation-Grow":
-        noOfAccount = 3;
+          break;
+        case "Insta-Automation-Professional":
+          noOfAccount = 5;
+          break;
+        default:
+          throw new Error("No active subscription found");
+      }
 
-        break;
-      case "Insta-Automation-Professional":
-        noOfAccount = 5;
-        break;
-      default:
-        throw new Error("No active subscription found");
-    }
-
-    if (InstagramAcc && InstagramAcc.length >= noOfAccount) {
-      throw new Error(
-        `You have reached the limit of ${noOfAccount} Instagram accounts. Please upgrade your plan to add more accounts.`
+      if (InstagramAcc && InstagramAcc.length >= noOfAccount) {
+        throw new Error(
+          `You have reached the limit of ${noOfAccount} Instagram accounts. Please upgrade your plan to add more accounts.`
+        );
+      }
+      InstaAcc = await InstagramAccount.findOneAndUpdate(
+        { userId: userid },
+        {
+          instagramId: user.user_id,
+          username: user.username,
+          profilePicture: user.profile_picture_url,
+          accessToken: longLivedData.access_token,
+          lastTokenRefresh: Date.now(),
+          isActive: true,
+          expiresAt,
+        },
+        { upsert: true, new: true }
       );
     }
-    const InstaAcc = await InstagramAccount.findOneAndUpdate(
-      { userId: userid },
-      {
-        instagramId: user.user_id,
-        username: user.username,
-        profilePicture: user.profile_picture_url,
-        accessToken: longLivedData.access_token,
-        lastTokenRefresh: Date.now(),
-        isActive: true,
-        expiresAt,
-      },
-      { upsert: true, new: true }
-    );
+
     await Promise.all(
       defaultTemplates.map(async (template) => {
         const newTemplate = new InstaReplyTemplate({

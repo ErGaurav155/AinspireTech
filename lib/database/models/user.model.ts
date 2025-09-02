@@ -28,10 +28,7 @@ const UserSchema = new Schema({
     type: Number,
     default: 500,
   },
-  totalAccounts: {
-    type: Number,
-    default: 0,
-  },
+
   accountLimit: {
     type: Number,
     default: 1,
