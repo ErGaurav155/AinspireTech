@@ -17,6 +17,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -26,12 +36,17 @@ import Link from "next/link";
 import LoginPage from "./InstagramAutomationWizard";
 interface AccountVerificationProps {
   onVerified: () => void;
-  buyerId: string | null;
+  totalAccounts: number;
+  accountLimit: number;
 }
-const AddAccount = ({ onVerified, buyerId }: AccountVerificationProps) => {
-  const [username, setUsername] = useState("");
+const AddAccount = ({
+  onVerified,
+  totalAccounts,
+  accountLimit,
+}: AccountVerificationProps) => {
   const [isLoad, setIsLoad] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dialog, setDialog] = useState(false);
   const router = useRouter();
 
   // const handleSubmit = async (e: React.FormEvent) => {
@@ -97,7 +112,13 @@ const AddAccount = ({ onVerified, buyerId }: AccountVerificationProps) => {
             <Button
               type="submit"
               disabled={isSubmitting}
-              onClick={() => setIsLoad(true)}
+              onClick={() => {
+                if (totalAccounts >= accountLimit) {
+                  setDialog(true);
+                } else {
+                  setIsLoad(true);
+                }
+              }}
               className="flex-1"
             >
               {isSubmitting ? "Connecting..." : "Connect Account"}
@@ -137,6 +158,25 @@ const AddAccount = ({ onVerified, buyerId }: AccountVerificationProps) => {
           <p>⚡ We are using Instagram Business API for our applications</p>
         </CardContent>
       </Card>
+      <AlertDialog open={dialog} onOpenChange={setDialog}>
+        <AlertDialogContent className=" bg-[#6d1717]/5 backdrop-blur-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Your Account Limit Reached</AlertDialogTitle>
+            <AlertDialogDescription>
+              To add more account you need to update your subscription.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button
+              onClick={() => router.push("/insta/pricing")}
+              className="flex-1"
+            >
+              Upgrade
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -311,7 +311,10 @@ export default function TemplatesPage() {
   const filteredTemplates = templates.filter((template: any) => {
     const matchesSearch =
       template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.content
+        .join(", ")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
       template.triggers.some((trigger: any) =>
         trigger.toLowerCase().includes(searchTerm.toLowerCase())
       );

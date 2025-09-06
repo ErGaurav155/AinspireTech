@@ -14,6 +14,16 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -51,6 +61,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasError, setHasError] = useState(false);
+  const [dialog, setDialog] = useState(false);
 
   const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
@@ -372,13 +383,19 @@ export default function Dashboard() {
               </Link>
             </Button>
             <Button
+              onClick={() => {
+                if (
+                  dashboardData?.totalAccounts >= dashboardData?.accountLimit
+                ) {
+                  setDialog(true);
+                } else {
+                  router.push("/insta/accounts/add");
+                }
+              }}
               className="btn-gradient-cyan hover:opacity-90 transition-opacity"
-              asChild
             >
-              <Link href="/insta/accounts/add">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Account
-              </Link>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Account
             </Button>
           </div>
         </div>
@@ -415,7 +432,7 @@ export default function Dashboard() {
               <Instagram className="h-4 w-4 text-[#00F0FF]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#00F0FF]">
                 {dashboardData?.activeAccounts || 0} /{" "}
                 {dashboardData?.accountLimit || 1}
               </div>
@@ -438,7 +455,7 @@ export default function Dashboard() {
               <MessageSquare className="h-4 w-4 text-[#B026FF]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#B026FF]">
                 {dashboardData.totalTemplates || 0}
               </div>
               <p className="text-xs text-gray-400">Across all accounts</p>
@@ -453,7 +470,7 @@ export default function Dashboard() {
               <Zap className="h-4 w-4 text-[#FF2E9F]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#FF2E9F]">
                 {dashboardData?.repliesCount || 0} /{" "}
                 {dashboardData?.replyLimit || 1}
               </div>
@@ -469,7 +486,7 @@ export default function Dashboard() {
               <BarChart3 className="h-4 w-4 text-[#00F0FF]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#00F0FF]">
                 {dashboardData.engagementRate || 0}%
               </div>
               <p className="text-xs text-gray-400">+5% from last week</p>
@@ -550,11 +567,11 @@ export default function Dashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-white/20 text-gray-300 hover:bg-white/10"
+                        className="border-white/20 text-gray-300  bg-[#B026FF]/10 hover:bg-[#B026FF]/15 transition-colors"
                         asChild
                       >
                         <Link href={`/insta/accounts/${account?.id}`}>
-                          <Settings className="h-4 w-4" /> Manage
+                          <Settings className="h-4 w-4 " /> Manage
                         </Link>
                       </Button>
                     </div>
@@ -700,14 +717,20 @@ export default function Dashboard() {
               </Button>
 
               <Button
+                onClick={() => {
+                  if (
+                    dashboardData?.totalAccounts >= dashboardData?.accountLimit
+                  ) {
+                    setDialog(true);
+                  } else {
+                    router.push("/insta/accounts/add");
+                  }
+                }}
                 variant="outline"
                 className="h-auto p-6 flex flex-col items-center gap-3 border-[#FF2E9F]/20 bg-[#FF2E9F]/10 hover:bg-[#FF2E9F]/15 hover:border-[#FF2E9F]/40 transition-all"
-                asChild
               >
-                <Link href="/insta/accounts/add">
-                  <Plus className="h-8 w-8 text-[#FF2E9F]" />
-                  <span className="text-white font-medium">Add Account</span>
-                </Link>
+                <Plus className="h-8 w-8 text-[#FF2E9F]" />
+                <span className="text-white font-medium">Add Account</span>
               </Button>
             </div>
           </CardContent>
@@ -780,6 +803,25 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+      <AlertDialog open={dialog} onOpenChange={setDialog}>
+        <AlertDialogContent className=" bg-[#6d1717]/5 backdrop-blur-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Your Account Limit Reached</AlertDialogTitle>
+            <AlertDialogDescription>
+              To add more account you need to update your subscription.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button
+              onClick={() => router.push("/insta/pricing")}
+              className="flex-1"
+            >
+              Upgrade
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

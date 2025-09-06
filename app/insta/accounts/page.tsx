@@ -12,6 +12,16 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -32,6 +42,7 @@ export default function AccountsPage() {
   const { userId } = useAuth();
   const router = useRouter();
   const [hasError, setHasError] = useState(false);
+  const [dialog, setDialog] = useState(false);
 
   // Fetch accounts with caching
   const fetchAccounts = useCallback(async () => {
@@ -291,7 +302,6 @@ export default function AccountsPage() {
             <Button
               onClick={() => refresh()}
               variant="outline"
-              size="sm"
               className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -299,12 +309,19 @@ export default function AccountsPage() {
             </Button>
             <Button
               className="btn-gradient-cyan hover:opacity-90 transition-opacity"
-              asChild
+              onClick={() => {
+                if (
+                  displayedAccounts?.length >=
+                  displayedAccounts[0]?.accountLimit
+                ) {
+                  return setDialog(true);
+                } else {
+                  router.push("/insta/accounts/add");
+                }
+              }}
             >
-              <Link href="/insta/accounts/add">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Account
-              </Link>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Account
             </Button>
           </div>
         </div>
@@ -319,7 +336,7 @@ export default function AccountsPage() {
               <Instagram className="h-4 w-4 text-[#00F0FF]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#00F0FF]">
                 {displayedAccounts?.length || 0} /{" "}
                 {displayedAccounts[0]?.accountLimit || 1}
               </div>
@@ -337,7 +354,7 @@ export default function AccountsPage() {
               <Users className="h-4 w-4 text-[#B026FF]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#B026FF]">
                 {totalFollowers || 0}
               </div>
               <p className="text-xs text-gray-400">Across all accounts</p>
@@ -352,7 +369,7 @@ export default function AccountsPage() {
               <Zap className="h-4 w-4 text-[#FF2E9F]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#FF2E9F]">
                 {totalReplies || 0} / {displayedAccounts[0]?.replyLimit || 1}
               </div>
               <p className="text-xs text-gray-400">Total sent</p>
@@ -367,7 +384,7 @@ export default function AccountsPage() {
               <BarChart3 className="h-4 w-4 text-[#00F0FF]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#00F0FF]">
                 {avgEngagement || 0}%
               </div>
               <p className="text-xs text-gray-400">Engagement rate</p>
@@ -497,7 +514,7 @@ export default function AccountsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-white/20 text-gray-300 p-2 hover:bg-white/10"
+                            className="border-white/20 text-gray-300 p-2  bg-[#B026FF]/10 hover:bg-[#B026FF]/15 transition-colors"
                             asChild
                           >
                             <Link href={`/insta/accounts/${account?.id}`}>
@@ -536,6 +553,25 @@ export default function AccountsPage() {
           )}
         </div>
       </div>
+      <AlertDialog open={dialog} onOpenChange={setDialog}>
+        <AlertDialogContent className=" bg-[#6d1717]/5 backdrop-blur-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Your Account Limit Reached</AlertDialogTitle>
+            <AlertDialogDescription>
+              To add more account you need to update your subscription.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button
+              onClick={() => router.push("/insta/pricing")}
+              className="flex-1"
+            >
+              Upgrade
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

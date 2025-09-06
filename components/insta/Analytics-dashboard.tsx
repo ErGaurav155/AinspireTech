@@ -27,15 +27,15 @@ import {
 } from "recharts";
 
 // Mock data for charts
-const dailyData = [
-  { date: "2024-01-01", comments: 45, replies: 44, engagement: 97.8 },
-  { date: "2024-01-02", comments: 52, replies: 51, engagement: 98.1 },
-  { date: "2024-01-03", comments: 38, replies: 37, engagement: 97.4 },
-  { date: "2024-01-04", comments: 61, replies: 60, engagement: 98.4 },
-  { date: "2024-01-05", comments: 44, replies: 43, engagement: 97.7 },
-  { date: "2024-01-06", comments: 58, replies: 57, engagement: 98.3 },
-  { date: "2024-01-07", comments: 47, replies: 46, engagement: 97.9 },
-];
+// const dailyData = [
+//   { date: "2024-01-01", comments: 45, replies: 44, engagement: 97.8 },
+//   { date: "2024-01-02", comments: 52, replies: 51, engagement: 98.1 },
+//   { date: "2024-01-03", comments: 38, replies: 37, engagement: 97.4 },
+//   { date: "2024-01-04", comments: 61, replies: 60, engagement: 98.4 },
+//   { date: "2024-01-05", comments: 44, replies: 43, engagement: 97.7 },
+//   { date: "2024-01-06", comments: 58, replies: 57, engagement: 98.3 },
+//   { date: "2024-01-07", comments: 47, replies: 46, engagement: 97.9 },
+// ];
 
 // const templateData = [
 //   { name: "Product Inquiry", value: 156, color: "#00F0FF" },
@@ -164,9 +164,9 @@ export function AnalyticsDashboard(templates: any) {
         </p>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6 ">
+      <Tabs defaultValue="templates" className="space-y-6 ">
         <TabsList className=" bg-[#0a0a0a]/60 border min-h-max flex flex-wrap items-center justify-start max-w-max gap-1 md:gap-3 text-white  w-full grid-cols-4  border-gray-900">
-          <TabsTrigger
+          {/* <TabsTrigger
             value="overview"
             className="data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
           >
@@ -177,7 +177,7 @@ export function AnalyticsDashboard(templates: any) {
             className="data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
           >
             Engagement
-          </TabsTrigger>
+          </TabsTrigger> */}
           <TabsTrigger
             value="templates"
             className="data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
@@ -192,7 +192,7 @@ export function AnalyticsDashboard(templates: any) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
+        {/* <TabsContent value="overview" className="space-y-6">
           <Card className="bg-transparent backdrop-blur-sm border-gray-900">
             <CardHeader className="p-2">
               <CardTitle className="text-white">Daily Activity</CardTitle>
@@ -229,9 +229,9 @@ export function AnalyticsDashboard(templates: any) {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
-        <TabsContent value="engagement" className="space-y-6">
+        {/* <TabsContent value="engagement" className="space-y-6">
           <Card className=" bg-transparent backdrop-blur-sm border-gray-900">
             <CardHeader className="p-2">
               <CardTitle className="text-white">
@@ -264,7 +264,7 @@ export function AnalyticsDashboard(templates: any) {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="templates" className="space-y-6">
           <Card className=" bg-transparent backdrop-blur-sm border-gray-900">

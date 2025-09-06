@@ -10,11 +10,13 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { getUserById } from "@/lib/action/user.actions";
+import { getAllInstaAccounts } from "@/lib/action/insta.action";
 
 export default function AddAccountPage() {
   const { userId } = useAuth();
   const router = useRouter();
-  const [buyerId, setBuyerId] = useState(null);
+  const [accountLimit, setAccountLimit] = useState(0);
+  const [totalAccounts, setTotalAcoounts] = useState(0);
 
   useEffect(() => {
     async function fetchSubscriptions() {
@@ -29,7 +31,13 @@ export default function AddAccountPage() {
           router.push("/sign-in");
           return;
         }
-        setBuyerId(user._id);
+        setAccountLimit(user.accountLimit);
+        const totalAccount = await getAllInstaAccounts(userId);
+        if (totalAccount.response.length === 0) {
+          setTotalAcoounts(0);
+        } else {
+          setTotalAcoounts(totalAccount.response.length);
+        }
       } catch (error: any) {
         console.error("Error fetching subscriptions:", error.message);
       }
@@ -54,7 +62,8 @@ export default function AddAccountPage() {
         onVerified={() => {
           router.push("/insta/accounts");
         }}
-        buyerId={buyerId}
+        totalAccounts={totalAccounts}
+        accountLimit={accountLimit}
       />
     </div>
   );

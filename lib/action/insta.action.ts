@@ -2,6 +2,7 @@
 
 import InstagramAccount from "../database/models/insta/InstagramAccount.model";
 import { connectToDatabase } from "../database/mongoose";
+import { handleError } from "../utils";
 
 export async function getInstagramUser(accessToken: string, fields: string[]) {
   const fieldsStr = fields.join(",");
@@ -45,6 +46,26 @@ export async function getInstaAccount(userId: string) {
       success: false,
       error: error.message || "Account conversion failed",
     };
+  }
+}
+export async function getAllInstaAccounts(userId: string) {
+  try {
+    await connectToDatabase();
+
+    // Insert dummy data
+    const response = await InstagramAccount.find({ userId: userId });
+
+    if (!response) {
+      throw new Error("No matching account found.");
+    }
+
+    return JSON.parse(
+      JSON.stringify({
+        response,
+      })
+    );
+  } catch (error: any) {
+    handleError(error);
   }
 }
 
