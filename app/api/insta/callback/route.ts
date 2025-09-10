@@ -149,6 +149,7 @@ export async function GET(req: NextRequest) {
         { userId: userid },
         {
           instagramId: user.user_id,
+          userInstaId: user.id,
           username: user.username,
           profilePicture: user.profile_picture_url,
           accessToken: longLivedData.access_token,
