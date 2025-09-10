@@ -578,7 +578,9 @@ export default function Dashboard() {
                   </div>
                 ))}
 
-              {dashboardData?.accounts?.length === 0 && (
+              {(!dashboardData ||
+                !dashboardData?.accounts ||
+                dashboardData?.accounts?.length === 0) && (
                 <div className="text-center py-8">
                   <Instagram className="h-12 w-12 mx-auto text-gray-500 mb-4" />
                   <p className="text-gray-400 mb-4 font-mono">

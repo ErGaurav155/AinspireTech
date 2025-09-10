@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IInstagramAccount extends Document {
   userId: string;
   instagramId: string;
+  userInstaId: string;
   username: string;
   accessToken: string;
   profilePicture?: string;
@@ -20,6 +21,7 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
       required: true,
     },
     instagramId: { type: String, unique: true, sparse: true },
+    userInstaId: { type: String, unique: true, sparse: true },
     username: {
       type: String,
       required: true,

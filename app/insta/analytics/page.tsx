@@ -11,6 +11,8 @@ import {
   Calendar,
   Filter,
   RefreshCw,
+  Plus,
+  Instagram,
 } from "lucide-react";
 import {
   Card,
@@ -36,6 +38,7 @@ import { useAuth } from "@clerk/nextjs";
 import defaultImg from "@/public/assets/img/default-img.jpg";
 import { formatResponseTimeSmart, refreshInstagramToken } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 const ANALYTICS_CACHE_KEY = "analyticsData";
@@ -409,23 +412,6 @@ export default function AnalyticsPage() {
     );
   }
 
-  if (!filteredData) {
-    return (
-      <div className="min-h-screen text-white flex items-center justify-center">
-        <div className="text-center p-6 bg-blue-900/20 rounded-lg max-w-md">
-          <h2 className="text-xl font-bold mb-4">No Data Available</h2>
-          <p className="text-gray-300 mb-6">
-            Connect an Instagram account to see analytics
-          </p>
-          <Button onClick={refresh} className="btn-gradient-cyan">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen text-white">
       <div className="container mx-auto px-4 py-8">
@@ -483,8 +469,8 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#B026FF]">
-                {filteredData.totalReplies || 0} /{" "}
-                {filteredData.replyLimit || 1}
+                {filteredData?.totalReplies || 0} /{" "}
+                {filteredData?.replyLimit || 1}
               </div>
               <p className="text-xs text-muted-foreground flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
@@ -502,7 +488,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#FF2E9F]">
-                {filteredData.successRate || 0}%
+                {filteredData?.successRate || 0}%
               </div>
               <p className="text-xs text-muted-foreground flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
@@ -520,8 +506,10 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#10B981]">
-                {filteredData.overallAvgResponseTime
-                  ? formatResponseTimeSmart(filteredData.overallAvgResponseTime)
+                {filteredData?.overallAvgResponseTime
+                  ? formatResponseTimeSmart(
+                      filteredData?.overallAvgResponseTime
+                    )
                   : "0s"}
               </div>
               <p className="text-xs text-gray-400 flex items-center">
@@ -540,7 +528,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#00F0FF]">
-                +{filteredData.engagementRate || 0}%
+                +{filteredData?.engagementRate || 0}%
               </div>
               <p className="text-xs text-gray-400">
                 Since auto-replies enabled
@@ -566,7 +554,7 @@ export default function AnalyticsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 w-full p-2">
-              {filteredData.accounts?.map((account: any) => (
+              {filteredData?.accounts?.map((account: any) => (
                 <div
                   key={account.id}
                   className="flex flex-col w-full items-center justify-between p-4 gap-3 border rounded-lg"
@@ -615,6 +603,22 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
               ))}
+              {(!filteredData ||
+                !filteredData?.accounts ||
+                filteredData?.accounts.length === 0) && (
+                <div className="text-center py-8">
+                  <Instagram className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                  <p className="text-gray-400 mb-4 font-mono">
+                    No accounts connected yet
+                  </p>
+                  <Button className="btn-gradient-cyan" asChild>
+                    <Link href="/insta/accounts/add">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Connect Your First Account
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -632,7 +636,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent className="p-2">
               <div className="space-y-4 max-h-96 overflow-y-auto no-scrollbar">
-                {filteredData.recentActivity?.map((activity: any) => (
+                {filteredData?.recentActivity?.map((activity: any) => (
                   <div
                     key={activity.id}
                     className="flex items-center justify-between p-3 border rounded-lg"
@@ -671,8 +675,8 @@ export default function AnalyticsPage() {
                     </div>
                   </div>
                 ))}
-                {(!filteredData.recentActivity ||
-                  filteredData.recentActivity.length === 0) && (
+                {(!filteredData?.recentActivity ||
+                  filteredData?.recentActivity.length === 0) && (
                   <p className="text-gray-400 text-center">
                     No recent activity available.
                   </p>

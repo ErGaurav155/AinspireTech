@@ -33,6 +33,10 @@ const UserSchema = new Schema({
     type: Number,
     default: 1,
   },
+  primaryAccountId: {
+    type: String,
+    default: null,
+  },
   scrappedFile: {
     type: String,
   },

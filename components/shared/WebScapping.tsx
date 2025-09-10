@@ -74,7 +74,7 @@ export const WebScapping = ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ mainUrl }),
+        body: JSON.stringify({ mainUrl, userId }),
       });
 
       const data = await response.json();

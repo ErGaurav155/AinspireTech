@@ -1,5 +1,9 @@
 /* eslint-disable camelcase */
-import { createUser, deleteUser, updateUser } from "@/lib/action/user.actions";
+import {
+  createUser,
+  cleanupUserData,
+  updateUser,
+} from "@/lib/action/user.actions";
 import { clerkClient } from "@clerk/nextjs";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
@@ -72,6 +76,8 @@ export async function POST(req: Request) {
     const totalReplies = (public_metadata?.totalReplies as number) || 0;
     const replyLimit = (public_metadata?.replyLimit as number) || 500;
     const accountLimit = (public_metadata?.accountLimit as number) || 1;
+    const primaryAccountId =
+      (public_metadata?.primaryAccountId as string) || null;
 
     const user = {
       clerkId: id,
@@ -86,6 +92,7 @@ export async function POST(req: Request) {
       totalReplies: totalReplies,
       replyLimit: replyLimit,
       accountLimit: accountLimit,
+      primaryAccountId: primaryAccountId,
       photo: image_url,
     };
     const newUser = await createUser(user);
@@ -122,7 +129,7 @@ export async function POST(req: Request) {
   if (eventType === "user.deleted") {
     const { id } = evt.data;
 
-    const deletedUser = await deleteUser(id!);
+    const deletedUser = await cleanupUserData(id!);
 
     return NextResponse.json({ message: "OK", user: deletedUser });
   }

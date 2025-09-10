@@ -56,6 +56,8 @@ export function OurClient() {
                   src={item.img}
                   alt={`Thumbnail ${index + 1}`}
                   loading="lazy"
+                  width={400}
+                  height={300}
                 />
                 <div className="p-2 flex w-full  items-center justify-between flex-nowrap">
                   <h3 className="text-md font-bold text-gray-100">
@@ -126,6 +128,8 @@ export function OurClient2() {
                   src={item.img}
                   alt={`Thumbnail ${index + 1}`}
                   loading="lazy"
+                  width={400}
+                  height={300}
                 />
                 <div className="p-2 flex w-full  items-center justify-between flex-nowrap">
                   <h3 className="text-md font-bold text-gray-100 ">

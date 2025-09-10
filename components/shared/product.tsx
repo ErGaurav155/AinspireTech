@@ -170,7 +170,8 @@ const ProductShowcase = () => {
                           src={item.image}
                           alt={item.name}
                           fill
-                          sizes="100vw"
+                          sizes="100%"
+                          quality={100}
                           className="object-cover transition-transform duration-500 group-hover:scale-110"
                           priority={true} // If this is a prominent image
                         />

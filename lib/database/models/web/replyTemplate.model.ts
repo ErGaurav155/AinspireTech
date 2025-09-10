@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IReplyTemplate extends Document {
   clerkId: string;
-  chatbotId: mongoose.Types.ObjectId;
+  chatbotId: string;
   chatbotType:
     | "chatbot-customer-support"
     | "chatbot-e-commerce"
@@ -23,8 +23,7 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
       required: true,
     },
     chatbotId: {
-      type: Schema.Types.ObjectId,
-      ref: "Chatbot",
+      type: String,
       required: true,
     },
     chatbotType: {

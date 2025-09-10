@@ -7,6 +7,11 @@ const FileSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    userId: {
+      type: String,
+      unique: true,
+      required: true,
+    },
     content: {
       type: mongoose.Schema.Types.Mixed,
       required: true,

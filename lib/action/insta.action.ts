@@ -246,3 +246,84 @@ export const setupTokenRefreshCron = (): void => {
   // Also run immediately on startup
   refreshExpiringTokens();
 };
+export async function revokeInstagramAccess(
+  instagramId: string,
+  accessToken: string
+) {
+  try {
+    const response = await fetch(
+      `https://graph.instagram.com/${instagramId}/permissions?access_token=${accessToken}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (response.ok) {
+      console.log(
+        `✅ Successfully revoked Instagram access for: ${instagramId}`
+      );
+      return { success: true, instagramId };
+    }
+    // const revokeResponse = await fetch(
+    //   "https://graph.instagram.com/v15.0/me/permissions",
+    //   {
+    //     method: "DELETE",
+    //     headers: {
+    //       Authorization: `Bearer ${accessToken}`,
+    //     },
+    //   }
+    // );
+
+    // if (revokeResponse.ok) {
+    //   return { success: true, message: "Access revoked successfully" };
+    // }
+
+    throw new Error(
+      `Failed to revoke access: ${
+        (await response.json()).error.message || response.statusText
+      }`
+    );
+  } catch (error: any) {
+    console.error("Error revoking Instagram access:", error);
+    return { success: false, error };
+  }
+}
+
+// Helper function to remove user from your Instagram App
+// export async function removeFromInstagramApp(
+//   instagramId: string,
+//   accessToken: string
+// ) {
+//   try {
+//     if (
+//       process.env.INSTAGRAM_APP_ID ||
+//       process.env.INSTAGRAM_APP_ACCESS_TOKEN
+//     ) {
+//       const removeResponse = await fetch(
+//         `https://graph.facebook.com/v15.0/${process.env.INSTAGRAM_APP_ID}/test_users?access_token=${process.env.INSTAGRAM_APP_ACCESS_TOKEN}`,
+//         {
+//           method: "DELETE",
+//           headers: {
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify({
+//             user_id: instagramId,
+//           }),
+//         }
+//       );
+
+//       if (removeResponse.ok) {
+//         return { success: true, instagramId };
+//       }
+//     }
+
+//     // If not a test user, just revoke access
+//     return await revokeInstagramAccess(accessToken);
+//   } catch (error: any) {
+//     console.error(
+//       `Failed to remove user ${instagramId} from Instagram App:`,
+//       error
+//     );
+//     return { success: false, instagramId, error };
+//   }
+// }

@@ -14,8 +14,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
   try {
     await connectToDatabase();
 
-    const { mainUrl } = await req.json();
-    if (!mainUrl) {
+    const { mainUrl, userId } = await req.json();
+    if (!mainUrl || !userId) {
       return NextResponse.json(
         { success: false, message: "URL is required" },
         { status: 400 }
@@ -81,6 +81,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
       // Create new record
       await File.create({
         fileName: `${domain}.json`,
+        userId: userId,
         content: extractedData,
         domain,
       });
