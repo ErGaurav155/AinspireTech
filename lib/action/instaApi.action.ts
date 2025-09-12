@@ -341,8 +341,10 @@ export async function processComment(
     });
 
     // Update user reply count using findByIdAndUpdate
-    await User.findByIdAndUpdate(userId, { $inc: { totalReplies: 1 } });
-
+    await User.findByIdAndUpdate(
+      userInfo._id, // Use MongoDB _id
+      { $inc: { totalReplies: 1 } }
+    );
     // Update account activity
     account.lastActivity = new Date();
     await account.save();
