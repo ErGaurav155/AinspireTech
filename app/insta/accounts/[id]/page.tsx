@@ -1627,8 +1627,27 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                           )}
                         </div>
                       </div>
+                      <div className=" w-full">
+                        <p className="text-sm text-gray-400 mb-2">
+                          Trigger Keywords:
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {template.triggers.map(
+                            (trigger: any, index: number) => (
+                              <Badge
+                                key={index}
+                                variant="outline"
+                                className="text-xs border-white/20 text-gray-300"
+                              >
+                                {trigger}
+                              </Badge>
+                            )
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
+
                   <div className="flex items-center justify-between pt-2 border-t border-white/10 w-full">
                     <div className="flex items-center gap-6 text-sm text-gray-400">
                       <div className="flex items-center gap-1">
