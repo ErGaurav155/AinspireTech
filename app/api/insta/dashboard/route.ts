@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         const templatesCount = await InstaReplyTemplate.countDocuments({
           accountId: account.instagramId,
         });
-        const avgResTime = await InstaReplyLog.aggregate([
+        const avgResTime = (await InstaReplyLog.aggregate([
           {
             $match: {
               accountId: account.instagramId,
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
               avgResponseTime: { $avg: "$responseTime" },
             },
           },
-        ]);
+        ])) || [{ avgResponseTime: 0 }];
         return {
           ...account.toObject(), // Convert Mongoose document to plain object
           templatesCount,

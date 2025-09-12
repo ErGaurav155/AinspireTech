@@ -1,4 +1,3 @@
-import { revokeInstagramAccess } from "@/lib/action/insta.action";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaReplyLog from "@/lib/database/models/insta/ReplyLog.model";
 import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
@@ -83,23 +82,15 @@ export async function DELETE(
     await connectToDatabase();
 
     // Delete account and all related data
-    const account = await InstagramAccount.findById(params.id);
+    const account = await InstagramAccount.findByIdAndDelete(params.id);
 
     if (!account) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
-    const revokeInstaAccess = await revokeInstagramAccess(
-      account.instagramId,
-      account.accessToken
-    );
-    if (revokeInstaAccess && revokeInstaAccess.success) {
-      await InstagramAccount.findByIdAndDelete(params.id);
-      await InstaReplyTemplate.deleteMany({ accountId: params.id });
-      await InstaReplyLog.deleteMany({ accountId: params.id });
-    } else {
-      return NextResponse.json({ message: "Account deletion Failed" });
-    }
+
     // Delete related templates
+    await InstaReplyTemplate.deleteMany({ accountId: params.id });
+    await InstaReplyLog.deleteMany({ accountId: params.id });
 
     return NextResponse.json({ message: "Account deleted successfully" });
   } catch (error) {

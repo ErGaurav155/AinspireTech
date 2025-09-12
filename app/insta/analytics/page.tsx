@@ -189,7 +189,7 @@ export default function AnalyticsPage() {
               totalAccounts: totalAccounts || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: dbAccount.engagementRate || 0,
-              avgResponseTime: dbAccount.avgResTime?.[0]?.avgResponseTime || 0,
+              avgResponseTime: dbAccount?.avgResTime?.[0]?.avgResponseTime || 0,
               accessToken: dbAccount.accessToken,
             };
           } catch (instaError) {

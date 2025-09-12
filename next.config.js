@@ -27,6 +27,11 @@ module.exports = {
         // Allow all other Instagram domains
         hostname: "**.instagram.com",
       },
+      {
+        protocol: "https",
+        // Allow all other Instagram domains
+        hostname: "instagram.fnag6-3.fna.fbcdn.net",
+      },
     ],
   },
 };

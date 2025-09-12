@@ -48,22 +48,26 @@ export async function POST(req: Request) {
     const {
       userId,
       accountId,
+      mediaId,
+      mediaUrl,
       name,
       content,
+      reply,
       triggers,
       priority,
-      category,
       accountUsername,
     } = body;
-
+    console.log(body);
     // Validate required fields
     if (
       !userId ||
       !accountId ||
       !name ||
       !content ||
+      !reply ||
       !triggers ||
-      !category ||
+      !mediaId ||
+      !mediaUrl ||
       !accountUsername
     ) {
       return NextResponse.json(
@@ -75,7 +79,7 @@ export async function POST(req: Request) {
     // Check for existing templates with same category
     const existingTemplates = await InstaReplyTemplate.find({
       accountId,
-      category,
+      mediaId,
     });
 
     if (existingTemplates.length > 0) {
@@ -83,8 +87,8 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           ok: false,
-          message: `Template with ${category} category already exists`,
-          error: "Duplicate category",
+          message: `Template with ${mediaId} mediaId already exists`,
+          error: "Duplicate Media",
         },
         { status: 409 } // Using 409 Conflict for duplicate resources
       );
@@ -96,11 +100,13 @@ export async function POST(req: Request) {
       accountId,
       name,
       content,
+      reply: reply,
       triggers: Array.isArray(triggers)
         ? triggers
         : triggers.split(",").map((t: string) => t.trim()),
       priority: priority || 5, // Default priority if not provided
-      category,
+      mediaId,
+      mediaUrl,
       accountUsername: accountUsername.toLowerCase(),
       isActive: true,
       usageCount: 0,

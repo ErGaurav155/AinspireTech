@@ -17,7 +17,6 @@ import WebAppointmentQuestions from "../database/models/web/AppointmentQuestions
 import InstaReplyTemplate from "../database/models/insta/ReplyTemplate.model";
 import File from "../database/models/web/scrappeddata.model";
 import Razorpay from "razorpay";
-import { revokeInstagramAccess } from "./insta.action";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
@@ -180,32 +179,6 @@ export async function cleanupUserData(clerkId: string) {
         async (id) => await razorpay.subscriptions.cancel(id, false)
       )
     );
-
-    // Get all Instagram accounts before deletion to revoke access
-    const instagramAccounts = await InstagramAccount?.find({ userId: clerkId });
-
-    // Revoke Instagram access for all accounts
-    if (instagramAccounts && instagramAccounts.length > 0) {
-      const revocationPromises = instagramAccounts.map(async (account) => {
-        if (account.accessToken) {
-          try {
-            // For production: ONLY use the standard revocation endpoint
-            await revokeInstagramAccess(
-              account.instagramId,
-              account.accessToken
-            );
-          } catch (error) {
-            console.error(
-              `Failed to revoke access for Instagram account ${account.instagramId}:`,
-              error
-            );
-            // Continue with cleanup even if revocation fails
-          }
-        }
-      });
-
-      await Promise.allSettled(revocationPromises);
-    }
 
     // Data deletion promises
     const deletionPromises = [

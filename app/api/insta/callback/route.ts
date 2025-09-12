@@ -2,7 +2,6 @@ import { defaultTemplates } from "@/constant";
 import { getInstagramUser } from "@/lib/action/insta.action";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaSubscription from "@/lib/database/models/insta/InstaSubscription.model";
-import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { auth } from "@clerk/nextjs";
 import { NextRequest, NextResponse } from "next/server";
@@ -160,18 +159,6 @@ export async function GET(req: NextRequest) {
         { upsert: true, new: true }
       );
     }
-
-    await Promise.all(
-      defaultTemplates.map(async (template) => {
-        const newTemplate = new InstaReplyTemplate({
-          ...template,
-          userId,
-          accountId: InstaAcc.instagramId,
-          accountUsername: InstaAcc.username,
-        });
-        await newTemplate.save();
-      })
-    );
 
     return NextResponse.json({ account: InstaAcc, status: 200 });
   } catch (error: any) {

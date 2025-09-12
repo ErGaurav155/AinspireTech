@@ -131,7 +131,6 @@ export default function Dashboard() {
       if (!dbAccounts?.length) {
         return null;
       }
-
       // Fetch Instagram data for each account
       const completeAccounts = await Promise.all(
         dbAccounts.map(async (dbAccount: any) => {
@@ -166,7 +165,7 @@ export default function Dashboard() {
               totalAccounts: totalAccounts || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: dbAccount.engagementRate || 0,
-              avgResponseTime: dbAccount.avgResTime[0].avgResponseTime || 0,
+              avgResponseTime: dbAccount?.avgResTime[0]?.avgResponseTime || 0,
               accessToken: dbAccount.accessToken,
             };
           } catch (instaError) {

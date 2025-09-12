@@ -7,7 +7,6 @@ import InstaReplyLog from "../database/models/insta/ReplyLog.model";
 import InstaReplyTemplate, {
   IReplyTemplate,
 } from "../database/models/insta/ReplyTemplate.model";
-import { generateCommentResponse } from "./ai.action";
 import { getUserById } from "./user.actions";
 
 // Interfaces
@@ -232,34 +231,9 @@ async function findMatchingTemplate(
       return lowerComment.includes(trigger.toLowerCase().replace(/\s+/g, ""));
     });
 
-    if (hasMatch) return template;
+    if (!hasMatch) continue;
+    return template;
   }
-
-  // AI fallback
-  try {
-    const relatedTemplate = await generateCommentResponse({
-      userInput: commentText,
-      templates: templates.map((t) => t.name),
-    });
-    console.log("relatedTemplate : ", relatedTemplate);
-
-    const parsed = JSON.parse(relatedTemplate);
-    console.log("parsed : ", parsed);
-
-    if (parsed.matchedtemplate) {
-      const normalizedMatch = parsed.matchedtemplate
-        .toLowerCase()
-        .replace(/\s+/g, "");
-      return (
-        templates.find(
-          (t) => t.name.toLowerCase().replace(/\s+/g, "") === normalizedMatch
-        ) || null
-      );
-    }
-  } catch (error) {
-    console.error("AI template matching failed:", error);
-  }
-
   return null;
 }
 
@@ -323,6 +297,7 @@ export async function processComment(
     const templates = await InstaReplyTemplate.find({
       userId,
       accountId,
+      mediaId: comment.media_id,
       isActive: true,
     }).sort({ priority: 1 });
     console.log("templates : ", templates);
@@ -335,41 +310,28 @@ export async function processComment(
     const startTime = Date.now();
 
     // Process based on template type
-    if (["sales", "support"].includes(matchingTemplate.category)) {
-      try {
-        dmMessage = await sendDirectMessage(
-          account.instagramId,
-          account.accessToken,
-          comment.id,
-          matchingTemplate.content
-        );
-        console.log("dmMessage : ", dmMessage);
+
+    try {
+      dmMessage = await sendDirectMessage(
+        account.instagramId,
+        account.accessToken,
+        comment.id,
+        matchingTemplate.content
+      );
+      console.log("dmMessage : ", dmMessage);
+      if (dmMessage) {
         success = await replyToComment(
           account.username,
           account.instagramId,
           account.accessToken,
           comment.id,
           comment.media_id,
-          ["Please check your DMs for assistance!"]
+          matchingTemplate.reply
         );
         console.log("success : ", success);
-      } catch (error) {
-        console.error(`Error :`, error);
       }
-    } else {
-      try {
-        success = await replyToComment(
-          account.username,
-          account.instagramId,
-          account.accessToken,
-          comment.id,
-          comment.media_id,
-          matchingTemplate.content
-        );
-        console.log("success : ", success);
-      } catch (replyError) {
-        console.error(`Reply failed:`, replyError);
-      }
+    } catch (error) {
+      console.error(`Error :`, error);
     }
 
     responseTime = Date.now() - startTime;

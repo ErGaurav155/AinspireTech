@@ -3,12 +3,14 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IReplyTemplate extends Document {
   userId: string;
   accountId: string;
+  mediaId: string;
+  mediaUrl: string;
   name: string;
+  reply: string[];
   content: string[];
   triggers: string[];
   isActive: boolean;
   priority: number;
-  category: string;
   accountUsername: string;
   usageCount: number;
   lastUsed?: Date;
@@ -26,12 +28,29 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
       type: String,
       required: true,
     },
+    mediaId: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+    mediaUrl: {
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
       trim: true,
       maxlength: 100,
     },
+    reply: [
+      {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 500,
+      },
+    ],
     content: [
       {
         type: String,
@@ -57,11 +76,7 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
       min: 1,
       max: 10,
     },
-    category: {
-      type: String,
-      required: true,
-      default: "content",
-    },
+
     accountUsername: {
       type: String,
       required: true,
