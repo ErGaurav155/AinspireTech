@@ -8,6 +8,7 @@ import InstaReplyTemplate, {
   IReplyTemplate,
 } from "../database/models/insta/ReplyTemplate.model";
 import { getUserById } from "./user.actions";
+import User from "../database/models/user.model";
 
 // Interfaces
 interface InstagramComment {
@@ -247,25 +248,20 @@ export async function processComment(
   let dmMessage = false;
   let responseTime = 0;
   let matchingTemplate: IReplyTemplate | null = null;
-  console.log("accountId : ", accountId);
-  console.log("userId : ", userId);
-  console.log("comment : ", comment);
 
   try {
     await connectToDatabase();
 
     // Check duplicate processing
     const existingLog = await InstaReplyLog.findOne({ commentId: comment.id });
-    console.log("existingLog : ", existingLog);
-
     if (existingLog) return;
 
     const account = await InstagramAccount.findOne({ instagramId: accountId });
-    console.log("account : ", account);
-
     if (!account || !account.isActive) return;
+
     const userInfo = await getUserById(userId);
-    if (!userInfo) return; // Extra check to ensure user exists
+    if (!userInfo) return;
+
     if (userInfo.totalReplies >= userInfo.replyLimit) {
       console.warn(
         `Account ${accountId} has reached its reply limit (${userInfo.totalReplies}/${userInfo.replyLimit})`
@@ -273,25 +269,18 @@ export async function processComment(
       if (account.isActive) {
         account.isActive = false;
         await account.save();
-
-        // Optional: Send notification
-
         console.log(`Auto-replies paused for ${account.username}`);
         return;
       }
     }
+
     // Validate access token
     const isValidToken = await validateAccessToken(account.accessToken);
-    console.log("isValidToken : ", isValidToken);
-
     if (!isValidToken) {
       account.isActive = false;
       await account.save();
       return;
     }
-
-    // Check rate limits
-    // if (!canMakeRequest(accountId)) return;
 
     // Find matching template
     const templates = await InstaReplyTemplate.find({
@@ -300,17 +289,13 @@ export async function processComment(
       mediaId: comment.media_id,
       isActive: true,
     }).sort({ priority: 1 });
-    console.log("templates : ", templates);
 
     matchingTemplate = await findMatchingTemplate(comment.text, templates);
-    console.log("matchingTemplate : ", matchingTemplate);
-
     if (!matchingTemplate) return;
 
     const startTime = Date.now();
 
     // Process based on template type
-
     try {
       dmMessage = await sendDirectMessage(
         account.instagramId,
@@ -318,7 +303,7 @@ export async function processComment(
         comment.id,
         matchingTemplate.content
       );
-      console.log("dmMessage : ", dmMessage);
+
       if (dmMessage) {
         success = await replyToComment(
           account.username,
@@ -328,10 +313,9 @@ export async function processComment(
           comment.media_id,
           matchingTemplate.reply
         );
-        console.log("success : ", success);
       }
     } catch (error) {
-      console.error(`Error :`, error);
+      console.error(`Error processing comment:`, error);
     }
 
     responseTime = Date.now() - startTime;
@@ -344,20 +328,20 @@ export async function processComment(
       commentId: comment.id,
       commentText: comment.text,
       replyText: success,
-      success: true,
+      success: !!success,
       responseTime,
       mediaId: comment.media_id,
       commenterUsername: comment.username,
     });
 
     // Update template usage
-
     await InstaReplyTemplate.findByIdAndUpdate(matchingTemplate._id, {
       $inc: { usageCount: 1 },
       $set: { lastUsed: new Date() },
     });
-    userInfo.totalReplies += 1;
-    await userInfo.save();
+
+    // Update user reply count using findByIdAndUpdate
+    await User.findByIdAndUpdate(userId, { $inc: { totalReplies: 1 } });
 
     // Update account activity
     account.lastActivity = new Date();
