@@ -675,129 +675,11 @@ export default function TemplatesPage() {
                     )}
                   </div>
                 )}
-
-                {/* Multi-DmReply Section */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-gray-300">
-                      reply to their comments under the post
-                    </Label>
-                    {(!editingTemplate ||
-                      (editingTemplate.content &&
-                        editingTemplate.content.length < 3)) && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        // disabled={
-                        //   (editingTemplate
-                        //     ? editingTemplate.content.length >= 3
-                        //     : newTemplate.content.length >= 3) ||
-                        //   (editingTemplate
-                        //     ? !editingTemplate.accountUsername
-                        //     : !newTemplate.accountUsername) ||
-                        //   (editingTemplate
-                        //     ? !editingTemplate.mediaId
-                        //     : !newTemplate.mediaId)
-                        // }
-                        onClick={() => {
-                          if (editingTemplate) {
-                            setEditingTemplate({
-                              ...editingTemplate,
-                              content: [...(editingTemplate.content || []), ""],
-                            });
-                          } else {
-                            setNewTemplate({
-                              ...newTemplate,
-                              content: [...(newTemplate.content || []), ""],
-                            });
-                          }
-                        }}
-                        className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10"
-                      >
-                        <Plus className="mr-1 h-3 w-3" /> Add Reply
-                      </Button>
-                    )}
-                  </div>
-
-                  {(editingTemplate
-                    ? editingTemplate.content
-                    : newTemplate.content
-                  )?.map((content: any, index: number) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label
-                          htmlFor={`content-${index}`}
-                          className="text-gray-300"
-                        >
-                          Reply {index + 1}
-                        </Label>
-                        {(editingTemplate
-                          ? editingTemplate.content
-                          : newTemplate.content
-                        )?.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              const updatedContent = editingTemplate
-                                ? [...editingTemplate.content]
-                                : [...newTemplate.content];
-                              updatedContent.splice(index, 1);
-
-                              if (editingTemplate) {
-                                setEditingTemplate({
-                                  ...editingTemplate,
-                                  content: updatedContent,
-                                });
-                              } else {
-                                setNewTemplate({
-                                  ...newTemplate,
-                                  content: updatedContent,
-                                });
-                              }
-                            }}
-                            className="text-red-500 hover:bg-red-500/10 h-6 w-6"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-
-                      <Textarea
-                        id={`content-${index}`}
-                        value={content}
-                        onChange={(e) => {
-                          const updatedContent = editingTemplate
-                            ? [...editingTemplate.content]
-                            : [...newTemplate.content];
-
-                          updatedContent[index] = e.target.value;
-
-                          if (editingTemplate) {
-                            setEditingTemplate({
-                              ...editingTemplate,
-                              content: updatedContent,
-                            });
-                          } else {
-                            setNewTemplate({
-                              ...newTemplate,
-                              content: updatedContent,
-                            });
-                          }
-                        }}
-                        placeholder="Write your automated reply..."
-                        className="min-h-[80px] bg-white/5 border-white/20 text-white"
-                      />
-                    </div>
-                  ))}
-                </div>
                 {/*Multi-Comment Reply Section*/}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <Label className="text-gray-300">
-                      Get reply in Direct Dm{" "}
+                      reply to their comments under the post
                     </Label>
                     {(!editingTemplate ||
                       (editingTemplate.reply &&
@@ -899,6 +781,124 @@ export default function TemplatesPage() {
                     </div>
                   ))}
                 </div>
+                {/* Multi-DmReply Section */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-gray-300">
+                      Get reply in Direct Dm{" "}
+                    </Label>
+                    {(!editingTemplate ||
+                      (editingTemplate.content &&
+                        editingTemplate.content.length < 3)) && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        // disabled={
+                        //   (editingTemplate
+                        //     ? editingTemplate.content.length >= 3
+                        //     : newTemplate.content.length >= 3) ||
+                        //   (editingTemplate
+                        //     ? !editingTemplate.accountUsername
+                        //     : !newTemplate.accountUsername) ||
+                        //   (editingTemplate
+                        //     ? !editingTemplate.mediaId
+                        //     : !newTemplate.mediaId)
+                        // }
+                        onClick={() => {
+                          if (editingTemplate) {
+                            setEditingTemplate({
+                              ...editingTemplate,
+                              content: [...(editingTemplate.content || []), ""],
+                            });
+                          } else {
+                            setNewTemplate({
+                              ...newTemplate,
+                              content: [...(newTemplate.content || []), ""],
+                            });
+                          }
+                        }}
+                        className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10"
+                      >
+                        <Plus className="mr-1 h-3 w-3" /> Add Reply
+                      </Button>
+                    )}
+                  </div>
+
+                  {(editingTemplate
+                    ? editingTemplate.content
+                    : newTemplate.content
+                  )?.map((content: any, index: number) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label
+                          htmlFor={`content-${index}`}
+                          className="text-gray-300"
+                        >
+                          Sent Dm {index + 1}
+                        </Label>
+                        {(editingTemplate
+                          ? editingTemplate.content
+                          : newTemplate.content
+                        )?.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              const updatedContent = editingTemplate
+                                ? [...editingTemplate.content]
+                                : [...newTemplate.content];
+                              updatedContent.splice(index, 1);
+
+                              if (editingTemplate) {
+                                setEditingTemplate({
+                                  ...editingTemplate,
+                                  content: updatedContent,
+                                });
+                              } else {
+                                setNewTemplate({
+                                  ...newTemplate,
+                                  content: updatedContent,
+                                });
+                              }
+                            }}
+                            className="text-red-500 hover:bg-red-500/10 h-6 w-6"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <Textarea
+                        id={`content-${index}`}
+                        value={content}
+                        onChange={(e) => {
+                          const updatedContent = editingTemplate
+                            ? [...editingTemplate.content]
+                            : [...newTemplate.content];
+
+                          updatedContent[index] = e.target.value;
+
+                          if (editingTemplate) {
+                            setEditingTemplate({
+                              ...editingTemplate,
+                              content: updatedContent,
+                            });
+                          } else {
+                            setNewTemplate({
+                              ...newTemplate,
+                              content: updatedContent,
+                            });
+                          }
+                        }}
+                        placeholder="Write your automated reply..."
+                        className="min-h-[80px] bg-white/5 border-white/20 text-white"
+                      />
+                    </div>
+                  ))}
+                </div>
+
                 {/* Triggers Section */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">

@@ -336,32 +336,29 @@ export async function processComment(
 
     responseTime = Date.now() - startTime;
 
-    // Save log
-    if (success) {
-      await InstaReplyLog.create({
-        userId,
-        accountId,
-        templateId: matchingTemplate._id,
-        templateName: matchingTemplate.name,
-        commentId: comment.id,
-        commentText: comment.text,
-        replyText: success,
-        success: true || dmMessage,
-        responseTime,
-        mediaId: comment.media_id,
-        commenterUsername: comment.username,
-      });
-    }
+    await InstaReplyLog.create({
+      userId,
+      accountId,
+      templateId: matchingTemplate._id,
+      templateName: matchingTemplate.name,
+      commentId: comment.id,
+      commentText: comment.text,
+      replyText: success,
+      success: true,
+      responseTime,
+      mediaId: comment.media_id,
+      commenterUsername: comment.username,
+    });
 
     // Update template usage
-    if (success || dmMessage) {
-      await InstaReplyTemplate.findByIdAndUpdate(matchingTemplate._id, {
-        $inc: { usageCount: 1 },
-        $set: { lastUsed: new Date() },
-      });
-      userInfo.totalReplies += 1;
-      await userInfo.save();
-    }
+
+    await InstaReplyTemplate.findByIdAndUpdate(matchingTemplate._id, {
+      $inc: { usageCount: 1 },
+      $set: { lastUsed: new Date() },
+    });
+    userInfo.totalReplies += 1;
+    await userInfo.save();
+
     // Update account activity
     account.lastActivity = new Date();
     await account.save();
