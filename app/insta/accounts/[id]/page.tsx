@@ -17,6 +17,11 @@ import {
   FolderSync as Sync,
   X,
   RefreshCw,
+  Search,
+  Filter,
+  ImageIcon,
+  VideoIcon,
+  Link as LinkIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +33,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,8 +73,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
-import TemplateForm from "@/components/insta/TemplateForm";
-import TemplateCard from "@/components/insta/TemplateCard";
 import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { useRouter } from "next/navigation";
@@ -77,6 +81,22 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "@/components/ui/use-toast";
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
+
+interface MediaItem {
+  id: string;
+  media_type: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
+  media_url: string;
+  permalink: string;
+  timestamp: string;
+  caption?: string;
+  likes?: number;
+  comments?: number;
+}
+
+interface ContentItem {
+  text: string;
+  link?: string;
+}
 
 export default function AccountPage({ params }: { params: { id: string } }) {
   const [templates, setTemplates] = useState<any>([]);
@@ -92,16 +112,74 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // New state for template functionality
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedAccountMedia, setSelectedAccountMedia] = useState<MediaItem[]>(
+    []
+  );
+  const [isLoadingMedia, setIsLoadingMedia] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [isTemplateCreating, setIsTemplateCreting] = useState(false);
+  const [isUpdateTemplate, setIsUpdateTempalte] = useState(false);
+
   const [isStale, setIsStale] = useState(false);
   const { userId } = useAuth();
+
+  // Updated newTemplate state to handle content as objects
   const [newTemplate, setNewTemplate] = useState({
     name: "",
-    content: [""],
+    content: [{ text: "", link: "" }],
+    reply: [""],
     triggers: [""],
     priority: 5,
-    category: "",
     accountUsername: account.username || "",
+    mediaId: "",
+    mediaUrl: "",
   });
+
+  const fetchAccountMedia = async (accountId: string, username: string) => {
+    setIsLoadingMedia(true);
+    try {
+      const response = await fetch(
+        `/api/insta/media?accountId=${accountId}&userId=${userId}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.media && data.media.length > 0) {
+          setSelectedAccountMedia(data.media);
+        } else {
+          setSelectedAccountMedia([]);
+          toast({
+            title: "No media found",
+            description: `No posts or reels found for @${username}`,
+            duration: 3000,
+            className: "info-toast",
+          });
+        }
+      } else {
+        const errorData = await response.json();
+        setSelectedAccountMedia([]);
+        toast({
+          title: "Failed to fetch media",
+          description:
+            errorData.error || "Could not load Instagram posts and reels",
+          duration: 3000,
+          className: "error-toast",
+        });
+      }
+    } catch (error) {
+      setSelectedAccountMedia([]);
+      toast({
+        title: "Error fetching media",
+        description: "Please try again later",
+        duration: 3000,
+        className: "error-toast",
+      });
+    } finally {
+      setIsLoadingMedia(false);
+    }
+  };
+
   const handleToggleTemplate = async (templateId: string) => {
     const template = templates.find((t: any) => t._id === templateId);
     if (!template) return;
@@ -145,6 +223,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       console.error("Error updating template:", error);
     }
   };
+
   const handleDeleteTemplate = async (templateId: string) => {
     try {
       const response = await fetch(`/api/insta/templates/${templateId}`, {
@@ -166,10 +245,10 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       );
     }
   };
+
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
-      // In a real app, you would call your API endpoint here
       const response = await fetch(`/api/insta/accounts/${params.id}`, {
         method: "DELETE",
       });
@@ -196,10 +275,10 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       setShowDeleteDialog(false);
     }
   };
+
   const fetchTemplates = useCallback(
     async (accountId: string) => {
       try {
-        // For now, we'll use a mock account ID since we don't have account selection
         const response = await fetch(
           `/api/insta/templates?userId=${userId}&accountId=${accountId}`
         );
@@ -352,6 +431,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
     },
     [userId, router, fetchTemplates]
   );
+
   const fetchAccountData = useCallback(async () => {
     try {
       const accountsData = await fetchAccounts(params.id);
@@ -376,6 +456,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       setIsLoading(false);
     }
   }, [userId, fetchAccounts, params.id]);
+
   useEffect(() => {
     if (!params.id || !userId) {
       router.push("/sign-in");
@@ -402,7 +483,22 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       if (!response.ok) {
         // Revert on error
         setAccount({ ...account, isActive: !newActiveState });
-        console.error("Failed to update account status");
+        throw new Error("Failed to update account status");
+      }
+      // Update cache
+      const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData);
+        const updatedData = data.map((acc: any) =>
+          acc.id === account.id ? { ...acc, isActive: newActiveState } : acc
+        );
+        localStorage.setItem(
+          ACCOUNTS_CACHE_KEY,
+          JSON.stringify({
+            data: updatedData,
+            timestamp,
+          })
+        );
       }
     } catch (error) {
       // Revert on error
@@ -410,8 +506,20 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       console.error("Error updating account:", error);
     }
   };
+
   const handleCreateTemplate = async () => {
     try {
+      setIsTemplateCreting(true);
+      if (!newTemplate.mediaId) {
+        toast({
+          title: "Media required",
+          description: "Please select a post or reel for this template",
+          duration: 3000,
+          className: "error-toast",
+        });
+        return;
+      }
+
       const response = await fetch("/api/insta/templates", {
         method: "POST",
         headers: {
@@ -421,13 +529,13 @@ export default function AccountPage({ params }: { params: { id: string } }) {
           userId: userId,
           accountId: account.accountId,
           ...newTemplate,
-          accountUsername: "@" + account.username,
-          triggers: newTemplate.triggers,
+          accountUsername: account.username,
+          reply: newTemplate.reply.filter((r) => r.trim() !== ""),
+          content: newTemplate.content.filter((c) => c.text.trim() !== ""),
+          triggers: newTemplate.triggers.filter((t) => t.trim() !== ""),
         }),
       });
-
       const result = await response.json();
-
       if (response.ok && result.ok) {
         setTemplates([result.template, ...templates]);
         setIsCreateDialogOpen(false);
@@ -439,12 +547,16 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         });
         setNewTemplate({
           name: "",
-          category: "",
-          content: [""],
+          content: [{ text: "", link: "" }],
+          reply: [""],
           triggers: [""],
           priority: 5,
-          accountUsername: "",
+          accountUsername: account.username,
+          mediaId: "",
+          mediaUrl: "",
         });
+        setSelectedMedia(null);
+        setSelectedAccountMedia([]);
       } else {
         setIsCreateDialogOpen(false);
 
@@ -464,14 +576,23 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         duration: 3000,
         className: "error-toast",
       });
+    } finally {
+      setIsTemplateCreting(false);
     }
   };
+
   const handleEditClick = (template: any) => {
     setEditingTemplate(template);
     setIsCreateDialogOpen(true);
+
+    // If editing, fetch media for the account
+    fetchAccountMedia(account.accountId, account.username);
+    setSelectedMedia(template.mediaId || null);
   };
+
   const handleUpdateTemplate = async (template: any) => {
     try {
+      setIsUpdateTempalte(true);
       const templateId = template._id;
       const response = await fetch(`/api/insta/templates/${templateId}`, {
         method: "PUT",
@@ -480,7 +601,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       });
 
       if (response.ok) {
-        // Update your templates state
         const updated = await response.json();
         setTemplates(
           templates.map((t: any) => (t._id === updated._id ? updated : t))
@@ -499,8 +619,11 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         duration: 3000,
         className: "error-toast",
       });
+    } finally {
+      setIsUpdateTempalte(false);
     }
   };
+
   const formatLastActivity = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -516,13 +639,60 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       return `${Math.floor(diffInMinutes / 1440)}d ago`;
     }
   };
+
+  const formatLastUsed = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
+
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes || 0}m ago`;
+    } else if (diffInMinutes < 1440) {
+      return `${Math.floor(diffInMinutes / 60) || 0}h ago`;
+    } else {
+      return `${Math.floor(diffInMinutes / 1440) || 0}d ago`;
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors = {
+      greeting: "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30",
+      sales: "bg-[#B026FF]/20 text-[#B026FF] border-[#B026FF]/30",
+      content: "bg-[#FF2E9F]/20 text-[#FF2E9F] border-[#FF2E9F]/30",
+      engagement: "bg-green-500/20 text-green-400 border-green-400/30",
+      support: "bg-orange-500/20 text-orange-400 border-orange-400/30",
+    };
+    return (
+      colors[category as keyof typeof colors] ||
+      "bg-gray-500/20 text-gray-400 border-gray-400/30"
+    );
+  };
+
   const handleError = () => {
     setHasError(true);
   };
+
   const refresh = async () => {
     await localStorage.removeItem(ACCOUNTS_CACHE_KEY);
     await fetchAccounts(params.id);
   };
+
+  const filteredTemplates = templates.filter((template: any) => {
+    const matchesSearch =
+      template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.content
+        .join(", ")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      template.triggers.some((trigger: any) =>
+        trigger.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+    return matchesSearch;
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen text-white flex items-center justify-center">
@@ -674,7 +844,14 @@ export default function AccountPage({ params }: { params: { id: string } }) {
             </div>
             <Dialog
               open={isCreateDialogOpen}
-              onOpenChange={setIsCreateDialogOpen}
+              onOpenChange={(open) => {
+                setIsCreateDialogOpen(open);
+                if (!open) {
+                  setEditingTemplate(null);
+                  setSelectedAccountMedia([]);
+                  setSelectedMedia(null);
+                }
+              }}
             >
               <DialogTrigger asChild>
                 <Button
@@ -686,18 +863,19 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   Create Template
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] bg-transparent bg-gradient-to-br  border-[#B026FF]/20 hover:border-[#B026FF]/40 backdrop-blur-md border">
+              <DialogContent className="sm:max-w-[800px] bg-transparent bg-gradient-to-br border-[#B026FF]/20 hover:border-[#B026FF]/40 backdrop-blur-md border max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="text-white">
                     {editingTemplate ? "Edit Template" : "Create New Template"}
                   </DialogTitle>
                   <DialogDescription className="text-gray-400">
                     {editingTemplate
-                      ? "Update your automated reply content and triggers"
-                      : "Set up an automated reply that triggers when specific keywords are detected"}
+                      ? "Update your automated replies and triggers"
+                      : "Set up automated replies for specific Instagram posts or reels"}
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar ">
+
+                <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name" className="text-gray-300">
@@ -723,55 +901,204 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="category" className="text-gray-300">
-                        Category
+                      <Label htmlFor="account" className="text-gray-300">
+                        Account
                       </Label>
-                      {editingTemplate ? (
-                        <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600 capitalize">
-                          {editingTemplate.category}
-                        </div>
-                      ) : (
-                        <Select
-                          value={newTemplate.category}
-                          onValueChange={(value) =>
-                            setNewTemplate({ ...newTemplate, category: value })
-                          }
-                        >
-                          <SelectTrigger className="bg-white/5 border-white/20 text-white">
-                            <SelectValue placeholder="Choose Category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[
-                              { value: "greeting", label: "Greeting" },
-                              { value: "sales", label: "Sales" },
-                              { value: "content", label: "Content" },
-                              { value: "engagement", label: "Engagement" },
-                              { value: "support", label: "Support" },
-                            ]
-                              .filter(
-                                (category) =>
-                                  !templates.some(
-                                    (template: any) =>
-                                      template.category === category.value
-                                  )
-                              )
-                              .map((category) => (
-                                <SelectItem
-                                  key={category.value}
-                                  value={category.value}
-                                >
-                                  {category.label}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                      )}
+                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600">
+                        {account.username}
+                      </div>
                     </div>
                   </div>
 
+                  {/* Media Selection */}
+                  {!editingTemplate && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-gray-300">
+                          Select Post or Reel
+                        </Label>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            fetchAccountMedia(
+                              account.accountId,
+                              account.username
+                            );
+                          }}
+                          className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10"
+                        >
+                          <RefreshCw className="h-3 w-3 mr-1" />
+                          Refresh
+                        </Button>
+                      </div>
+                      {isLoadingMedia ? (
+                        <div className="flex justify-center items-center h-32">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00F0FF]"></div>
+                        </div>
+                      ) : selectedAccountMedia.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-max overflow-y-auto no-scrollbar p-2">
+                          {selectedAccountMedia.map((media) => (
+                            <div
+                              key={media.id}
+                              className={`relative cursor-pointer rounded-md overflow-hidden border-2 ${
+                                selectedMedia === media.id
+                                  ? "border-[#00F0FF]"
+                                  : "border-white/20"
+                              } transition-all`}
+                              onClick={() => {
+                                setSelectedMedia(media.id);
+                                setNewTemplate({
+                                  ...newTemplate,
+                                  mediaId: media.id,
+                                  mediaUrl: media.media_url,
+                                });
+                              }}
+                            >
+                              <Image
+                                src={media.media_url}
+                                alt="Post"
+                                height={128}
+                                width={128}
+                                className="w-full h-52 object-cover"
+                              />
+
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-1 text-xs truncate">
+                                {media.caption
+                                  ? media.caption.substring(0, 30) +
+                                    (media.caption.length > 30 ? "..." : "")
+                                  : "No caption"}
+                              </div>
+                              <div className="absolute top-1 right-1 bg-black/70 rounded-full px-1 text-xs">
+                                {media.media_type === "VIDEO" ? "Reel" : "Post"}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-400">
+                          <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                          <p>No posts or reels found for this account</p>
+                          <p className="text-sm mt-2">
+                            Make sure your Instagram account is connected to a
+                            AinspireTech.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {/*Multi-Comment Reply Section*/}
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <Label className="text-gray-300">Replies (up to 3)</Label>
+                      <Label className="text-gray-300">
+                        reply to their comments under the post
+                      </Label>
+                      {(!editingTemplate ||
+                        (editingTemplate.reply &&
+                          editingTemplate.reply.length < 3)) && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            if (editingTemplate) {
+                              setEditingTemplate({
+                                ...editingTemplate,
+                                reply: [...(editingTemplate.reply || []), ""],
+                              });
+                            } else {
+                              setNewTemplate({
+                                ...newTemplate,
+                                reply: [...(newTemplate.reply || []), ""],
+                              });
+                            }
+                          }}
+                          className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10"
+                        >
+                          <Plus className="mr-1 h-3 w-3" /> Add Reply
+                        </Button>
+                      )}
+                    </div>
+
+                    {(editingTemplate
+                      ? editingTemplate.reply
+                      : newTemplate.reply
+                    )?.map((reply: any, index: number) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex justify-between">
+                          <Label
+                            htmlFor={`Dm reply-${index}`}
+                            className="text-gray-300"
+                          >
+                            Reply {index + 1}
+                          </Label>
+                          {(editingTemplate
+                            ? editingTemplate.reply
+                            : newTemplate.reply
+                          )?.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const updatedReply = editingTemplate
+                                  ? [...editingTemplate.reply]
+                                  : [...newTemplate.reply];
+                                updatedReply.splice(index, 1);
+
+                                if (editingTemplate) {
+                                  setEditingTemplate({
+                                    ...editingTemplate,
+                                    reply: updatedReply,
+                                  });
+                                } else {
+                                  setNewTemplate({
+                                    ...newTemplate,
+                                    reply: updatedReply,
+                                  });
+                                }
+                              }}
+                              className="text-red-500 hover:bg-red-500/10 h-6 w-6"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <Textarea
+                          id={`reply-${index}`}
+                          value={reply}
+                          onChange={(e) => {
+                            const updatedReply = editingTemplate
+                              ? [...editingTemplate.reply]
+                              : [...newTemplate.reply];
+
+                            updatedReply[index] = e.target.value;
+
+                            if (editingTemplate) {
+                              setEditingTemplate({
+                                ...editingTemplate,
+                                reply: updatedReply,
+                              });
+                            } else {
+                              setNewTemplate({
+                                ...newTemplate,
+                                reply: updatedReply,
+                              });
+                            }
+                          }}
+                          placeholder="Write your automated reply..."
+                          className="min-h-[80px] bg-white/5 border-white/20 text-white"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {/* Multi-DmReply Section */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-gray-300">
+                        Get reply in Direct Dm{" "}
+                      </Label>
                       {(!editingTemplate ||
                         (editingTemplate.content &&
                           editingTemplate.content.length < 3)) && (
@@ -785,13 +1112,16 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                                 ...editingTemplate,
                                 content: [
                                   ...(editingTemplate.content || []),
-                                  "",
+                                  { text: "", link: "" },
                                 ],
                               });
                             } else {
                               setNewTemplate({
                                 ...newTemplate,
-                                content: [...(newTemplate.content || []), ""],
+                                content: [
+                                  ...(newTemplate.content || []),
+                                  { text: "", link: "" },
+                                ],
                               });
                             }
                           }}
@@ -805,14 +1135,17 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     {(editingTemplate
                       ? editingTemplate.content
                       : newTemplate.content
-                    )?.map((content: any, index: number) => (
-                      <div key={index} className="space-y-2">
+                    )?.map((contentItem: ContentItem, index: number) => (
+                      <div
+                        key={index}
+                        className="space-y-2 p-3 border border-white/10 rounded-lg"
+                      >
                         <div className="flex justify-between">
                           <Label
                             htmlFor={`content-${index}`}
                             className="text-gray-300"
                           >
-                            Reply {index + 1}
+                            Sent Dm {index + 1}
                           </Label>
                           {(editingTemplate
                             ? editingTemplate.content
@@ -848,14 +1181,17 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                         </div>
 
                         <Textarea
-                          id={`content-${index}`}
-                          value={content}
+                          id={`content-text-${index}`}
+                          value={contentItem.text}
                           onChange={(e) => {
                             const updatedContent = editingTemplate
                               ? [...editingTemplate.content]
                               : [...newTemplate.content];
 
-                            updatedContent[index] = e.target.value;
+                            updatedContent[index] = {
+                              ...updatedContent[index],
+                              text: e.target.value,
+                            };
 
                             if (editingTemplate) {
                               setEditingTemplate({
@@ -869,16 +1205,50 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                               });
                             }
                           }}
-                          placeholder="Write your automated reply..."
+                          placeholder="Write your message text..."
                           className="min-h-[80px] bg-white/5 border-white/20 text-white"
                         />
+
+                        <div className="flex items-center gap-2">
+                          <LinkIcon className="h-4 w-4 text-gray-400" />
+                          <Input
+                            id={`content-link-${index}`}
+                            value={contentItem.link || ""}
+                            onChange={(e) => {
+                              const updatedContent = editingTemplate
+                                ? [...editingTemplate.content]
+                                : [...newTemplate.content];
+
+                              updatedContent[index] = {
+                                ...updatedContent[index],
+                                link: e.target.value,
+                              };
+
+                              if (editingTemplate) {
+                                setEditingTemplate({
+                                  ...editingTemplate,
+                                  content: updatedContent,
+                                });
+                              } else {
+                                setNewTemplate({
+                                  ...newTemplate,
+                                  content: updatedContent,
+                                });
+                              }
+                            }}
+                            placeholder="Optional: Add a link URL"
+                            className="bg-white/5 border-white/20 text-white"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
+
+                  {/* Triggers Section */}
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <Label htmlFor="triggers" className="text-gray-300">
-                        set triggers (up to 3)
+                        Set triggers (up to 3)
                       </Label>
                       {(!editingTemplate ||
                         (editingTemplate.triggers &&
@@ -905,7 +1275,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                           }}
                           className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10"
                         >
-                          <Plus className="mr-1 h-3 w-3" /> Add Reply
+                          <Plus className="mr-1 h-3 w-3" /> Add Trigger
                         </Button>
                       )}
                     </div>
@@ -913,14 +1283,14 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     {(editingTemplate
                       ? editingTemplate.triggers
                       : newTemplate.triggers
-                    )?.map((triggers: any, index: number) => (
+                    )?.map((trigger: any, index: number) => (
                       <div key={index} className="space-y-2">
                         <div className="flex justify-between">
                           <Label
-                            htmlFor={`content-${index}`}
+                            htmlFor={`trigger-${index}`}
                             className="text-gray-300"
                           >
-                            Reply {index + 1}
+                            Trigger {index + 1}
                           </Label>
                           {(editingTemplate
                             ? editingTemplate.triggers
@@ -931,20 +1301,20 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                               variant="ghost"
                               size="icon"
                               onClick={() => {
-                                const updatedContent = editingTemplate
+                                const updatedTriggers = editingTemplate
                                   ? [...editingTemplate.triggers]
                                   : [...newTemplate.triggers];
-                                updatedContent.splice(index, 1);
+                                updatedTriggers.splice(index, 1);
 
                                 if (editingTemplate) {
                                   setEditingTemplate({
                                     ...editingTemplate,
-                                    triggers: updatedContent,
+                                    triggers: updatedTriggers,
                                   });
                                 } else {
                                   setNewTemplate({
                                     ...newTemplate,
-                                    triggers: updatedContent,
+                                    triggers: updatedTriggers,
                                   });
                                 }
                               }}
@@ -956,93 +1326,79 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                         </div>
 
                         <Input
-                          id={`content-${index}`}
-                          value={triggers}
+                          id={`trigger-${index}`}
+                          value={trigger}
                           onChange={(e) => {
-                            const updatedContent = editingTemplate
+                            const updatedTriggers = editingTemplate
                               ? [...editingTemplate.triggers]
                               : [...newTemplate.triggers];
 
-                            updatedContent[index] = e.target.value;
+                            updatedTriggers[index] = e.target.value;
 
                             if (editingTemplate) {
                               setEditingTemplate({
                                 ...editingTemplate,
-                                triggers: updatedContent,
+                                triggers: updatedTriggers,
                               });
                             } else {
                               setNewTemplate({
                                 ...newTemplate,
-                                triggers: updatedContent,
+                                triggers: updatedTriggers,
                               });
                             }
                           }}
-                          placeholder="Write your automated reply..."
-                          className=" bg-white/5 border-white/20 text-white"
+                          placeholder="Enter trigger keyword..."
+                          className="bg-white/5 border-white/20 text-white"
                         />
                       </div>
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="priority" className="text-gray-300">
-                        Priority (1-10)
-                      </Label>
-                      <Input
-                        id="priority"
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={
-                          editingTemplate
-                            ? editingTemplate.priority || 5
-                            : newTemplate.priority || 5
+                  <div className="space-y-2">
+                    <Label htmlFor="priority" className="text-gray-300">
+                      Priority (1-10)
+                    </Label>
+                    <Input
+                      id="priority"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={
+                        editingTemplate
+                          ? editingTemplate.priority || 5
+                          : newTemplate.priority || 5
+                      }
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        if (editingTemplate) {
+                          setEditingTemplate({
+                            ...editingTemplate,
+                            priority: isNaN(value)
+                              ? 5
+                              : Math.min(Math.max(value, 1), 10),
+                          });
+                        } else {
+                          setNewTemplate({
+                            ...newTemplate,
+                            priority: isNaN(value)
+                              ? 5
+                              : Math.min(Math.max(value, 1), 10),
+                          });
                         }
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (editingTemplate) {
-                            setEditingTemplate({
-                              ...editingTemplate,
-                              priority: isNaN(value)
-                                ? 5
-                                : Math.min(Math.max(value, 1), 10),
-                            });
-                          } else {
-                            setNewTemplate({
-                              ...newTemplate,
-                              priority: isNaN(value)
-                                ? 5
-                                : Math.min(Math.max(value, 1), 10),
-                            });
-                          }
-                        }}
-                        className="bg-white/5 border-white/20 text-white"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="account" className="text-gray-300">
-                        Account
-                      </Label>
-
-                      {editingTemplate ? (
-                        <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600">
-                          {editingTemplate.accountUsername}
-                        </div>
-                      ) : (
-                        <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600">
-                          {account.username}
-                        </div>
-                      )}
-                    </div>
+                      }}
+                      className="bg-white/5 border-white/20 text-white"
+                    />
                   </div>
                 </div>
+
                 <DialogFooter>
                   <Button
                     variant="outline"
                     onClick={() => {
                       setIsCreateDialogOpen(false);
                       setEditingTemplate(null);
+                      setSelectedAccountMedia([]);
+                      setSelectedMedia(null);
                     }}
                     className="border-white/20 text-gray-300"
                   >
@@ -1055,6 +1411,39 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                         : handleCreateTemplate()
                     }
                     className="btn-gradient-cyan"
+                    disabled={
+                      isTemplateCreating ||
+                      isUpdateTemplate ||
+                      (editingTemplate
+                        ? !editingTemplate.name ||
+                          !editingTemplate.accountUsername ||
+                          !editingTemplate.mediaId ||
+                          editingTemplate.reply.length === 0 ||
+                          editingTemplate.reply.some(
+                            (r: any) => r.trim() === ""
+                          ) ||
+                          editingTemplate.triggers.length === 0 ||
+                          editingTemplate.triggers.some(
+                            (t: any) => t.trim() === ""
+                          ) ||
+                          editingTemplate.content.length === 0 ||
+                          editingTemplate.content.some(
+                            (c: ContentItem) =>
+                              c.text.trim() === "" || c.link!.trim() === ""
+                          )
+                        : !newTemplate.name ||
+                          !newTemplate.accountUsername ||
+                          !newTemplate.mediaId ||
+                          newTemplate.reply.length === 0 ||
+                          newTemplate.reply.some((r) => r.trim() === "") ||
+                          newTemplate.triggers.length === 0 ||
+                          newTemplate.triggers.some((t) => t.trim() === "") ||
+                          newTemplate.content.length === 0 ||
+                          newTemplate.content.some(
+                            (c: ContentItem) =>
+                              c.text.trim() === "" || c.link!.trim() === ""
+                          ))
+                    }
                   >
                     {editingTemplate ? "Update Template" : "Create Template"}
                   </Button>
@@ -1063,19 +1452,200 @@ export default function AccountPage({ params }: { params: { id: string } }) {
             </Dialog>
           </div>
 
-          <div className="grid gap-6">
-            {templates.map((template: any) => (
-              <TemplateCard
-                key={template._id}
-                template={template}
-                onEdit={handleEditClick}
-                onDelete={handleDeleteTemplate}
-                onToggle={handleToggleTemplate}
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search templates, content, or keywords..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white/5 border-white/20 text-white"
               />
+            </div>
+          </div>
+
+          {/* Templates Grid */}
+          <div className="grid gap-6">
+            {filteredTemplates.map((template: any) => (
+              <Card
+                key={template._id}
+                className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${
+                  template.isActive
+                    ? "from-[#B026FF]/20 to-[#B026FF]/5 border-[#B026FF]/20 hover:border-[#B026FF]/40"
+                    : "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:border-[#00F0FF]/40"
+                } bg-transparent backdrop-blur-sm border`}
+              >
+                <CardHeader className=" p-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2 ">
+                        <CardTitle className="text-lg text-white">
+                          {template.name}
+                        </CardTitle>
+                        {template.mediaType && (
+                          <Badge className="bg-purple-500/20 text-purple-400 border-purple-400/30">
+                            {template.mediaType === "VIDEO" ? "Reel" : "Post"}
+                          </Badge>
+                        )}
+                        <Badge
+                          variant="outline"
+                          className="text-xs border-white/20 text-gray-300"
+                        >
+                          Priority {template.priority}
+                        </Badge>
+                      </div>
+                      {/* <p className="text-sm text-gray-400">
+                        @{template.accountUsername}
+                      </p> */}
+                    </div>
+                    <div className=" flex items-center gap-1 md:gap-2">
+                      <Switch
+                        checked={template.isActive}
+                        onCheckedChange={() => {
+                          handleToggleTemplate(template._id);
+                        }}
+                        className="data-[state=checked]:bg-[#00F0FF]"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-300 hover:text-white"
+                        onClick={() => handleEditClick(template)}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[#FF2E9F] hover:text-[#FF2E9F]/80"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-[#0a0a0a]/95 border-white/20">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-white">
+                              Delete Template
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-gray-400">
+                              Are you sure you want to delete {template.name}?
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="border-white/20 text-gray-300">
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteTemplate(template._id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="flex flex-col items-start  p-2 w-full">
+                  <div className="flex flex-col md:flex-row-reverse items-start justify-between gap-3  w-full">
+                    {template.mediaUrl && (
+                      <div className="w-full flex-1">
+                        <p className="text-sm text-gray-400 mb-2">
+                          Linked Media:
+                        </p>
+                        <div className="relative w-40 h-40 rounded-md overflow-hidden border border-white/20 mb-2">
+                          <Image
+                            src={template.mediaUrl}
+                            alt="Linked media"
+                            height={160}
+                            width={160}
+                            className="w-full h-full object-cover"
+                          />
+                          {template.mediaType === "VIDEO" && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                              <VideoIcon className="h-6 w-6 text-white" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-400 mb-2">
+                        reply to their comments:
+                      </p>
+                      <div className="flex flex-wrap items-center justify-start w-full gap-2">
+                        {template.reply.map((reply: any, index: number) => (
+                          <Badge
+                            key={index}
+                            variant="outline"
+                            className="text-sm text-wrap bg-white/5 p-3 rounded-md text-gray-300"
+                          >
+                            {reply}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-4 flex-1">
+                      <div className="w-full">
+                        <p className="text-sm text-gray-400 mb-2">
+                          Reply send in Dm:
+                        </p>
+                        <div className="flex flex-col gap-2">
+                          {template.content.map(
+                            (contentItem: ContentItem, index: number) => (
+                              <Badge
+                                key={index}
+                                variant="outline"
+                                className="flex flex-col items-start justify-center  bg-white/5 p-3 rounded-md mb-1"
+                              >
+                                <p className="text-gray-300 mb-1">
+                                  {contentItem.text}
+                                </p>
+                                {contentItem.link && (
+                                  <div className="flex items-center gap-1 text-xs text-blue-400">
+                                    <LinkIcon className="h-3 w-3" />
+                                    <a
+                                      href={contentItem.link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="hover:underline truncate"
+                                    >
+                                      {contentItem.link.length > 30
+                                        ? contentItem.link.slice(0, 30) + "..."
+                                        : contentItem.link}
+                                    </a>
+                                  </div>
+                                )}
+                              </Badge>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-white/10 w-full">
+                    <div className="flex items-center gap-6 text-sm text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <BarChart3 className="h-3 w-3" />
+                        {template?.usageCount || 0} uses
+                      </div>
+                      <div>
+                        Last used: {formatLastUsed(template.lastUsed) || 1}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
 
             {templates.length === 0 && (
-              <Card>
+              <Card className="card-hover">
                 <CardContent className="text-center py-12">
                   <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
                     <Plus className="h-8 w-8 text-muted-foreground" />

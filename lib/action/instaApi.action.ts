@@ -158,19 +158,63 @@ async function replyToComment(
   }
 }
 
-async function sendDirectMessage(
-  accountId: string,
-  accessToken: string,
-  commentId: string,
-  message: string[]
+// async function sendDirectMessage(
+//   accountId: string,
+//   accessToken: string,
+//   commentId: string,
+//   message: string[]
+// ): Promise<boolean> {
+//   try {
+//     console.log("accountId : ", accountId);
+//     console.log("accessToken : ", accessToken);
+//     console.log("recipientId : ", commentId);
+//     console.log("message : ", message);
+
+//     const sendResponse = await fetch(
+//       `https://graph.instagram.com/v23.0/${accountId}/messages`,
+//       {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: `Bearer ${accessToken}`,
+//         },
+//         body: JSON.stringify({
+//           recipient: { comment_id: commentId },
+//           message: {
+//             text: message[Math.floor(Math.random() * message.length)],
+//           },
+//         }),
+//       }
+//     );
+//     console.log("sendResponse : ", sendResponse);
+
+//     if (!sendResponse.ok) {
+//       const error = await sendResponse.json();
+//       console.log("error : ", error);
+
+//       console.error("Instagram DM Error:", error);
+//       return false;
+//     }
+
+//     return true;
+//   } catch (error) {
+//     console.error("Failed to send Instagram DM:", error);
+//     return false;
+//   }
+// }
+export async function sendDirectMessage(
+  accountId: string, // Instagram Business Account ID
+  accessToken: string, // Page access token with "pages_messaging" permission
+  recipientId: string, // The IG user ID you want to send the message to
+  content: { text: string; link: string }[] // Array of content items with text and link
 ): Promise<boolean> {
   try {
-    console.log("accountId : ", accountId);
-    console.log("accessToken : ", accessToken);
-    console.log("recipientId : ", commentId);
-    console.log("message : ", message);
-
-    const sendResponse = await fetch(
+    console.log("accountId:", accountId);
+    console.log("recipientId:", recipientId);
+    const randomNumber = Math.floor(Math.random() * content.length);
+    const { text, link: buttonUrl } = content[randomNumber];
+    const buttonTitle = "Visit Link";
+    const response = await fetch(
       `https://graph.instagram.com/v23.0/${accountId}/messages`,
       {
         method: "POST",
@@ -179,20 +223,32 @@ async function sendDirectMessage(
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          recipient: { comment_id: commentId },
+          recipient: { id: recipientId },
           message: {
-            text: message[Math.floor(Math.random() * message.length)],
+            attachment: {
+              type: "template",
+              payload: {
+                template_type: "button",
+                text,
+                buttons: [
+                  {
+                    type: "web_url",
+                    url: buttonUrl,
+                    title: buttonTitle,
+                  },
+                ],
+              },
+            },
           },
         }),
       }
     );
-    console.log("sendResponse : ", sendResponse);
 
-    if (!sendResponse.ok) {
-      const error = await sendResponse.json();
-      console.log("error : ", error);
+    const result = await response.json();
+    console.log("DM API Response:", result);
 
-      console.error("Instagram DM Error:", error);
+    if (!response.ok) {
+      console.error("Instagram DM Error:", result);
       return false;
     }
 
@@ -300,7 +356,7 @@ export async function processComment(
       dmMessage = await sendDirectMessage(
         account.instagramId,
         account.accessToken,
-        comment.id,
+        comment.user_id,
         matchingTemplate.content
       );
 

@@ -1,7 +1,6 @@
 import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { NextResponse } from "next/server";
-
 export async function GET(req: Request) {
   try {
     await connectToDatabase();
@@ -57,8 +56,8 @@ export async function POST(req: Request) {
       priority,
       accountUsername,
     } = body;
-    console.log(body);
-    // Validate required fields
+
+    // ✅ Validation
     if (
       !userId ||
       !accountId ||
@@ -76,35 +75,67 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check for existing templates with same category
+    // ✅ Ensure content is array with required fields
+    if (
+      !Array.isArray(content) ||
+      content.some(
+        (item: any) =>
+          !item.text ||
+          typeof item.text !== "string" ||
+          !item.link ||
+          typeof item.link !== "string"
+      )
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Content must be an array of { text, link } objects",
+        },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Check duplicate mediaId
     const existingTemplates = await InstaReplyTemplate.find({
       accountId,
       mediaId,
     });
-
     if (existingTemplates.length > 0) {
-      // Changed condition from === 0 to > 0
       return NextResponse.json(
         {
           ok: false,
-          message: `Template with ${mediaId} mediaId already exists`,
+          message: `Template with ${mediaId} already exists`,
           error: "Duplicate Media",
         },
-        { status: 409 } // Using 409 Conflict for duplicate resources
+        { status: 409 }
       );
     }
 
-    // Create new template
+    // ✅ Normalize triggers
+    const formattedTriggers = Array.isArray(triggers)
+      ? triggers.map((t: string) => t.trim().toLowerCase())
+      : triggers.split(",").map((t: string) => t.trim().toLowerCase());
+
+    // ✅ Normalize reply
+    const formattedReply = Array.isArray(reply)
+      ? reply.map((r: string) => r.trim())
+      : [String(reply).trim()];
+
+    // ✅ Normalize content (force trim)
+    const formattedContent = content.map((item: any) => ({
+      text: item.text.trim(),
+      link: item.link.trim(),
+    }));
+
+    // ✅ Create new template
     const template = new InstaReplyTemplate({
       userId,
       accountId,
       name,
-      content,
-      reply: reply,
-      triggers: Array.isArray(triggers)
-        ? triggers
-        : triggers.split(",").map((t: string) => t.trim()),
-      priority: priority || 5, // Default priority if not provided
+      content: formattedContent,
+      reply: formattedReply,
+      triggers: formattedTriggers,
+      priority: priority || 5,
       mediaId,
       mediaUrl,
       accountUsername: accountUsername.toLowerCase(),
@@ -114,20 +145,11 @@ export async function POST(req: Request) {
 
     await template.save();
 
-    return NextResponse.json(
-      {
-        ok: true,
-        template,
-      },
-      { status: 201 }
-    );
+    return NextResponse.json({ ok: true, template }, { status: 201 });
   } catch (error) {
     console.error("Error creating template:", error);
     return NextResponse.json(
-      {
-        ok: false,
-        error: "Internal server error",
-      },
+      { ok: false, error: "Internal server error" },
       { status: 500 }
     );
   }

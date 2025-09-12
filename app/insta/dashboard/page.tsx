@@ -470,7 +470,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#FF2E9F]">
-                {dashboardData?.repliesCount || 0} /{" "}
+                {dashboardData?.totalReplies || 0} /{" "}
                 {dashboardData?.replyLimit || 1}
               </div>
               <p className="text-xs text-gray-400">+23% from last month</p>

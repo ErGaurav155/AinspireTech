@@ -14,6 +14,7 @@ import {
   ImageIcon,
   VideoIcon,
   RefreshCw,
+  Link as LinkIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,6 +79,11 @@ interface MediaItem {
   comments?: number;
 }
 
+interface ContentItem {
+  text: string;
+  link?: string;
+}
+
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<any>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -89,16 +95,17 @@ export default function TemplatesPage() {
   );
   const [isLoadingMedia, setIsLoadingMedia] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
-
+  const [isTemplateCreating, setIsTemplateCreting] = useState(false);
+  const [isUpdateTemplate, setIsUpdateTempalte] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { userId } = useAuth();
   const router = useRouter();
 
-  // New template form state
+  // Updated template form state - content is now array of objects
   const [newTemplate, setNewTemplate] = useState({
     name: "",
-    content: [""],
+    content: [{ text: "", link: "" }],
     reply: [""],
     triggers: [""],
     priority: 5,
@@ -249,6 +256,7 @@ export default function TemplatesPage() {
 
   const handleUpdateTemplate = async (template: any) => {
     try {
+      setIsUpdateTempalte(true);
       const templateId = template._id;
       const response = await fetch(`/api/insta/templates/${templateId}`, {
         method: "PUT",
@@ -275,6 +283,8 @@ export default function TemplatesPage() {
         duration: 3000,
         className: "error-toast",
       });
+    } finally {
+      setIsUpdateTempalte(false);
     }
   };
 
@@ -342,6 +352,7 @@ export default function TemplatesPage() {
 
   const handleCreateTemplate = async () => {
     try {
+      setIsTemplateCreting(true);
       const selectedAccount = accounts.find(
         (acc) => acc.username === newTemplate.accountUsername
       );
@@ -375,7 +386,7 @@ export default function TemplatesPage() {
           accountId: selectedAccount.instagramId,
           ...newTemplate,
           reply: newTemplate.reply.filter((r) => r.trim() !== ""),
-          content: newTemplate.content.filter((c) => c.trim() !== ""),
+          content: newTemplate.content.filter((c) => c.text.trim() !== ""), // Updated to check c.text
           triggers: newTemplate.triggers.filter((t) => t.trim() !== ""),
         }),
       });
@@ -391,7 +402,7 @@ export default function TemplatesPage() {
         });
         setNewTemplate({
           name: "",
-          content: [""],
+          content: [{ text: "", link: "" }], // Reset to object structure
           reply: [""],
           triggers: [""],
           priority: 5,
@@ -420,6 +431,8 @@ export default function TemplatesPage() {
         duration: 3000,
         className: "error-toast",
       });
+    } finally {
+      setIsTemplateCreting(false);
     }
   };
 
@@ -427,6 +440,7 @@ export default function TemplatesPage() {
     const matchesSearch =
       template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       template.content
+        .map((c: ContentItem) => c.text) // Extract text for search
         .join(", ")
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
@@ -480,7 +494,6 @@ export default function TemplatesPage() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen text-white">
       <div className="container mx-auto p-2 md:px-4 py-8">
@@ -809,12 +822,18 @@ export default function TemplatesPage() {
                           if (editingTemplate) {
                             setEditingTemplate({
                               ...editingTemplate,
-                              content: [...(editingTemplate.content || []), ""],
+                              content: [
+                                ...(editingTemplate.content || []),
+                                { text: "", link: "" },
+                              ], // Changed from "" to {text: "", link: ""}
                             });
                           } else {
                             setNewTemplate({
                               ...newTemplate,
-                              content: [...(newTemplate.content || []), ""],
+                              content: [
+                                ...(newTemplate.content || []),
+                                { text: "", link: "" },
+                              ], // Changed from "" to {text: "", link: ""}
                             });
                           }
                         }}
@@ -828,7 +847,7 @@ export default function TemplatesPage() {
                   {(editingTemplate
                     ? editingTemplate.content
                     : newTemplate.content
-                  )?.map((content: any, index: number) => (
+                  )?.map((content: ContentItem, index: number) => (
                     <div key={index} className="space-y-2">
                       <div className="flex justify-between">
                         <Label
@@ -870,15 +889,19 @@ export default function TemplatesPage() {
                         )}
                       </div>
 
+                      {/* Text input for the content text */}
                       <Textarea
-                        id={`content-${index}`}
-                        value={content}
+                        id={`content-text-${index}`}
+                        value={content.text}
                         onChange={(e) => {
                           const updatedContent = editingTemplate
                             ? [...editingTemplate.content]
                             : [...newTemplate.content];
 
-                          updatedContent[index] = e.target.value;
+                          updatedContent[index] = {
+                            ...updatedContent[index],
+                            text: e.target.value,
+                          };
 
                           if (editingTemplate) {
                             setEditingTemplate({
@@ -895,6 +918,39 @@ export default function TemplatesPage() {
                         placeholder="Write your automated reply..."
                         className="min-h-[80px] bg-white/5 border-white/20 text-white"
                       />
+
+                      {/* Link input for the content link */}
+                      <div className="flex items-center">
+                        <LinkIcon className="h-4 w-4 mr-2 text-gray-400" />
+                        <Input
+                          id={`content-link-${index}`}
+                          value={content.link || ""}
+                          onChange={(e) => {
+                            const updatedContent = editingTemplate
+                              ? [...editingTemplate.content]
+                              : [...newTemplate.content];
+
+                            updatedContent[index] = {
+                              ...updatedContent[index],
+                              link: e.target.value,
+                            };
+
+                            if (editingTemplate) {
+                              setEditingTemplate({
+                                ...editingTemplate,
+                                content: updatedContent,
+                              });
+                            } else {
+                              setNewTemplate({
+                                ...newTemplate,
+                                content: updatedContent,
+                              });
+                            }
+                          }}
+                          placeholder="Optional link URL..."
+                          className="bg-white/5 border-white/20 text-white"
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1066,7 +1122,39 @@ export default function TemplatesPage() {
                       : handleCreateTemplate()
                   }
                   className="btn-gradient-cyan"
-                  disabled={!editingTemplate && !newTemplate.mediaId}
+                  disabled={
+                    isTemplateCreating ||
+                    isUpdateTemplate ||
+                    (editingTemplate
+                      ? !editingTemplate.name ||
+                        !editingTemplate.accountUsername ||
+                        !editingTemplate.mediaId ||
+                        editingTemplate.reply.length === 0 ||
+                        editingTemplate.reply.some(
+                          (r: any) => r.trim() === ""
+                        ) ||
+                        editingTemplate.triggers.length === 0 ||
+                        editingTemplate.triggers.some(
+                          (t: any) => t.trim() === ""
+                        ) ||
+                        editingTemplate.content.length === 0 ||
+                        editingTemplate.content.some(
+                          (c: ContentItem) =>
+                            c.text.trim() === "" || c.link!.trim() === ""
+                        )
+                      : !newTemplate.name ||
+                        !newTemplate.accountUsername ||
+                        !newTemplate.mediaId ||
+                        newTemplate.reply.length === 0 ||
+                        newTemplate.reply.some((r) => r.trim() === "") ||
+                        newTemplate.triggers.length === 0 ||
+                        newTemplate.triggers.some((t) => t.trim() === "") ||
+                        newTemplate.content.length === 0 ||
+                        newTemplate.content.some(
+                          (c: ContentItem) =>
+                            c.text.trim() === "" || c.link!.trim() === ""
+                        ))
+                  }
                 >
                   {editingTemplate ? "Update Template" : "Create Template"}
                 </Button>
@@ -1189,7 +1277,7 @@ export default function TemplatesPage() {
               </CardHeader>
 
               <CardContent className="flex flex-col items-start  p-2 w-full">
-                <div className="flex flex-col md:flex-row-reverse items-start justify-between gap-3 md:gap-0 w-full">
+                <div className="flex flex-col md:flex-row-reverse items-start justify-between gap-3  w-full">
                   {template.mediaUrl && (
                     <div className="w-full flex-1">
                       <p className="text-sm text-gray-400 mb-2">
@@ -1228,20 +1316,30 @@ export default function TemplatesPage() {
                     </div>
                   </div>
                   <div className="space-y-4  flex-1">
-                    <div className="w-full">
+                    <div>
                       <p className="text-sm text-gray-400 mb-2">
                         Reply send in Dm:
                       </p>
-                      <div className="flex flex-wrap items-center justify-start w-full gap-2">
-                        {template.content.map((content: any, index: number) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="text-sm text-wrap bg-white/5 p-3 rounded-md text-gray-300"
-                          >
-                            {content}
-                          </Badge>
-                        ))}
+                      <div className="flex flex-col gap-2">
+                        {template.content.map(
+                          (content: ContentItem, index: number) => (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="flex flex-col items-start  bg-white/5 p-3 rounded-md text-gray-300"
+                            >
+                              <p className="text-sm">{content.text}</p>
+                              {content.link && (
+                                <p className="text-xs text-cyan-400 mt-1 truncate">
+                                  <LinkIcon className="h-3 w-3 inline mr-1" />
+                                  {content.link.length > 30
+                                    ? content.link.substring(0, 30) + "..."
+                                    : content.link}
+                                </p>
+                              )}
+                            </Badge>
+                          )
+                        )}
                       </div>
                     </div>
                     <div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
+import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
     // Fetch media from Instagram Graph API
     const accessToken = account.accessToken;
     const igUserId = account.instagramId;
+
     // First, get the user's media
     const mediaResponse = await fetch(
       `https://graph.instagram.com/v23.0/${igUserId}/media?fields=id,media_type,media_url,permalink,thumbnail_url,timestamp,caption,like_count,comments_count&limit=5&access_token=${accessToken}`
@@ -65,8 +67,26 @@ export async function GET(request: NextRequest) {
       likes: item.like_count,
       comments: item.comments_count,
     }));
-    console.log("Fetched Media:", formattedMedia);
-    return NextResponse.json({ media: formattedMedia });
+
+    // Get all existing templates for this account to filter out media that already has templates
+    const existingTemplates = await InstaReplyTemplate.find({
+      userId: userId,
+      accountId: accountId,
+    }).select("mediaId"); // Only select mediaId field for efficiency
+
+    // Extract media IDs that already have templates
+    const mediaIdsWithTemplates = existingTemplates.map(
+      (template) => template.mediaId
+    );
+
+    // Filter out media that already has templates
+    const filteredMedia = formattedMedia.filter(
+      (media: any) => !mediaIdsWithTemplates.includes(media.id)
+    );
+
+    return NextResponse.json({
+      media: filteredMedia,
+    });
   } catch (error) {
     console.error("Error fetching Instagram media:", error);
     return NextResponse.json(

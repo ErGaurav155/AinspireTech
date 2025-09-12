@@ -1,5 +1,10 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+export interface IContentItem {
+  text: string;
+  link: string;
+}
+
 export interface IReplyTemplate extends Document {
   userId: string;
   accountId: string;
@@ -7,7 +12,7 @@ export interface IReplyTemplate extends Document {
   mediaUrl: string;
   name: string;
   reply: string[];
-  content: string[];
+  content: IContentItem[]; // Changed from string[] to IContentItem[]
   triggers: string[];
   isActive: boolean;
   priority: number;
@@ -17,6 +22,20 @@ export interface IReplyTemplate extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
+const ContentItemSchema = new Schema({
+  text: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 500,
+  },
+  link: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+});
 
 const ReplyTemplateSchema = new Schema<IReplyTemplate>(
   {
@@ -51,14 +70,7 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
         maxlength: 500,
       },
     ],
-    content: [
-      {
-        type: String,
-        required: true,
-        trim: true,
-        maxlength: 500,
-      },
-    ],
+    content: [ContentItemSchema], // Updated to use the ContentItemSchema
     triggers: [
       {
         type: String,
@@ -76,7 +88,6 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
       min: 1,
       max: 10,
     },
-
     accountUsername: {
       type: String,
       required: true,
