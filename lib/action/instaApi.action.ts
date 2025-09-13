@@ -206,12 +206,13 @@ export async function sendDirectMessage(
   accountId: string,
   accessToken: string,
   recipientId: string,
-  content: { text: string; link: string }[],
-  commentId: string
+  content: { text: string; link: string }[]
 ): Promise<boolean> {
   try {
-    // 1. First, send a simple text to open the convo
-    const initialMessageSent = await fetch(
+    const randomNumber = Math.floor(Math.random() * content.length);
+    const { text, link: buttonUrl } = content[randomNumber];
+
+    const response = await fetch(
       `https://graph.instagram.com/v23.0/${accountId}/messages`,
       {
         method: "POST",
@@ -220,49 +221,30 @@ export async function sendDirectMessage(
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          recipient: { comment_id: commentId }, // Use comment_id
-          message: { text: "Here's more info!" }, // Simple text
+          recipient: { id: recipientId },
+          message: {
+            attachment: {
+              type: "template",
+              payload: {
+                template_type: "button",
+                text,
+                buttons: [
+                  {
+                    type: "web_url",
+                    url: buttonUrl,
+                    title: "Visit Link",
+                  },
+                ],
+              },
+            },
+          },
         }),
       }
     );
-    console.log("initialMessageSent : ", initialMessageSent);
-    // 2. Then, send the rich Button Template
-    if (initialMessageSent.ok) {
-      const buttonTemplateSent = await fetch(
-        `https://graph.instagram.com/v23.0/${accountId}/messages`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({
-            recipient: { comment_id: commentId }, // Use comment_id
-            message: {
-              attachment: {
-                type: "template",
-                payload: {
-                  template_type: "button",
-                  text: "What would you like to do?",
-                  buttons: [
-                    {
-                      type: "web_url",
-                      url: "https://example.com",
-                      title: "Visit Link",
-                    },
-                  ],
-                },
-              },
-            },
-          }),
-        }
-      );
-      console.log("buttonTemplateSent : ", buttonTemplateSent);
-    }
 
-    const result = await initialMessageSent.json();
+    const result = await response.json();
     console.log("sendDirectMessage response:", result);
-    if (!initialMessageSent.ok) {
+    if (!response.ok) {
       console.error("Instagram DM Error:", result);
       return false;
     }
@@ -371,9 +353,8 @@ export async function processComment(
       dmMessage = await sendDirectMessage(
         account.instagramId,
         account.accessToken,
-        comment.user_id,
-        matchingTemplate.content,
-        comment.id
+        comment.id,
+        matchingTemplate.content
       );
 
       if (dmMessage) {
