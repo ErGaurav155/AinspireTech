@@ -237,7 +237,7 @@ export async function sendDirectMessage(
             Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
-            recipient: { id: recipientId }, // Now use the user's IGSID
+            recipient: { comment_id: commentId }, // Use comment_id
             message: {
               attachment: {
                 type: "template",
