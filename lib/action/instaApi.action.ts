@@ -225,35 +225,39 @@ export async function sendDirectMessage(
         }),
       }
     );
-
+    console.log("initialMessageSent : ", initialMessageSent);
     // 2. Then, send the rich Button Template
     if (initialMessageSent.ok) {
-      await fetch(`https://graph.instagram.com/v23.0/${accountId}/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          recipient: { id: recipientId }, // Now use the user's IGSID
-          message: {
-            attachment: {
-              type: "template",
-              payload: {
-                template_type: "button",
-                text: "What would you like to do?",
-                buttons: [
-                  {
-                    type: "web_url",
-                    url: "https://example.com",
-                    title: "Visit Link",
-                  },
-                ],
+      const buttonTemplateSent = await fetch(
+        `https://graph.instagram.com/v23.0/${accountId}/messages`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            recipient: { id: recipientId }, // Now use the user's IGSID
+            message: {
+              attachment: {
+                type: "template",
+                payload: {
+                  template_type: "button",
+                  text: "What would you like to do?",
+                  buttons: [
+                    {
+                      type: "web_url",
+                      url: "https://example.com",
+                      title: "Visit Link",
+                    },
+                  ],
+                },
               },
             },
-          },
-        }),
-      });
+          }),
+        }
+      );
+      console.log("buttonTemplateSent : ", buttonTemplateSent);
     }
 
     const result = await initialMessageSent.json();
