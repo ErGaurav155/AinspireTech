@@ -203,17 +203,15 @@ async function replyToComment(
 //   }
 // }
 export async function sendDirectMessage(
-  accountId: string, // Instagram Business Account ID
-  accessToken: string, // Page access token with "pages_messaging" permission
-  recipientId: string, // The IG user ID you want to send the message to
-  content: { text: string; link: string }[] // Array of content items with text and link
+  accountId: string,
+  accessToken: string,
+  recipientId: string,
+  content: { text: string; link: string }[]
 ): Promise<boolean> {
   try {
-    console.log("accountId:", accountId);
-    console.log("recipientId:", recipientId);
     const randomNumber = Math.floor(Math.random() * content.length);
     const { text, link: buttonUrl } = content[randomNumber];
-    const buttonTitle = "Visit Link";
+
     const response = await fetch(
       `https://graph.instagram.com/v23.0/${accountId}/messages`,
       {
@@ -234,7 +232,7 @@ export async function sendDirectMessage(
                   {
                     type: "web_url",
                     url: buttonUrl,
-                    title: buttonTitle,
+                    title: "Visit Link",
                   },
                 ],
               },
@@ -245,8 +243,7 @@ export async function sendDirectMessage(
     );
 
     const result = await response.json();
-    console.log("DM API Response:", result);
-
+    console.log("sendDirectMessage response:", result);
     if (!response.ok) {
       console.error("Instagram DM Error:", result);
       return false;
