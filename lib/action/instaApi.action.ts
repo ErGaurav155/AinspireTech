@@ -206,13 +206,12 @@ export async function sendDirectMessage(
   accountId: string,
   accessToken: string,
   recipientId: string,
-  content: { text: string; link: string }[]
+  content: { text: string; link: string }[],
+  commentId: string
 ): Promise<boolean> {
   try {
-    const randomNumber = Math.floor(Math.random() * content.length);
-    const { text, link: buttonUrl } = content[randomNumber];
-
-    const response = await fetch(
+    // 1. First, send a simple text to open the convo
+    const initialMessageSent = await fetch(
       `https://graph.instagram.com/v23.0/${accountId}/messages`,
       {
         method: "POST",
@@ -221,17 +220,32 @@ export async function sendDirectMessage(
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          recipient: { id: recipientId },
+          recipient: { comment_id: commentId }, // Use comment_id
+          message: { text: "Here's more info!" }, // Simple text
+        }),
+      }
+    );
+
+    // 2. Then, send the rich Button Template
+    if (initialMessageSent.ok) {
+      await fetch(`https://graph.instagram.com/v23.0/${accountId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          recipient: { id: recipientId }, // Now use the user's IGSID
           message: {
             attachment: {
               type: "template",
               payload: {
                 template_type: "button",
-                text,
+                text: "What would you like to do?",
                 buttons: [
                   {
                     type: "web_url",
-                    url: buttonUrl,
+                    url: "https://example.com",
                     title: "Visit Link",
                   },
                 ],
@@ -239,12 +253,12 @@ export async function sendDirectMessage(
             },
           },
         }),
-      }
-    );
+      });
+    }
 
-    const result = await response.json();
+    const result = await initialMessageSent.json();
     console.log("sendDirectMessage response:", result);
-    if (!response.ok) {
+    if (!initialMessageSent.ok) {
       console.error("Instagram DM Error:", result);
       return false;
     }
@@ -354,7 +368,8 @@ export async function processComment(
         account.instagramId,
         account.accessToken,
         comment.user_id,
-        matchingTemplate.content
+        matchingTemplate.content,
+        comment.id
       );
 
       if (dmMessage) {
