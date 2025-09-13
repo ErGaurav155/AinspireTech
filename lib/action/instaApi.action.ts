@@ -221,7 +221,7 @@ export async function sendDirectMessage(
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          recipient: { id: recipientId },
+          recipient: { comment_id: recipientId },
           message: {
             attachment: {
               type: "template",
