@@ -317,83 +317,83 @@ export async function updateUserLimits(
   }
 }
 
-export async function setPrimaryAccount(userId: string, accountId: string) {
-  try {
-    await connectToDatabase();
+// export async function setPrimaryAccount(userId: string, accountId: string) {
+//   try {
+//     await connectToDatabase();
 
-    // Update user's primary account
-    const updatedUser = await User.findOneAndUpdate(
-      { clerkId: userId },
-      { primaryAccountId: accountId },
-      { new: true }
-    );
+//     // Update user's primary account
+//     const updatedUser = await User.findOneAndUpdate(
+//       { clerkId: userId },
+//       { primaryAccountId: accountId },
+//       { new: true }
+//     );
 
-    // If there are other accounts, deactivate them
-    await InstagramAccount.updateMany(
-      {
-        userId: userId,
-        _id: { $ne: accountId },
-      },
-      { isActive: false }
-    );
+//     // If there are other accounts, deactivate them
+//     await InstagramAccount.updateMany(
+//       {
+//         userId: userId,
+//         _id: { $ne: accountId },
+//       },
+//       { isActive: false }
+//     );
 
-    // Activate the primary account
-    await InstagramAccount.findByIdAndUpdate(accountId, { isActive: true });
+//     // Activate the primary account
+//     await InstagramAccount.findByIdAndUpdate(accountId, { isActive: true });
 
-    return updatedUser;
-  } catch (error) {
-    handleError(error);
-  }
-}
+//     return updatedUser;
+//   } catch (error) {
+//     handleError(error);
+//   }
+// }
 
-export async function handleSubscriptionChange(
-  userId: string,
-  subscriptionType: string | null
-) {
-  try {
-    await connectToDatabase();
+// export async function handleSubscriptionChange(
+//   userId: string,
+//   subscriptionType: string | null
+// ) {
+//   try {
+//     await connectToDatabase();
 
-    // If subscription is cancelled or downgraded
-    if (!subscriptionType) {
-      // Reset to free tier limits
-      await User.findOneAndUpdate(
-        { clerkId: userId },
-        {
-          accountLimit: 1,
-          replyLimit: 500,
-        }
-      );
+//     // If subscription is cancelled or downgraded
+//     if (!subscriptionType) {
+//       // Reset to free tier limits
+//       await User.findOneAndUpdate(
+//         { clerkId: userId },
+//         {
+//           accountLimit: 1,
+//           replyLimit: 500,
+//         }
+//       );
 
-      // Get user's Instagram accounts
-      const accounts = await InstagramAccount.find({ userId });
+//       // Get user's Instagram accounts
+//       const accounts = await InstagramAccount.find({ userId });
 
-      if (accounts.length > 1) {
-        // Keep only the primary account if it exists
-        const user = await User.findOne({ clerkId: userId });
-        const primaryAccountId = user?.primaryAccountId;
+//       if (accounts.length > 1) {
+//         // Keep only the primary account if it exists
+//         const user = await User.findOne({ clerkId: userId });
+//         const primaryAccountId = user?.primaryAccountId;
 
-        if (primaryAccountId) {
-          // Delete all accounts except primary
-          await InstagramAccount.deleteMany({
-            userId,
-            _id: { $ne: primaryAccountId },
-          });
-        } else {
-          // If no primary account set, keep the first account and delete others
-          const firstAccount = accounts[0];
-          await InstagramAccount.deleteMany({
-            userId,
-            _id: { $ne: firstAccount._id },
-          });
-          // Set this as primary account
-          await setPrimaryAccount(userId, firstAccount._id);
-        }
-      }
-    } else {
-      // Update limits based on new subscription
-      await updateUserLimits(userId, subscriptionType);
-    }
-  } catch (error) {
-    handleError(error);
-  }
-}
+//         if (primaryAccountId) {
+//           // Delete all accounts except primary
+//           await InstagramAccount.deleteMany({
+//             userId,
+//             _id: { $ne: primaryAccountId },
+//           });
+//         } else {
+//           // If no primary account set, keep the first account and delete others
+//           const firstAccount = accounts[0];
+//           await InstagramAccount.deleteMany({
+//             userId,
+//             _id: { $ne: firstAccount._id },
+//           });
+//           // Set this as primary account
+//           await setPrimaryAccount(userId, firstAccount._id);
+//         }
+//       }
+//     } else {
+//       // Update limits based on new subscription
+//       await updateUserLimits(userId, subscriptionType);
+//     }
+//   } catch (error) {
+//     handleError(error);
+//   }
+// }

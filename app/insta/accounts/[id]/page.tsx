@@ -1702,7 +1702,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                           )}
                         </div>
                       </div>
-                      <div className=" w-full">
+                      <div className="pb-2 w-full">
                         <p className="text-sm text-gray-400 mb-2">
                           Trigger Keywords:
                         </p>

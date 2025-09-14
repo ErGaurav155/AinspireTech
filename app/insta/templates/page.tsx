@@ -1389,7 +1389,7 @@ export default function TemplatesPage() {
                         )}
                       </div>
                     </div>
-                    <div>
+                    <div className="pb-2 w-full">
                       <p className="text-sm text-gray-400 mb-2">
                         Trigger Keywords:
                       </p>

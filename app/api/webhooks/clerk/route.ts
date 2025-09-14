@@ -76,8 +76,6 @@ export async function POST(req: Request) {
     const totalReplies = (public_metadata?.totalReplies as number) || 0;
     const replyLimit = (public_metadata?.replyLimit as number) || 500;
     const accountLimit = (public_metadata?.accountLimit as number) || 1;
-    const primaryAccountId =
-      (public_metadata?.primaryAccountId as string) || null;
 
     const user = {
       clerkId: id,
@@ -92,7 +90,6 @@ export async function POST(req: Request) {
       totalReplies: totalReplies,
       replyLimit: replyLimit,
       accountLimit: accountLimit,
-      primaryAccountId: primaryAccountId,
       photo: image_url,
     };
     const newUser = await createUser(user);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Check, Zap, X, Loader2, BadgeCheck } from "lucide-react";
+import { Check, Zap, X, Loader2, BadgeCheck, Trash2 } from "lucide-react";
 import PaymentModal from "@/components/insta/PaymentModal";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { getUserById } from "@/lib/action/user.actions";
@@ -28,7 +28,21 @@ import { toast } from "sonner";
 import { setSubsciptionCanceled } from "@/lib/action/subscription.action";
 import { Button } from "@/components/ui/button";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
-import { getInstaAccount } from "@/lib/action/insta.action";
+import {
+  deleteInstaAccount,
+  getInstaAccount,
+  getInstaAccounts,
+} from "@/lib/action/insta.action";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 export default function Pricing() {
   const { userId } = useAuth();
@@ -53,6 +67,17 @@ export default function Pricing() {
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // New states for account deletion dialog
+  const [showAccountDeletionDialog, setShowAccountDeletionDialog] =
+    useState(false);
+  const [userAccounts, setUserAccounts] = useState<any[]>([]);
+  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+  const [isDeletingAccounts, setIsDeletingAccounts] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null);
+  const [pendingBillingCycle, setPendingBillingCycle] = useState<
+    "monthly" | "yearly"
+  >("monthly");
+
   // Fetch user data and subscription info
   useEffect(() => {
     const fetchUserData = async () => {
@@ -73,8 +98,18 @@ export default function Pricing() {
 
         setBuyerId(buyer._id);
         setIslogged(true);
-        const account = await getInstaAccount(userId);
-        if (!account?.success || account.account === "No account found") {
+
+        // Fetch user's Instagram accounts
+        const accountsResponse = await getInstaAccount(userId);
+        if (
+          accountsResponse.success &&
+          Array.isArray(accountsResponse.accounts)
+        ) {
+          setUserAccounts(accountsResponse.accounts);
+        }
+
+        const account = await getInstaAccounts(userId);
+        if (!account?.success || account.accounts === "No account found") {
           setIsInstaAccount(false);
           if (activeProductId) {
             setIsGettingAcc(true);
@@ -102,7 +137,6 @@ export default function Pricing() {
         }
 
         // Fetch subscription info
-
         const response = await fetch(`/api/insta/subscription/list`, {
           method: "GET",
           headers: {
@@ -132,6 +166,28 @@ export default function Pricing() {
     fetchUserData();
   }, [userId, router, activeProductId]);
 
+  // Function to check if user needs to delete accounts for downgrade
+  const checkAccountLimit = (plan: PricingPlan) => {
+    const accountLimit = getAccountLimit(plan);
+    return userAccounts.length > accountLimit;
+  };
+
+  // Get account limit based on plan
+  const getAccountLimit = (plan: PricingPlan) => {
+    switch (plan.id) {
+      case "Insta-Automation-Free":
+        return 1;
+      case "Insta-Automation-Starter":
+        return 1;
+      case "Insta-Automation-Growth":
+        return 3;
+      case "Insta-Automation-Professional":
+        return 5;
+      default:
+        return 1;
+    }
+  };
+
   const handleSubscribe = async (
     plan: PricingPlan,
     cycle: "monthly" | "yearly"
@@ -141,6 +197,14 @@ export default function Pricing() {
       currentSubscription.productId === plan.id &&
       currentSubscription.billingCycle === cycle
     ) {
+      return;
+    }
+
+    // Check if user needs to delete accounts for downgrade
+    if (currentSubscription && checkAccountLimit(plan)) {
+      setPendingPlan(plan);
+      setPendingBillingCycle(cycle);
+      setShowAccountDeletionDialog(true);
       return;
     }
 
@@ -189,6 +253,49 @@ export default function Pricing() {
       // Open payment modal for new plan
       setSelectedPlan(plan);
       setIsPaymentModalOpen(true);
+    }
+  };
+
+  // Handle account deletion for downgrade
+  const handleAccountDeletion = async () => {
+    if (selectedAccounts.length === 0) {
+      toast.error("Please select at least one account to delete");
+      return;
+    }
+
+    setIsDeletingAccounts(true);
+    try {
+      // Delete selected accounts
+      for (const accountId of selectedAccounts) {
+        const result = await deleteInstaAccount(accountId, userId!);
+        if (!result.success) {
+          toast.error(`Failed to delete account: ${result.error}`);
+          setIsDeletingAccounts(false);
+          return;
+        }
+      }
+
+      toast.success("Accounts deleted successfully");
+      setShowAccountDeletionDialog(false);
+
+      // Update user accounts list
+      const updatedAccounts = userAccounts.filter(
+        (account) => !selectedAccounts.includes(account._id)
+      );
+      setUserAccounts(updatedAccounts);
+      setSelectedAccounts([]);
+
+      // Continue with subscription process
+      if (pendingPlan) {
+        setSelectedPlan(pendingPlan);
+        setIsPaymentModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error deleting accounts:", error);
+      toast.error("Failed to delete accounts");
+    } finally {
+      setIsDeletingAccounts(false);
+      setPendingPlan(null);
     }
   };
 
@@ -273,6 +380,9 @@ export default function Pricing() {
                     {currentSubscription.billingCycle})
                   </p>
                   <p className="text-sm text-gray-500 mt-1">Status: Active</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Connected Accounts: {userAccounts.length}
+                  </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -392,6 +502,7 @@ export default function Pricing() {
                 currentSubscription.chatbotType === plan.id &&
                 currentSubscription.billingCycle === billingCycle;
               const isUpgradeOption = currentSubscription;
+              const accountLimit = getAccountLimit(plan);
 
               return (
                 <div
@@ -631,7 +742,7 @@ export default function Pricing() {
                     feature: "Instagram accounts",
                     starter: "1",
                     growth: "3",
-                    pro: "10",
+                    pro: "5",
                   },
                   {
                     feature: "CRM integration",
@@ -726,6 +837,87 @@ export default function Pricing() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Account Deletion Dialog */}
+      <Dialog
+        open={showAccountDeletionDialog}
+        onOpenChange={setShowAccountDeletionDialog}
+      >
+        <DialogContent className="sm:max-w-md bg-[#1a1a1a] border border-[#333]">
+          <DialogHeader>
+            <DialogTitle className="text-white">
+              Account Limit Exceeded
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Your current plan allows only{" "}
+              {pendingPlan ? getAccountLimit(pendingPlan) : 0} Instagram
+              accounts. Please select{" "}
+              {userAccounts.length -
+                (pendingPlan ? getAccountLimit(pendingPlan) : 0)}{" "}
+              accounts to delete.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {userAccounts.map((account) => (
+              <div key={account._id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={account._id}
+                  checked={selectedAccounts.includes(account._id)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedAccounts([...selectedAccounts, account._id]);
+                    } else {
+                      setSelectedAccounts(
+                        selectedAccounts.filter((id) => id !== account._id)
+                      );
+                    }
+                  }}
+                />
+                <Label htmlFor={account._id} className="text-white">
+                  {account.username}
+                </Label>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowAccountDeletionDialog(false);
+                setSelectedAccounts([]);
+                setPendingPlan(null);
+              }}
+              className="text-white border-gray-600"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleAccountDeletion}
+              disabled={
+                isDeletingAccounts ||
+                selectedAccounts.length <
+                  userAccounts.length -
+                    (pendingPlan ? getAccountLimit(pendingPlan) : 0)
+              }
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeletingAccounts ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Selected Accounts
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

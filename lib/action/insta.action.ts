@@ -246,3 +246,57 @@ export const setupTokenRefreshCron = (): void => {
   // Also run immediately on startup
   refreshExpiringTokens();
 };
+export async function getInstaAccounts(userId: string) {
+  try {
+    await connectToDatabase();
+
+    const accounts = await InstagramAccount.find({ userId }).sort({
+      createdAt: -1,
+    });
+
+    return {
+      success: true,
+      accounts: JSON.parse(JSON.stringify(accounts)),
+    };
+  } catch (error) {
+    console.error("Error fetching Instagram accounts:", error);
+    return {
+      success: false,
+      error: "Failed to fetch Instagram accounts",
+    };
+  }
+}
+
+// Delete an Instagram account
+export async function deleteInstaAccount(accountId: string, userId: string) {
+  try {
+    await connectToDatabase();
+
+    // Find and delete the account
+    const account = await InstagramAccount.findOneAndDelete({
+      _id: accountId,
+      userId,
+    });
+
+    if (!account) {
+      return {
+        success: false,
+        error: "Account not found",
+      };
+    }
+
+    // TODO: Add any additional cleanup logic here
+    // (delete related data, webhooks, etc.)
+
+    return {
+      success: true,
+      message: "Account deleted successfully",
+    };
+  } catch (error) {
+    console.error("Error deleting Instagram account:", error);
+    return {
+      success: false,
+      error: "Failed to delete Instagram account",
+    };
+  }
+}
