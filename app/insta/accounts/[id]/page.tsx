@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Settings,
@@ -22,6 +22,7 @@ import {
   ImageIcon,
   VideoIcon,
   Link as LinkIcon,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,6 +101,10 @@ interface ContentItem {
 
 export default function AccountPage({ params }: { params: { id: string } }) {
   const [templates, setTemplates] = useState<any>([]);
+  const [loadMoreCount, setLoadMoreCount] = useState(0);
+  const [hasMoreTemplates, setHasMoreTemplates] = useState(false);
+  const [totalTemplates, setTotalTemplates] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [analyticsData, setAnalyticsData] = useState<any>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -111,6 +116,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const [hasError, setHasError] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const loadMoreCountRef = useRef(0);
 
   // New state for template functionality
   const [searchTerm, setSearchTerm] = useState("");
@@ -231,17 +237,18 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       });
 
       if (response.ok) {
-        setTemplates(
-          templates.filter((template: any) => template._id !== templateId)
+        // Just remove the deleted template without resetting
+        setTemplates((prev: any) =>
+          prev.filter((template: any) => template._id !== templateId)
         );
       } else {
         console.error("Failed to delete template");
       }
     } catch (error) {
       console.error("Error deleting template:", error);
-      // For demo purposes, still remove from UI
-      setTemplates(
-        templates.filter((template: any) => template._id !== templateId)
+      // Still remove from UI for better UX
+      setTemplates((prev: any) =>
+        prev.filter((template: any) => template._id !== templateId)
       );
     }
   };
@@ -276,39 +283,92 @@ export default function AccountPage({ params }: { params: { id: string } }) {
     }
   };
 
+  // Updated fetchTemplates function with loadMoreCount
   const fetchTemplates = useCallback(
-    async (accountId: string) => {
+    async (accountId: string, reset = false) => {
+      if (reset) {
+        loadMoreCountRef.current = 0;
+        setLoadMoreCount(0);
+      }
+
       try {
-        const response = await fetch(
-          `/api/insta/templates?userId=${userId}&accountId=${accountId}`
+        const url = new URL(
+          `/api/insta/templates?userId=${userId}&accountId=${accountId}`,
+          window.location.origin
         );
+        url.searchParams.set(
+          "loadMoreCount",
+          loadMoreCountRef.current.toString()
+        );
+        if (searchTerm) url.searchParams.set("search", searchTerm);
+
+        const response = await fetch(url.toString());
         if (response.ok) {
           const data = await response.json();
+          if (data.templates && Array.isArray(data.templates)) {
+            const formattedTemplates = data.templates.map((template: any) => ({
+              ...template,
+              lastUsed: template.lastUsed
+                ? new Date(template.lastUsed).toISOString()
+                : new Date().toISOString(),
+              successRate: template.successRate || 0,
+            }));
 
-          if (data.length >= 0) {
-            setTemplates(
-              data.map((template: any) => ({
-                ...template,
-                lastUsed: template.lastUsed
-                  ? new Date(template.lastUsed).toISOString()
-                  : new Date().toISOString(),
-                successRate: template.successRate || 0,
-              }))
-            );
+            if (reset || loadMoreCountRef.current === 0) {
+              setTemplates(formattedTemplates);
+            } else {
+              setTemplates((prev: any) => [...prev, ...formattedTemplates]);
+            }
+
+            setHasMoreTemplates(data.hasMore);
+            setTotalTemplates(data.totalCount);
           } else {
             setTemplates([]);
+            setHasMoreTemplates(false);
+            setTotalTemplates(0);
           }
         } else {
           setTemplates([]);
+          setHasMoreTemplates(false);
+          setTotalTemplates(0);
         }
       } catch (error) {
         setTemplates([]);
+        setHasMoreTemplates(false);
+        setTotalTemplates(0);
       } finally {
         setIsLoading(false);
       }
     },
-    [userId]
+    [userId, searchTerm] // Remove loadMoreCount from dependencies
   );
+  // Load more templates function
+  const loadMoreTemplates = async () => {
+    if (!account.accountId) return;
+
+    setIsLoadingMore(true);
+    const nextLoadCount = loadMoreCountRef.current + 1;
+
+    try {
+      // Update ref first
+      loadMoreCountRef.current = nextLoadCount;
+
+      await fetchTemplates(account.accountId, false);
+
+      // Update state for UI display
+      setLoadMoreCount(nextLoadCount);
+    } catch (error) {
+      console.error("Error loading more templates:", error);
+      toast({
+        title: "Failed to load more templates",
+        description: "Please try again",
+        duration: 3000,
+        className: "error-toast",
+      });
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const fetchAccounts = useCallback(
     async (accountId: string) => {
@@ -317,7 +377,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         return;
       }
       try {
-        setIsLoading(true);
+        // setIsLoading(true);
         setError(null);
         // Check cache first
         const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
@@ -332,7 +392,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
               ) || null;
 
             setIsStale(!isCacheValid());
-            await fetchTemplates(cachedAccount.accountId);
+            await fetchTemplates(cachedAccount.accountId, true);
 
             setIsLoading(false);
             return cachedAccount;
@@ -411,7 +471,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
             ) || null;
 
           setIsStale(!isCacheValid());
-          await fetchTemplates(infoAccount.accountId);
+          await fetchTemplates(infoAccount.accountId, true);
 
           localStorage.setItem(
             ACCOUNTS_CACHE_KEY,
@@ -465,6 +525,20 @@ export default function AccountPage({ params }: { params: { id: string } }) {
     fetchAccountData();
   }, [userId, router, params.id, fetchAccountData]);
 
+  // Reload templates when search term changes
+
+  useEffect(() => {
+    if (userId) {
+      fetchTemplates(account.accountId, true);
+    }
+  }, [userId, fetchTemplates, account.accountId]);
+
+  // Update search effect
+  useEffect(() => {
+    if (account.accountId) {
+      fetchTemplates(account.accountId, true);
+    }
+  }, [searchTerm, fetchTemplates, account.accountId]);
   const handleToggleAccount = async () => {
     const newActiveState = !account.isActive;
 
@@ -537,7 +611,8 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       });
       const result = await response.json();
       if (response.ok && result.ok) {
-        setTemplates([result.template, ...templates]);
+        // DON'T reset templates, just add the new one to the beginning
+        setTemplates((prev: any) => [result.template, ...prev]);
         setIsCreateDialogOpen(false);
 
         toast({
@@ -559,7 +634,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         setSelectedAccountMedia([]);
       } else {
         setIsCreateDialogOpen(false);
-
         toast({
           title: result.message || "Failed to create template",
           description: result.error || "Please try again",
@@ -569,7 +643,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       }
     } catch (error) {
       setIsCreateDialogOpen(false);
-
       toast({
         title: "Network error",
         description: "Could not connect to server",
@@ -580,7 +653,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       setIsTemplateCreting(false);
     }
   };
-
   const handleEditClick = (template: any) => {
     setEditingTemplate(template);
     setIsCreateDialogOpen(true);
@@ -602,8 +674,9 @@ export default function AccountPage({ params }: { params: { id: string } }) {
 
       if (response.ok) {
         const updated = await response.json();
-        setTemplates(
-          templates.map((t: any) => (t._id === updated._id ? updated : t))
+        // Update the specific template without resetting everything
+        setTemplates((prev: any) =>
+          prev.map((t: any) => (t._id === updated._id ? updated : t))
         );
         setIsCreateDialogOpen(false);
         setEditingTemplate(null);
@@ -1465,7 +1538,12 @@ export default function AccountPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Templates Grid */}
+          {/* Templates Count */}
+          <div className="mb-6">
+            <p className="text-gray-400">
+              Showing {templates.length} of {totalTemplates} templates
+            </p>
+          </div>
           <div className="grid gap-6">
             {filteredTemplates.map((template: any) => (
               <Card
@@ -1495,9 +1573,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                           Priority {template.priority}
                         </Badge>
                       </div>
-                      {/* <p className="text-sm text-gray-400">
-                        @{template.accountUsername}
-                      </p> */}
                     </div>
                     <div className=" flex items-center gap-1 md:gap-2">
                       <Switch
@@ -1662,6 +1737,29 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                 </CardContent>
               </Card>
             ))}
+
+            {/* Load More Button */}
+            {hasMoreTemplates && (
+              <div className="flex justify-center mt-6">
+                <Button
+                  onClick={loadMoreTemplates}
+                  disabled={isLoadingMore}
+                  className="btn-gradient-cyan px-8 py-3"
+                >
+                  {isLoadingMore ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Loading...
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <ChevronDown className="mr-2 h-4 w-4" />
+                      Load More ({totalTemplates - templates.length} more)
+                    </div>
+                  )}
+                </Button>
+              </div>
+            )}
 
             {templates.length === 0 && (
               <Card className="card-hover">

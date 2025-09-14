@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Plus,
   MessageSquare,
@@ -15,6 +15,7 @@ import {
   VideoIcon,
   RefreshCw,
   Link as LinkIcon,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -86,6 +87,10 @@ interface ContentItem {
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<any>([]);
+  const [loadMoreCount, setLoadMoreCount] = useState(0);
+  const [hasMoreTemplates, setHasMoreTemplates] = useState(false);
+  const [totalTemplates, setTotalTemplates] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterAccount, setFilterAccount] = useState("all");
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
@@ -142,36 +147,122 @@ export default function TemplatesPage() {
         setAccounts([]);
       }
     };
-    const fetchTemplates = async () => {
+    fetchAccounts();
+  }, [router, userId]);
+
+  // Fetch templates with loadMoreCount
+  const fetchTemplates = useCallback(
+    async (reset = false) => {
+      setIsLoading(true);
+
       try {
-        const response = await fetch(`/api/insta/templates?userId=${userId} `);
+        const url = new URL(
+          `/api/insta/templates?userId=${userId}`,
+          window.location.origin
+        );
+        url.searchParams.set("loadMoreCount", "0"); // Always start from 0 for initial load
+        if (searchTerm) url.searchParams.set("search", searchTerm);
+        if (filterAccount !== "all")
+          url.searchParams.set("filterAccount", filterAccount);
+
+        const response = await fetch(url.toString());
         if (response.ok) {
           const data = await response.json();
-          if (data.length >= 0) {
-            setTemplates(
-              data.map((template: any) => ({
-                ...template,
-                lastUsed: template.lastUsed
-                  ? new Date(template.lastUsed).toISOString()
-                  : new Date().toISOString(),
-                successRate: template.successRate || 0,
-              }))
-            );
-          } else {
-            setTemplates([]);
+          if (data.templates && Array.isArray(data.templates)) {
+            const formattedTemplates = data.templates.map((template: any) => ({
+              ...template,
+              lastUsed: template.lastUsed
+                ? new Date(template.lastUsed).toISOString()
+                : new Date().toISOString(),
+              successRate: template.successRate || 0,
+            }));
+
+            setTemplates(formattedTemplates);
+            setHasMoreTemplates(data.hasMore);
+            setTotalTemplates(data.totalCount);
+            setLoadMoreCount(0); // Reset to 0 for initial load
           }
-        } else {
-          setTemplates([]);
         }
       } catch (error) {
-        setTemplates([]);
+        console.error("Error fetching templates:", error);
       } finally {
         setIsLoading(false);
       }
-    };
-    fetchAccounts();
-    fetchTemplates();
-  }, [router, userId]);
+    },
+    [filterAccount, searchTerm, userId]
+  );
+
+  // Load initial templates
+  useEffect(() => {
+    if (userId) {
+      fetchTemplates(true);
+    }
+  }, [userId, fetchTemplates]);
+
+  // Reload templates when filters change
+  useEffect(() => {
+    if (userId) {
+      fetchTemplates(true);
+    }
+  }, [searchTerm, filterAccount, fetchTemplates, userId]);
+  // Load more templates
+  const loadMoreTemplates = async () => {
+    setIsLoadingMore(true);
+    const nextLoadCount = loadMoreCount + 1;
+
+    try {
+      const url = new URL(
+        `/api/insta/templates?userId=${userId}`,
+        window.location.origin
+      );
+      url.searchParams.set("loadMoreCount", nextLoadCount.toString());
+      if (searchTerm) url.searchParams.set("search", searchTerm);
+      if (filterAccount !== "all")
+        url.searchParams.set("filterAccount", filterAccount);
+
+      const response = await fetch(url.toString());
+      if (response.ok) {
+        const data = await response.json();
+        if (data.templates && Array.isArray(data.templates)) {
+          const formattedTemplates = data.templates.map((template: any) => ({
+            ...template,
+            lastUsed: template.lastUsed
+              ? new Date(template.lastUsed).toISOString()
+              : new Date().toISOString(),
+            successRate: template.successRate || 0,
+          }));
+
+          // CORRECTLY APPEND NEW TEMPLATES TO EXISTING ONES
+          setTemplates((prevTemplates: any) => [
+            ...prevTemplates,
+            ...formattedTemplates,
+          ]);
+          setHasMoreTemplates(data.hasMore);
+          setTotalTemplates(data.totalCount);
+          setLoadMoreCount(nextLoadCount);
+        }
+      } else {
+        console.error("Failed to load more templates");
+      }
+    } catch (error) {
+      console.error("Error loading more templates:", error);
+      toast({
+        title: "Failed to load more templates",
+        description: "Please try again",
+        duration: 3000,
+        className: "error-toast",
+      });
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Fetch templates when loadMoreCount changes
+  // useEffect(() => {
+  //   if (loadMoreCount > 0 && userId) {
+  //     fetchTemplates(false);
+  //   }
+  // }, [loadMoreCount, fetchTemplates, userId]);
 
   const fetchAccountMedia = async (accountId: string, username: string) => {
     setIsLoadingMedia(true);
@@ -266,9 +357,8 @@ export default function TemplatesPage() {
 
       if (response.ok) {
         const updated = await response.json();
-        setTemplates(
-          templates.map((t: any) => (t._id === updated._id ? updated : t))
-        );
+        // Refresh templates after update
+        fetchTemplates(true);
         setIsCreateDialogOpen(false);
         setEditingTemplate(null);
         toast({
@@ -289,12 +379,12 @@ export default function TemplatesPage() {
   };
 
   const handleToggleTemplate = async (templateId: string) => {
-    const template = templates.find((t: any) => t._id === templateId);
-    if (!template) return;
-
-    const newActiveState = !template.isActive;
-
     try {
+      const template = templates.find((t: any) => t._id === templateId);
+      if (!template) return;
+
+      const newActiveState = !template.isActive;
+
       const response = await fetch(`/api/insta/templates/${templateId}`, {
         method: "PUT",
         headers: {
@@ -306,25 +396,11 @@ export default function TemplatesPage() {
         }),
       });
 
-      if (!response.ok) {
-        setTemplates(
-          templates.map((t: any) =>
-            t._id === templateId ? { ...t, isActive: !newActiveState } : t
-          )
-        );
-        console.error("Failed to update template status");
+      if (response.ok) {
+        // Refresh templates after toggle
+        fetchTemplates(true);
       }
-      setTemplates(
-        templates.map((t: any) =>
-          t._id === templateId ? { ...t, isActive: newActiveState } : t
-        )
-      );
     } catch (error) {
-      setTemplates(
-        templates.map((t: any) =>
-          t._id === templateId ? { ...t, isActive: !newActiveState } : t
-        )
-      );
       console.error("Error updating template:", error);
     }
   };
@@ -336,17 +412,13 @@ export default function TemplatesPage() {
       });
 
       if (response.ok) {
-        setTemplates(
-          templates.filter((template: any) => template._id !== templateId)
-        );
+        // Refresh templates after delete
+        fetchTemplates(true);
       } else {
         console.error("Failed to delete template");
       }
     } catch (error) {
       console.error("Error deleting template:", error);
-      setTemplates(
-        templates.filter((template: any) => template._id !== templateId)
-      );
     }
   };
 
@@ -386,13 +458,14 @@ export default function TemplatesPage() {
           accountId: selectedAccount.instagramId,
           ...newTemplate,
           reply: newTemplate.reply.filter((r) => r.trim() !== ""),
-          content: newTemplate.content.filter((c) => c.text.trim() !== ""), // Updated to check c.text
+          content: newTemplate.content.filter((c) => c.text.trim() !== ""),
           triggers: newTemplate.triggers.filter((t) => t.trim() !== ""),
         }),
       });
       const result = await response.json();
       if (response.ok && result.ok) {
-        setTemplates([result.template, ...templates]);
+        // Refresh templates after create
+        fetchTemplates(true);
         setIsCreateDialogOpen(false);
 
         toast({
@@ -402,7 +475,7 @@ export default function TemplatesPage() {
         });
         setNewTemplate({
           name: "",
-          content: [{ text: "", link: "" }], // Reset to object structure
+          content: [{ text: "", link: "" }],
           reply: [""],
           triggers: [""],
           priority: 5,
@@ -414,7 +487,6 @@ export default function TemplatesPage() {
         setSelectedAccountMedia([]);
       } else {
         setIsCreateDialogOpen(false);
-
         toast({
           title: result.message || "Failed to create template",
           description: result.error || "Please try again",
@@ -424,7 +496,6 @@ export default function TemplatesPage() {
       }
     } catch (error) {
       setIsCreateDialogOpen(false);
-
       toast({
         title: "Network error",
         description: "Could not connect to server",
@@ -435,24 +506,6 @@ export default function TemplatesPage() {
       setIsTemplateCreting(false);
     }
   };
-
-  const filteredTemplates = templates.filter((template: any) => {
-    const matchesSearch =
-      template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.content
-        .map((c: ContentItem) => c.text) // Extract text for search
-        .join(", ")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      template.triggers.some((trigger: any) =>
-        trigger.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-
-    const matchesAccount =
-      filterAccount === "all" || template.accountUsername === filterAccount;
-
-    return matchesSearch && matchesAccount;
-  });
 
   const formatLastUsed = (dateString: string) => {
     const date = new Date(dateString);
@@ -470,20 +523,6 @@ export default function TemplatesPage() {
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      greeting: "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30",
-      sales: "bg-[#B026FF]/20 text-[#B026FF] border-[#B026FF]/30",
-      content: "bg-[#FF2E9F]/20 text-[#FF2E9F] border-[#FF2E9F]/30",
-      engagement: "bg-green-500/20 text-green-400 border-green-400/30",
-      support: "bg-orange-500/20 text-orange-400 border-orange-400/30",
-    };
-    return (
-      colors[category as keyof typeof colors] ||
-      "bg-gray-500/20 text-gray-400 border-gray-400/30"
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen text-white flex items-center justify-center">
@@ -494,6 +533,7 @@ export default function TemplatesPage() {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen text-white">
       <div className="container mx-auto p-2 md:px-4 py-8">
@@ -1189,9 +1229,16 @@ export default function TemplatesPage() {
           </Select>
         </div>
 
+        {/* Templates Count */}
+        <div className="mb-6">
+          <p className="text-gray-400">
+            Showing {templates.length} of {totalTemplates} templates
+          </p>
+        </div>
+
         {/* Templates Grid */}
         <div className="grid gap-6">
-          {filteredTemplates.map((template: any) => (
+          {templates.map((template: any) => (
             <Card
               key={template._id}
               className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${
@@ -1377,6 +1424,30 @@ export default function TemplatesPage() {
             </Card>
           ))}
 
+          {/* Load More Button */}
+          {hasMoreTemplates && (
+            <div className="flex justify-center mt-6">
+              <Button
+                onClick={loadMoreTemplates}
+                disabled={isLoadingMore}
+                className="btn-gradient-cyan px-8 py-3"
+              >
+                {isLoadingMore ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Loading...
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <ChevronDown className="mr-2 h-4 w-4" />
+                    Load More ({totalTemplates - templates.length} more)
+                  </div>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* No templates states */}
           {accounts.length === 0 && (
             <Card className="card-hover">
               <CardContent className="text-center py-12">
@@ -1399,7 +1470,7 @@ export default function TemplatesPage() {
               </CardContent>
             </Card>
           )}
-          {accounts.length > 0 && filteredTemplates.length === 0 && (
+          {accounts.length > 0 && templates.length === 0 && (
             <Card className="card-hover">
               <CardContent className="text-center py-12">
                 <div className="mx-auto w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-4">

@@ -1,6 +1,7 @@
 import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { NextResponse } from "next/server";
+
 export async function GET(req: Request) {
   try {
     await connectToDatabase();
@@ -8,6 +9,9 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
     const accountId = searchParams.get("accountId");
+    const loadMoreCount = parseInt(searchParams.get("loadMoreCount") || "0");
+    const search = searchParams.get("search") || "";
+    const filterAccount = searchParams.get("filterAccount") || "all";
 
     if (!userId) {
       return NextResponse.json(
@@ -15,21 +19,47 @@ export async function GET(req: Request) {
         { status: 400 }
       );
     }
-    if (userId && !accountId) {
-      const templates = await InstaReplyTemplate.find({ userId }).sort({
-        priority: 1,
-        createdAt: -1,
-      });
 
-      return NextResponse.json(templates);
-    }
-    if (userId && accountId) {
-      const templates = await InstaReplyTemplate.find({
-        accountId,
-      }).sort({ priority: 1, createdAt: -1 });
+    // Build query based on parameters
+    let query: any = { userId };
 
-      return NextResponse.json(templates);
+    // If accountId is provided, get templates only for that specific account
+    if (accountId) {
+      query.accountId = accountId;
     }
+    // If accountId is NOT provided, apply account filter
+    else if (filterAccount !== "all") {
+      query.accountUsername = filterAccount;
+    }
+
+    // Add search filter if provided
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { "content.text": { $regex: search, $options: "i" } },
+        { triggers: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Calculate skip value based on loadMoreCount (each click loads 10 more)
+    const skip = loadMoreCount * 1;
+    const limit = 1;
+
+    // Execute query with pagination
+    const templates = await InstaReplyTemplate.find(query)
+      .sort({ priority: 1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // Get total count to check if there are more templates
+    const totalCount = await InstaReplyTemplate.countDocuments(query);
+    const hasMore = skip + limit < totalCount;
+
+    return NextResponse.json({
+      templates,
+      hasMore,
+      totalCount,
+    });
   } catch (error) {
     console.error("Error fetching templates:", error);
     return NextResponse.json(
