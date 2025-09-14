@@ -253,7 +253,12 @@ export async function getInstaAccounts(userId: string) {
     const accounts = await InstagramAccount.find({ userId }).sort({
       createdAt: -1,
     });
-
+    if (!accounts || accounts.length === 0) {
+      return {
+        success: false,
+        error: "Failed to fetch Instagram accounts",
+      };
+    }
     return {
       success: true,
       accounts: JSON.parse(JSON.stringify(accounts)),
