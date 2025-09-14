@@ -141,7 +141,11 @@ export default function PaymentModal({
               }),
             });
             console.log("HI");
-            const UserData = await updateUserLimits(buyerId, plan.id);
+            const UserData = await updateUserLimits(
+              buyerId,
+              plan.limit,
+              plan.account
+            );
 
             console.log("UserData:", UserData);
             await onSuccess(plan.id);

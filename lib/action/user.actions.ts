@@ -278,37 +278,18 @@ export async function hasActiveSubscriptions(clerkId: string): Promise<{
 }
 export async function updateUserLimits(
   buyerId: string,
-  subscriptionType: string
+  replyLimit: number,
+  accountLimit: number
 ) {
   try {
     await connectToDatabase();
 
-    let accountLimit = 1;
-    let replyLimit = 500;
-    let totalReplies = 0;
-    // Set limits based on subscription type
-    switch (subscriptionType) {
-      case "Insta-Automation-Starter":
-        accountLimit = 1;
-
-        replyLimit = 1000;
-        break;
-      case "Insta-Automation-Grow":
-        accountLimit = 3;
-        replyLimit = 3000;
-        break;
-      case "Insta-Automation-Professional":
-        accountLimit = 5;
-        replyLimit = 5000;
-        break;
-    }
-
     const updatedUser = await User.findOneAndUpdate(
       { _id: buyerId },
       {
-        accountLimit,
-        totalReplies,
-        replyLimit,
+        accountLimit: accountLimit,
+        totalReplies: replyLimit,
+        replyLimit: 0,
       },
       { new: true }
     );
