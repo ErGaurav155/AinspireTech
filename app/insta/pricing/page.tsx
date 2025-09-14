@@ -100,19 +100,21 @@ export default function Pricing() {
         setIslogged(true);
 
         // Fetch user's Instagram accounts
-        const accountsResponse = await getInstaAccount(userId);
-        if (
-          accountsResponse.success &&
-          Array.isArray(accountsResponse.accounts)
-        ) {
-          setUserAccounts(accountsResponse.accounts);
-        }
+        // const accountsResponse = await getInstaAccount(userId);
+        // if (accountsResponse.success) {
+        //   setUserAccounts(accountsResponse.account);
+        // }
 
         const account = await getInstaAccounts(userId);
+        console.log("accounts:", account);
+        if (account.success) {
+          setUserAccounts(account.accounts);
+        }
         if (!account?.success || account.accounts === "No account found") {
           setIsInstaAccount(false);
           if (activeProductId) {
             setIsGettingAcc(true);
+            console.log("hello");
             const response = await fetch(
               `/api/insta/callback?code=${activeProductId}&userId=${userId}`,
               {
@@ -123,7 +125,7 @@ export default function Pricing() {
               }
             );
             const data = await response.json();
-
+            console.log("data:", data);
             if (response.ok) {
               setIsInstaAccount(true);
               // Handle successful connection

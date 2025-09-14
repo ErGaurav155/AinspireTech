@@ -280,6 +280,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
+      refresh();
     }
   };
 
