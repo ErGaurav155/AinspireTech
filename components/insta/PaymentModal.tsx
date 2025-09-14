@@ -70,7 +70,7 @@ export default function PaymentModal({
   const router = useRouter();
 
   if (!plan) return null;
-
+  console.log("Plan:", plan);
   const price =
     billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
   const inrPrice = Math.round(price * 87); // Approximate INR to USD conversion
@@ -127,7 +127,7 @@ export default function PaymentModal({
               duration: 3000,
               className: "success-toast",
             });
-
+            console.log("Heloo HI");
             await fetch("/api/insta/subscription/create", {
               method: "POST",
               headers: {
@@ -140,7 +140,8 @@ export default function PaymentModal({
                 billingCycle: billingCycle,
               }),
             });
-            await User.findByIdAndUpdate(
+            console.log("HI");
+            const UserData = await User.findByIdAndUpdate(
               { _id: buyerId },
               {
                 replyLimit: plan.limit,
@@ -149,6 +150,7 @@ export default function PaymentModal({
               },
               { new: true }
             );
+            console.log("UserData:", UserData);
             await onSuccess(plan.id);
             router.push("/insta/dashboard");
           } else {
