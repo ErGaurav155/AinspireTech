@@ -277,7 +277,7 @@ export async function hasActiveSubscriptions(clerkId: string): Promise<{
   }
 }
 export async function updateUserLimits(
-  userId: string,
+  buyerId: string,
   subscriptionType: string
 ) {
   try {
@@ -285,11 +285,12 @@ export async function updateUserLimits(
 
     let accountLimit = 1;
     let replyLimit = 500;
-
+    let totalReplies = 0;
     // Set limits based on subscription type
     switch (subscriptionType) {
       case "Insta-Automation-Starter":
         accountLimit = 1;
+
         replyLimit = 1000;
         break;
       case "Insta-Automation-Grow":
@@ -303,9 +304,10 @@ export async function updateUserLimits(
     }
 
     const updatedUser = await User.findOneAndUpdate(
-      { clerkId: userId },
+      { _id: buyerId },
       {
         accountLimit,
+        totalReplies,
         replyLimit,
       },
       { new: true }

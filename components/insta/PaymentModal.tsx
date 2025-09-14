@@ -29,7 +29,7 @@ import { toast } from "../ui/use-toast";
 
 import LoginPage from "./InstagramAutomationWizard";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
-import { getUserByDbId } from "@/lib/action/user.actions";
+import { getUserByDbId, updateUserLimits } from "@/lib/action/user.actions";
 import User from "@/lib/database/models/user.model";
 interface PaymentModalProps {
   isOpen: boolean;
@@ -141,15 +141,8 @@ export default function PaymentModal({
               }),
             });
             console.log("HI");
-            const UserData = await User.findByIdAndUpdate(
-              { _id: buyerId },
-              {
-                replyLimit: plan.limit,
-                totalReplies: 0,
-                accountLimit: plan.account,
-              },
-              { new: true }
-            );
+            const UserData = await updateUserLimits(buyerId, plan.id);
+
             console.log("UserData:", UserData);
             await onSuccess(plan.id);
             router.push("/insta/dashboard");
