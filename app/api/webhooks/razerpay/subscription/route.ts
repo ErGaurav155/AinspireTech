@@ -20,6 +20,10 @@ export async function POST(request: NextRequest) {
 
         amount: number;
       };
+    console.log("razorpayplanId :", razorpayplanId);
+    console.log("buyerId :", buyerId);
+    console.log("productId :", productId);
+    console.log("amount :", amount);
 
     if (!buyerId || !productId || !razorpayplanId || !amount) {
       return NextResponse.json(
