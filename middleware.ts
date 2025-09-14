@@ -15,6 +15,7 @@ export default authMiddleware({
     "/api/webhooks/clerk",
     "/api/webhooks/instagram",
     "/api/webhooks/instagram/infoupdate",
+    "/api/webhooks/razerpay/subscription-cancel",
     "/api/embed/chatbot",
     "/api/embed/mcqchatbot",
     "/api/embed/conversation",
