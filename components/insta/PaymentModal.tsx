@@ -85,7 +85,7 @@ export default function PaymentModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: price,
-          razorpayplanId: razorpayplanId.current,
+          razorpayplanId: razorpayplanId.current!,
           productId: plan.id,
           buyerId,
         }),

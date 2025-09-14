@@ -358,8 +358,8 @@ export const instagramPricingPlans: PricingPlan[] = [
     id: "Insta-Automation-Starter",
     name: "Starter",
     description: "For new creators",
-    monthlyPrice: 6,
-    yearlyPrice: 60,
+    monthlyPrice: 500,
+    yearlyPrice: 5000,
     account: 1,
     limit: 500,
     features: [
@@ -376,8 +376,8 @@ export const instagramPricingPlans: PricingPlan[] = [
     id: "Insta-Automation-Grow",
     name: "Growth",
     description: "For growing accounts",
-    monthlyPrice: 18,
-    yearlyPrice: 180,
+    monthlyPrice: 1000,
+    yearlyPrice: 10000,
     account: 3,
     limit: 2000,
     features: [
@@ -395,8 +395,8 @@ export const instagramPricingPlans: PricingPlan[] = [
     id: "Insta-Automation-Professional",
     name: "Professional",
     description: "For high-traffic pages",
-    monthlyPrice: 39,
-    yearlyPrice: 390,
+    monthlyPrice: 2000,
+    yearlyPrice: 20000,
     account: 5,
     limit: 5000,
     features: [
