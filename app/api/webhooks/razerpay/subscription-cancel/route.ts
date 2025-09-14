@@ -90,7 +90,7 @@ async function handleSubscriptionCancelled(subscriptionId: string) {
 
   // If it's an Instagram subscription, handle account cleanup
   if (updatedSub) {
-    await handleInstaAccountCleanup(updatedSub.userId);
+    await handleInstaAccountCleanup(updatedSub.clerkId);
   } else {
     // If not found, try WebSubscription
     updatedSub = await WebSubscription.findOneAndUpdate(
