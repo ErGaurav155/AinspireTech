@@ -83,14 +83,22 @@ export async function DELETE(
 
     // Delete account and all related data
     const account = await InstagramAccount.findByIdAndDelete(params.id);
-
+    console.log("account:", account);
     if (!account) {
+      console.log("hi hellooooo:");
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
     // Delete related templates
-    await InstaReplyTemplate.deleteMany({ accountId: params.id });
-    await InstaReplyLog.deleteMany({ accountId: params.id });
+    const deeleteTemplate = await InstaReplyTemplate.deleteMany({
+      accountId: params.id,
+    });
+    console.log("deeleteTemplate:", deeleteTemplate);
+
+    const deleteRepltlog = await InstaReplyLog.deleteMany({
+      accountId: params.id,
+    });
+    console.log("deleteRepltlog:", deleteRepltlog);
 
     return NextResponse.json({ message: "Account deleted successfully" });
   } catch (error) {
