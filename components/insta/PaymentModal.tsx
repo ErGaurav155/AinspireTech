@@ -1,40 +1,33 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useRef, useState } from "react";
+import { CreditCard } from "lucide-react";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { PricingPlan } from "@/types/types";
+
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, MapPin, Globe } from "lucide-react";
-import { PricingPlan } from "@/types/types";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-
-import React from "react";
-
 import Script from "next/script";
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
-import { toast } from "../ui/use-toast";
+import { updateUserLimits } from "@/lib/action/user.actions";
 
-import LoginPage from "./InstagramAutomationWizard";
-import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
-import { getUserByDbId, updateUserLimits } from "@/lib/action/user.actions";
-import User from "@/lib/database/models/user.model";
+// Payment Modal Component
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (newSubscription: string) => void;
+  onSuccess: (newSubscription: any) => void;
   plan: PricingPlan | null;
   billingCycle: "monthly" | "yearly";
   buyerId: string;
@@ -61,22 +54,18 @@ export default function PaymentModal({
   onSuccess,
 }: PaymentModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-
   const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "paypal">(
     "razorpay"
   );
-
   const razorpayplanId = useRef<string | null>(null);
   const router = useRouter();
 
   if (!plan) return null;
-  console.log("Plan:", plan);
+
   const price =
     billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
-  const inrPrice = Math.round(price * 87); // Approximate INR to USD conversion
-  if (isgettingAcc) {
-    setIsProcessing(true);
-  }
+  const inrPrice = Math.round(price * 87);
+
   const handleRazorpayPayment = async () => {
     setIsProcessing(true);
     try {
@@ -95,8 +84,9 @@ export default function PaymentModal({
       if (!subscriptionCreate.isOk) {
         throw new Error("Purchase Order is not created");
       }
+
       const options = {
-        key_id: process.env.RAZORPAY_KEY_ID!,
+        key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
         amount: price * 100,
         currency: "INR",
         name: "GK Services",
@@ -121,13 +111,8 @@ export default function PaymentModal({
           const res = await verifyResponse.json();
 
           if (res.success) {
-            toast({
-              title: "Payment Successful!",
-              description: "Code added to your Dashboard",
-              duration: 3000,
-              className: "success-toast",
-            });
-            console.log("Heloo HI");
+            toast.success("Payment Successful! Code added to your Dashboard");
+
             await fetch("/api/insta/subscription/create", {
               method: "POST",
               headers: {
@@ -140,26 +125,19 @@ export default function PaymentModal({
                 billingCycle: billingCycle,
               }),
             });
-            console.log("HI");
+
             const UserData = await updateUserLimits(
               buyerId,
               plan.limit,
               plan.account
             );
 
-            console.log("UserData:", UserData);
             await onSuccess(plan.id);
             router.push("/insta/dashboard");
           } else {
-            toast({
-              title: "Order canceled!",
-              description: res.message,
-              duration: 3000,
-              className: "error-toast",
-            });
+            toast.error("Order canceled! " + res.message);
           }
         },
-
         theme: {
           color: "#2563eb",
         },
@@ -167,22 +145,12 @@ export default function PaymentModal({
 
       const razorpay = new window.Razorpay(options);
       razorpay.on("payment.failed", function (response: any) {
-        toast({
-          title: "Order failed!",
-          description: response.error.description,
-          duration: 3000,
-          className: "error-toast",
-        });
+        toast.error("Order failed! " + response.error.description);
       });
       razorpay.open();
     } catch (error: any) {
       console.error("Payment error:", error);
-      toast({
-        title: "Checkout Error",
-        description: error.message,
-        duration: 3000,
-        className: "error-toast",
-      });
+      toast.error("Checkout Error: " + error.message);
     } finally {
       setIsProcessing(false);
     }
@@ -218,33 +186,20 @@ export default function PaymentModal({
 
   return (
     <>
-      {!isInstaAccount ? (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="max-w-md p-2   bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
-            <DialogHeader>
-              <DialogTitle className="text-start text-white font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-                Step-1: Connect Instagram
-              </DialogTitle>
-            </DialogHeader>
-            <DialogDescription>
-              Please connect your Instagram Business account to proceed with the
-              payment.
-            </DialogDescription>
-            <LoginPage />
-          </DialogContent>
-        </Dialog>
-      ) : (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="max-w-md bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
-            <DialogHeader>
-              <DialogTitle className="text-center text-white font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-                Step-2: Payment
-              </DialogTitle>
-            </DialogHeader>
-            <DialogDescription>
-              Make an instant payment to activate your subscription and elevate
-              your Instagram engagement!
-            </DialogDescription>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-md bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="text-center text-white font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+              {isInstaAccount ? "Step-2: Payment" : "Step-1: Connect Instagram"}
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            {isInstaAccount
+              ? "Make an instant payment to activate your subscription and elevate your Instagram engagement!"
+              : "Please connect your Instagram Business account to proceed with the payment."}
+          </DialogDescription>
+
+          {isInstaAccount ? (
             <div className="space-y-6">
               {/* Plan Summary */}
               <div className="bg-[#1a1a1a]/50 backdrop-blur-sm p-4 rounded-xl border border-[#333]">
@@ -287,7 +242,6 @@ export default function PaymentModal({
                     onClick={() => setPaymentMethod("razorpay")}
                   >
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-[#00F0FF]" />
                       <span className="text-xs font-medium text-gray-300">
                         International
                       </span>
@@ -307,7 +261,6 @@ export default function PaymentModal({
                     onClick={() => setPaymentMethod("paypal")}
                   >
                     <div className="flex items-center gap-2">
-                      <Globe className="h-4 w-4 text-[#B026FF]" />
                       <span className="text-xs font-medium text-gray-300">
                         India
                       </span>
@@ -365,9 +318,22 @@ export default function PaymentModal({
                 </p>
               )}
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+          ) : (
+            <div className="p-4">
+              <p className="text-gray-400 mb-4">
+                You need to connect an Instagram account before purchasing a
+                subscription.
+              </p>
+              <Button
+                className="w-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white"
+                onClick={() => router.push("/insta/connect")}
+              >
+                Connect Instagram Account
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div>
         <Script

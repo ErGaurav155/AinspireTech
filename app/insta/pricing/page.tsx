@@ -1,9 +1,9 @@
+// Main Pricing Component
 "use client";
 
 import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Check, Zap, X, Loader2, BadgeCheck, Trash2 } from "lucide-react";
-import PaymentModal from "@/components/insta/PaymentModal";
+import { Check, Zap, Loader2, BadgeCheck } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { getUserById } from "@/lib/action/user.actions";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -29,9 +29,9 @@ import { setSubsciptionCanceled } from "@/lib/action/subscription.action";
 import { Button } from "@/components/ui/button";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import {
-  deleteInstaAccount,
   getInstaAccount,
   getInstaAccounts,
+  deleteInstaAccount,
 } from "@/lib/action/insta.action";
 import {
   Dialog,
@@ -44,6 +44,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
+import PaymentModal from "@/components/insta/PaymentModal";
 export default function Pricing() {
   const { userId } = useAuth();
   const router = useRouter();
@@ -58,25 +59,22 @@ export default function Pricing() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isInstaAccount, setIsInstaAccount] = useState(false);
   const [showSubCancelDialog, setShowSubCancelDialog] = useState(false);
-
   const [islogged, setIslogged] = useState(false);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isgettingAcc, setIsGettingAcc] = useState(false);
-
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // New states for account deletion dialog
-  const [showAccountDeletionDialog, setShowAccountDeletionDialog] =
-    useState(false);
-  const [userAccounts, setUserAccounts] = useState<any[]>([]);
-  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
-  const [isDeletingAccounts, setIsDeletingAccounts] = useState(false);
+  // New states for dialogs
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null);
   const [pendingBillingCycle, setPendingBillingCycle] = useState<
     "monthly" | "yearly"
   >("monthly");
+  const [userAccounts, setUserAccounts] = useState<any[]>([]);
+  const [isProcessingChange, setIsProcessingChange] = useState(false);
 
   // Fetch user data and subscription info
   useEffect(() => {
@@ -100,21 +98,19 @@ export default function Pricing() {
         setIslogged(true);
 
         // Fetch user's Instagram accounts
-        // const accountsResponse = await getInstaAccount(userId);
-        // if (accountsResponse.success) {
-        //   setUserAccounts(accountsResponse.account);
-        // }
-
-        const account = await getInstaAccounts(userId);
-        console.log("accounts:", account);
-        if (account.success) {
-          setUserAccounts(account.accounts);
+        const accountsResponse = await getInstaAccounts(userId);
+        if (
+          accountsResponse.success &&
+          Array.isArray(accountsResponse.accounts)
+        ) {
+          setUserAccounts(accountsResponse.accounts);
         }
-        if (!account?.success || account.accounts === "No account found") {
+
+        const account = await getInstaAccount(userId);
+        if (!account?.success || account.account === "No account found") {
           setIsInstaAccount(false);
           if (activeProductId) {
             setIsGettingAcc(true);
-            console.log("hello");
             const response = await fetch(
               `/api/insta/callback?code=${activeProductId}&userId=${userId}`,
               {
@@ -125,10 +121,9 @@ export default function Pricing() {
               }
             );
             const data = await response.json();
-            console.log("data:", data);
+
             if (response.ok) {
               setIsInstaAccount(true);
-              // Handle successful connection
             } else {
               throw new Error(data.error || "Failed to connect account");
             }
@@ -168,13 +163,7 @@ export default function Pricing() {
     fetchUserData();
   }, [userId, router, activeProductId]);
 
-  // Function to check if user needs to delete accounts for downgrade
-  const checkAccountLimit = (plan: PricingPlan) => {
-    const accountLimit = getAccountLimit(plan);
-    return userAccounts.length > accountLimit;
-  };
-
-  // Get account limit based on plan
+  // Get account limit for a plan
   const getAccountLimit = (plan: PricingPlan) => {
     switch (plan.id) {
       case "Insta-Automation-Free":
@@ -190,6 +179,7 @@ export default function Pricing() {
     }
   };
 
+  // Handle subscription change
   const handleSubscribe = async (
     plan: PricingPlan,
     cycle: "monthly" | "yearly"
@@ -202,101 +192,98 @@ export default function Pricing() {
       return;
     }
 
-    // Check if user needs to delete accounts for downgrade
-    if (currentSubscription && checkAccountLimit(plan)) {
+    // If user has a current subscription, show confirmation dialog
+    if (currentSubscription) {
       setPendingPlan(plan);
       setPendingBillingCycle(cycle);
-      setShowAccountDeletionDialog(true);
-      return;
-    }
-
-    if (currentSubscription) {
-      try {
-        setIsUpgrading(true);
-        setSelectedPlan(plan);
-
-        // Cancel current subscription
-        const cancelResult = await cancelRazorPaySubscription(
-          currentSubscription.subscriptionId,
-          "Upgrading to new plan",
-          "Immediate"
-        );
-
-        if (!cancelResult.success) {
-          toast.error("Failed to cancel current subscription", {
-            description: cancelResult.message,
-          });
-          setIsUpgrading(false);
-          return;
-        }
-
-        // Update database status
-        await setSubsciptionCanceled(
-          currentSubscription.subscriptionId,
-          "Upgraded to new plan"
-        );
-
-        toast.success("Current subscription cancelled", {
-          description: "You can now select a new plan",
-        });
-
-        // Clear current subscription
-        setCurrentSubscription(null);
-        setIsSubscribed(false);
-
-        // Open payment modal for new plan
-        setIsPaymentModalOpen(true);
-      } catch (error) {
-        console.error("Error cancelling subscription:", error);
-        toast.error("Failed to cancel current subscription");
-        setIsUpgrading(false);
-      }
+      setShowConfirmDialog(true);
     } else {
-      // Open payment modal for new plan
+      // No current subscription, proceed directly
       setSelectedPlan(plan);
       setIsPaymentModalOpen(true);
     }
   };
 
-  // Handle account deletion for downgrade
-  const handleAccountDeletion = async () => {
-    if (selectedAccounts.length === 0) {
-      toast.error("Please select at least one account to delete");
-      return;
-    }
+  // Handle confirmed subscription change
+  const handleConfirmedChange = async () => {
+    if (!pendingPlan) return;
 
-    setIsDeletingAccounts(true);
+    setIsProcessingChange(true);
+    setShowConfirmDialog(false);
+
+    try {
+      // First, cancel current subscription
+      const cancelResult = await cancelRazorPaySubscription(
+        currentSubscription.subscriptionId,
+        "Changing to new plan",
+        "Immediate"
+      );
+
+      if (!cancelResult.success) {
+        toast.error("Failed to cancel current subscription", {
+          description: cancelResult.message,
+        });
+        setIsProcessingChange(false);
+        return;
+      }
+
+      // Update database status
+      await setSubsciptionCanceled(
+        currentSubscription.subscriptionId,
+        "Changed to new plan"
+      );
+
+      // Check if we need to delete accounts
+      const accountLimit = getAccountLimit(pendingPlan);
+      if (userAccounts.length > accountLimit) {
+        // Show account selection dialog
+        setPendingPlan(pendingPlan);
+        setShowAccountDialog(true);
+      } else {
+        // No need to delete accounts, proceed to payment
+        setSelectedPlan(pendingPlan);
+        setIsPaymentModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error changing subscription:", error);
+      toast.error("Failed to change subscription");
+    } finally {
+      setIsProcessingChange(false);
+    }
+  };
+
+  // Handle account deletion
+  const handleAccountDeletion = async (selectedAccountIds: string[]) => {
+    setIsProcessingChange(true);
+    setShowAccountDialog(false);
+
     try {
       // Delete selected accounts
-      for (const accountId of selectedAccounts) {
+      for (const accountId of selectedAccountIds) {
         const result = await deleteInstaAccount(accountId, userId!);
         if (!result.success) {
           toast.error(`Failed to delete account: ${result.error}`);
-          setIsDeletingAccounts(false);
+          setIsProcessingChange(false);
           return;
         }
       }
 
       toast.success("Accounts deleted successfully");
-      setShowAccountDeletionDialog(false);
 
       // Update user accounts list
       const updatedAccounts = userAccounts.filter(
-        (account) => !selectedAccounts.includes(account._id)
+        (account) => !selectedAccountIds.includes(account._id)
       );
       setUserAccounts(updatedAccounts);
-      setSelectedAccounts([]);
 
-      // Continue with subscription process
-      if (pendingPlan) {
-        setSelectedPlan(pendingPlan);
-        setIsPaymentModalOpen(true);
-      }
+      // Proceed to payment
+      setSelectedPlan(pendingPlan);
+      setIsPaymentModalOpen(true);
     } catch (error) {
       console.error("Error deleting accounts:", error);
       toast.error("Failed to delete accounts");
     } finally {
-      setIsDeletingAccounts(false);
+      setIsProcessingChange(false);
       setPendingPlan(null);
     }
   };
@@ -420,7 +407,6 @@ export default function Pricing() {
                 setBillingCycle(checked ? "yearly" : "monthly")
               }
               className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#00F0FF] data-[state=checked]:to-[#FF2E9F]"
-              // disabled={isSubscribed}
             />
             <span
               className={`text-sm font-medium ${
@@ -630,7 +616,7 @@ export default function Pricing() {
                         ) : isCurrentPlan ? (
                           "Current Plan"
                         ) : isUpgradeOption ? (
-                          "Upgrade Plan"
+                          "Change Plan"
                         ) : (
                           "Start Automating"
                         )}
@@ -791,6 +777,8 @@ export default function Pricing() {
           </div>
         </div>
       </section>
+
+      {/* Payment Modal */}
       {islogged && (
         <PaymentModal
           isOpen={isPaymentModalOpen}
@@ -808,6 +796,8 @@ export default function Pricing() {
           }}
         />
       )}
+
+      {/* Subscription Cancellation Dialog */}
       <AlertDialog
         open={showSubCancelDialog}
         onOpenChange={setShowSubCancelDialog}
@@ -840,86 +830,206 @@ export default function Pricing() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Account Deletion Dialog */}
-      <Dialog
-        open={showAccountDeletionDialog}
-        onOpenChange={setShowAccountDeletionDialog}
-      >
-        <DialogContent className="sm:max-w-md bg-[#1a1a1a] border border-[#333]">
-          <DialogHeader>
-            <DialogTitle className="text-white">
-              Account Limit Exceeded
-            </DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Your current plan allows only{" "}
-              {pendingPlan ? getAccountLimit(pendingPlan) : 0} Instagram
-              accounts. Please select{" "}
-              {userAccounts.length -
-                (pendingPlan ? getAccountLimit(pendingPlan) : 0)}{" "}
-              accounts to delete.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {userAccounts.map((account) => (
+      {/* Confirm Subscription Change Dialog */}
+      <ConfirmSubscriptionChangeDialog
+        isOpen={showConfirmDialog}
+        onClose={() => setShowConfirmDialog(false)}
+        onConfirm={handleConfirmedChange}
+        currentPlan={
+          instagramPricingPlans.find(
+            (p) => p.id === currentSubscription?.productId
+          ) || null
+        }
+        newPlan={pendingPlan}
+        isLoading={isProcessingChange}
+      />
+
+      {/* Account Selection Dialog */}
+      <AccountSelectionDialog
+        isOpen={showAccountDialog}
+        onClose={() => setShowAccountDialog(false)}
+        onConfirm={handleAccountDeletion}
+        accounts={userAccounts}
+        newPlan={pendingPlan}
+        isLoading={isProcessingChange}
+      />
+    </div>
+  );
+}
+// Confirm Subscription Change Dialog Component
+interface ConfirmSubscriptionChangeDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  currentPlan: PricingPlan | null;
+  newPlan: PricingPlan | null;
+  isLoading?: boolean;
+}
+
+function ConfirmSubscriptionChangeDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  currentPlan,
+  newPlan,
+  isLoading = false,
+}: ConfirmSubscriptionChangeDialogProps) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
+        <DialogHeader>
+          <DialogTitle className="text-white">
+            Confirm Subscription Change
+          </DialogTitle>
+          <DialogDescription className="text-gray-400">
+            Are you sure you want to change your subscription from{" "}
+            {currentPlan?.name} to {newPlan?.name}?
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <p className="text-sm text-gray-300">
+            Your current subscription will be cancelled immediately and you will
+            be charged for the new plan.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={isLoading}
+            className="border-gray-600 text-white"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white"
+          >
+            {isLoading ? "Processing..." : "Confirm Change"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Account Selection Dialog Component
+interface AccountSelectionDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (selectedAccountIds: string[]) => void;
+  accounts: any[];
+  newPlan: PricingPlan | null;
+  isLoading?: boolean;
+}
+
+function AccountSelectionDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  accounts,
+  newPlan,
+  isLoading = false,
+}: AccountSelectionDialogProps) {
+  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+
+  const getAccountLimit = (plan: PricingPlan | null) => {
+    if (!plan) return 1;
+    switch (plan.id) {
+      case "Insta-Automation-Free":
+        return 1;
+      case "Insta-Automation-Starter":
+        return 1;
+      case "Insta-Automation-Growth":
+        return 3;
+      case "Insta-Automation-Professional":
+        return 5;
+      default:
+        return 1;
+    }
+  };
+
+  const accountLimit = getAccountLimit(newPlan);
+  const accountsToDelete = Math.max(0, accounts.length - accountLimit);
+
+  const handleAccountSelection = (accountId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedAccounts([...selectedAccounts, accountId]);
+    } else {
+      setSelectedAccounts(selectedAccounts.filter((id) => id !== accountId));
+    }
+  };
+
+  const handleConfirm = () => {
+    if (selectedAccounts.length >= accountsToDelete) {
+      onConfirm(selectedAccounts);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-white">
+            Account Limit Exceeded
+          </DialogTitle>
+          <DialogDescription className="text-gray-400">
+            The {newPlan?.name} plan allows only {accountLimit} Instagram
+            account(s). Please select {accountsToDelete} account(s) to delete.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4 max-h-60 overflow-y-auto">
+          <div className="space-y-3">
+            {accounts.map((account) => (
               <div key={account._id} className="flex items-center space-x-2">
                 <Checkbox
                   id={account._id}
                   checked={selectedAccounts.includes(account._id)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedAccounts([...selectedAccounts, account._id]);
-                    } else {
-                      setSelectedAccounts(
-                        selectedAccounts.filter((id) => id !== account._id)
-                      );
-                    }
-                  }}
+                  onCheckedChange={(checked) =>
+                    handleAccountSelection(account._id, checked as boolean)
+                  }
+                  disabled={
+                    selectedAccounts.length >= accountsToDelete &&
+                    !selectedAccounts.includes(account._id)
+                  }
                 />
-                <Label htmlFor={account._id} className="text-white">
+                <Label
+                  htmlFor={account._id}
+                  className="text-white cursor-pointer"
+                >
                   {account.username}
                 </Label>
               </div>
             ))}
           </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setShowAccountDeletionDialog(false);
-                setSelectedAccounts([]);
-                setPendingPlan(null);
-              }}
-              className="text-white border-gray-600"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleAccountDeletion}
-              disabled={
-                isDeletingAccounts ||
-                selectedAccounts.length <
-                  userAccounts.length -
-                    (pendingPlan ? getAccountLimit(pendingPlan) : 0)
-              }
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isDeletingAccounts ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Selected Accounts
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          {selectedAccounts.length < accountsToDelete && (
+            <p className="text-sm text-red-400 mt-3">
+              Please select {accountsToDelete - selectedAccounts.length} more
+              account(s)
+            </p>
+          )}
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={isLoading}
+            className="border-gray-600 text-white"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            disabled={isLoading || selectedAccounts.length < accountsToDelete}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            {isLoading
+              ? "Processing..."
+              : `Delete Selected Accounts (${selectedAccounts.length}/${accountsToDelete})`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
