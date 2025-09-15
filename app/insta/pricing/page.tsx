@@ -276,40 +276,74 @@ export default function Pricing() {
 
         // Fetch user's Instagram accounts
         const accountsResponse = await getInstaAccounts(userId);
+
         if (
           accountsResponse.success &&
           Array.isArray(accountsResponse.accounts)
         ) {
           setUserAccounts(accountsResponse.accounts);
-        }
 
-        const account = await getInstaAccount(userId);
-        if (!account?.success || account.account === "No account found") {
-          setIsInstaAccount(false);
-          if (activeProductId) {
+          // Check if user has accounts or needs to connect one
+          const hasAccounts = accountsResponse.accounts.length > 0;
+          const needsAccountConnection =
+            !hasAccounts ||
+            (buyer.accountLimit &&
+              accountsResponse.accounts.length < buyer.accountLimit);
+
+          if (needsAccountConnection && activeProductId) {
             setIsGettingAcc(true);
-            const response = await fetch(
-              `/api/insta/callback?code=${activeProductId}&userId=${userId}`,
-              {
-                method: "GET",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-            const data = await response.json();
+            try {
+              const response = await fetch(
+                `/api/insta/callback?code=${activeProductId}&userId=${userId}`,
+                {
+                  method: "GET",
+                  headers: { "Content-Type": "application/json" },
+                }
+              );
+              const data = await response.json();
 
-            if (response.ok) {
-              setIsInstaAccount(true);
-            } else {
-              throw new Error(data.error || "Failed to connect account");
+              if (response.ok) {
+                setIsInstaAccount(true);
+              } else {
+                throw new Error(data.error || "Failed to connect account");
+              }
+            } catch (error) {
+              console.error("Error connecting account:", error);
+              setIsInstaAccount(false);
+            } finally {
+              setIsGettingAcc(false);
             }
-            setIsGettingAcc(false);
+          } else {
+            setIsInstaAccount(hasAccounts);
           }
         } else {
-          setIsInstaAccount(true);
-        }
+          setIsInstaAccount(false);
 
+          // Try to connect account if we have an active product ID
+          if (activeProductId) {
+            setIsGettingAcc(true);
+            try {
+              const response = await fetch(
+                `/api/insta/callback?code=${activeProductId}&userId=${userId}`,
+                {
+                  method: "GET",
+                  headers: { "Content-Type": "application/json" },
+                }
+              );
+              const data = await response.json();
+
+              if (response.ok) {
+                setIsInstaAccount(true);
+              } else {
+                throw new Error(data.error || "Failed to connect account");
+              }
+            } catch (error) {
+              console.error("Error connecting account:", error);
+            } finally {
+              setIsGettingAcc(false);
+            }
+          }
+        }
         // Fetch subscription info
         const response = await fetch(`/api/insta/subscription/list`, {
           method: "GET",
@@ -530,7 +564,10 @@ export default function Pricing() {
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
             Instagram Comment Automation
           </h1>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto font-mono">
+          <p
+            className="text-xl  text-gray-300 mb-8 max-w-2xl mx-auto"
+            style={{ fontFamily: "ui-sans-serif" }}
+          >
             Reply instantly to every comment. No setup fees. Cancel anytime.
           </p>
 
