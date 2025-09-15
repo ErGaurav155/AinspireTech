@@ -1,9 +1,8 @@
-// Main Pricing Component
 "use client";
 
 import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Check, Zap, Loader2, BadgeCheck } from "lucide-react";
+import { Check, Zap, X, Loader2, BadgeCheck } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { getUserById } from "@/lib/action/user.actions";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -27,7 +26,6 @@ import { instagramPricingPlans } from "@/constant";
 import { toast } from "sonner";
 import { setSubsciptionCanceled } from "@/lib/action/subscription.action";
 import { Button } from "@/components/ui/button";
-import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import {
   getInstaAccount,
   getInstaAccounts,
@@ -43,8 +41,187 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-
 import PaymentModal from "@/components/insta/PaymentModal";
+
+// Confirm Subscription Change Dialog Component
+interface ConfirmSubscriptionChangeDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  currentPlan: PricingPlan | null;
+  newPlan: PricingPlan | null;
+  isLoading?: boolean;
+}
+
+function ConfirmSubscriptionChangeDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  currentPlan,
+  newPlan,
+  isLoading = false,
+}: ConfirmSubscriptionChangeDialogProps) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
+        <DialogHeader>
+          <DialogTitle className="text-white">
+            Confirm Subscription Change
+          </DialogTitle>
+          <DialogDescription className="text-gray-400">
+            Are you sure you want to change your subscription from{" "}
+            {currentPlan?.name} to {newPlan?.name}?
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <p className="text-sm text-gray-300">
+            Your current subscription will be cancelled immediately and you will
+            be charged for the new plan.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={isLoading}
+            className="border-gray-600 text-white"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white"
+          >
+            {isLoading ? "Processing..." : "Confirm Change"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Account Selection Dialog Component
+interface AccountSelectionDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (selectedAccountIds: string[]) => void;
+  accounts: any[];
+  newPlan: PricingPlan | null;
+  isLoading?: boolean;
+}
+
+function AccountSelectionDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  accounts,
+  newPlan,
+  isLoading = false,
+}: AccountSelectionDialogProps) {
+  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+
+  const getAccountLimit = (plan: PricingPlan | null) => {
+    if (!plan) return 1;
+    switch (plan.id) {
+      case "Insta-Automation-Free":
+        return 1;
+      case "Insta-Automation-Starter":
+        return 1;
+      case "Insta-Automation-Growth":
+        return 3;
+      case "Insta-Automation-Professional":
+        return 5;
+      default:
+        return 1;
+    }
+  };
+
+  const accountLimit = getAccountLimit(newPlan);
+  const accountsToDelete = Math.max(0, accounts.length - accountLimit);
+
+  const handleAccountSelection = (accountId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedAccounts([...selectedAccounts, accountId]);
+    } else {
+      setSelectedAccounts(selectedAccounts.filter((id) => id !== accountId));
+    }
+  };
+
+  const handleConfirm = () => {
+    if (selectedAccounts.length >= accountsToDelete) {
+      onConfirm(selectedAccounts);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-white">
+            Account Limit Exceeded
+          </DialogTitle>
+          <DialogDescription className="text-gray-400">
+            The {newPlan?.name} plan allows only {accountLimit} Instagram
+            account(s). Please select {accountsToDelete} account(s) to delete.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4 max-h-60 overflow-y-auto">
+          <div className="space-y-3">
+            {accounts.map((account) => (
+              <div key={account._id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={account._id}
+                  checked={selectedAccounts.includes(account._id)}
+                  onCheckedChange={(checked) =>
+                    handleAccountSelection(account._id, checked as boolean)
+                  }
+                  disabled={
+                    selectedAccounts.length >= accountsToDelete &&
+                    !selectedAccounts.includes(account._id)
+                  }
+                />
+                <Label
+                  htmlFor={account._id}
+                  className="text-white cursor-pointer"
+                >
+                  {account.username}
+                </Label>
+              </div>
+            ))}
+          </div>
+          {selectedAccounts.length < accountsToDelete && (
+            <p className="text-sm text-red-400 mt-3">
+              Please select {accountsToDelete - selectedAccounts.length} more
+              account(s)
+            </p>
+          )}
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={isLoading}
+            className="border-gray-600 text-white"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            disabled={isLoading || selectedAccounts.length < accountsToDelete}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            {isLoading
+              ? "Processing..."
+              : `Delete Selected Accounts (${selectedAccounts.length}/${accountsToDelete})`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Main Pricing Component
 export default function Pricing() {
   const { userId } = useAuth();
   const router = useRouter();
@@ -228,10 +405,10 @@ export default function Pricing() {
       }
 
       // Update database status
-      await setSubsciptionCanceled(
-        currentSubscription.subscriptionId,
-        "Changed to new plan"
-      );
+      // await setSubsciptionCanceled(
+      //   currentSubscription.subscriptionId,
+      //   "Changed to new plan"
+      // );
 
       // Check if we need to delete accounts
       const accountLimit = getAccountLimit(pendingPlan);
@@ -249,6 +426,7 @@ export default function Pricing() {
       toast.error("Failed to change subscription");
     } finally {
       setIsProcessingChange(false);
+      setIsSubscribed(false);
     }
   };
 
@@ -355,43 +533,6 @@ export default function Pricing() {
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto font-mono">
             Reply instantly to every comment. No setup fees. Cancel anytime.
           </p>
-
-          {/* Current Subscription Info */}
-          {currentSubscription && (
-            <div className="mb-10 p-6 bg-[#0a0a0a]/80 backdrop-blur-sm border border-[#00F0FF]/30 rounded-xl">
-              <div className="flex flex-wrap justify-between items-center gap-4">
-                <div>
-                  <h2 className="text-xl font-bold text-white">
-                    Your Current Plan
-                  </h2>
-                  <p className="text-gray-300">
-                    {currentSubscription.chatbotType} (
-                    {currentSubscription.billingCycle})
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">Status: Active</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Connected Accounts: {userAccounts.length}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowSubCancelDialog(true)}
-                    disabled={isCancelling}
-                    className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
-                  >
-                    Cancel Subscription
-                  </Button>
-                  <Button
-                    className="bg-gradient-to-r from-[#00F0FF] to-[#00F0FF]/70"
-                    onClick={() => router.push("/insta/dashboard")}
-                  >
-                    Go to Dashboard
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="flex items-center justify-center gap-4 mb-12">
             <span
@@ -595,12 +736,13 @@ export default function Pricing() {
                       </button>
                     </SignedOut>
                     <SignedIn>
-                      <button
+                      <Button
+                        variant="outline"
                         onClick={() => handleSubscribe(plan, billingCycle)}
                         disabled={isCurrentPlan || isUpgrading || isCancelling}
-                        className={`w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
+                        className={`w-full py-3 mb-1 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
                           isCurrentPlan
-                            ? "bg-gray-700 cursor-not-allowed"
+                            ? "bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] cursor-not-allowed"
                             : plan.popular
                             ? "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]"
                             : plan.id === "Insta-Automation-Starter"
@@ -620,7 +762,17 @@ export default function Pricing() {
                         ) : (
                           "Start Automating"
                         )}
-                      </button>
+                      </Button>
+                      {currentSubscription && isCurrentPlan && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowSubCancelDialog(true)}
+                          disabled={isCancelling}
+                          className="w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap bg-gradient-to-r from-[#962626]/80 to-[#8b0808] text-black disabled:opacity-70 disabled:cursor-not-allowed"
+                        >
+                          Cancel Subscription
+                        </Button>
+                      )}
                     </SignedIn>
                   </div>
                 </div>
@@ -854,182 +1006,5 @@ export default function Pricing() {
         isLoading={isProcessingChange}
       />
     </div>
-  );
-}
-// Confirm Subscription Change Dialog Component
-interface ConfirmSubscriptionChangeDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  currentPlan: PricingPlan | null;
-  newPlan: PricingPlan | null;
-  isLoading?: boolean;
-}
-
-function ConfirmSubscriptionChangeDialog({
-  isOpen,
-  onClose,
-  onConfirm,
-  currentPlan,
-  newPlan,
-  isLoading = false,
-}: ConfirmSubscriptionChangeDialogProps) {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
-        <DialogHeader>
-          <DialogTitle className="text-white">
-            Confirm Subscription Change
-          </DialogTitle>
-          <DialogDescription className="text-gray-400">
-            Are you sure you want to change your subscription from{" "}
-            {currentPlan?.name} to {newPlan?.name}?
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-4">
-          <p className="text-sm text-gray-300">
-            Your current subscription will be cancelled immediately and you will
-            be charged for the new plan.
-          </p>
-        </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isLoading}
-            className="border-gray-600 text-white"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={onConfirm}
-            disabled={isLoading}
-            className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white"
-          >
-            {isLoading ? "Processing..." : "Confirm Change"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Account Selection Dialog Component
-interface AccountSelectionDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (selectedAccountIds: string[]) => void;
-  accounts: any[];
-  newPlan: PricingPlan | null;
-  isLoading?: boolean;
-}
-
-function AccountSelectionDialog({
-  isOpen,
-  onClose,
-  onConfirm,
-  accounts,
-  newPlan,
-  isLoading = false,
-}: AccountSelectionDialogProps) {
-  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
-
-  const getAccountLimit = (plan: PricingPlan | null) => {
-    if (!plan) return 1;
-    switch (plan.id) {
-      case "Insta-Automation-Free":
-        return 1;
-      case "Insta-Automation-Starter":
-        return 1;
-      case "Insta-Automation-Growth":
-        return 3;
-      case "Insta-Automation-Professional":
-        return 5;
-      default:
-        return 1;
-    }
-  };
-
-  const accountLimit = getAccountLimit(newPlan);
-  const accountsToDelete = Math.max(0, accounts.length - accountLimit);
-
-  const handleAccountSelection = (accountId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedAccounts([...selectedAccounts, accountId]);
-    } else {
-      setSelectedAccounts(selectedAccounts.filter((id) => id !== accountId));
-    }
-  };
-
-  const handleConfirm = () => {
-    if (selectedAccounts.length >= accountsToDelete) {
-      onConfirm(selectedAccounts);
-    }
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-white">
-            Account Limit Exceeded
-          </DialogTitle>
-          <DialogDescription className="text-gray-400">
-            The {newPlan?.name} plan allows only {accountLimit} Instagram
-            account(s). Please select {accountsToDelete} account(s) to delete.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-4 max-h-60 overflow-y-auto">
-          <div className="space-y-3">
-            {accounts.map((account) => (
-              <div key={account._id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={account._id}
-                  checked={selectedAccounts.includes(account._id)}
-                  onCheckedChange={(checked) =>
-                    handleAccountSelection(account._id, checked as boolean)
-                  }
-                  disabled={
-                    selectedAccounts.length >= accountsToDelete &&
-                    !selectedAccounts.includes(account._id)
-                  }
-                />
-                <Label
-                  htmlFor={account._id}
-                  className="text-white cursor-pointer"
-                >
-                  {account.username}
-                </Label>
-              </div>
-            ))}
-          </div>
-          {selectedAccounts.length < accountsToDelete && (
-            <p className="text-sm text-red-400 mt-3">
-              Please select {accountsToDelete - selectedAccounts.length} more
-              account(s)
-            </p>
-          )}
-        </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isLoading}
-            className="border-gray-600 text-white"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={isLoading || selectedAccounts.length < accountsToDelete}
-            className="bg-red-600 hover:bg-red-700 text-white"
-          >
-            {isLoading
-              ? "Processing..."
-              : `Delete Selected Accounts (${selectedAccounts.length}/${accountsToDelete})`}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }

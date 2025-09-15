@@ -288,8 +288,8 @@ export async function updateUserLimits(
       { _id: buyerId },
       {
         accountLimit: accountLimit,
-        totalReplies: replyLimit,
-        replyLimit: 0,
+        totalReplies: 0,
+        replyLimit: replyLimit,
       },
       { new: true }
     );
