@@ -58,13 +58,7 @@ export default function AddAccountPage() {
           </Link>
         </Button>
       </div>
-      <AddAccount
-        onVerified={() => {
-          router.push("/insta/accounts");
-        }}
-        totalAccounts={totalAccounts}
-        accountLimit={accountLimit}
-      />
+      <AddAccount totalAccounts={totalAccounts} accountLimit={accountLimit} />
     </div>
   );
 }

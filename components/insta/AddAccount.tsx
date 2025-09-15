@@ -35,12 +35,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import LoginPage from "./InstagramAutomationWizard";
 interface AccountVerificationProps {
-  onVerified: () => void;
   totalAccounts: number;
   accountLimit: number;
 }
 const AddAccount = ({
-  onVerified,
   totalAccounts,
   accountLimit,
 }: AccountVerificationProps) => {
