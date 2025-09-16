@@ -129,7 +129,8 @@ module.exports = withMT({
           "var(--font-sora)",
         ],
         code: "var(--font-code)",
-        grotesk: "var(--font-grotesk)",
+        orbitron: ["var(--font-orbitron)", ...fontFamily.sans],
+        montserrat: ["var(--font-montserrat)", ...fontFamily.sans],
       },
 
       borderRadius: {

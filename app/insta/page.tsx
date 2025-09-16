@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import Faq from "@/components/shared/Faq";
+import ComparisonTable from "@/components/insta/ComparisonTable";
 
 export default function Home() {
   const features = [
@@ -115,7 +116,7 @@ export default function Home() {
           <h1 className="text-6xl md:text-7xl font-bold mb-6 gradient-text-main">
             InstaBot{" "}
           </h1>
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed font-mono">
+          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed font-montserrat">
             Transform your Instagram engagement with intelligent auto-reply
             management. Create custom response templates, monitor comments, and
             never miss an opportunity to connect.
@@ -173,8 +174,10 @@ export default function Home() {
                       }`}
                     />
                   </div>
-                  <CardTitle className="text-white">{feature.title}</CardTitle>
-                  <CardDescription className="text-gray-300 font-mono">
+                  <CardTitle className="text-white text-xl">
+                    {feature.title}
+                  </CardTitle>
+                  <CardDescription className="text-gray-300  font-montserrat">
                     {feature.description}
                   </CardDescription>
                 </CardHeader>
@@ -183,13 +186,14 @@ export default function Home() {
           })}
         </div>
 
+        <ComparisonTable />
         {/* Testimonials */}
         <section className="py-16 backdrop-blur-sm">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-white mb-4 gradient-text-main">
               What Our Customers Say
             </h2>
-            <p className="text-xl text-gray-300 font-mono">
+            <p className="text-xl text-gray-300 font-montserrat">
               Join thousands of creators who have transformed their Instagram
               engagement
             </p>
@@ -210,7 +214,7 @@ export default function Home() {
                       />
                     ))}
                   </div>
-                  <p className="text-gray-300 mb-4 font-mono">
+                  <p className="text-gray-300 mb-4 font-montserrat">
                     {testimonial.content}
                   </p>
                   <div>
@@ -234,7 +238,7 @@ export default function Home() {
               <h2 className="text-4xl font-bold mb-4 gradient-text-main">
                 Ready to Transform Your Instagram Engagement?
               </h2>
-              <p className="text-gray-300 mb-8 text-lg font-mono max-w-2xl mx-auto">
+              <p className="text-gray-300 mb-8 text-lg font-montserrat max-w-2xl mx-auto">
                 Join thousands of creators and businesses who have automated
                 their Instagram responses and increased their engagement rates
                 by up to 300%.

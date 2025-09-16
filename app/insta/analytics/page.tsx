@@ -49,8 +49,8 @@ export default function AnalyticsPage() {
   const [templates, setTemplates] = useState<any>([]);
 
   const [analyticsData, setAnalyticsData] = useState<any>(null);
-  const [hasError, setHasError] = useState(false);
-
+  const [hasError, setHasError] = useState<string[]>([]);
+  const [filteredData, setFilteredData] = useState<any>(null);
   const [selectedAccount, setSelectedAccount] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -86,8 +86,15 @@ export default function AnalyticsPage() {
     };
   }, [analyticsData, selectedAccount]);
 
-  const filteredData = getFilteredData();
+  useEffect(() => {
+    if (!userId) {
+      router.push("/sign-in");
+      return;
+    }
 
+    const data = getFilteredData();
+    setFilteredData(data);
+  }, [userId, getFilteredData, router]);
   const fetchAccounts = useCallback(async () => {
     if (!userId) {
       router.push("/sign-in");
@@ -375,8 +382,8 @@ export default function AnalyticsPage() {
     }
   };
 
-  const handleError = () => {
-    setHasError(true);
+  const handleError = (id: string) => {
+    setHasError((prev) => [...prev, id]); // Add the ID to the error array
   };
 
   const refresh = async () => {
@@ -426,7 +433,7 @@ export default function AnalyticsPage() {
             <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
               Analytics Dashboard
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-xl font-medium font-montserrat">
               {selectedAccount === "all"
                 ? "Track performance across all accounts"
                 : `Tracking performance for @${selectedAccount}`}
@@ -436,7 +443,7 @@ export default function AnalyticsPage() {
             <Button
               onClick={() => refresh()}
               variant="outline"
-              className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+              className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
@@ -472,8 +479,8 @@ export default function AnalyticsPage() {
                 {filteredData?.totalReplies || 0} /{" "}
                 {filteredData?.replyLimit || 1}
               </div>
-              <p className="text-xs text-muted-foreground flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
+              <p className="text-xs text-muted-foreground flex items-center font-montserrat">
+                <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
                 +12% from last period
               </p>
             </CardContent>
@@ -490,8 +497,8 @@ export default function AnalyticsPage() {
               <div className="text-2xl font-bold text-[#FF2E9F]">
                 {filteredData?.successRate || 0}%
               </div>
-              <p className="text-xs text-muted-foreground flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
+              <p className="text-xs text-muted-foreground flex items-center font-montserrat">
+                <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
                 +2.1% from last period
               </p>
             </CardContent>
@@ -512,8 +519,8 @@ export default function AnalyticsPage() {
                     )
                   : "0s"}
               </div>
-              <p className="text-xs text-gray-400 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
+              <p className="text-xs text-gray-400 flex items-center font-montserrat">
+                <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
                 -0.5s improvement
               </p>
             </CardContent>
@@ -530,7 +537,7 @@ export default function AnalyticsPage() {
               <div className="text-2xl font-bold text-[#00F0FF]">
                 +{filteredData?.engagementRate || 0}%
               </div>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 font-montserrat">
                 Since auto-replies enabled
               </p>
             </CardContent>
@@ -547,7 +554,7 @@ export default function AnalyticsPage() {
                   ? "Account Performance"
                   : "Account Details"}
               </CardTitle>
-              <CardDescription className="text-gray-400 font-mono">
+              <CardDescription className="text-gray-400 font-montserrat">
                 {selectedAccount === "all"
                   ? "Compare performance across your Instagram accounts"
                   : `Performance details for @${selectedAccount}`}
@@ -563,16 +570,20 @@ export default function AnalyticsPage() {
                     <Image
                       width={48}
                       height={48}
-                      src={hasError ? defaultImg : account.profilePicture}
-                      onError={handleError}
+                      src={
+                        hasError.includes(account.id)
+                          ? defaultImg
+                          : account?.profilePicture
+                      }
+                      onError={() => handleError(account.id)} // Pass a function, not the result
                       alt={account.username}
                       className="h-10 w-10 rounded-full object-cover"
                     />
                     <div>
-                      <h4 className="text-base lg:text-lg font-medium lg:font-semibold">
+                      <h4 className="text-base lg:text-lg font-medium lg:font-semibold font-montserrat">
                         @{account.username}
                       </h4>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground font-montserrat">
                         {account.repliesCount} replies
                       </p>
                     </div>
@@ -584,17 +595,17 @@ export default function AnalyticsPage() {
                         onClick={() => refreshInstagramToken(userId)}
                         variant="outline"
                         size="sm"
-                        className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+                        className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10 "
                       >
                         <RefreshCw className="mr-2 h-4 w-4" />
                         Refresh Token
                       </Button>
                     )}
-                  <div className="flex items-center justify-between w-full">
-                    <div className="text-sm font-medium text-white">
+                  <div className="flex items-center justify-between w-full font-montserrat">
+                    <div className="text-xs  text-white">
                       {account.engagementRate}% engagement
                     </div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-gray-400 ">
                       {account?.avgResponseTime
                         ? formatResponseTimeSmart(account.avgResponseTime)
                         : "0s"}{" "}
@@ -608,7 +619,7 @@ export default function AnalyticsPage() {
                 filteredData?.accounts.length === 0) && (
                 <div className="text-center py-8">
                   <Instagram className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                  <p className="text-gray-400 mb-4 font-mono">
+                  <p className="text-gray-400 mb-4 font-montserrat">
                     No accounts connected yet
                   </p>
                   <Button className="btn-gradient-cyan" asChild>
@@ -628,7 +639,7 @@ export default function AnalyticsPage() {
                 <Clock className="h-5 w-5 text-[#FF2E9F]" />
                 Recent Activity
               </CardTitle>
-              <CardDescription className="text-gray-400 font-mono">
+              <CardDescription className="text-gray-400 font-montserrat">
                 {selectedAccount === "all"
                   ? "Latest auto-reply activities across all accounts"
                   : `Recent activities for @${selectedAccount}`}
@@ -646,7 +657,7 @@ export default function AnalyticsPage() {
                         className={`h-2 w-2 rounded-full ${"bg-[#00F0FF]"}`}
                       />
                       <div>
-                        <p className="text-sm font-medium text-white">
+                        <p className="text-sm font-medium text-white font-montserrat">
                           {activity.type === "reply_sent"
                             ? "Reply sent"
                             : "Reply failed"}
@@ -655,7 +666,7 @@ export default function AnalyticsPage() {
                             to @{activity.account}
                           </span>
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-400 font-montserrat">
                           Template: {activity.template}
                         </p>
                       </div>

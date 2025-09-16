@@ -301,7 +301,6 @@ export default function AccountPage({ params }: { params: { id: string } }) {
           "loadMoreCount",
           loadMoreCountRef.current.toString()
         );
-        if (searchTerm) url.searchParams.set("search", searchTerm);
 
         const response = await fetch(url.toString());
         if (response.ok) {
@@ -341,7 +340,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         setIsLoading(false);
       }
     },
-    [userId, searchTerm] // Remove loadMoreCount from dependencies
+    [userId] // Remove loadMoreCount from dependencies
   );
   // Load more templates function
   const loadMoreTemplates = async () => {
@@ -539,7 +538,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
     if (account.accountId) {
       fetchTemplates(account.accountId, true);
     }
-  }, [searchTerm, fetchTemplates, account.accountId]);
+  }, [fetchTemplates, account.accountId]);
   const handleToggleAccount = async () => {
     const newActiveState = !account.isActive;
 
@@ -847,7 +846,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                         onClick={() => refreshInstagramToken(userId)}
                         variant="outline"
                         size="sm"
-                        className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+                        className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10"
                       >
                         <RefreshCw className="mr-2 h-4 w-4" />
                         Refresh Token
@@ -862,7 +861,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     variant="outline"
                     size="sm"
                     disabled={Object.keys(account).length <= 1 ? true : false}
-                    className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+                    className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10"
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Refresh Data
@@ -912,7 +911,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
           <div className="flex flex-wrap gap-3 md:gap-0 justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold">Reply Templates</h2>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-lg font-medium font-montserrat">
                 Create and manage automated reply templates for this account
               </p>
             </div>
@@ -942,7 +941,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   <DialogTitle className="text-white">
                     {editingTemplate ? "Edit Template" : "Create New Template"}
                   </DialogTitle>
-                  <DialogDescription className="text-gray-400">
+                  <DialogDescription className="text-gray-400 font-montserrat text-base font-medium">
                     {editingTemplate
                       ? "Update your automated replies and triggers"
                       : "Set up automated replies for specific Instagram posts or reels"}
@@ -956,7 +955,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                         Template Name
                       </Label>
                       {editingTemplate ? (
-                        <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600">
+                        <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600 font-montserrat">
                           {editingTemplate.name}
                         </div>
                       ) : (
@@ -967,6 +966,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                             setNewTemplate({
                               ...newTemplate,
                               name: e.target.value,
+                              accountUsername: account.username,
                             })
                           }
                           placeholder="e.g., Welcome Message"
@@ -978,7 +978,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                       <Label htmlFor="account" className="text-gray-300">
                         Account
                       </Label>
-                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600">
+                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600 font-montserrat">
                         {account.username}
                       </div>
                     </div>
@@ -1007,7 +1007,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                         </Button>
                       </div>
                       {isLoadingMedia ? (
-                        <div className="flex justify-center items-center h-32">
+                        <div className="flex justify-center items-center h-32 ">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00F0FF]"></div>
                         </div>
                       ) : selectedAccountMedia.length > 0 ? (
@@ -1050,7 +1050,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-8 text-gray-400">
+                        <div className="text-center py-8 text-gray-400 font-montserrat">
                           <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
                           <p>No posts or reels found for this account</p>
                           <p className="text-sm mt-2">
@@ -1162,7 +1162,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                             }
                           }}
                           placeholder="Write your automated reply..."
-                          className="min-h-[80px] bg-white/5 border-white/20 text-white"
+                          className="min-h-[80px] bg-white/5 border-white/20 text-white font-montserrat"
                         />
                       </div>
                     ))}
@@ -1280,7 +1280,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                             }
                           }}
                           placeholder="Write your message text..."
-                          className="min-h-[80px] bg-white/5 border-white/20 text-white"
+                          className="min-h-[80px] bg-white/5 border-white/20 text-white font-montserrat"
                         />
 
                         <div className="flex items-center gap-2">
@@ -1311,7 +1311,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                               }
                             }}
                             placeholder="Optional: Add a link URL"
-                            className="bg-white/5 border-white/20 text-white"
+                            className="bg-white/5 border-white/20 text-white font-montserrat"
                           />
                         </div>
                       </div>
@@ -1422,7 +1422,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                             }
                           }}
                           placeholder="Enter trigger keyword..."
-                          className="bg-white/5 border-white/20 text-white"
+                          className="bg-white/5 border-white/20 text-white font-montserrat"
                         />
                       </div>
                     ))}
@@ -1460,7 +1460,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                           });
                         }
                       }}
-                      className="bg-white/5 border-white/20 text-white"
+                      className="bg-white/5 border-white/20 text-white font-montserrat"
                     />
                   </div>
                 </div>
@@ -1506,8 +1506,8 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                               c.text.trim() === "" || c.link!.trim() === ""
                           )
                         : !newTemplate.name ||
-                          !newTemplate.accountUsername ||
                           !newTemplate.mediaId ||
+                          !newTemplate.accountUsername ||
                           newTemplate.reply.length === 0 ||
                           newTemplate.reply.some((r) => r.trim() === "") ||
                           newTemplate.triggers.length === 0 ||
@@ -1559,7 +1559,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-2 ">
-                        <CardTitle className="text-lg text-white">
+                        <CardTitle className="text-base  font-normal text-white">
                           {template.name}
                         </CardTitle>
                         {template.mediaType && (
@@ -1655,12 +1655,12 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                       <p className="text-sm text-gray-400 mb-2">
                         reply to their comments:
                       </p>
-                      <div className="flex flex-wrap items-center justify-start w-full gap-2">
+                      <div className="flex flex-wrap items-center justify-start w-full gap-2 ">
                         {template.reply.map((reply: any, index: number) => (
                           <Badge
                             key={index}
                             variant="outline"
-                            className="text-sm text-wrap bg-white/5 p-3 rounded-md text-gray-300"
+                            className=" bg-white/5 p-3 rounded-md text-gray-300 text-wrap text-base  font-light font-montserrat"
                           >
                             {reply}
                           </Badge>
@@ -1672,17 +1672,18 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                         <p className="text-sm text-gray-400 mb-2">
                           Reply send in Dm:
                         </p>
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 ">
                           {template.content.map(
                             (contentItem: ContentItem, index: number) => (
                               <Badge
                                 key={index}
                                 variant="outline"
-                                className="flex flex-col items-start justify-center  bg-white/5 p-3 rounded-md mb-1"
+                                className="flex flex-col items-start justify-center text-gray-300 bg-white/5 p-3 rounded-md mb-1"
                               >
-                                <p className="text-gray-300 mb-1">
+                                <p className="text-base  font-light font-montserrat">
                                   {contentItem.text}
                                 </p>
+
                                 {contentItem.link && (
                                   <div className="flex items-center gap-1 text-xs text-blue-400">
                                     <LinkIcon className="h-3 w-3" />
@@ -1713,7 +1714,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                               <Badge
                                 key={index}
                                 variant="outline"
-                                className="text-xs border-white/20 text-gray-300"
+                                className="text-base  font-light font-montserrat border-white/20 text-gray-300"
                               >
                                 {trigger}
                               </Badge>

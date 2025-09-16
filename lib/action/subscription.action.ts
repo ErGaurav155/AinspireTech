@@ -121,7 +121,7 @@ export const getSubscriptionInfo = async (userId: string) => {
     await connectToDatabase(); // Ensure database connection
 
     // Filter subscriptions by userId and subscriptionStatus
-    const subscriptions = await Subscription.find({
+    const subscriptions = await WebSubscription.find({
       userId,
       productId: {
         $in: [
@@ -149,15 +149,15 @@ export const getInstaSubscriptionInfo = async (userId: string) => {
     await connectToDatabase(); // Ensure database connection
 
     const subscriptions = await InstaSubscription.find({
-      userId,
-      productId: {
+      clerkId: userId,
+      chatbotType: {
         $in: [
           "Insta-Automation-Starter",
           "Insta-Automation-Grow",
           "Insta-Automation-Professional",
         ],
       },
-      subscriptionStatus: "active", // Only fetch active subscriptions
+      status: "active", // Only fetch active subscriptions
     });
 
     if (!subscriptions || subscriptions.length === 0) {

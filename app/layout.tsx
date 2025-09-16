@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
-import { Orbitron } from "next/font/google";
+import { Orbitron, Montserrat } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
-
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import StarsBackground from "@/components/insta/StarsBackground";
 
-const orbitron = Orbitron({ subsets: ["latin"] });
+// Define your fonts
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-orbitron",
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+});
 
 export const metadata: Metadata = {
   title: "AinspireTech",
@@ -27,7 +35,13 @@ export default async function RootLayout({
       }}
     >
       <html suppressHydrationWarning lang="en">
-        <body className={orbitron.className}>
+        <body
+          className={cn(
+            orbitron.variable,
+            montserrat.variable,
+            "font-orbitron" // Set Orbitron as default font
+          )}
+        >
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"

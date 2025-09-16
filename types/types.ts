@@ -50,3 +50,12 @@ export type PricingPlan = {
   features: string[];
   popular: boolean;
 };
+export interface Feature {
+  name: string;
+  comment2DM: string | boolean;
+  autoDM: string | boolean;
+  linkplease: string | boolean;
+  rapiddm: string | boolean;
+  zorcha: string | boolean;
+  instantDM: string | boolean;
+}

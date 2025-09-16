@@ -159,7 +159,7 @@ export function AnalyticsDashboard(templates: any) {
         <h2 className="text-3xl font-bold text-white mb-2">
           Analytics Dashboard
         </h2>
-        <p className="text-gray-400">
+        <p className="text-gray-400 font-montserrat">
           Track your automation performance and engagement metrics
         </p>
       </div>
@@ -270,7 +270,7 @@ export function AnalyticsDashboard(templates: any) {
           <Card className=" bg-transparent backdrop-blur-sm border-gray-900">
             <CardHeader>
               <CardTitle className="text-white">Template Usage</CardTitle>
-              <CardDescription className="text-gray-400">
+              <CardDescription className="text-gray-400 font-montserrat">
                 Which templates are used most frequently
               </CardDescription>
             </CardHeader>

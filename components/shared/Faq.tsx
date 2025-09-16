@@ -50,7 +50,7 @@ const Faq = () => {
                   <h3 className="font-semibold text-[#258b94] mb-2">
                     {faq.question}
                   </h3>
-                  <p className="text-gray-300 font-mono">{faq.answer}</p>
+                  <p className="text-gray-300 font-montserrat">{faq.answer}</p>
                 </CardContent>
               </Card>
             ))}

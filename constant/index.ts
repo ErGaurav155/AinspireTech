@@ -1,4 +1,4 @@
-import { PricingPlan } from "@/types/types";
+import { Feature, PricingPlan } from "@/types/types";
 
 export const testimonials = [
   {
@@ -858,4 +858,105 @@ export const tailwindHexColors = [
   "#c026d3", // fuchsia-600
   "#db2777", // pink-600
   "#e11d48", // rose-600
+];
+export const features: Feature[] = [
+  {
+    name: "Meta Verified",
+    comment2DM: true,
+    autoDM: true,
+    linkplease: true,
+    rapiddm: true,
+    zorcha: true,
+    instantDM: true,
+  },
+  {
+    name: "Plan / Month",
+    comment2DM: "¥99",
+    autoDM: "¥499",
+    linkplease: "¥399",
+    rapiddm: "¥499",
+    zorcha: "¥1200",
+    instantDM: "¥2000",
+  },
+  {
+    name: "Automation",
+    comment2DM: "Truly unlimited",
+    autoDM: "unlimited",
+    linkplease: "unlimited",
+    rapiddm: "unlimited",
+    zorcha: "unlimited",
+    instantDM: "unlimited",
+  },
+  {
+    name: "Reply to all",
+    comment2DM: true,
+    autoDM: true,
+    linkplease: true,
+    rapiddm: true,
+    zorcha: true,
+    instantDM: true,
+  },
+  {
+    name: "Comment for link",
+    comment2DM: true,
+    autoDM: true,
+    linkplease: true,
+    rapiddm: true,
+    zorcha: true,
+    instantDM: true,
+  },
+  {
+    name: "Follows only link",
+    comment2DM: true,
+    autoDM: true,
+    linkplease: true,
+    rapiddm: true,
+    zorcha: true,
+    instantDM: true,
+  },
+  {
+    name: "Welcome message",
+    comment2DM: true,
+    autoDM: true,
+    linkplease: true,
+    rapiddm: true,
+    zorcha: true,
+    instantDM: true,
+  },
+  {
+    name: "Comment Reply",
+    comment2DM: true,
+    autoDM: true,
+    linkplease: true,
+    rapiddm: true,
+    zorcha: true,
+    instantDM: true,
+  },
+  {
+    name: "Collect Email",
+    comment2DM: "Coming soon",
+    autoDM: false,
+    linkplease: false,
+    rapiddm: false,
+    zorcha: true,
+    instantDM: true,
+  },
+  {
+    name: "Rewind",
+    comment2DM: "Coming soon",
+    autoDM: false,
+    linkplease: false,
+    rapiddm: false,
+    zorcha: true,
+    instantDM: false,
+  },
+  {
+    name: "Support",
+    comment2DM: "Quick",
+    autoDM: "Regular",
+    linkplease: "Regular",
+    rapiddm: "Regular",
+    zorcha: "Regular",
+    instantDM: "Regular",
+  },
 ];

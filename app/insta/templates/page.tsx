@@ -151,60 +151,56 @@ export default function TemplatesPage() {
   }, [router, userId]);
 
   // Fetch templates with loadMoreCount
-  const fetchTemplates = useCallback(
-    async (reset = false) => {
-      setIsLoading(true);
+  const fetchTemplates = useCallback(async () => {
+    setIsLoading(true);
 
-      try {
-        const url = new URL(
-          `/api/insta/templates?userId=${userId}`,
-          window.location.origin
-        );
-        url.searchParams.set("loadMoreCount", "0"); // Always start from 0 for initial load
-        if (searchTerm) url.searchParams.set("search", searchTerm);
-        if (filterAccount !== "all")
-          url.searchParams.set("filterAccount", filterAccount);
+    try {
+      const url = new URL(
+        `/api/insta/templates?userId=${userId}`,
+        window.location.origin
+      );
+      url.searchParams.set("loadMoreCount", "0"); // Always start from 0 for initial load
+      if (filterAccount !== "all")
+        url.searchParams.set("filterAccount", filterAccount);
 
-        const response = await fetch(url.toString());
-        if (response.ok) {
-          const data = await response.json();
-          if (data.templates && Array.isArray(data.templates)) {
-            const formattedTemplates = data.templates.map((template: any) => ({
-              ...template,
-              lastUsed: template.lastUsed
-                ? new Date(template.lastUsed).toISOString()
-                : new Date().toISOString(),
-              successRate: template.successRate || 0,
-            }));
+      const response = await fetch(url.toString());
+      if (response.ok) {
+        const data = await response.json();
+        if (data.templates && Array.isArray(data.templates)) {
+          const formattedTemplates = data.templates.map((template: any) => ({
+            ...template,
+            lastUsed: template.lastUsed
+              ? new Date(template.lastUsed).toISOString()
+              : new Date().toISOString(),
+            successRate: template.successRate || 0,
+          }));
 
-            setTemplates(formattedTemplates);
-            setHasMoreTemplates(data.hasMore);
-            setTotalTemplates(data.totalCount);
-            setLoadMoreCount(0); // Reset to 0 for initial load
-          }
+          setTemplates(formattedTemplates);
+          setHasMoreTemplates(data.hasMore);
+          setTotalTemplates(data.totalCount);
+          setLoadMoreCount(0); // Reset to 0 for initial load
         }
-      } catch (error) {
-        console.error("Error fetching templates:", error);
-      } finally {
-        setIsLoading(false);
       }
-    },
-    [filterAccount, searchTerm, userId]
-  );
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filterAccount, userId]);
 
   // Load initial templates
   useEffect(() => {
     if (userId) {
-      fetchTemplates(true);
+      fetchTemplates();
     }
   }, [userId, fetchTemplates]);
 
   // Reload templates when filters change
   useEffect(() => {
     if (userId) {
-      fetchTemplates(true);
+      fetchTemplates();
     }
-  }, [searchTerm, filterAccount, fetchTemplates, userId]);
+  }, [filterAccount, fetchTemplates, userId]);
   // Load more templates
   const loadMoreTemplates = async () => {
     setIsLoadingMore(true);
@@ -216,7 +212,6 @@ export default function TemplatesPage() {
         window.location.origin
       );
       url.searchParams.set("loadMoreCount", nextLoadCount.toString());
-      if (searchTerm) url.searchParams.set("search", searchTerm);
       if (filterAccount !== "all")
         url.searchParams.set("filterAccount", filterAccount);
 
@@ -358,7 +353,7 @@ export default function TemplatesPage() {
       if (response.ok) {
         const updated = await response.json();
         // Refresh templates after update
-        fetchTemplates(true);
+        fetchTemplates();
         setIsCreateDialogOpen(false);
         setEditingTemplate(null);
         toast({
@@ -398,7 +393,7 @@ export default function TemplatesPage() {
 
       if (response.ok) {
         // Refresh templates after toggle
-        fetchTemplates(true);
+        fetchTemplates();
       }
     } catch (error) {
       console.error("Error updating template:", error);
@@ -413,7 +408,7 @@ export default function TemplatesPage() {
 
       if (response.ok) {
         // Refresh templates after delete
-        fetchTemplates(true);
+        fetchTemplates();
       } else {
         console.error("Failed to delete template");
       }
@@ -465,7 +460,7 @@ export default function TemplatesPage() {
       const result = await response.json();
       if (response.ok && result.ok) {
         // Refresh templates after create
-        fetchTemplates(true);
+        fetchTemplates();
         setIsCreateDialogOpen(false);
 
         toast({
@@ -522,7 +517,19 @@ export default function TemplatesPage() {
       return `${Math.floor(diffInMinutes / 1440) || 0}d ago`;
     }
   };
+  const filteredTemplates = templates.filter((template: any) => {
+    const matchesSearch =
+      template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.content
+        .join(", ")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      template.triggers.some((trigger: any) =>
+        trigger.toLowerCase().includes(searchTerm.toLowerCase())
+      );
 
+    return matchesSearch;
+  });
   if (isLoading) {
     return (
       <div className="min-h-screen text-white flex items-center justify-center">
@@ -548,7 +555,7 @@ export default function TemplatesPage() {
             <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
               Reply Templates
             </h1>
-            <p className="text-gray-300 text-lg ">
+            <p className="text-gray-300 text-lg font-light font-montserrat">
               Create and manage automated reply templates for your Instagram
               posts and reels
             </p>
@@ -575,7 +582,7 @@ export default function TemplatesPage() {
                 <DialogTitle className="text-white">
                   {editingTemplate ? "Edit Template" : "Create New Template"}
                 </DialogTitle>
-                <DialogDescription className="text-gray-400">
+                <DialogDescription className="text-gray-400 text-lg font-montserrat">
                   {editingTemplate
                     ? "Update your automated replies and triggers"
                     : "Set up automated replies for specific Instagram posts or reels"}
@@ -589,7 +596,7 @@ export default function TemplatesPage() {
                       Template Name
                     </Label>
                     {editingTemplate ? (
-                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600">
+                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600 font-montserrat">
                         {editingTemplate.name}
                       </div>
                     ) : (
@@ -603,7 +610,7 @@ export default function TemplatesPage() {
                           })
                         }
                         placeholder="e.g., Welcome Message"
-                        className="bg-white/5 border-white/20 text-white"
+                        className="bg-white/5 border-white/20 text-white font-montserrat"
                       />
                     )}
                   </div>
@@ -612,7 +619,7 @@ export default function TemplatesPage() {
                       Account
                     </Label>
                     {editingTemplate ? (
-                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600">
+                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600 font-montserrat">
                         {accounts.find(
                           (a) => a.username === editingTemplate.accountUsername
                         )?.username || editingTemplate.accountUsername}
@@ -622,13 +629,13 @@ export default function TemplatesPage() {
                         value={newTemplate.accountUsername}
                         onValueChange={handleAccountChange}
                       >
-                        <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                        <SelectTrigger className="bg-white/5 border-white/20 text-white font-montserrat">
                           <SelectValue
-                            className="text-white block"
+                            className="text-white block font-montserrat"
                             placeholder="Choose account"
                           />
                         </SelectTrigger>
-                        <SelectContent className="block">
+                        <SelectContent className="block font-montserrat">
                           {accounts.map((account) => (
                             <SelectItem
                               key={account.instagramId}
@@ -717,7 +724,7 @@ export default function TemplatesPage() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-gray-400">
+                      <div className="text-center py-8 text-gray-400 font-montserrat">
                         <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
                         <p>No posts or reels found for this account</p>
                         <p className="text-sm mt-2">
@@ -829,7 +836,7 @@ export default function TemplatesPage() {
                           }
                         }}
                         placeholder="Write your automated reply..."
-                        className="min-h-[80px] bg-white/5 border-white/20 text-white"
+                        className="min-h-[80px] bg-white/5 border-white/20 text-white font-montserrat"
                       />
                     </div>
                   ))}
@@ -877,7 +884,7 @@ export default function TemplatesPage() {
                             });
                           }
                         }}
-                        className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10"
+                        className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10 font-montserrat"
                       >
                         <Plus className="mr-1 h-3 w-3" /> Add Reply
                       </Button>
@@ -956,7 +963,7 @@ export default function TemplatesPage() {
                           }
                         }}
                         placeholder="Write your automated reply..."
-                        className="min-h-[80px] bg-white/5 border-white/20 text-white"
+                        className="min-h-[80px] bg-white/5 border-white/20 text-white font-montserrat"
                       />
 
                       {/* Link input for the content link */}
@@ -988,7 +995,7 @@ export default function TemplatesPage() {
                             }
                           }}
                           placeholder="Optional link URL..."
-                          className="bg-white/5 border-white/20 text-white"
+                          className="bg-white/5 border-white/20 text-white font-montserrat"
                         />
                       </div>
                     </div>
@@ -1099,7 +1106,7 @@ export default function TemplatesPage() {
                           }
                         }}
                         placeholder="Enter trigger keyword..."
-                        className="bg-white/5 border-white/20 text-white"
+                        className="bg-white/5 border-white/20 text-white font-montserrat"
                       />
                     </div>
                   ))}
@@ -1137,7 +1144,7 @@ export default function TemplatesPage() {
                         });
                       }
                     }}
-                    className="bg-white/5 border-white/20 text-white"
+                    className="bg-white/5 border-white/20 text-white font-montserrat"
                   />
                 </div>
               </div>
@@ -1211,7 +1218,7 @@ export default function TemplatesPage() {
               placeholder="Search templates, content, or keywords..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white/5 border-white/20 text-white"
+              className="pl-10 bg-white/5 border-white/20 text-white text-base  font-light font-montserrat"
             />
           </div>
           <Select value={filterAccount} onValueChange={setFilterAccount}>
@@ -1238,7 +1245,7 @@ export default function TemplatesPage() {
 
         {/* Templates Grid */}
         <div className="grid gap-6">
-          {templates.map((template: any) => (
+          {filteredTemplates.map((template: any) => (
             <Card
               key={template._id}
               className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${
@@ -1251,7 +1258,7 @@ export default function TemplatesPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <CardTitle className="text-lg text-white">
+                      <CardTitle className=" text-base  font-normal text-white">
                         {template.name}
                       </CardTitle>
                       {template.mediaType && (
@@ -1355,7 +1362,7 @@ export default function TemplatesPage() {
                         <Badge
                           key={index}
                           variant="outline"
-                          className="text-sm text-wrap bg-white/5 p-3 rounded-md text-gray-300"
+                          className=" bg-white/5 p-3 rounded-md text-gray-300 text-wrap text-base  font-light font-montserrat"
                         >
                           {reply}
                         </Badge>
@@ -1375,7 +1382,9 @@ export default function TemplatesPage() {
                               variant="outline"
                               className="flex flex-col items-start  bg-white/5 p-3 rounded-md text-gray-300"
                             >
-                              <p className="text-sm">{content.text}</p>
+                              <p className="text-base  font-light font-montserrat">
+                                {content.text}
+                              </p>
                               {content.link && (
                                 <p className="text-xs text-cyan-400 mt-1 truncate">
                                   <LinkIcon className="h-3 w-3 inline mr-1" />
@@ -1399,7 +1408,7 @@ export default function TemplatesPage() {
                             <Badge
                               key={index}
                               variant="outline"
-                              className="text-xs border-white/20 text-gray-300"
+                              className="text-base  font-light font-montserrat border-white/20 text-gray-300"
                             >
                               {trigger}
                             </Badge>

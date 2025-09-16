@@ -41,7 +41,7 @@ export default function AccountsPage() {
   const [error, setError] = useState<string | null>(null);
   const { userId } = useAuth();
   const router = useRouter();
-  const [hasError, setHasError] = useState(false);
+  const [hasError, setHasError] = useState<string[]>([]);
   const [dialog, setDialog] = useState(false);
 
   // Fetch accounts with caching
@@ -276,8 +276,8 @@ export default function AccountsPage() {
           ) / displayedAccounts?.length
         ).toFixed(1)
       : 0;
-  const handleError = () => {
-    setHasError(true);
+  const handleError = (id: string) => {
+    setHasError((prev) => [...prev, id]); // Add the ID to the error array
   };
   return (
     <div className="min-h-screen text-white">
@@ -293,7 +293,7 @@ export default function AccountsPage() {
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 gradient-text-main">
               Instagram Accounts
             </h1>
-            <p className="text-gray-300 text-lg font-mono">
+            <p className="text-gray-300  font-montserrat text-xl">
               Manage all your connected Instagram accounts and their auto-reply
               settings
             </p>
@@ -302,7 +302,7 @@ export default function AccountsPage() {
             <Button
               onClick={() => refresh()}
               variant="outline"
-              className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+              className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
@@ -340,7 +340,7 @@ export default function AccountsPage() {
                 {displayedAccounts?.length || 0} /{" "}
                 {displayedAccounts[0]?.accountLimit || 1}
               </div>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 font-montserrat">
                 {activeAccounts || 0} active
               </p>
             </CardContent>
@@ -357,7 +357,9 @@ export default function AccountsPage() {
               <div className="text-2xl font-bold text-[#B026FF]">
                 {totalFollowers || 0}
               </div>
-              <p className="text-xs text-gray-400">Across all accounts</p>
+              <p className="text-xs text-gray-400 font-montserrat">
+                Across all accounts
+              </p>
             </CardContent>
           </Card>
 
@@ -372,7 +374,9 @@ export default function AccountsPage() {
               <div className="text-2xl font-bold text-[#FF2E9F]">
                 {totalReplies || 0} / {displayedAccounts[0]?.replyLimit || 1}
               </div>
-              <p className="text-xs text-gray-400">Total sent</p>
+              <p className="text-xs text-gray-400 font-montserrat">
+                Total sent
+              </p>
             </CardContent>
           </Card>
 
@@ -387,7 +391,9 @@ export default function AccountsPage() {
               <div className="text-2xl font-bold text-[#00F0FF]">
                 {avgEngagement || 0}%
               </div>
-              <p className="text-xs text-gray-400">Engagement rate</p>
+              <p className="text-xs text-gray-400 font-montserrat">
+                Engagement rate
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -410,9 +416,13 @@ export default function AccountsPage() {
                     <div className="flex flex-col  items-center justify-center gap-4">
                       <div className="relative">
                         <Image
-                          src={hasError ? defaultImg : account?.profilePicture}
+                          src={
+                            hasError.includes(account.id)
+                              ? defaultImg
+                              : account?.profilePicture
+                          }
                           alt={account?.displayName}
-                          onError={handleError}
+                          onError={() => handleError(account.id)} // Pass a function, not the result
                           width={64}
                           height={64}
                           className="h-16 w-16 rounded-full object-cover"
@@ -504,7 +514,7 @@ export default function AccountsPage() {
                                 onClick={() => refreshInstagramToken(userId)}
                                 variant="outline"
                                 size="sm"
-                                className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+                                className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10"
                               >
                                 <RefreshCw className="mr-2 h-4 w-4" />
                                 Refresh Token

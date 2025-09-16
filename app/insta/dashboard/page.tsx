@@ -37,10 +37,7 @@ import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { useAuth } from "@clerk/nextjs";
 import { getUserById } from "@/lib/action/user.actions";
-import {
-  cancelRazorPaySubscription,
-  getSubscriptionInfo,
-} from "@/lib/action/subscription.action";
+import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
@@ -60,7 +57,7 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<any>();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hasError, setHasError] = useState(false);
+  const [hasError, setHasError] = useState<string[]>([]);
   const [dialog, setDialog] = useState(false);
 
   const ACCOUNTS_CACHE_KEY = "instagramAccounts";
@@ -264,9 +261,9 @@ export default function Dashboard() {
       if (!userId) return;
 
       try {
-        const user = await getUserById(userId);
-        if (user) {
-          const subs = await getSubscriptionInfo(user._id);
+        if (userId) {
+          const subs = await getInstaSubscriptionInfo(userId);
+          console.log("subs:", subs);
           setSubscriptions(subs);
         }
       } catch (error) {
@@ -321,13 +318,14 @@ export default function Dashboard() {
       setCancellationReason("");
     }
   };
-  const handleError = () => {
-    setHasError(true);
+  const handleError = (id: string) => {
+    setHasError((prev) => [...prev, id]); // Add the ID to the error array
   };
   const refresh = async () => {
     await localStorage.removeItem(ACCOUNTS_CACHE_KEY);
     await fetchDashboardData();
   };
+
   if (isLoading) {
     return (
       <div className="min-h-screen text-white flex items-center justify-center">
@@ -348,7 +346,7 @@ export default function Dashboard() {
             <h1 className=" text-3xl lg:text-5xl font-bold mb-2 gradient-text-main">
               Dashboard
             </h1>
-            <p className="text-gray-300 text-lg font-mono">
+            <p className="text-gray-300 text-lg font-montserrat">
               Manage your Instagram auto-reply system and monitor performance
             </p>
           </div>
@@ -356,31 +354,23 @@ export default function Dashboard() {
             <Button
               onClick={() => refresh()}
               variant="outline"
-              className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+              className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
-            {subscriptions.length > 0 && (
+            {subscriptions.length === 0 && (
               <Button
-                variant="destructive"
-                onClick={() => {
-                  setSelectedSubscriptionId(subscriptions[0].subscriptionId);
-                  setShowCancelDialog(true);
-                }}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 transition-opacity"
+                asChild
               >
-                Cancel Subscription
+                <Link href="/insta/pricing">
+                  <Zap className="mr-2 h-4 w-4" />
+                  Upgrade Subscription
+                </Link>
               </Button>
             )}
-            <Button
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 transition-opacity"
-              asChild
-            >
-              <Link href="/insta/pricing">
-                <Zap className="mr-2 h-4 w-4" />
-                Upgrade Subscription
-              </Link>
-            </Button>
+
             <Button
               onClick={() => {
                 if (
@@ -399,25 +389,48 @@ export default function Dashboard() {
           </div>
         </div>
         {subscriptions.length > 0 && (
-          <Card className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 backdrop-blur-sm border border-purple-500/30 mb-8">
-            <CardHeader>
+          <Card className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 backdrop-blur-sm border border-purple-500/30 mb-8 flex flex-col flex-wrap items-center justify-center">
+            <CardHeader className="flex flex-wrap flex-col items-center justify-center gap-3">
+              <Badge className="max-w-min bg-green-900/20 text-green-400 border-green-400/20">
+                Active
+              </Badge>
               <CardTitle className="flex items-center gap-2 text-white">
                 <Zap className="h-5 w-5 text-yellow-400" />
                 Your Subscription
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-wrap justify-between items-center gap-4">
-              <div>
+            <CardContent className="flex flex-col md:flex-row justify-start items-center gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-2">
                 <h3 className="text-xl font-bold text-white">
-                  Premium Plan - Active
+                  {subscriptions[0].chatbotType}
                 </h3>
                 <p className="text-gray-300">
-                  Next billing: {new Date().toLocaleDateString()}
+                  Next billing:{" "}
+                  {new Date(subscriptions[0].expiresAt).toLocaleDateString()}
                 </p>
               </div>
-              <Badge className="bg-green-900/20 text-green-400 border-green-400/20">
-                Active
-              </Badge>
+
+              <div className="flex flex-wrap  gap-1 items-center justify-center">
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setSelectedSubscriptionId(subscriptions[0].subscriptionId);
+                    setShowCancelDialog(true);
+                  }}
+                >
+                  Cancel Subscription
+                </Button>
+
+                <Button
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 transition-opacity"
+                  asChild
+                >
+                  <Link href="/insta/pricing">
+                    <Zap className="mr-2 h-4 w-4" />
+                    Upgrade Subscription
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -436,12 +449,14 @@ export default function Dashboard() {
                 {dashboardData?.accountLimit || 1}
               </div>
               {dashboardData?.totalAccounts ? (
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-400 font-montserrat">
                   {dashboardData?.totalAccounts - dashboardData?.activeAccounts}{" "}
                   inactive
                 </p>
               ) : (
-                <p className="text-xs text-gray-400">0 inactive</p>
+                <p className="text-xs text-gray-400 font-montserrat">
+                  0 inactive
+                </p>
               )}
             </CardContent>
           </Card>
@@ -457,7 +472,9 @@ export default function Dashboard() {
               <div className="text-2xl font-bold text-[#B026FF]">
                 {dashboardData.totalTemplates || 0}
               </div>
-              <p className="text-xs text-gray-400">Across all accounts</p>
+              <p className="text-xs text-gray-400 font-montserrat">
+                Across all accounts
+              </p>
             </CardContent>
           </Card>
 
@@ -473,7 +490,9 @@ export default function Dashboard() {
                 {dashboardData?.totalReplies || 0} /{" "}
                 {dashboardData?.replyLimit || 1}
               </div>
-              <p className="text-xs text-gray-400">+23% from last month</p>
+              <p className="text-xs text-gray-400 font-montserrat">
+                +23% from last month
+              </p>
             </CardContent>
           </Card>
 
@@ -488,7 +507,9 @@ export default function Dashboard() {
               <div className="text-2xl font-bold text-[#00F0FF]">
                 {dashboardData.engagementRate || 0}%
               </div>
-              <p className="text-xs text-gray-400">+5% from last week</p>
+              <p className="text-xs text-gray-400 font-montserrat">
+                +5% from last week
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -501,7 +522,7 @@ export default function Dashboard() {
                 <Users className="h-5 w-5 text-[#00F0FF]" />
                 Instagram Accounts
               </CardTitle>
-              <CardDescription className="text-gray-400 font-mono">
+              <CardDescription className="text-gray-400 font-montserrat text-lg">
                 Manage your connected Instagram accounts and their auto-reply
                 settings
               </CardDescription>
@@ -518,9 +539,13 @@ export default function Dashboard() {
                         <Image
                           width={48}
                           height={48}
-                          src={hasError ? defaultImg : account?.profilePicture}
+                          src={
+                            hasError.includes(account.id)
+                              ? defaultImg
+                              : account?.profilePicture
+                          }
                           alt={account?.displayName}
-                          onError={handleError}
+                          onError={() => handleError(account.id)} // Pass a function, not the result
                           className="h-12 w-12 rounded-full object-cover"
                         />
                         <div
@@ -556,7 +581,7 @@ export default function Dashboard() {
                             onClick={() => refreshInstagramToken(userId)}
                             variant="outline"
                             size="sm"
-                            className="border-white/20 p-2 bg-green-900 text-gray-300 hover:bg-white/10"
+                            className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10"
                           >
                             <RefreshCw className="mr-2 h-4 w-4" />
                             Refresh Token
@@ -582,7 +607,7 @@ export default function Dashboard() {
                 dashboardData?.accounts?.length === 0) && (
                 <div className="text-center py-8">
                   <Instagram className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                  <p className="text-gray-400 mb-4 font-mono">
+                  <p className="text-gray-400 mb-4 font-montserrat">
                     No accounts connected yet
                   </p>
                   <Button className="btn-gradient-cyan" asChild>
@@ -602,7 +627,7 @@ export default function Dashboard() {
                 <BarChart3 className="h-5 w-5 text-[#B026FF]" />
                 Performance Overview
               </CardTitle>
-              <CardDescription className="text-gray-400 font-mono">
+              <CardDescription className="text-gray-400 text-lg font-montserrat">
                 Monitor your auto-reply performance and engagement metrics
               </CardDescription>
             </CardHeader>
@@ -666,7 +691,7 @@ export default function Dashboard() {
                           key={activity.id}
                           className="flex items-center justify-between text-sm"
                         >
-                          <span className="text-gray-300">
+                          <span className="text-gray-300 font-montserrat text-lg">
                             {activity.message}
                           </span>
                           <span className="text-gray-500">
@@ -738,7 +763,7 @@ export default function Dashboard() {
         </Card>
         {showCancelDialog && (
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="p-8 rounded-xl max-w-md w-full bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] ">
+            <div className="p-3 md:p-8 rounded-xl max-w-md w-full bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] ">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]">
                   Cancel Subscription
@@ -759,13 +784,13 @@ export default function Dashboard() {
                   <Textarea
                     value={cancellationReason}
                     onChange={(e) => setCancellationReason(e.target.value)}
-                    className="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-[#B026FF]"
+                    className="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-[#B026FF] font-montserrat"
                     placeholder="Cancellation reason"
                     required
                   />
                 </div>
 
-                <div className="text-sm text-gray-400">
+                <div className="text-xs text-gray-400 font-montserrat ">
                   <p className="mb-2">
                     <strong>Immediate Cancellation:</strong> Service ends
                     immediately
@@ -776,7 +801,7 @@ export default function Dashboard() {
                   </p>
                 </div>
 
-                <div className="flex justify-center gap-4">
+                <div className="flex flex-wrap justify-center gap-4">
                   <Button
                     variant="destructive"
                     onClick={() => {

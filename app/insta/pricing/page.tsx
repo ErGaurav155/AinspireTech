@@ -655,7 +655,7 @@ export default function Pricing() {
                   className={`flex-[20%] w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
                     currentSubscription
                       ? "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
-                      : " bg-gradient-to-r from-[#0a994f]/80 to-[#033f23]"
+                      : " bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] cursor-not-allowed"
                   } text-black disabled:opacity-70 disabled:cursor-not-allowed`}
                 >
                   {currentSubscription ? "Start Automating" : "Current Plan"}
@@ -714,7 +714,7 @@ export default function Pricing() {
                         {plan.name}
                       </h3>
                       {isCurrentPlan && (
-                        <BadgeCheck className="h-6 w-6 text-[#00F0FF]" />
+                        <BadgeCheck className=" ml-1 h-6 w-6 text-[#00F0FF]" />
                       )}
                     </div>
                     <p className="text-gray-400 mb-6 font-mono text-lg">
