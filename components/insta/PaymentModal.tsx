@@ -326,7 +326,7 @@ export default function PaymentModal({
               </p>
               <Button
                 className="w-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white"
-                onClick={() => router.push("/insta/connect")}
+                onClick={() => router.push("/insta/accounts/add")}
               >
                 Connect Instagram Account
               </Button>

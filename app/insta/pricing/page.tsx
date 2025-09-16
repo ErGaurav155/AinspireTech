@@ -641,15 +641,17 @@ export default function Pricing() {
                 ))}
               </ul>
               <SignedOut>
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => router.push("/sign-in")}
                   className={`flex-[20%] w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${"bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"} text-black`}
                 >
                   Get Started
-                </button>
+                </Button>
               </SignedOut>
               <SignedIn>
-                <button
+                <Button
+                  variant="outline"
                   className={`flex-[20%] w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
                     currentSubscription
                       ? "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
@@ -657,7 +659,7 @@ export default function Pricing() {
                   } text-black disabled:opacity-70 disabled:cursor-not-allowed`}
                 >
                   {currentSubscription ? "Start Automating" : "Current Plan"}
-                </button>
+                </Button>
               </SignedIn>
             </div>
           </div>
@@ -759,7 +761,8 @@ export default function Pricing() {
                       ))}
                     </ul>
                     <SignedOut>
-                      <button
+                      <Button
+                        variant="outline"
                         onClick={() => router.push("/sign-in")}
                         className={`w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
                           plan.popular
@@ -770,7 +773,7 @@ export default function Pricing() {
                         } text-black`}
                       >
                         Get Started
-                      </button>
+                      </Button>
                     </SignedOut>
                     <SignedIn>
                       <Button
