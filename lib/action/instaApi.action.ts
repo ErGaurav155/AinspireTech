@@ -373,7 +373,7 @@ export async function processComment(
 
     responseTime = Date.now() - startTime;
 
-    await InstaReplyLog.create({
+    const replyLog = await InstaReplyLog.create({
       userId,
       accountId,
       templateId: matchingTemplate._id,
@@ -386,6 +386,7 @@ export async function processComment(
       mediaId: comment.media_id,
       commenterUsername: comment.username,
     });
+    console.log("Reply log created:", replyLog);
 
     // Update template usage
     await InstaReplyTemplate.findByIdAndUpdate(matchingTemplate._id, {

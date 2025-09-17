@@ -564,10 +564,7 @@ export default function Pricing() {
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
             Instagram Comment Automation
           </h1>
-          <p
-            className="text-xl  text-gray-300 mb-8 max-w-2xl mx-auto"
-            style={{ fontFamily: "ui-sans-serif" }}
-          >
+          <p className="text-xl  text-gray-300 mb-8 max-w-2xl mx-auto font-montserrat">
             Reply instantly to every comment. No setup fees. Cancel anytime.
           </p>
 
@@ -606,15 +603,12 @@ export default function Pricing() {
             className={`relative mb-10 group rounded-lg backdrop-blur-sm border transition-all duration-300 border-[#00F0FF]/20 hover:border-[#00F0FF] `}
           >
             <div
-              className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity 
-                      
-                         from-[#FF2E9F]/10
-                     to-transparent`}
+              className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity from-[#FF2E9F]/10 to-transparent`}
             ></div>
-            <div className="relative z-10 h-full flex items-center justify-between p-6">
-              <div className="flex-[10%] flex flex-col  justify-between items-start">
+            <div className=" relative z-10 h-full flex flex-col md:flex-row items-center justify-between p-6">
+              <div className="flex-[10%] flex flex-col  justify-between items-center md:items-start ">
                 <h3 className="text-xl font-bold mb-2 text-white">Free</h3>
-                <p className=" text-gray-400 mb-6 font-mono text-lg">
+                <p className="text-center md:text-start text-gray-400 mb-6 font-montserrat text-lg">
                   Default plan for new users
                 </p>
               </div>
@@ -623,7 +617,7 @@ export default function Pricing() {
                 $ 0
               </div>
 
-              <ul className="flex-[30%] space-y-3 mb-8">
+              <ul className="flex-[30%] space-y-3 mb-8 font-montserrat text-base">
                 {[
                   "500 comments/month",
                   "3 reply templates",
@@ -717,7 +711,7 @@ export default function Pricing() {
                         <BadgeCheck className=" ml-1 h-6 w-6 text-[#00F0FF]" />
                       )}
                     </div>
-                    <p className="text-gray-400 mb-6 font-mono text-lg">
+                    <p className="text-gray-400 mb-6 font-montserrat text-lg">
                       {plan.description}
                     </p>
                     <div className="flex items-end mb-6">
@@ -740,11 +734,11 @@ export default function Pricing() {
                       </span>
                     </div>
                     {billingCycle === "yearly" && (
-                      <p className="text-center text-green-400 my-2 font-medium">
+                      <p className="text-center text-green-400 my-2 font-medium font-montserrat text-base">
                         Two Months Free Subscription On Yearly Plan.
                       </p>
                     )}
-                    <ul className="space-y-3 mb-8">
+                    <ul className="space-y-3 mb-8 ">
                       {plan.features.map((feature, idx) => (
                         <li key={idx} className="flex items-start">
                           <Check
@@ -756,7 +750,9 @@ export default function Pricing() {
                                 : "text-[#FF2E9F]"
                             }`}
                           />
-                          <span className="text-gray-300">{feature}</span>
+                          <span className="text-gray-300 font-montserrat text-base">
+                            {feature}
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -824,10 +820,10 @@ export default function Pricing() {
       <section className="py-16 px-4 sm:px-6 lg:px-8 ">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] mb-4">
               Feature Comparison
             </h2>
-            <p className="text-xl text-gray-300">
+            <p className="text-xl text-gray-300 font-montserrat">
               Everything you get with each plan
             </p>
           </div>
@@ -931,8 +927,11 @@ export default function Pricing() {
                     pro: "✓",
                   },
                 ].map((row, index) => (
-                  <tr key={index} className="hover:bg-[#1a1a1a]/50">
-                    <td className="py-4 px-6 font-medium text-gray-300">
+                  <tr
+                    key={index}
+                    className="hover:bg-[#1a1a1a]/50 font-montserrat text-base"
+                  >
+                    <td className="py-4 px-6 font-medium text-gray-300 ">
                       {row.feature}
                     </td>
                     <td className="py-4 px-6 text-center">

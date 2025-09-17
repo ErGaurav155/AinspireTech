@@ -39,6 +39,8 @@ import defaultImg from "@/public/assets/img/default-img.jpg";
 import { formatResponseTimeSmart, refreshInstagramToken } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getUserById } from "@/lib/action/user.actions";
+import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 const ANALYTICS_CACHE_KEY = "analyticsData";
@@ -47,7 +49,8 @@ export default function AnalyticsPage() {
   const { userId } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [templates, setTemplates] = useState<any>([]);
-
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [userInfo, setUserInfo] = useState<any>();
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [hasError, setHasError] = useState<string[]>([]);
   const [filteredData, setFilteredData] = useState<any>(null);
@@ -124,8 +127,18 @@ export default function AnalyticsPage() {
             totalReplies: data[0]?.repliesCount || 0,
             accountLimit: data[0]?.accountLimit || 1,
             replyLimit: data[0]?.replyLimit || 1,
-            engagementRate: 87, // Mock data
-            successRate: 94, // Mock data
+            engagementRate:
+              data.reduce(
+                (sum: number, account: any) =>
+                  sum + (account?.engagementRate || 0),
+                0
+              ) / data.length, // Mock data
+            successRate:
+              data.reduce(
+                (sum: number, account: any) =>
+                  sum + (account?.successRate || 0),
+                0
+              ) / data.length,
             overallAvgResponseTime:
               data.length > 0
                 ? data.reduce(
@@ -193,7 +206,8 @@ export default function AnalyticsPage() {
               totalAccounts: totalAccounts || 0,
               accountReply: dbAccount.accountReply || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
-              engagementRate: dbAccount.engagementRate || 0,
+              engagementRate: Math.floor(Math.random() * 4) + 5, // Mock data
+              successRate: Math.floor(Math.random() * 4) + 90,
               avgResponseTime: dbAccount?.avgResTime?.[0]?.avgResponseTime || 0,
               accessToken: dbAccount.accessToken,
             };
@@ -218,8 +232,16 @@ export default function AnalyticsPage() {
           0
         ),
         totalReplies: validAccounts[0]?.repliesCount || 0,
-        engagementRate: 87, // Mock data
-        successRate: 94, // Mock data
+        engagementRate:
+          validAccounts.reduce(
+            (sum: number, account: any) => sum + (account?.engagementRate || 0),
+            0
+          ) / validAccounts.length, // Mock data
+        successRate:
+          validAccounts.reduce(
+            (sum: number, account: any) => sum + (account?.successRate || 0),
+            0
+          ) / validAccounts.length, // Mock data
         overallAvgResponseTime:
           validAccounts.length > 0
             ? validAccounts.reduce(
@@ -339,11 +361,24 @@ export default function AnalyticsPage() {
   }, [userId, fetchAccounts, fetchTemplates]);
 
   useEffect(() => {
-    if (!userId) {
-      router.push("/sign-in");
-      return;
-    }
+    const fetchSubscriptions = async () => {
+      if (!userId) {
+        router.push("/sign-in");
+        return;
+      }
+      try {
+        const userData = await getUserById(userId);
+        if (userData) {
+          const subs = await getInstaSubscriptionInfo(userId);
+          setSubscriptions(subs);
+          setUserInfo(userData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch subscriptions:", error);
+      }
+    };
 
+    fetchSubscriptions();
     fetchAnalyticsData();
   }, [userId, fetchAnalyticsData, router]);
 
@@ -471,8 +506,10 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#B026FF]">
-                {filteredData?.totalReplies || 0} /{" "}
-                {filteredData?.replyLimit || 1}
+                {filteredData?.totalReplies || userInfo?.totalReplies || 0} /{" "}
+                {filteredData?.replyLimit || subscriptions.length > 0
+                  ? userInfo?.replyLimit
+                  : 500}
               </div>
               <p className="text-xs text-muted-foreground flex items-center font-montserrat">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />

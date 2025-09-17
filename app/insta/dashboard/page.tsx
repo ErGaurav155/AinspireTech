@@ -47,6 +47,8 @@ export default function Dashboard() {
   const { userId } = useAuth();
   const router = useRouter();
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [userInfo, setUserInfo] = useState<any>();
+
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [selectedSubscriptionId, setSelectedSubscriptionId] = useState("");
   const [cancellationMode, setCancellationMode] = useState<
@@ -90,8 +92,18 @@ export default function Dashboard() {
             totalReplies: data[0]?.repliesCount || 0,
             accountLimit: data[0]?.accountLimit || 1,
             replyLimit: data[0]?.replyLimit || 1,
-            engagementRate: 87, // Mock data
-            successRate: 94, // Mock data
+            engagementRate:
+              data.reduce(
+                (sum: number, account: any) =>
+                  sum + (account?.engagementRate || 0),
+                0
+              ) / data.length, // Mock data
+            successRate:
+              data.reduce(
+                (sum: number, account: any) =>
+                  sum + (account?.successRate || 0),
+                0
+              ) / data.length,
             overallAvgResponseTime: data.reduce(
               (sum: number, account: any) =>
                 sum + (account?.avgResponseTime || 0),
@@ -159,7 +171,8 @@ export default function Dashboard() {
               totalAccounts: totalAccounts || 0,
               accountReply: dbAccount.accountReply || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
-              engagementRate: dbAccount.engagementRate || 0,
+              engagementRate: Math.floor(Math.random() * 4) + 5, // Mock data
+              successRate: Math.floor(Math.random() * 4) + 90, // Mock data
               avgResponseTime: dbAccount?.avgResTime[0]?.avgResponseTime || 0,
               accessToken: dbAccount.accessToken,
             };
@@ -185,8 +198,16 @@ export default function Dashboard() {
         totalReplies: validAccounts[0]?.repliesCount || 0,
         accountLimit: validAccounts[0]?.accountLimit || 1,
         replyLimit: validAccounts[0]?.replyLimit || 1,
-        engagementRate: 87, // Mock data
-        successRate: 94, // Mock data
+        engagementRate:
+          validAccounts.reduce(
+            (sum: number, account: any) => sum + (account?.engagementRate || 0),
+            0
+          ) / validAccounts.length, // Mock data
+        successRate:
+          validAccounts.reduce(
+            (sum: number, account: any) => sum + (account?.successRate || 0),
+            0
+          ) / validAccounts.length,
         overallAvgResponseTime: validAccounts?.reduce(
           (sum: number, account: any) => sum + (account?.avgResponseTime || 0),
           0
@@ -254,12 +275,13 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchSubscriptions = async () => {
       if (!userId) return;
-
       try {
-        if (userId) {
+        const userData = await getUserById(userId);
+        if (userData) {
           const subs = await getInstaSubscriptionInfo(userId);
           console.log("subs:", subs);
           setSubscriptions(subs);
+          setUserInfo(userData);
         }
       } catch (error) {
         console.error("Failed to fetch subscriptions:", error);
@@ -441,7 +463,9 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-2xl font-bold text-[#00F0FF]">
                 {dashboardData?.activeAccounts || 0} /{" "}
-                {dashboardData?.accountLimit || 1}
+                {dashboardData?.accountLimit || subscriptions.length > 0
+                  ? userInfo?.accountLimit
+                  : 1}
               </div>
               {dashboardData?.totalAccounts ? (
                 <p className="text-xs text-gray-400 font-montserrat">
@@ -482,8 +506,10 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#FF2E9F]">
-                {dashboardData?.totalReplies || 0} /{" "}
-                {dashboardData?.replyLimit || 1}
+                {dashboardData?.totalReplies || userInfo?.totalReplies || 0} /{" "}
+                {dashboardData?.replyLimit || subscriptions.length > 0
+                  ? userInfo?.replyLimit
+                  : 500}
               </div>
               <p className="text-xs text-gray-400 font-montserrat">
                 +23% from last month

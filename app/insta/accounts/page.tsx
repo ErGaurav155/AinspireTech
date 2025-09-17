@@ -32,6 +32,8 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import defaultImg from "@/public/assets/img/default-img.jpg"; // Default image for error handling
 import { refreshInstagramToken } from "@/lib/utils";
+import { getUserById } from "@/lib/action/user.actions";
+import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 // Cache key
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
@@ -42,6 +44,8 @@ export default function AccountsPage() {
   const { userId } = useAuth();
   const router = useRouter();
   const [hasError, setHasError] = useState<string[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [userInfo, setUserInfo] = useState<any>();
   const [dialog, setDialog] = useState(false);
 
   // Fetch accounts with caching
@@ -120,7 +124,8 @@ export default function AccountsPage() {
               totalAccounts: totalAccounts || 0,
               accountReply: dbAccount.accountReply || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
-              engagementRate: dbAccount.engagementRate || 0,
+              engagementRate: Math.floor(Math.random() * 4) + 5, // Mock data
+              successRate: Math.floor(Math.random() * 4) + 90, // Mock data
               avgResponseTime: dbAccount?.avgResTime[0]?.avgResponseTime || 0,
               accessToken: dbAccount.accessToken,
             };
@@ -156,10 +161,24 @@ export default function AccountsPage() {
   }, [userId, router]);
 
   useEffect(() => {
-    if (!userId) {
-      router.push("/sign-in");
-      return;
-    }
+    const fetchSubscriptions = async () => {
+      if (!userId) {
+        router.push("/sign-in");
+        return;
+      }
+      try {
+        const userData = await getUserById(userId);
+        if (userData) {
+          const subs = await getInstaSubscriptionInfo(userId);
+          setSubscriptions(subs);
+          setUserInfo(userData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch subscriptions:", error);
+      }
+    };
+
+    fetchSubscriptions();
     fetchAccounts();
   }, [userId, router, fetchAccounts]);
 
@@ -337,7 +356,9 @@ export default function AccountsPage() {
             <CardContent>
               <div className="text-2xl font-bold text-[#00F0FF]">
                 {displayedAccounts?.length || 0} /{" "}
-                {displayedAccounts[0]?.accountLimit || 1}
+                {displayedAccounts[0]?.accountLimit || subscriptions.length > 0
+                  ? userInfo?.accountLimit
+                  : 1}
               </div>
               <p className="text-xs text-gray-400 font-montserrat">
                 {activeAccounts || 0} active
@@ -371,7 +392,8 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#FF2E9F]">
-                {totalReplies || 0} / {displayedAccounts[0]?.replyLimit || 1}
+                {totalReplies || userInfo?.totalReplies || 0} /{" "}
+                {subscriptions.length > 0 ? userInfo?.replyLimit : 500}
               </div>
               <p className="text-xs text-gray-400 font-montserrat">
                 Total sent

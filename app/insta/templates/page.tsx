@@ -835,7 +835,7 @@ export default function TemplatesPage() {
                             });
                           }
                         }}
-                        placeholder="Write your automated reply..."
+                        placeholder="Eg.Nice! Check your DMs!"
                         className="min-h-[80px] bg-white/5 border-white/20 text-white font-montserrat"
                       />
                     </div>
@@ -962,7 +962,7 @@ export default function TemplatesPage() {
                             });
                           }
                         }}
-                        placeholder="Write your automated reply..."
+                        placeholder="Eg.Hey there! I’m so happy you’re here, thanks so much for your interest 😊Click below and I’ll send you the link in just a sec ✨"
                         className="min-h-[80px] bg-white/5 border-white/20 text-white font-montserrat"
                       />
 
@@ -994,7 +994,7 @@ export default function TemplatesPage() {
                               });
                             }
                           }}
-                          placeholder="Optional link URL..."
+                          placeholder="Eg.www.yourlink.com"
                           className="bg-white/5 border-white/20 text-white font-montserrat"
                         />
                       </div>
@@ -1105,7 +1105,7 @@ export default function TemplatesPage() {
                             });
                           }
                         }}
-                        placeholder="Enter trigger keyword..."
+                        placeholder="Enter trigger keyword Like Link,Product,etc"
                         className="bg-white/5 border-white/20 text-white font-montserrat"
                       />
                     </div>

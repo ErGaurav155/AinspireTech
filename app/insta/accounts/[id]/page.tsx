@@ -450,7 +450,8 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                 totalAccounts: totalAccounts || 0,
                 accountReply: dbAccount.accountReply || 0,
                 lastActivit: dbAccount.lastActivity || new Date().toISOString(),
-                engagementRate: dbAccount.engagementRate || 0,
+                engagementRate: Math.floor(Math.random() * 4) + 5, // Mock data
+                successRate: Math.floor(Math.random() * 4) + 90, // Mock data
                 avgResponseTime: dbAccount?.avgResTime[0]?.avgResponseTime || 0,
                 accessToken: dbAccount.accessToken,
               };
@@ -1161,7 +1162,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                               });
                             }
                           }}
-                          placeholder="Write your automated reply..."
+                          placeholder="Eg.Sent you a message! Check it out!"
                           className="min-h-[80px] bg-white/5 border-white/20 text-white font-montserrat"
                         />
                       </div>
@@ -1279,7 +1280,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                               });
                             }
                           }}
-                          placeholder="Write your message text..."
+                          placeholder="Eg.Hey there! I’m so happy you’re here, thanks so much for your interest 😊 Click below and I’ll send you the link in just a sec ✨"
                           className="min-h-[80px] bg-white/5 border-white/20 text-white font-montserrat"
                         />
 
@@ -1310,7 +1311,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                                 });
                               }
                             }}
-                            placeholder="Optional: Add a link URL"
+                            placeholder="Eg.www.productLink.com"
                             className="bg-white/5 border-white/20 text-white font-montserrat"
                           />
                         </div>
@@ -1421,7 +1422,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                               });
                             }
                           }}
-                          placeholder="Enter trigger keyword..."
+                          placeholder="Enter trigger keyword Like Link,Product,etc."
                           className="bg-white/5 border-white/20 text-white font-montserrat"
                         />
                       </div>
@@ -1793,7 +1794,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
           <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#3a8477]/10 to-[#1f918b]/5 border-[#177474]/15 hover:bg-[#177474]/10 group bg-transparent backdrop-blur-sm border">
             <CardHeader className="p-3">
               <CardTitle>Performance Analytics</CardTitle>
-              <CardDescription>
+              <CardDescription className="font-montserrat text-base">
                 Track the performance of your auto-replies for this account
               </CardDescription>
             </CardHeader>
@@ -1810,7 +1811,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     <div className="text-3xl font-bold text-[#FF2E9F]">
                       {account.templatesCount || 0}
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-400 font-montserrat">
                       Active reply templates
                     </p>
                   </CardContent>
@@ -1827,7 +1828,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     <div className=" text-3xl font-bold text-green-600">
                       {account.accountReply || 0}
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-400 font-montserrat ">
                       Total automated replies
                     </p>
                   </CardContent>
@@ -1846,7 +1847,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                         ? formatResponseTimeSmart(account.avgResponseTime)
                         : 0}{" "}
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-400 font-montserrat">
                       Average response time
                     </p>
                   </CardContent>
@@ -1863,7 +1864,9 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     <div className="text-3xl font-bold text-blue-600">
                       {account.engagementRate || 0}%
                     </div>
-                    <p className="text-xs text-gray-400">Engagement rate</p>
+                    <p className="text-xs text-gray-400 font-montserrat">
+                      Engagement rate
+                    </p>
                   </CardContent>
                 </Card>
               </div>
@@ -1876,7 +1879,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                       <Settings className="h-5 w-5 text-[#00F0FF]" />
                       Account Settings
                     </CardTitle>
-                    <CardDescription className="text-gray-400 font-mono">
+                    <CardDescription className="text-gray-400 font-montserrat text-base">
                       Manage your Instagram account settings and automation
                       preferences
                     </CardDescription>
@@ -1887,7 +1890,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                         <h4 className="font-medium text-white">
                           Auto-Reply System
                         </h4>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-base text-gray-400 font-montserrat ">
                           Automatically respond to comments using templates
                         </p>
                       </div>
@@ -1949,7 +1952,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                       <BarChart3 className="h-5 w-5 text-[#B026FF]" />
                       Performance Metrics
                     </CardTitle>
-                    <CardDescription className="text-gray-400 font-mono">
+                    <CardDescription className="text-gray-400 font-montserrat text-base">
                       Track your accounts automation performance and engagement
                     </CardDescription>
                   </CardHeader>
@@ -2035,7 +2038,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     <Zap className="h-5 w-5 text-[#FF2E9F]" />
                     Recent Activity
                   </CardTitle>
-                  <CardDescription className="text-gray-400 font-mono">
+                  <CardDescription className="text-gray-400 font-montserrat text-base">
                     Latest automated replies and system activities for this
                     account
                   </CardDescription>
@@ -2151,7 +2154,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
           <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#d61a1a]/10 to-[#d61a1a]/5 border-[#d61a1a]/15 hover:bg-[#d61a1a]/10 group bg-transparent backdrop-blur-sm border">
             <CardHeader className="p-3">
               <CardTitle>Account Settings</CardTitle>
-              <CardDescription>
+              <CardDescription className="font-montserrat text-base">
                 Configure how auto-replies work for this Instagram account
               </CardDescription>
             </CardHeader>
@@ -2159,7 +2162,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Enable Auto-Replies</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base text-muted-foreground font-montserrat">
                     Turn on/off automated replies for this account
                   </p>
                 </div>
@@ -2172,7 +2175,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Rate Limiting</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base text-muted-foreground font-montserrat">
                     Limit 1 reply per comment, 10 replies per hour
                   </p>
                 </div>
@@ -2184,7 +2187,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Smart Filtering</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base text-muted-foreground font-montserrat">
                     Skip replies to spam or inappropriate comments
                   </p>
                 </div>
@@ -2199,7 +2202,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   <div className="flex flex-col md:flex-row gap-3 justify-between items-center">
                     <div className="flex items-center justify-center gap-3">
                       <p className="font-medium">Delete Account</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-base text-muted-foreground font-montserrat ">
                         Permanently delete this Instagram account
                       </p>
                     </div>
@@ -2222,7 +2225,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         <AlertDialogContent className=" bg-[#6d1717]/5 backdrop-blur-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="font-montserrat">
               This action cannot be undone. This will permanently delete the
               Instagram account data from our database and all associated
               templates.
