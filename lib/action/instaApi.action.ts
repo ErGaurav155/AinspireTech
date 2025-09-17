@@ -400,6 +400,7 @@ export async function processComment(
     );
     // Update account activity
     account.lastActivity = new Date();
+    account.accountReply = (account.accountReply || 0) + 1;
     await account.save();
   } catch (error) {
     console.error("Error processing comment:", error);

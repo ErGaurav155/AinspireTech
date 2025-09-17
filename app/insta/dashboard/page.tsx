@@ -87,10 +87,7 @@ export default function Dashboard() {
                 sum + (account?.templatesCount || 0),
               0
             ),
-            totalReplies: data.reduce(
-              (sum: number, account: any) => sum + (account?.repliesCount || 0),
-              0
-            ),
+            totalReplies: data[0]?.repliesCount || 0,
             accountLimit: data[0]?.accountLimit || 1,
             replyLimit: data[0]?.replyLimit || 1,
             engagementRate: 87, // Mock data
@@ -160,6 +157,7 @@ export default function Dashboard() {
               replyLimit: replyLimit || 500,
               accountLimit: accountLimit || 1,
               totalAccounts: totalAccounts || 0,
+              accountReply: dbAccount.accountReply || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: dbAccount.engagementRate || 0,
               avgResponseTime: dbAccount?.avgResTime[0]?.avgResponseTime || 0,
@@ -184,10 +182,7 @@ export default function Dashboard() {
           (sum, account) => sum + (account?.templatesCount || 0),
           0
         ),
-        totalReplies: validAccounts.reduce(
-          (sum, account) => sum + (account?.repliesCount || 0),
-          0
-        ),
+        totalReplies: validAccounts[0]?.repliesCount || 0,
         accountLimit: validAccounts[0]?.accountLimit || 1,
         replyLimit: validAccounts[0]?.replyLimit || 1,
         engagementRate: 87, // Mock data

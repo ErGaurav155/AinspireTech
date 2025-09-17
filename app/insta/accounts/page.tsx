@@ -118,6 +118,7 @@ export default function AccountsPage() {
               replyLimit: replyLimit || 500,
               accountLimit: accountLimit || 1,
               totalAccounts: totalAccounts || 0,
+              accountReply: dbAccount.accountReply || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: dbAccount.engagementRate || 0,
               avgResponseTime: dbAccount?.avgResTime[0]?.avgResponseTime || 0,
@@ -263,10 +264,8 @@ export default function AccountsPage() {
     (sum: number, acc: any) => sum + acc?.followersCount,
     0
   );
-  const totalReplies = displayedAccounts?.reduce(
-    (sum: number, acc: any) => sum + acc?.repliesCount,
-    0
-  );
+  const totalReplies = displayedAccounts[0]?.repliesCount || 0;
+
   const avgEngagement =
     displayedAccounts?.length > 0
       ? (
@@ -480,7 +479,7 @@ export default function AccountsPage() {
                         </div>
                         <div className="flex flex-col items-center">
                           <span className="font-bold">
-                            {account?.repliesCount || 0}
+                            {account?.accountReply || 0}
                           </span>
                           <span className="text-xs text-gray-400">Replies</span>
                         </div>

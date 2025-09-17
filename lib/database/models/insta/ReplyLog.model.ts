@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IReplyLog extends Document {
   userId: string;
@@ -53,7 +53,6 @@ const ReplyLogSchema = new Schema<IReplyLog>(
       type: Number,
       required: true,
     },
-
     mediaId: {
       type: String,
       required: true,
@@ -68,7 +67,11 @@ const ReplyLogSchema = new Schema<IReplyLog>(
   }
 );
 
-const InstaReplyLog =
+// Add TTL index to automatically delete documents after 24 hours
+ReplyLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 300 });
+
+const InstaReplyLog: Model<IReplyLog> =
   mongoose.models?.InstaReplyLog ||
   mongoose.model<IReplyLog>("InstaReplyLog", ReplyLogSchema);
+
 export default InstaReplyLog;

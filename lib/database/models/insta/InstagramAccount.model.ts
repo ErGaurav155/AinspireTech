@@ -8,6 +8,7 @@ export interface IInstagramAccount extends Document {
   accessToken: string;
   profilePicture?: string;
   isActive?: boolean;
+  accountReply: number;
   lastTokenRefresh?: Date;
   expiresAt?: Date;
   createdAt: Date;
@@ -37,6 +38,10 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    accountReply: {
+      type: Number,
+      default: 0,
     },
 
     expiresAt: {

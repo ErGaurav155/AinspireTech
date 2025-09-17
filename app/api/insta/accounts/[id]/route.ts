@@ -90,15 +90,13 @@ export async function DELETE(
     }
 
     // Delete related templates
-    const deeleteTemplate = await InstaReplyTemplate.deleteMany({
-      accountId: params.id,
+    await InstaReplyTemplate.deleteMany({
+      accountId: account.instagramId,
     });
-    console.log("deeleteTemplate:", deeleteTemplate);
 
-    const deleteRepltlog = await InstaReplyLog.deleteMany({
-      accountId: params.id,
+    await InstaReplyLog.deleteMany({
+      accountId: account.instagramId,
     });
-    console.log("deleteRepltlog:", deleteRepltlog);
 
     return NextResponse.json({ message: "Account deleted successfully" });
   } catch (error) {

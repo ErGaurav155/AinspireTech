@@ -121,10 +121,7 @@ export default function AnalyticsPage() {
                 sum + (account?.templatesCount || 0),
               0
             ),
-            totalReplies: data.reduce(
-              (sum: number, account: any) => sum + (account?.repliesCount || 0),
-              0
-            ),
+            totalReplies: data[0]?.repliesCount || 0,
             accountLimit: data[0]?.accountLimit || 1,
             replyLimit: data[0]?.replyLimit || 1,
             engagementRate: 87, // Mock data
@@ -190,10 +187,11 @@ export default function AnalyticsPage() {
               isActive: dbAccount.isActive || false,
               expiryDate: dbAccount.expiresAt || null,
               templatesCount: dbAccount.templatesCount || 0,
-              repliesCount: dbAccount.repliesCount || 0,
+              repliesCount: totalReplies || 0,
               replyLimit: replyLimit || 500,
               accountLimit: accountLimit || 1,
               totalAccounts: totalAccounts || 0,
+              accountReply: dbAccount.accountReply || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: dbAccount.engagementRate || 0,
               avgResponseTime: dbAccount?.avgResTime?.[0]?.avgResponseTime || 0,
@@ -219,10 +217,7 @@ export default function AnalyticsPage() {
           (sum, account) => sum + (account?.templatesCount || 0),
           0
         ),
-        totalReplies: validAccounts.reduce(
-          (sum, account) => sum + (account?.repliesCount || 0),
-          0
-        ),
+        totalReplies: validAccounts[0]?.repliesCount || 0,
         engagementRate: 87, // Mock data
         successRate: 94, // Mock data
         overallAvgResponseTime:
@@ -584,7 +579,7 @@ export default function AnalyticsPage() {
                         @{account.username}
                       </h4>
                       <p className="text-sm text-muted-foreground font-montserrat">
-                        {account.repliesCount} replies
+                        {account.accountReply} replies
                       </p>
                     </div>
                   </div>

@@ -448,8 +448,8 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                 replyLimit: replyLimit || 500,
                 accountLimit: accountLimit || 1,
                 totalAccounts: totalAccounts || 0,
-                lastActivity:
-                  dbAccount.lastActivity || new Date().toISOString(),
+                accountReply: dbAccount.accountReply || 0,
+                lastActivit: dbAccount.lastActivity || new Date().toISOString(),
                 engagementRate: dbAccount.engagementRate || 0,
                 avgResponseTime: dbAccount?.avgResTime[0]?.avgResponseTime || 0,
                 accessToken: dbAccount.accessToken,
@@ -1825,7 +1825,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   </CardHeader>
                   <CardContent>
                     <div className=" text-3xl font-bold text-green-600">
-                      {account.repliesCount || 0}
+                      {account.accountReply || 0}
                     </div>
                     <p className="text-xs text-gray-400">
                       Total automated replies

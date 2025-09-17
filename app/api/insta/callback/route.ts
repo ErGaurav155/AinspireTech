@@ -186,6 +186,7 @@ export async function GET(req: NextRequest) {
       profilePicture: user.profile_picture_url,
       accessToken: longLivedData.access_token,
       lastTokenRefresh: new Date(),
+      accountReply: 0,
       isActive: true,
       expiresAt,
     });
