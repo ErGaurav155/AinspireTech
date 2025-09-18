@@ -83,9 +83,7 @@ export async function DELETE(
 
     // Delete account and all related data
     const account = await InstagramAccount.findByIdAndDelete(params.id);
-    console.log("account:", account);
     if (!account) {
-      console.log("hi hellooooo:");
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 

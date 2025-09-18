@@ -56,7 +56,7 @@ export interface SentimentChartData {
   color: string;
 }
 
-export function AnalyticsDashboard(templates: any) {
+export function AnalyticsDashboard({ templates }: { templates: any }) {
   const { userId } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,31 +69,30 @@ export function AnalyticsDashboard(templates: any) {
   >([]);
 
   useEffect(() => {
-    if (templates.templates && templates.templates.length > 0) {
+    if (templates && templates.length > 0) {
       // Calculate total usage count
-      const totalUsageCount = templates.templates.reduce(
+      let totalUsageCount = 0;
+      let transformedData;
+      totalUsageCount = templates.reduce(
         (sum: number, template: any) => sum + (template.usageCount || 0),
         0
       );
+      transformedData = templates.map((template: any, index: number) => ({
+        name: template.name,
+        value: template.usageCount,
+        color: tailwindHexColors[index % tailwindHexColors.length],
+        percentage:
+          totalUsageCount > 0
+            ? (template.usageCount / totalUsageCount) * 100
+            : 0,
+      }));
+      setTemplateData(transformedData);
 
       // Transform template data
-      const transformedData = templates.templates.map(
-        (template: any, index: number) => ({
-          name: template.name,
-          value: template.usageCount,
-          color: tailwindHexColors[index % tailwindHexColors.length],
-          percentage:
-            totalUsageCount > 0
-              ? (template.usageCount / totalUsageCount) * 100
-              : 0,
-        })
-      );
-
-      setTemplateData(transformedData);
 
       // Calculate sentiment data (separate from templateData to avoid infinite loop)
       const adjustSentimentPercentages = () => {
-        const supportTemplate = templates.templates.find(
+        const supportTemplate = templates.find(
           (template: any) => template.name === "Support Template"
         );
 
@@ -141,7 +140,7 @@ export function AnalyticsDashboard(templates: any) {
     } else {
       setIsLoading(false);
     }
-  }, [templates.templates]); // REMOVED templateData from dependencies
+  }, [templates]); // REMOVED templateData from dependencies
 
   if (isLoading) {
     return (

@@ -155,7 +155,7 @@ export default function OTPVerification({
           </div>
         </form>
         <AlertDialogDescription className="p-4 text-center text-sm text-gray-400 border-t border-[#333] pt-4">
-          <span className="text-[#00F0FF]">
+          <span className="text-[#00F0FF] font-montserrat">
             IT WILL HELP US TO PROVIDE BETTER SERVICES
           </span>
         </AlertDialogDescription>

@@ -130,7 +130,7 @@ export default function Home() {
                     />
                   </div>
                   <CardTitle className="text-white">{feature.title}</CardTitle>
-                  <CardDescription className="text-gray-300 font-mono">
+                  <CardDescription className="text-gray-300 font-montserrat">
                     {feature.description}
                   </CardDescription>
                 </CardHeader>
@@ -146,7 +146,7 @@ export default function Home() {
               <h2 className="text-4xl font-bold mb-4 gradient-text-main">
                 🚀 Ready to Convert Your Website Traffic Into Paying Clients?{" "}
               </h2>
-              <p className="text-gray-300 mb-8 text-lg font-mono max-w-2xl mx-auto">
+              <p className="text-gray-300 mb-8 text-lg font-montserrat max-w-2xl mx-auto">
                 Thousands of local businesses are using AI-powered chatbots to
                 automate support, boost engagement, and increase sales.
               </p>

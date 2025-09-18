@@ -377,7 +377,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         return;
       }
       try {
-        // setIsLoading(true);
+        setIsLoading(true);
         setError(null);
         // Check cache first
         const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);

@@ -35,7 +35,7 @@ const Features = () => {
         <div className="flex justify-center my-6">
           <div className="w-20 h-1 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full"></div>
         </div>
-        <p className="text-gray-300 max-w-2xl mx-auto">
+        <p className="text-gray-300 max-w-2xl mx-auto font-montserrat">
           Advanced Cutting edge tech For You
         </p>
       </div>
@@ -57,7 +57,9 @@ const Features = () => {
             <h3 className="text-xl font-bold mt-2 text-white">
               {feature.title}
             </h3>
-            <p className="text-gray-300 mt-2">{feature.description}</p>
+            <p className="text-gray-300 mt-2 font-montserrat">
+              {feature.description}
+            </p>
           </div>
         ))}
       </div>

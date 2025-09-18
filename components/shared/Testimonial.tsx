@@ -34,7 +34,7 @@ export function TestimonialSection() {
           <div className="flex justify-center my-6">
             <div className="w-20 h-1 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full"></div>
           </div>
-          <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-300 max-w-2xl mx-auto font-montserrat">
             We are satisfying our customers every day since Last 10+ Years.
           </p>
         </div>
@@ -83,7 +83,7 @@ export function TestimonialSection() {
                               </span>
                             </div>
                           </div>
-                          <p className="text-gray-300 h-[10rem] md:h-[14rem] overflow-y-auto no-scrollbar">
+                          <p className="text-gray-300 h-[10rem] md:h-[14rem] overflow-y-auto no-scrollbar font-montserrat">
                             {testimonial.text}
                           </p>
                         </div>

@@ -9,8 +9,10 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
     const accountId = searchParams.get("accountId");
-    const loadMoreCount = parseInt(searchParams.get("loadMoreCount") || "0");
-    const search = searchParams.get("search") || "";
+    const loadCount = searchParams.get("loadMoreCount");
+    const loadMoreCount = parseInt(loadCount || "0");
+    const searchKey = searchParams.get("search");
+    const search = searchKey || "";
     const filterAccount = searchParams.get("filterAccount") || "all";
 
     if (!userId) {
@@ -40,26 +42,35 @@ export async function GET(req: Request) {
         { triggers: { $regex: search, $options: "i" } },
       ];
     }
-
     // Calculate skip value based on loadMoreCount (each click loads 10 more)
     const skip = loadMoreCount * 1;
     const limit = 1;
-
+    let templates;
     // Execute query with pagination
-    const templates = await InstaReplyTemplate.find(query)
-      .sort({ priority: 1, createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    if (!searchKey || !loadCount) {
+      templates = await InstaReplyTemplate.find(query).sort({
+        priority: 1,
+        createdAt: -1,
+      });
 
+      return NextResponse.json({
+        templates,
+      });
+    } else {
+      templates = await InstaReplyTemplate.find(query)
+        .sort({ priority: 1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+      const totalCount = await InstaReplyTemplate.countDocuments(query);
+      const hasMore = skip + limit < totalCount;
+
+      return NextResponse.json({
+        templates,
+        hasMore,
+        totalCount,
+      });
+    }
     // Get total count to check if there are more templates
-    const totalCount = await InstaReplyTemplate.countDocuments(query);
-    const hasMore = skip + limit < totalCount;
-
-    return NextResponse.json({
-      templates,
-      hasMore,
-      totalCount,
-    });
   } catch (error) {
     console.error("Error fetching templates:", error);
     return NextResponse.json(

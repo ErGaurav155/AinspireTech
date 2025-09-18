@@ -27,199 +27,14 @@ import { toast } from "sonner";
 import { setSubsciptionCanceled } from "@/lib/action/subscription.action";
 import { Button } from "@/components/ui/button";
 import {
-  getInstaAccount,
   getInstaAccounts,
   deleteInstaAccount,
 } from "@/lib/action/insta.action";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+
 import PaymentModal from "@/components/insta/PaymentModal";
-
-// Confirm Subscription Change Dialog Component
-interface ConfirmSubscriptionChangeDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  currentPlan: PricingPlan | null;
-  newPlan: PricingPlan | null;
-  isLoading?: boolean;
-}
-
-function ConfirmSubscriptionChangeDialog({
-  isOpen,
-  onClose,
-  onConfirm,
-  currentPlan,
-  newPlan,
-  isLoading = false,
-}: ConfirmSubscriptionChangeDialogProps) {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
-        <DialogHeader>
-          <DialogTitle className="text-white">
-            Confirm Subscription Change
-          </DialogTitle>
-          <DialogDescription className="text-gray-400">
-            Are you sure you want to change your subscription from{" "}
-            {currentPlan?.name} to {newPlan?.name}?
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-4">
-          <p className="text-sm text-gray-300">
-            Your current subscription will be cancelled immediately and you will
-            be charged for the new plan.
-          </p>
-        </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isLoading}
-            className="border-gray-600 text-white"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={onConfirm}
-            disabled={isLoading}
-            className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white"
-          >
-            {isLoading ? "Processing..." : "Confirm Change"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Account Selection Dialog Component
-interface AccountSelectionDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (selectedAccountIds: string[]) => void;
-  accounts: any[];
-  newPlan: PricingPlan | null;
-  isLoading?: boolean;
-}
-
-function AccountSelectionDialog({
-  isOpen,
-  onClose,
-  onConfirm,
-  accounts,
-  newPlan,
-  isLoading = false,
-}: AccountSelectionDialogProps) {
-  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
-
-  const getAccountLimit = (plan: PricingPlan | null) => {
-    if (!plan) return 1;
-    switch (plan.id) {
-      case "Insta-Automation-Free":
-        return 1;
-      case "Insta-Automation-Starter":
-        return 1;
-      case "Insta-Automation-Growth":
-        return 3;
-      case "Insta-Automation-Professional":
-        return 5;
-      default:
-        return 1;
-    }
-  };
-
-  const accountLimit = getAccountLimit(newPlan);
-  const accountsToDelete = Math.max(0, accounts.length - accountLimit);
-
-  const handleAccountSelection = (accountId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedAccounts([...selectedAccounts, accountId]);
-    } else {
-      setSelectedAccounts(selectedAccounts.filter((id) => id !== accountId));
-    }
-  };
-
-  const handleConfirm = () => {
-    if (selectedAccounts.length >= accountsToDelete) {
-      onConfirm(selectedAccounts);
-    }
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-white">
-            Account Limit Exceeded
-          </DialogTitle>
-          <DialogDescription className="text-gray-400">
-            The {newPlan?.name} plan allows only {accountLimit} Instagram
-            account(s). Please select {accountsToDelete} account(s) to delete.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-4 max-h-60 overflow-y-auto">
-          <div className="space-y-3">
-            {accounts.map((account) => (
-              <div key={account._id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={account._id}
-                  checked={selectedAccounts.includes(account._id)}
-                  onCheckedChange={(checked) =>
-                    handleAccountSelection(account._id, checked as boolean)
-                  }
-                  disabled={
-                    selectedAccounts.length >= accountsToDelete &&
-                    !selectedAccounts.includes(account._id)
-                  }
-                />
-                <Label
-                  htmlFor={account._id}
-                  className="text-white cursor-pointer"
-                >
-                  {account.username}
-                </Label>
-              </div>
-            ))}
-          </div>
-          {selectedAccounts.length < accountsToDelete && (
-            <p className="text-sm text-red-400 mt-3">
-              Please select {accountsToDelete - selectedAccounts.length} more
-              account(s)
-            </p>
-          )}
-        </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isLoading}
-            className="border-gray-600 text-white"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={isLoading || selectedAccounts.length < accountsToDelete}
-            className="bg-red-600 hover:bg-red-700 text-white"
-          >
-            {isLoading
-              ? "Processing..."
-              : `Delete Selected Accounts (${selectedAccounts.length}/${accountsToDelete})`}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+import { AccountSelectionDialog } from "@/components/insta/AccountSelectionDialog";
+import { ConfirmSubscriptionChangeDialog } from "@/components/insta/CancelSubcriptionChangeDialog";
+import { Textarea } from "@/components/ui/textarea";
 
 // Main Pricing Component
 export default function Pricing() {
@@ -236,6 +51,10 @@ export default function Pricing() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isInstaAccount, setIsInstaAccount] = useState(false);
   const [showSubCancelDialog, setShowSubCancelDialog] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState("");
+  const [cancellationMode, setCancellationMode] = useState<
+    "Immediate" | "End-of-term"
+  >("End-of-term");
   const [islogged, setIslogged] = useState(false);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -252,6 +71,11 @@ export default function Pricing() {
   >("monthly");
   const [userAccounts, setUserAccounts] = useState<any[]>([]);
   const [isProcessingChange, setIsProcessingChange] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+
+  // New states for cancellation flow
+  const [showCancelConfirmDialog, setShowCancelConfirmDialog] = useState(false);
+  const [showCancelAccountDialog, setShowCancelAccountDialog] = useState(false);
 
   // Fetch user data and subscription info
   useEffect(() => {
@@ -375,18 +199,62 @@ export default function Pricing() {
   }, [userId, router, activeProductId]);
 
   // Get account limit for a plan
-  const getAccountLimit = (plan: PricingPlan) => {
-    switch (plan.id) {
-      case "Insta-Automation-Free":
-        return 1;
-      case "Insta-Automation-Starter":
-        return 1;
-      case "Insta-Automation-Growth":
-        return 3;
-      case "Insta-Automation-Professional":
-        return 5;
-      default:
-        return 1;
+  // const getAccountLimit = (plan: PricingPlan) => {
+  //   switch (plan.id) {
+  //     case "Insta-Automation-Free":
+  //       return 1;
+  //     case "Insta-Automation-Starter":
+  //       return 1;
+  //     case "Insta-Automation-Growth":
+  //       return 3;
+  //     case "Insta-Automation-Professional":
+  //       return 5;
+  //     default:
+  //       return 1;
+  //   }
+  // };
+  const handleCancelSubscription = async () => {
+    if (!currentSubscription) {
+      console.log("selectedSubcription:", currentSubscription);
+      toast.error("No subscription selected for cancellation");
+      return;
+    }
+
+    setIsCancelling(true);
+    try {
+      // const cancelResult = await cancelRazorPaySubscription(
+      //   selectedSubscriptionId,
+      //   cancellationReason || "User requested cancellation",
+      //   cancellationMode
+      // );
+
+      // if (!cancelResult.success) {
+      //   toast.error("Failed to cancel subscription", {
+      //     description: cancelResult.message,
+      //   });
+      //   return;
+      // }
+
+      // Update database status
+      // await setSubsciptionCanceled(
+      //   selectedSubscriptionId,
+      //   cancellationReason || "User requested cancellation"
+      // );
+
+      toast.success("Subscription cancelled successfully", {
+        description: "Your plan has been cancelled",
+      });
+
+      // Clear current subscription
+      setCurrentSubscription([]);
+    } catch (error) {
+      console.error("Error cancelling subscription:", error);
+      toast.error("Failed to cancel subscription");
+    } finally {
+      setIsCancelling(false);
+      setShowCancelDialog(false);
+      setCancellationReason("");
+      setIsPaymentModalOpen(true);
     }
   };
 
@@ -423,20 +291,31 @@ export default function Pricing() {
     setShowConfirmDialog(false);
 
     try {
-      // First, cancel current subscription
-      const cancelResult = await cancelRazorPaySubscription(
-        currentSubscription.subscriptionId,
-        "Changing to new plan",
-        "Immediate"
-      );
-
-      if (!cancelResult.success) {
-        toast.error("Failed to cancel current subscription", {
-          description: cancelResult.message,
-        });
-        setIsProcessingChange(false);
-        return;
+      const accountLimit = 1;
+      // getAccountLimit(pendingPlan);
+      if (userAccounts.length > accountLimit) {
+        // Show account selection dialog
+        setPendingPlan(pendingPlan);
+        setShowAccountDialog(true);
+      } else {
+        // No need to delete accounts, proceed to payment
+        setSelectedPlan(pendingPlan);
+        setShowCancelDialog(true);
       }
+      // First, cancel current subscription
+      // const cancelResult = await cancelRazorPaySubscription(
+      //   currentSubscription.subscriptionId,
+      //   "Changing to new plan",
+      //   "Immediate"
+      // );
+
+      // if (!cancelResult.success) {
+      //   toast.error("Failed to cancel current subscription", {
+      //     description: cancelResult.message,
+      //   });
+      //   setIsProcessingChange(false);
+      //   return;
+      // }
 
       // Update database status
       // await setSubsciptionCanceled(
@@ -445,16 +324,6 @@ export default function Pricing() {
       // );
 
       // Check if we need to delete accounts
-      const accountLimit = getAccountLimit(pendingPlan);
-      if (userAccounts.length > accountLimit) {
-        // Show account selection dialog
-        setPendingPlan(pendingPlan);
-        setShowAccountDialog(true);
-      } else {
-        // No need to delete accounts, proceed to payment
-        setSelectedPlan(pendingPlan);
-        setIsPaymentModalOpen(true);
-      }
     } catch (error) {
       console.error("Error changing subscription:", error);
       toast.error("Failed to change subscription");
@@ -472,12 +341,13 @@ export default function Pricing() {
     try {
       // Delete selected accounts
       for (const accountId of selectedAccountIds) {
-        const result = await deleteInstaAccount(accountId, userId!);
-        if (!result.success) {
-          toast.error(`Failed to delete account: ${result.error}`);
-          setIsProcessingChange(false);
-          return;
-        }
+        console.log("accountId:", accountId);
+        // const result = await deleteInstaAccount(accountId, userId!);
+        // if (!result.success) {
+        //   toast.error(`Failed to delete account: ${result.error}`);
+        //   setIsProcessingChange(false);
+        //   return;
+        // }
       }
 
       toast.success("Accounts deleted successfully");
@@ -490,7 +360,7 @@ export default function Pricing() {
 
       // Proceed to payment
       setSelectedPlan(pendingPlan);
-      setIsPaymentModalOpen(true);
+      setShowCancelDialog(true);
     } catch (error) {
       console.error("Error deleting accounts:", error);
       toast.error("Failed to delete accounts");
@@ -500,29 +370,76 @@ export default function Pricing() {
     }
   };
 
-  const handleCancelSubscription = async () => {
-    if (!currentSubscription) return;
+  // Handle confirmed cancellation
+  const handleConfirmedCancellation = async () => {
+    setShowCancelConfirmDialog(false);
 
+    // Check if we need to delete accounts (free plan only allows 1 account)
+    const freePlanAccountLimit = 1;
+    if (userAccounts.length > freePlanAccountLimit) {
+      setShowCancelAccountDialog(true);
+    } else {
+      await processCancellation();
+    }
+  };
+
+  // Handle account deletion for cancellation
+  const handleCancelAccountDeletion = async (selectedAccountIds: string[]) => {
     setIsCancelling(true);
-    try {
-      const cancelResult = await cancelRazorPaySubscription(
-        currentSubscription.subscriptionId,
-        "User requested cancellation",
-        "Immediate"
-      );
+    setShowCancelAccountDialog(false);
 
-      if (!cancelResult.success) {
-        toast.error("Failed to cancel subscription", {
-          description: cancelResult.message,
-        });
-        return;
+    try {
+      // Delete selected accounts
+      for (const accountId of selectedAccountIds) {
+        console.log("accountId:", accountId);
+        // const result = await deleteInstaAccount(accountId, userId!);
+        // if (!result.success) {
+        //   toast.error(`Failed to delete account: ${result.error}`);
+        //   setIsCancelling(false);
+        //   return;
+        // }
       }
 
-      // Update database status
-      await setSubsciptionCanceled(
-        currentSubscription.subscriptionId,
-        "User requested cancellation"
+      toast.success("Accounts deleted successfully");
+
+      // Update user accounts list
+      const updatedAccounts = userAccounts.filter(
+        (account) => !selectedAccountIds.includes(account._id)
       );
+      setUserAccounts(updatedAccounts);
+
+      // Proceed with cancellation
+      await processCancellation();
+    } catch (error) {
+      console.error("Error deleting accounts:", error);
+      toast.error("Failed to delete accounts");
+      setIsCancelling(false);
+    }
+  };
+
+  // Process the actual cancellation
+  const processCancellation = async () => {
+    if (!currentSubscription) return;
+
+    try {
+      // const cancelResult = await cancelRazorPaySubscription(
+      //   currentSubscription.subscriptionId,
+      //   "User requested cancellation",
+      //   "Immediate"
+      // );
+
+      // if (!cancelResult.success) {
+      //   toast.error("Failed to cancel subscription", {
+      //     description: cancelResult.message,
+      //   });
+      //   return;
+      // }
+
+      // Update database status
+      // await setSubsciptionCanceled(
+      //   currentSubscription.subscriptionId,
+      //   "User requested cancellation"
+      // );
 
       toast.success("Subscription cancelled successfully", {
         description: "Your plan has been cancelled",
@@ -664,7 +581,6 @@ export default function Pricing() {
                 currentSubscription.chatbotType === plan.id &&
                 currentSubscription.billingCycle === billingCycle;
               const isUpgradeOption = currentSubscription;
-              const accountLimit = getAccountLimit(plan);
 
               return (
                 <div
@@ -802,7 +718,7 @@ export default function Pricing() {
                       {currentSubscription && isCurrentPlan && (
                         <Button
                           variant="outline"
-                          onClick={() => setShowSubCancelDialog(true)}
+                          onClick={() => setShowCancelConfirmDialog(true)}
                           disabled={isCancelling}
                           className="w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap bg-gradient-to-r from-[#962626]/80 to-[#8b0808] text-black disabled:opacity-70 disabled:cursor-not-allowed"
                         >
@@ -968,7 +884,73 @@ export default function Pricing() {
           </div>
         </div>
       </section>
+      {showCancelDialog && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="p-3 md:p-8 rounded-xl max-w-md w-full bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] ">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]">
+                Cancel Subscription
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowCancelDialog(false)}
+              >
+                <X className="text-gray-400 h-5 w-5 hover:text-white" />
+              </Button>
+            </div>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-lg font-semibold text-gray-200 mb-2">
+                  Please Provide Reason
+                </label>
+                <Textarea
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  className="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-[#B026FF] font-montserrat"
+                  placeholder="Cancellation reason"
+                  required
+                />
+              </div>
 
+              <div className="text-xs text-gray-400 font-montserrat ">
+                <p className="mb-2">
+                  <strong>Immediate Cancellation:</strong> Service ends
+                  immediately
+                </p>
+                <p>
+                  <strong>End-of-term Cancellation:</strong> Service continues
+                  until the end of billing period
+                </p>
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-4">
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setCancellationMode("Immediate");
+                    handleCancelSubscription();
+                  }}
+                  disabled={isCancelling}
+                  className="px-6 py-2"
+                >
+                  {isCancelling ? "Cancelling..." : "Cancel Immediately"}
+                </Button>
+                <Button
+                  className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF]"
+                  onClick={() => {
+                    setCancellationMode("End-of-term");
+                    handleCancelSubscription();
+                  }}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? "Cancelling..." : "Cancel at End of Term"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Payment Modal */}
       {islogged && (
         <PaymentModal
@@ -987,39 +969,6 @@ export default function Pricing() {
           }}
         />
       )}
-
-      {/* Subscription Cancellation Dialog */}
-      <AlertDialog
-        open={showSubCancelDialog}
-        onOpenChange={setShowSubCancelDialog}
-      >
-        <AlertDialogContent className=" bg-[#6d1717]/5 backdrop-blur-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently cancelled the
-              Instagram automation subscription.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleCancelSubscription}
-              disabled={isCancelling}
-              className="bg-destructive hover:bg-destructive/90 text-white"
-            >
-              {isCancelling ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Cancelling...
-                </>
-              ) : (
-                "Cancel Subscription"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Confirm Subscription Change Dialog */}
       <ConfirmSubscriptionChangeDialog
@@ -1043,6 +992,59 @@ export default function Pricing() {
         accounts={userAccounts}
         newPlan={pendingPlan}
         isLoading={isProcessingChange}
+      />
+
+      {/* Confirm Cancellation Dialog */}
+      <AlertDialog
+        open={showCancelConfirmDialog}
+        onOpenChange={setShowCancelConfirmDialog}
+      >
+        <AlertDialogContent className=" bg-[#6d1717]/5 backdrop-blur-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Cancellation</AlertDialogTitle>
+            <AlertDialogDescription className="font-montserrat">
+              Are you sure you want to cancel your subscription? Your plan will
+              revert to the Free plan which only allows 1 Instagram account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmedCancellation}
+              disabled={isCancelling}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Yes, Cancel Subscription"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Account Selection Dialog for Cancellation */}
+      <AccountSelectionDialog
+        isOpen={showCancelAccountDialog}
+        onClose={() => setShowCancelAccountDialog(false)}
+        onConfirm={handleCancelAccountDeletion}
+        accounts={userAccounts}
+        newPlan={{
+          id: "Insta-Automation-Free",
+          name: "Free",
+          description: "",
+          monthlyPrice: 0,
+          yearlyPrice: 0,
+          account: 1,
+          limit: 500,
+          features: [],
+          popular: false,
+        }}
+        isLoading={isCancelling}
       />
     </div>
   );

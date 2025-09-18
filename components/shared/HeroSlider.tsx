@@ -23,7 +23,7 @@ export const HeroSlider = () => {
           <span className="text-white">Smarter Businesses.</span>
         </h1>
 
-        <span className="text-gray-300 max-w-md text-center md:text-left">
+        <span className="text-gray-300 max-w-md text-center md:text-left font-montserrat text-lg">
           No delays, no surprises, no hidden fees. Cancel anytime.
         </span>
 
@@ -42,10 +42,12 @@ export const HeroSlider = () => {
           </button>
         </div>
 
-        <p className="text-gray-300 mt-4">Trusted by 1000+ Users</p>
+        <p className="text-gray-300 mt-4 font-montserrat">
+          Trusted by 1000+ Users
+        </p>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-2">
-          <span className="text-gray-300">4.6 out of 5</span>
+          <span className="text-gray-300 font-montserrat">4.6 out of 5</span>
           <div className="flex items-center justify-center gap-1">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="relative">

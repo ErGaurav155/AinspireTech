@@ -85,7 +85,6 @@ export default function AccountsPage() {
         replyLimit,
         totalAccounts,
       } = await accountsResponse.json();
-      console.log("Fetched accounts from DB:", dbAccounts);
       if (!dbAccounts?.length) {
         return null;
       }

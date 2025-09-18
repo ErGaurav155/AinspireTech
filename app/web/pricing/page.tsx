@@ -108,7 +108,7 @@ const Pricing = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
               Transform Your Business with AI
             </h1>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto font-mono">
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto font-montserrat">
               Advanced AI solutions tailored to optimize operations, enhance
               customer experiences, and drive growth for businesses of all
               sizes.
@@ -221,7 +221,7 @@ const Pricing = () => {
                   </div>
 
                   {billingMode === "yearly" && (
-                    <p className="text-center text-green-400 mt-2 font-medium">
+                    <p className="text-center text-green-400 mt-2 font-medium font-montserrat">
                       Save ${(originalPrice - displayedPrice).toFixed(0)}{" "}
                       annually
                     </p>
@@ -245,7 +245,9 @@ const Pricing = () => {
                       >
                         {inclusion.isIncluded && <Check className="w-3 h-3" />}
                       </span>
-                      <span className="flex-1">{inclusion.label}</span>
+                      <span className="flex-1 font-montserrat">
+                        {inclusion.label}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -289,7 +291,7 @@ const Pricing = () => {
               <h2 className="text-3xl font-bold text-white mb-4">
                 Feature Comparison
               </h2>
-              <p className="text-xl text-gray-300">
+              <p className="text-xl text-gray-300 font-montserrat">
                 See how our solutions compare
               </p>
             </div>
@@ -313,7 +315,7 @@ const Pricing = () => {
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#333]">
+                <tbody className="divide-y divide-[#333] font-montserrat">
                   {[
                     "24/7 Availability",
                     "Live Chat Interface",

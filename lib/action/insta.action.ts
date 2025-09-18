@@ -279,7 +279,7 @@ export async function deleteInstaAccount(accountId: string, userId: string) {
 
     // Find and delete the account
     const account = await InstagramAccount.findOneAndDelete({
-      _id: accountId,
+      username: accountId,
       userId,
     });
 

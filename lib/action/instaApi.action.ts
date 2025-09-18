@@ -94,17 +94,10 @@ async function replyToComment(
   message: string[]
 ): Promise<string | boolean> {
   try {
-    console.log("username : ", username);
-    console.log("accountId : ", accountId);
-    console.log("accessToken : ", accessToken);
-    console.log("commentId : ", commentId);
-    console.log("mediaId : ", mediaId);
-    console.log("message : ", message);
     // Verify media ownership
     const mediaResponse = await fetch(
       `https://graph.instagram.com/v23.0/${mediaId}?fields=id,username&access_token=${accessToken}`
     );
-    console.log("mediaResponse : ", mediaResponse);
 
     if (!mediaResponse.ok) {
       const error = await mediaResponse.json();
@@ -114,7 +107,6 @@ async function replyToComment(
     }
 
     const mediaData = await mediaResponse.json();
-    console.log("mediaData :", mediaData);
     const isOwner = mediaData.username === username;
 
     if (!isOwner) {
@@ -123,9 +115,6 @@ async function replyToComment(
 
     const ranNumber = Math.floor(Math.random() * message.length);
     const replyMessage = message[ranNumber];
-
-    console.log("ranNumber:", ranNumber);
-    console.log("message:", message[ranNumber]);
 
     // Reply to comment
     const replyResponse = await fetch(
@@ -142,9 +131,6 @@ async function replyToComment(
       }
     );
 
-    console.log("replyResponse : ", replyResponse);
-    console.log("replyResponse body : ", replyResponse.body);
-
     if (!replyResponse.ok) {
       const error = await replyResponse.json();
       console.error("Instagram Reply Error:", error);
@@ -158,50 +144,6 @@ async function replyToComment(
   }
 }
 
-// async function sendDirectMessage(
-//   accountId: string,
-//   accessToken: string,
-//   commentId: string,
-//   message: string[]
-// ): Promise<boolean> {
-//   try {
-//     console.log("accountId : ", accountId);
-//     console.log("accessToken : ", accessToken);
-//     console.log("recipientId : ", commentId);
-//     console.log("message : ", message);
-
-//     const sendResponse = await fetch(
-//       `https://graph.instagram.com/v23.0/${accountId}/messages`,
-//       {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//           Authorization: `Bearer ${accessToken}`,
-//         },
-//         body: JSON.stringify({
-//           recipient: { comment_id: commentId },
-//           message: {
-//             text: message[Math.floor(Math.random() * message.length)],
-//           },
-//         }),
-//       }
-//     );
-//     console.log("sendResponse : ", sendResponse);
-
-//     if (!sendResponse.ok) {
-//       const error = await sendResponse.json();
-//       console.log("error : ", error);
-
-//       console.error("Instagram DM Error:", error);
-//       return false;
-//     }
-
-//     return true;
-//   } catch (error) {
-//     console.error("Failed to send Instagram DM:", error);
-//     return false;
-//   }
-// }
 export async function sendDirectMessage(
   accountId: string,
   accessToken: string,
@@ -243,7 +185,6 @@ export async function sendDirectMessage(
     );
 
     const result = await response.json();
-    console.log("sendDirectMessage response:", result);
     if (!response.ok) {
       console.error("Instagram DM Error:", result);
       return false;
@@ -273,8 +214,6 @@ async function findMatchingTemplate(
   templates: IReplyTemplate[]
 ): Promise<IReplyTemplate | null> {
   const lowerComment = commentText.toLowerCase();
-  console.log("commentText : ", commentText);
-  console.log("templates : ", templates);
 
   // Database trigger matching
   for (const template of templates) {
@@ -322,7 +261,6 @@ export async function processComment(
       if (account.isActive) {
         account.isActive = false;
         await account.save();
-        console.log(`Auto-replies paused for ${account.username}`);
         return;
       }
     }
@@ -443,7 +381,6 @@ export async function handleInstagramWebhook(
 
         // Skip non-meaningful comments
         if (!isMeaningfulComment(comment.text)) {
-          console.log(`Skipping comment: ${comment.id}`);
           continue;
         }
 
@@ -456,7 +393,6 @@ export async function handleInstagramWebhook(
           continue;
         }
         if (account.instagramId === comment.user_id) {
-          console.log(`Owner commented Skipping now: ${comment.id}`);
           continue;
         }
 

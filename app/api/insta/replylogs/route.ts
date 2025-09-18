@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
       id: log._id,
       type: "reply_sent",
       account: log.commenterUsername,
+      accountId: log.accountId,
       template: log.templateName || "Unknown",
       timestamp: log.createdAt,
       message: `Auto-reply sent to @${log.commenterUsername}`,

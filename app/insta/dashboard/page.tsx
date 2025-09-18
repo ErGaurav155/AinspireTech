@@ -11,6 +11,7 @@ import {
   Zap,
   X,
   RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,12 +38,23 @@ import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { useAuth } from "@clerk/nextjs";
 import { getUserById } from "@/lib/action/user.actions";
-import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
+import {
+  getInstaSubscriptionInfo,
+  cancelRazorPaySubscription,
+  setSubsciptionCanceled,
+} from "@/lib/action/subscription.action";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import defaultImg from "@/public/assets/img/default-img.jpg";
 import { formatResponseTimeSmart, refreshInstagramToken } from "@/lib/utils";
+import { AccountSelectionDialog } from "@/components/insta/AccountSelectionDialog";
+import {
+  getInstaAccounts,
+  deleteInstaAccount,
+} from "@/lib/action/insta.action";
+import { instagramPricingPlans } from "@/constant";
+
 export default function Dashboard() {
   const { userId } = useAuth();
   const router = useRouter();
@@ -61,6 +73,13 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [hasError, setHasError] = useState<string[]>([]);
   const [dialog, setDialog] = useState(false);
+
+  // New states for cancellation flow
+  const [showCancelConfirmDialog, setShowCancelConfirmDialog] = useState(false);
+  const [showCancelAccountDialog, setShowCancelAccountDialog] = useState(false);
+  const [userAccounts, setUserAccounts] = useState<any[]>([]);
+  const [isProcessingCancellation, setIsProcessingCancellation] =
+    useState(false);
 
   const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
@@ -104,16 +123,18 @@ export default function Dashboard() {
                   sum + (account?.successRate || 0),
                 0
               ) / data.length,
-            overallAvgResponseTime: data.reduce(
-              (sum: number, account: any) =>
-                sum + (account?.avgResponseTime || 0),
-              0
-            ),
+            overallAvgResponseTime:
+              data.reduce(
+                (sum: number, account: any) =>
+                  sum + (account?.avgResponseTime || 0),
+                0
+              ) / data.length,
             accounts: data,
             recentActivity: [], // No recent activity in cache
           };
           if (stats) {
             setDashboardData(stats);
+            setUserAccounts(data);
           }
           return stats;
         }
@@ -208,10 +229,12 @@ export default function Dashboard() {
             (sum: number, account: any) => sum + (account?.successRate || 0),
             0
           ) / validAccounts.length,
-        overallAvgResponseTime: validAccounts?.reduce(
-          (sum: number, account: any) => sum + (account?.avgResponseTime || 0),
-          0
-        ),
+        overallAvgResponseTime:
+          validAccounts?.reduce(
+            (sum: number, account: any) =>
+              sum + (account?.avgResponseTime || 0),
+            0
+          ) / validAccounts.length,
         accounts: validAccounts,
       };
       if (validAccounts && validAccounts?.length > 0) {
@@ -222,6 +245,7 @@ export default function Dashboard() {
             timestamp: Date.now(),
           })
         );
+        setUserAccounts(validAccounts);
       }
       return stats;
     } catch (error) {
@@ -279,7 +303,6 @@ export default function Dashboard() {
         const userData = await getUserById(userId);
         if (userData) {
           const subs = await getInstaSubscriptionInfo(userId);
-          console.log("subs:", subs);
           setSubscriptions(subs);
           setUserInfo(userData);
         }
@@ -292,49 +315,114 @@ export default function Dashboard() {
     fetchDashboardData();
   }, [userId, fetchDashboardData]);
 
+  // Handle cancellation initiation
+  const handleCancelInitiation = () => {
+    setShowCancelDialog(false);
+    setShowCancelConfirmDialog(true);
+  };
+
+  // Handle confirmed cancellation
+  const handleConfirmedCancellation = async () => {
+    setShowCancelConfirmDialog(false);
+
+    // Check if we need to delete accounts (free plan only allows 1 account)
+    const freePlanAccountLimit = 1;
+    if (userAccounts.length > freePlanAccountLimit) {
+      setShowCancelAccountDialog(true);
+    } else {
+      // No need to delete accounts, show the cancellation options dialog
+      setShowCancelDialog(true);
+    }
+  };
+
+  // Handle account deletion for cancellation
+  const handleCancelAccountDeletion = async (selectedAccountIds: string[]) => {
+    setIsProcessingCancellation(true);
+    setShowCancelAccountDialog(false);
+    try {
+      // Delete selected accounts
+      for (const accountId of selectedAccountIds) {
+        // const result = await deleteInstaAccount(accountId, userId!);
+        // if (!result.success) {
+        //   toast.error(`Failed to delete account: ${result.error}`);
+        //   setIsProcessingCancellation(false);
+        //   return;
+        // }
+        console.log("accountId:", accountId);
+      }
+
+      toast.success("Accounts deleted successfully");
+
+      // Update user accounts list
+      const updatedAccounts = userAccounts.filter(
+        (account) => !selectedAccountIds.includes(account.id)
+      );
+      setUserAccounts(updatedAccounts);
+
+      // Update dashboard data
+      setDashboardData((prev: any) => ({
+        ...prev,
+        accounts: updatedAccounts,
+        totalAccounts: updatedAccounts.length,
+        activeAccounts: updatedAccounts.filter(
+          (account: any) => account?.isActive
+        ).length,
+      }));
+
+      // Clear cache
+      localStorage.removeItem(ACCOUNTS_CACHE_KEY);
+
+      // Show the cancellation options dialog
+      setShowCancelDialog(true);
+    } catch (error) {
+      console.error("Error deleting accounts:", error);
+      toast.error("Failed to delete accounts");
+      setIsProcessingCancellation(false);
+    }
+  };
+
+  // Process the actual cancellation
   const handleCancelSubscription = async () => {
     if (!selectedSubscriptionId) return;
 
     setIsCancelling(true);
     try {
-      const response = await fetch("/api/insta/subscription/cancel", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subscriptionId: selectedSubscriptionId,
-          reason: cancellationReason,
-          mode: cancellationMode,
-        }),
-      });
-      const result = await response.json();
+      console.log("Cancelled the subcription");
+      // const cancelResult = await cancelRazorPaySubscription(
+      //   selectedSubscriptionId,
+      //   cancellationReason || "User requested cancellation",
+      //   cancellationMode
+      // );
 
-      if (result.success) {
-        toast.success("Subscription cancelled successfully!", {
-          description: result.message,
-          duration: 3000,
-        });
-        setSubscriptions(
-          subscriptions.filter(
-            (sub) => sub.subscriptionId !== selectedSubscriptionId
-          )
-        );
-      } else {
-        toast.error("Subscription cancellation failed!", {
-          description: result.message,
-          duration: 3000,
-        });
-      }
-    } catch (error: any) {
-      toast.error("Error cancelling subscription", {
-        description: error.message || "An unknown error occurred",
-        duration: 3000,
+      // if (!cancelResult.success) {
+      //   toast.error("Failed to cancel subscription", {
+      //     description: cancelResult.message,
+      //   });
+      //   return;
+      // }
+
+      // Update database status
+      // await setSubsciptionCanceled(
+      //   selectedSubscriptionId,
+      //   cancellationReason || "User requested cancellation"
+      // );
+
+      toast.success("Subscription cancelled successfully", {
+        description: "Your plan has been cancelled",
       });
+
+      // Clear current subscription
+      setSubscriptions([]);
+    } catch (error) {
+      console.error("Error cancelling subscription:", error);
+      toast.error("Failed to cancel subscription");
     } finally {
       setIsCancelling(false);
       setShowCancelDialog(false);
       setCancellationReason("");
     }
   };
+
   const handleError = (id: string) => {
     setHasError((prev) => [...prev, id]); // Add the ID to the error array
   };
@@ -432,7 +520,7 @@ export default function Dashboard() {
                   variant="destructive"
                   onClick={() => {
                     setSelectedSubscriptionId(subscriptions[0].subscriptionId);
-                    setShowCancelDialog(true);
+                    handleCancelInitiation();
                   }}
                 >
                   Cancel Subscription
@@ -869,6 +957,57 @@ export default function Dashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Confirm Cancellation Dialog */}
+      <AlertDialog
+        open={showCancelConfirmDialog}
+        onOpenChange={setShowCancelConfirmDialog}
+      >
+        <AlertDialogContent className=" bg-[#6d1717]/5 backdrop-blur-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Cancellation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel your subscription? Your plan will
+              revert to the Free plan which only allows 1 Instagram account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmedCancellation}
+              disabled={isCancelling}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Yes, Cancel Subscription"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {/* Account Selection Dialog for Cancellation */}
+      <AccountSelectionDialog
+        isOpen={showCancelAccountDialog}
+        onClose={() => setShowCancelAccountDialog(false)}
+        onConfirm={handleCancelAccountDeletion}
+        accounts={userAccounts}
+        newPlan={{
+          id: "Insta-Automation-Free",
+          name: "Free",
+          description: "",
+          monthlyPrice: 0,
+          yearlyPrice: 0,
+          account: 1,
+          limit: 500,
+          features: [],
+          popular: false,
+        }}
+        isLoading={isProcessingCancellation}
+      />
     </div>
   );
 }

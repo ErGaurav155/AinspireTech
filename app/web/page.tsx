@@ -113,7 +113,7 @@ export default function Home() {
           <h1 className="text-6xl md:text-7xl font-bold mb-6 gradient-text-main">
             WebBot
           </h1>
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed font-mono">
+          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed font-montserrat">
             Turn your website visitors into loyal customers with smart,
             automated AI support. BizChat Pro engages instantly, answers FAQs,
             books appointments, and captures leads — 24/7.{" "}
@@ -172,7 +172,7 @@ export default function Home() {
                     />
                   </div>
                   <CardTitle className="text-white">{feature.title}</CardTitle>
-                  <CardDescription className="text-gray-300 font-mono">
+                  <CardDescription className="text-gray-300 font-montserrat">
                     {feature.description}
                   </CardDescription>
                 </CardHeader>
@@ -187,7 +187,7 @@ export default function Home() {
             <h2 className="text-4xl font-bold text-white mb-4 gradient-text-main">
               What Our Customers Say
             </h2>
-            <p className="text-xl text-gray-300 font-mono">
+            <p className="text-xl text-gray-300 font-montserrat">
               Join thousands of creators who have transformed their Instagram
               engagement
             </p>
@@ -208,7 +208,7 @@ export default function Home() {
                       />
                     ))}
                   </div>
-                  <p className="text-gray-300 mb-4 font-mono">
+                  <p className="text-gray-300 mb-4 font-montserrat">
                     {testimonial.content}
                   </p>
                   <div>
@@ -232,7 +232,7 @@ export default function Home() {
               <h2 className="text-4xl font-bold mb-4 gradient-text-main">
                 🚀 Ready to Convert Your Website Traffic Into Paying Clients?{" "}
               </h2>
-              <p className="text-gray-300 mb-8 text-lg font-mono max-w-2xl mx-auto">
+              <p className="text-gray-300 mb-8 text-lg font-montserrat max-w-2xl mx-auto">
                 Thousands of local businesses are using AI-powered chatbots to
                 automate support, boost engagement, and increase sales.
               </p>

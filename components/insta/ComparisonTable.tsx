@@ -133,25 +133,25 @@ const ComparisonTable: React.FC = () => {
             <tbody className="divide-y divide-[#333]">
               {features.map((feature, index) => (
                 <tr key={index} className="hover:bg-[#1a1a1a]/50">
-                  <td className="py-4 px-6 font-medium text-gray-300">
+                  <td className="py-4 px-6 font-medium text-gray-300 font-montserrat">
                     {feature.name}
                   </td>
-                  <td className="py-4 px-6 text-center bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29]">
+                  <td className="py-4 px-6 text-center bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] font-montserrat">
                     {renderFeatureValue(feature.comment2DM, "comment2DM")}
                   </td>
-                  <td className="py-4 px-6 text-center">
+                  <td className="py-4 px-6 text-center font-montserrat">
                     {renderFeatureValue(feature.autoDM, "autoDM")}
                   </td>
-                  <td className="py-4 px-6 text-center">
+                  <td className="py-4 px-6 text-center font-montserrat">
                     {renderFeatureValue(feature.linkplease, "linkplease")}
                   </td>
-                  <td className="py-4 px-6 text-center">
+                  <td className="py-4 px-6 text-center font-montserrat">
                     {renderFeatureValue(feature.rapiddm, "rapiddm")}
                   </td>
-                  <td className="py-4 px-6 text-center">
+                  <td className="py-4 px-6 text-center font-montserrat">
                     {renderFeatureValue(feature.zorcha, "zorcha")}
                   </td>
-                  <td className="py-4 px-6 text-center">
+                  <td className="py-4 px-6 text-center font-montserrat">
                     {renderFeatureValue(feature.instantDM, "instantDM")}
                   </td>
                 </tr>

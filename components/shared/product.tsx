@@ -277,7 +277,7 @@ const ProductShowcase = () => {
             <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
               Ready to Transform Your Business?
             </h3>
-            <p className="text-gray-300 mb-6">
+            <p className="text-gray-300 mb-6 font-montserrat">
               Join thousands of businesses already using our AI solutions to
               automate customer engagement and boost conversions.
             </p>

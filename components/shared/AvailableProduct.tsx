@@ -90,7 +90,9 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
               <h3 className="text-xl font-bold text-white">
                 {product.description.heading}
               </h3>
-              <p className="text-gray-300">{product.description.subheading}</p>
+              <p className="text-gray-300 font-montserrat">
+                {product.description.subheading}
+              </p>
             </div>
 
             {/* Action Buttons */}
