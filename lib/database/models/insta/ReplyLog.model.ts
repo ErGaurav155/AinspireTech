@@ -68,7 +68,7 @@ const ReplyLogSchema = new Schema<IReplyLog>(
 );
 
 // Add TTL index to automatically delete documents after 24 hours
-ReplyLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 300 });
+ReplyLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 1800 });
 
 const InstaReplyLog: Model<IReplyLog> =
   mongoose.models?.InstaReplyLog ||
