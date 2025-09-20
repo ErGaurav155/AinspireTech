@@ -8,7 +8,6 @@ export default authMiddleware({
     "/Aboutus",
     "/web/pricing",
     "/contactUs",
-    "/OurService",
     "/Review",
     "/web/product/:path*",
     "/new/product",

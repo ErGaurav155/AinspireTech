@@ -23,7 +23,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Bot,
   MessageCircle,
@@ -153,8 +158,6 @@ const chatbotTypes = [
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
   const [selectedChatbot, setSelectedChatbot] = useState(
     "chatbot-customer-support"
   );
@@ -212,13 +215,14 @@ export default function DashboardPage() {
   const [isImmediateSubmitting, setIsImmediateSubmitting] = useState(false);
 
   const [mode, setMode] = useState<"Immediate" | "End-of-term">("End-of-term");
+  const { userId } = useAuth();
 
   const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
 
       // Load subscriptions
-      const subscriptionsData = await apiClient.getSubscriptions();
+      const subscriptionsData = await apiClient.getSubscriptions(userId!);
 
       const subscriptionsMap = subscriptionsData.reduce(
         (acc: any, sub: any) => {
@@ -281,17 +285,15 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedChatbot]);
+  }, [selectedChatbot, userId]);
   useEffect(() => {
-    if (!isLoaded) return;
-
-    if (!user) {
+    if (!userId) {
       router.push("/sign-in");
       return;
     }
 
     loadDashboardData();
-  }, [user, isLoaded, loadDashboardData, router]);
+  }, [userId, loadDashboardData, router]);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(chatbotCode);
@@ -433,7 +435,7 @@ export default function DashboardPage() {
     setAppointmentQuestions(appointmentQuestions.filter((q) => q.id !== id));
   };
 
-  if (!isLoaded || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-transparent text-white flex items-center justify-center">
         <div className="text-center">
@@ -444,7 +446,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user) return null;
+  if (!userId) return null;
 
   const currentChatbot = chatbotTypes.find((bot) => bot.id === selectedChatbot);
   const isSubscribed = subscriptions[selectedChatbot]?.status === "active";
@@ -605,7 +607,7 @@ export default function DashboardPage() {
             Your AI Chatbots
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {chatbotTypes.map((chatbot) => {
+            {chatbotTypes?.map((chatbot) => {
               const isActive = selectedChatbot === chatbot.id;
               const hasSubscription =
                 subscriptions[chatbot.id]?.status === "active";
@@ -641,7 +643,7 @@ export default function DashboardPage() {
                     <h3 className="font-semibold text-white mb-1">
                       {chatbot.name}
                     </h3>
-                    <p className="text-xs text-gray-400 mb-3">
+                    <p className="text-xs text-gray-400 mb-3 font-montserrat">
                       {chatbot.description}
                     </p>
                     {!hasSubscription && (
@@ -697,7 +699,7 @@ export default function DashboardPage() {
                         <p className="text-2xl font-bold text-white">
                           {stat.value}
                         </p>
-                        <p className="text-xs text-green-400 mt-1">
+                        <p className="text-xs text-green-400 mt-1 font-montserrat">
                           {stat.change} from last week
                         </p>
                       </div>
@@ -748,7 +750,6 @@ export default function DashboardPage() {
                 Settings
               </TabsTrigger>
             </TabsList>
-
             <TabsContent value="overview" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Conversation Trends */}
@@ -759,7 +760,7 @@ export default function DashboardPage() {
                         <CardTitle className="text-white">
                           Conversation Trends
                         </CardTitle>
-                        <CardDescription className="text-gray-400">
+                        <CardDescription className="text-gray-400 font-montserrat">
                           Daily conversation volume for {currentChatbot?.name}
                         </CardDescription>
                       </CardHeader>
@@ -817,7 +818,7 @@ export default function DashboardPage() {
                         <CardTitle className="text-white">
                           Response Time Distribution
                         </CardTitle>
-                        <CardDescription className="text-gray-400">
+                        <CardDescription className="text-gray-400 font-montserrat">
                           How quickly your {currentChatbot?.name.toLowerCase()}{" "}
                           responds
                         </CardDescription>
@@ -867,7 +868,7 @@ export default function DashboardPage() {
                         <CardTitle className="text-white">
                           Customer Satisfaction
                         </CardTitle>
-                        <CardDescription className="text-gray-400">
+                        <CardDescription className="text-gray-400 font-montserrat">
                           Feedback ratings from{" "}
                           {currentChatbot?.name.toLowerCase()} users
                         </CardDescription>
@@ -916,7 +917,7 @@ export default function DashboardPage() {
                       <CardTitle className="text-white">
                         Recent Conversations
                       </CardTitle>
-                      <CardDescription className="text-gray-400">
+                      <CardDescription className="text-gray-400 font-montserrat">
                         Latest {currentChatbot?.name.toLowerCase()} interactions
                       </CardDescription>
                     </CardHeader>
@@ -949,11 +950,11 @@ export default function DashboardPage() {
                                     {conversation.status}
                                   </Badge>
                                 </div>
-                                <p className="text-sm text-gray-400 truncate">
+                                <p className="text-sm text-gray-400 truncate font-montserrat">
                                   {conversation.messages[0]?.content ||
                                     "No message"}{" "}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-gray-500 mt-1 font-montserrat">
                                   {new Date(
                                     conversation.createdAt
                                   ).toLocaleString()}{" "}
@@ -967,21 +968,20 @@ export default function DashboardPage() {
                 )}
               </div>
             </TabsContent>
-
             <TabsContent value="conversations" className="space-y-6">
               <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
                 <CardHeader className="p-2">
                   <CardTitle className="text-white">
                     All Conversations - {currentChatbot?.name}
                   </CardTitle>
-                  <CardDescription className="text-gray-400">
+                  <CardDescription className="text-gray-400 font-montserrat">
                     Manage and respond to {currentChatbot?.name.toLowerCase()}{" "}
                     conversations
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-2">
                   <div className="space-y-4">
-                    {conversations.map((conversation, index) => (
+                    {conversations?.map((conversation, index) => (
                       <div
                         key={conversation.id ? conversation.id : index}
                         className="flex items-start space-x-3 p-4 rounded-lg bg-[#147679]/10 hover:bg-[#308285]/15  transition-colors"
@@ -1022,7 +1022,7 @@ export default function DashboardPage() {
                                     <DialogTitle>
                                       Conversation Details
                                     </DialogTitle>
-                                    <DialogDescription className="text-gray-400">
+                                    <DialogDescription className="text-gray-400 font-montserrat">
                                       Customer:{" "}
                                       {conversation.customerName || "Anonymous"}{" "}
                                       | Chatbot: {currentChatbot?.name}
@@ -1050,13 +1050,13 @@ export default function DashboardPage() {
                                                     ? "Customer"
                                                     : "Bot"}
                                                 </span>
-                                                <span className="text-xs text-gray-500">
+                                                <span className="text-xs text-gray-500 font-montserrat">
                                                   {new Date(
                                                     message.timestamp
                                                   ).toLocaleTimeString()}
                                                 </span>
                                               </div>
-                                              <p className="text-sm text-gray-300">
+                                              <p className="text-sm text-gray-300 font-montserrat">
                                                 {message.content}
                                               </p>
                                             </div>
@@ -1065,11 +1065,11 @@ export default function DashboardPage() {
                                       </div>
                                     </div>
 
-                                    <div className="bg-[#b71b86]/10 p-4 rounded space-y-2">
+                                    {/* <div className="bg-[#b71b86]/10 p-4 rounded space-y-2">
                                       <h4 className="font-medium mb-2">
                                         Form Data
                                       </h4>
-                                      {conversation.formData.map(
+                                      {conversation?.formData[0]?.map(
                                         (field: any) => {
                                           // Map field.question to specific UI components
                                           if (
@@ -1171,8 +1171,8 @@ export default function DashboardPage() {
                                           return null;
                                         }
                                       )}
-                                    </div>
-                                    {conversation.formData.find((f: any) =>
+                                    </div> */}
+                                    {/* {conversation?.formData[0]?.find((f: any) =>
                                       /message|additional comments/i.test(
                                         f.question
                                       )
@@ -1192,16 +1192,17 @@ export default function DashboardPage() {
                                           }
                                         </p>
                                       </div>
-                                    )}
+                                    )} */}
                                   </div>
                                 </DialogContent>
+                                np
                               </Dialog>
                             </div>
                           </div>
-                          <p className="text-sm text-gray-400">
+                          <p className="text-sm text-gray-400 font-montserrat">
                             {conversation.messages[0]?.content || "No message"}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 mt-1 font-montserrat">
                             {new Date(conversation.createdAt).toLocaleString()}
                           </p>
                         </div>
@@ -1211,16 +1212,642 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </TabsContent>
+            {/* Add this to your DashboardPage component, replacing the
+            integration section */}
 
             <TabsContent value="integration" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Chatbot Integration Code */}
+                <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                  <CardHeader className="p-4">
+                    <CardTitle className="text-white flex items-center">
+                      <Code className="h-5 w-5 mr-2" />
+                      {currentChatbot?.name} Widget Integration
+                    </CardTitle>
+                    <CardDescription className="text-gray-400">
+                      Copy and paste the code below to integrate{" "}
+                      {currentChatbot?.name} into your website
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <Tabs defaultValue="universal" className="w-full">
+                      <TabsList className="bg-[#0a0a0a]/60 border min-h-max flex flex-wrap max-w-max gap-1 md:gap-3 text-white border-gray-800">
+                        <TabsTrigger
+                          value="universal"
+                          className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                        >
+                          Universal
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="wordpress"
+                          className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                        >
+                          WordPress
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="react"
+                          className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                        >
+                          React
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="angular"
+                          className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                        >
+                          Angular
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="html"
+                          className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                        >
+                          HTML/JS
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="universal" className="space-y-4">
+                        <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4 mb-4">
+                          <div className="flex items-start space-x-3">
+                            <AlertCircle className="h-5 w-5 text-blue-400 mt-0.5" />
+                            <div>
+                              <h4 className="text-sm font-medium text-blue-400">
+                                Universal Integration
+                              </h4>
+                              <p className="text-sm text-gray-300 mt-1">
+                                This code works on any website platform. Simply
+                                copy and paste it before the closing
+                                &lt;/body&gt; tag.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <pre className="bg-gray-900/80 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
+                            <code>{`<script>
+  (function() {
+    const chatbotConfig = {
+      userId: '${userId}',
+      isAuthorized: ${isSubscribed},
+      filename: '${
+        subscriptions[selectedChatbot]?.filename || "your-data-file"
+      }',
+      chatbotType: '${selectedChatbot}',
+      apiUrl: 'https://ainspiretech.com',
+      primaryColor: '#00F0FF',
+      position: 'bottom-right',
+      welcomeMessage: 'Hi! How can I help you today?',
+      chatbotName: '${currentChatbot?.name}'
+    };
+    
+    const script = document.createElement('script');
+    script.src = 'https://ainspiretech.com/chatbotembed.js';
+    script.setAttribute('data-chatbot-config', JSON.stringify(chatbotConfig));
+    document.head.appendChild(script);
+  })();
+</script>`}</code>
+                          </pre>
+                          <Button
+                            size="sm"
+                            className="absolute top-2 right-2 bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                              const code = `<script>
+  (function() {
+    const chatbotConfig = {
+      userId: '${userId}',
+      isAuthorized: ${isSubscribed},
+      filename: '${
+        subscriptions[selectedChatbot]?.filename || "your-data-file"
+      }',
+      chatbotType: '${selectedChatbot}',
+      apiUrl: 'https://ainspiretech.com',
+      primaryColor: '#00F0FF',
+      position: 'bottom-right',
+      welcomeMessage: 'Hi! How can I help you today?',
+      chatbotName: '${currentChatbot?.name}'
+    };
+    
+    const script = document.createElement('script');
+    script.src = 'https://ainspiretech.com/chatbotembed.js';
+    script.setAttribute('data-chatbot-config', JSON.stringify(chatbotConfig));
+    document.head.appendChild(script);
+  })();
+</script>`;
+                              navigator.clipboard.writeText(code);
+                              toast({
+                                title: "Code copied!",
+                                description:
+                                  "Universal widget code copied to clipboard",
+                              });
+                            }}
+                          >
+                            <Copy className="h-4 w-4 mr-1" />
+                            Copy Code
+                          </Button>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="wordpress" className="space-y-4">
+                        <div className="bg-purple-900/20 border border-purple-400/30 rounded-lg p-4 mb-4">
+                          <div className="flex items-start space-x-3">
+                            <AlertCircle className="h-5 w-5 text-purple-400 mt-0.5" />
+                            <div>
+                              <h4 className="text-sm font-medium text-purple-400">
+                                WordPress Integration
+                              </h4>
+                              <p className="text-sm text-gray-300 mt-1">
+                                For WordPress, you can use a plugin like Header
+                                and Footer Scripts or add the code to your
+                                themes functions.php file.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <pre className="bg-gray-900/80 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
+                            <code>{`// Add this to your theme's functions.php or a custom plugin
+function add_chatbot_widget() {
+    echo '<script>
+      (function() {
+        const chatbotConfig = {
+          userId: "${userId}",
+          isAuthorized: ${isSubscribed},
+          filename: "${
+            subscriptions[selectedChatbot]?.filename || "your-data-file"
+          }",
+          chatbotType: "${selectedChatbot}",
+          apiUrl: "https://ainspiretech.com",
+          primaryColor: "#00F0FF",
+          position: "bottom-right",
+          welcomeMessage: "Hi! How can I help you today?",
+          chatbotName: "${currentChatbot?.name}"
+        };
+        
+        const script = document.createElement("script");
+        script.src = "https://ainspiretech.com/chatbotembed.js";
+        script.setAttribute("data-chatbot-config", JSON.stringify(chatbotConfig));
+        document.head.appendChild(script);
+      })();
+    </script>';
+}
+add_action('wp_footer', 'add_chatbot_widget');`}</code>
+                          </pre>
+                          <Button
+                            size="sm"
+                            className="absolute top-2 right-2 bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                              const code = `// Add this to your theme's functions.php or a custom plugin
+function add_chatbot_widget() {
+    echo '<script>
+      (function() {
+        const chatbotConfig = {
+          userId: "${userId}",
+          isAuthorized: ${isSubscribed},
+          filename: "${
+            subscriptions[selectedChatbot]?.filename || "your-data-file"
+          }",
+          chatbotType: "${selectedChatbot}",
+          apiUrl: "https://ainspiretech.com",
+          primaryColor: "#00F0FF",
+          position: "bottom-right",
+          welcomeMessage: "Hi! How can I help you today?",
+          chatbotName: "${currentChatbot?.name}"
+        };
+        
+        const script = document.createElement("script");
+        script.src = "https://ainspiretech.com/chatbotembed.js";
+        script.setAttribute("data-chatbot-config", JSON.stringify(chatbotConfig));
+        document.head.appendChild(script);
+      })();
+    </script>';
+}
+add_action('wp_footer', 'add_chatbot_widget');`;
+                              navigator.clipboard.writeText(code);
+                              toast({
+                                title: "Code copied!",
+                                description:
+                                  "WordPress code copied to clipboard",
+                              });
+                            }}
+                          >
+                            <Copy className="h-4 w-4 mr-1" />
+                            Copy Code
+                          </Button>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="react" className="space-y-4">
+                        <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4 mb-4">
+                          <div className="flex items-start space-x-3">
+                            <AlertCircle className="h-5 w-5 text-blue-400 mt-0.5" />
+                            <div>
+                              <h4 className="text-sm font-medium text-blue-400">
+                                React Integration
+                              </h4>
+                              <p className="text-sm text-gray-300 mt-1">
+                                For React applications, add this code to your
+                                main App component or layout component.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <pre className="bg-gray-900/80 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
+                            <code>{`// Add this to your main App.js or layout component
+import { useEffect } from 'react';
+
+function App() {
+  useEffect(() => {
+    // Set chatbot configuration
+    const chatbotConfig = {
+      userId: "${userId}",
+      isAuthorized: ${isSubscribed},
+      filename: "${
+        subscriptions[selectedChatbot]?.filename || "your-data-file"
+      }",
+      chatbotType: "${selectedChatbot}",
+      apiUrl: "https://ainspiretech.com",
+      primaryColor: "#00F0FF",
+      position: "bottom-right",
+      welcomeMessage: "Hi! How can I help you today?",
+      chatbotName: "${currentChatbot?.name}"
+    };
+    
+    // Load chatbot script
+    const script = document.createElement('script');
+    script.src = 'https://ainspiretech.com/chatbotembed.js';
+    script.setAttribute('data-chatbot-config', JSON.stringify(chatbotConfig));
+    document.head.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+  
+  return (
+    // Your app content
+  );
+}`}</code>
+                          </pre>
+                          <Button
+                            size="sm"
+                            className="absolute top-2 right-2 bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                              const code = `// Add this to your main App.js or layout component
+import { useEffect } from 'react';
+
+function App() {
+  useEffect(() => {
+    // Set chatbot configuration
+    const chatbotConfig = {
+      userId: "${userId}",
+      isAuthorized: ${isSubscribed},
+      filename: "${
+        subscriptions[selectedChatbot]?.filename || "your-data-file"
+      }",
+      chatbotType: "${selectedChatbot}",
+      apiUrl: "https://ainspiretech.com",
+      primaryColor: "#00F0FF",
+      position: "bottom-right",
+      welcomeMessage: "Hi! How can I help you today?",
+      chatbotName: "${currentChatbot?.name}"
+    };
+    
+    // Load chatbot script
+    const script = document.createElement('script');
+    script.src = 'https://ainspiretech.com/chatbotembed.js';
+    script.setAttribute('data-chatbot-config', JSON.stringify(chatbotConfig));
+    document.head.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+  
+  return (
+    // Your app content
+  );
+}`;
+                              navigator.clipboard.writeText(code);
+                              toast({
+                                title: "Code copied!",
+                                description: "React code copied to clipboard",
+                              });
+                            }}
+                          >
+                            <Copy className="h-4 w-4 mr-1" />
+                            Copy Code
+                          </Button>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="angular" className="space-y-4">
+                        <div className="bg-red-900/20 border border-red-400/30 rounded-lg p-4 mb-4">
+                          <div className="flex items-start space-x-3">
+                            <AlertCircle className="h-5 w-5 text-red-400 mt-0.5" />
+                            <div>
+                              <h4 className="text-sm font-medium text-red-400">
+                                Angular Integration
+                              </h4>
+                              <p className="text-sm text-gray-300 mt-1">
+                                For Angular applications, add this code to your
+                                main component or in the index.html file.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <pre className="bg-gray-900/80 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
+                            <code>{`// Add this to your index.html file before the closing </body> tag
+<script>
+  (function() {
+    const chatbotConfig = {
+      userId: "${userId}",
+      isAuthorized: ${isSubscribed},
+      filename: "${
+        subscriptions[selectedChatbot]?.filename || "your-data-file"
+      }",
+      chatbotType: "${selectedChatbot}",
+      apiUrl: "https://ainspiretech.com",
+      primaryColor: "#00F0FF",
+      position: "bottom-right",
+      welcomeMessage: "Hi! How can I help you today?",
+      chatbotName: "${currentChatbot?.name}"
+    };
+    
+    const script = document.createElement('script');
+    script.src = 'https://ainspiretech.com/chatbotembed.js';
+    script.setAttribute('data-chatbot-config', JSON.stringify(chatbotConfig));
+    document.head.appendChild(script);
+  })();
+</script>
+
+// OR add dynamically in your main component
+// app.component.ts
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit {
+  ngOnInit() {
+    // Set chatbot configuration
+    const chatbotConfig = {
+      userId: "${userId}",
+      isAuthorized: ${isSubscribed},
+      filename: "${
+        subscriptions[selectedChatbot]?.filename || "your-data-file"
+      }",
+      chatbotType: "${selectedChatbot}",
+      apiUrl: "https://ainspiretech.com",
+      primaryColor: "#00F0FF",
+      position: "bottom-right",
+      welcomeMessage: "Hi! How can I help you today?",
+      chatbotName: "${currentChatbot?.name}"
+    };
+    
+    // Load chatbot script
+    const script = document.createElement('script');
+    script.src = 'https://ainspiretech.com/chatbotembed.js';
+    script.setAttribute('data-chatbot-config', JSON.stringify(chatbotConfig));
+    document.head.appendChild(script);
+  }
+}`}</code>
+                          </pre>
+                          <Button
+                            size="sm"
+                            className="absolute top-2 right-2 bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                              const code = `// Add this to your index.html file before the closing </body> tag
+<script>
+  (function() {
+    const chatbotConfig = {
+      userId: "${userId}",
+      isAuthorized: ${isSubscribed},
+      filename: "${
+        subscriptions[selectedChatbot]?.filename || "your-data-file"
+      }",
+      chatbotType: "${selectedChatbot}",
+      apiUrl: "https://ainspiretech.com",
+      primaryColor: "#00F0FF",
+      position: "bottom-right",
+      welcomeMessage: "Hi! How can I help you today?",
+      chatbotName: "${currentChatbot?.name}"
+    };
+    
+    const script = document.createElement('script');
+    script.src = 'https://ainspiretech.com/chatbotembed.js';
+    script.setAttribute('data-chatbot-config', JSON.stringify(chatbotConfig));
+    document.head.appendChild(script);
+  })();
+</script>
+
+// OR add dynamically in your main component
+// app.component.ts
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit {
+  ngOnInit() {
+    // Set chatbot configuration
+    const chatbotConfig = {
+      userId: "${userId}",
+      isAuthorized: ${isSubscribed},
+      filename: "${
+        subscriptions[selectedChatbot]?.filename || "your-data-file"
+      }",
+      chatbotType: "${selectedChatbot}",
+      apiUrl: "https://ainspiretech.com",
+      primaryColor: "#00F0FF",
+      position: "bottom-right",
+      welcomeMessage: "Hi! How can I help you today?",
+      chatbotName: "${currentChatbot?.name}"
+    };
+    
+    // Load chatbot script
+    const script = document.createElement('script');
+    script.src = 'https://ainspiretech.com/chatbotembed.js';
+    script.setAttribute('data-chatbot-config', JSON.stringify(chatbotConfig));
+    document.head.appendChild(script);
+  }
+}`;
+                              navigator.clipboard.writeText(code);
+                              toast({
+                                title: "Code copied!",
+                                description: "Angular code copied to clipboard",
+                              });
+                            }}
+                          >
+                            <Copy className="h-4 w-4 mr-1" />
+                            Copy Code
+                          </Button>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="html" className="space-y-4">
+                        <div className="bg-green-900/20 border border-green-400/30 rounded-lg p-4 mb-4">
+                          <div className="flex items-start space-x-3">
+                            <AlertCircle className="h-5 w-5 text-green-400 mt-0.5" />
+                            <div>
+                              <h4 className="text-sm font-medium text-green-400">
+                                HTML/JS Integration
+                              </h4>
+                              <p className="text-sm text-gray-300 mt-1">
+                                For plain HTML websites, add this code before
+                                the closing &lt;/body&gt; tag on every page.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <pre className="bg-gray-900/80 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
+                            <code>{`<!-- Add this before the closing </body> tag on your HTML pages -->
+<script>
+  (function() {
+    const chatbotConfig = {
+      userId: '${userId}',
+      isAuthorized: ${isSubscribed},
+      filename: '${
+        subscriptions[selectedChatbot]?.filename || "your-data-file"
+      }',
+      chatbotType: '${selectedChatbot}',
+      apiUrl: 'https://ainspiretech.com',
+      primaryColor: '#00F0FF',
+      position: 'bottom-right',
+      welcomeMessage: 'Hi! How can I help you today?',
+      chatbotName: '${currentChatbot?.name}'
+    };
+    
+    const script = document.createElement('script');
+    script.src = 'https://ainspiretech.com/chatbotembed.js';
+    script.setAttribute('data-chatbot-config', JSON.stringify(chatbotConfig));
+    document.head.appendChild(script);
+  })();
+</script>`}</code>
+                          </pre>
+                          <Button
+                            size="sm"
+                            className="absolute top-2 right-2 bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                              const code = `<!-- Add this before the closing </body> tag on your HTML pages -->
+<script>
+  (function() {
+    const chatbotConfig = {
+      userId: '${userId}',
+      isAuthorized: ${isSubscribed},
+      filename: '${
+        subscriptions[selectedChatbot]?.filename || "your-data-file"
+      }',
+      chatbotType: '${selectedChatbot}',
+      apiUrl: 'https://ainspiretech.com',
+      primaryColor: '#00F0FF',
+      position: 'bottom-right',
+      welcomeMessage: 'Hi! How can I help you today?',
+      chatbotName: '${currentChatbot?.name}'
+    };
+    
+    const script = document.createElement('script');
+    script.src = 'https://ainspiretech.com/chatbotembed.js';
+    script.setAttribute('data-chatbot-config', JSON.stringify(chatbotConfig));
+    document.head.appendChild(script);
+  })();
+</script>`;
+                              navigator.clipboard.writeText(code);
+                              toast({
+                                title: "Code copied!",
+                                description: "HTML code copied to clipboard",
+                              });
+                            }}
+                          >
+                            <Copy className="h-4 w-4 mr-1" />
+                            Copy Code
+                          </Button>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+
+                    <div className="mt-6 p-4 bg-amber-900/20 border border-amber-400/30 rounded-lg">
+                      <div className="flex items-start space-x-3">
+                        <AlertCircle className="h-5 w-5 text-amber-400 mt-0.5" />
+                        <div>
+                          <h4 className="text-sm font-medium text-amber-400">
+                            Important Notes
+                          </h4>
+                          <ul className="text-sm text-gray-300 mt-1 list-disc list-inside space-y-1">
+                            <li>
+                              The widget will only work if your subscription is
+                              active (isAuthorized: true)
+                            </li>
+                            <li>
+                              Make sure your filename matches the data file
+                              associated with your chatbot
+                            </li>
+                            <li>
+                              The widget will automatically appear in the
+                              bottom-right corner of your website
+                            </li>
+                            <li>
+                              You can customize the primaryColor, position, and
+                              welcomeMessage parameters
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                  <CardHeader className="p-2">
+                    <CardTitle className="text-white flex items-center">
+                      <Globe className="h-5 w-5 mr-2" />
+                      Website Data for {currentChatbot?.name}
+                    </CardTitle>
+                    <CardDescription className="text-gray-400 font-montserrat">
+                      Update your website information for better AI responses
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-2">
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="websiteData" className="text-gray-300">
+                          Website Information
+                        </Label>
+                        <Textarea
+                          id="websiteData"
+                          value={websiteData}
+                          onChange={(e) => setWebsiteData(e.target.value)}
+                          className="mt-2 bg-[#8f28a4]/5 border-gray-700 text-white min-h-[200px] font-montserrat"
+                          placeholder="Enter your website information, services, business hours, etc."
+                        />
+                      </div>
+                      <Button
+                        onClick={saveWebsiteData}
+                        className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black`}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Website Data
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+            {/* <TabsContent value="integration3" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
                   <CardHeader className="p-2">
                     <CardTitle className="text-white">
                       {currentChatbot?.name} Integration
                     </CardTitle>
-                    <CardDescription className="text-gray-400">
+                    <CardDescription className="text-gray-400 font-montserrat">
                       Copy and paste this code into your website
                     </CardDescription>
                   </CardHeader>
@@ -1228,7 +1855,7 @@ export default function DashboardPage() {
                     <div className="space-y-4">
                       <div className="relative">
                         <pre className="bg-[#a54b17]/5 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
-                          <code>{chatbotCode}</code>
+                          <code className="font-montserrat">{chatbotCode}</code>
                         </pre>
                         <Button
                           size="sm"
@@ -1251,7 +1878,7 @@ export default function DashboardPage() {
                             <h4 className="text-sm font-medium text-blue-400">
                               Integration Instructions
                             </h4>
-                            <p className="text-sm text-gray-300 mt-1">
+                            <p className="text-sm text-gray-300 mt-1 font-montserrat">
                               1. Copy the code above
                               <br />
                               2. Paste it before the closing &lt;/body&gt; tag
@@ -1267,14 +1894,13 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
 
-                {/* Website Data Management */}
                 <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
                   <CardHeader className="p-2">
                     <CardTitle className="text-white flex items-center">
                       <Globe className="h-5 w-5 mr-2" />
                       Website Data for {currentChatbot?.name}
                     </CardTitle>
-                    <CardDescription className="text-gray-400">
+                    <CardDescription className="text-gray-400 font-montserrat">
                       Update your website information for better AI responses
                     </CardDescription>
                   </CardHeader>
@@ -1288,7 +1914,7 @@ export default function DashboardPage() {
                           id="websiteData"
                           value={websiteData}
                           onChange={(e) => setWebsiteData(e.target.value)}
-                          className="mt-2 bg-[#8f28a4]/5 border-gray-700 text-white min-h-[200px]"
+                          className="mt-2 bg-[#8f28a4]/5 border-gray-700 text-white min-h-[200px] font-montserrat"
                           placeholder="Enter your website information, services, business hours, etc."
                         />
                       </div>
@@ -1303,8 +1929,7 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
-
+            </TabsContent> */}
             <TabsContent value="settings" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Chatbot Settings */}
@@ -1313,7 +1938,7 @@ export default function DashboardPage() {
                     <CardTitle className="text-white">
                       {currentChatbot?.name} Settings
                     </CardTitle>
-                    <CardDescription className="text-gray-400">
+                    <CardDescription className="text-gray-400 font-montserrat">
                       Configure your chatbot behavior and appearance
                     </CardDescription>
                   </CardHeader>
@@ -1329,7 +1954,7 @@ export default function DashboardPage() {
                           </Label>
                           <Input
                             id="chatbotName"
-                            className="mt-2 bg-transparent border-gray-700 text-white"
+                            className="mt-2 bg-transparent border-gray-700 text-white font-montserrat"
                             placeholder={currentChatbot?.name}
                           />
                         </div>
@@ -1342,7 +1967,7 @@ export default function DashboardPage() {
                           </Label>
                           <Input
                             id="welcomeMessage"
-                            className="mt-2 bg-transparent border-gray-700 text-white"
+                            className="mt-2 bg-transparent border-gray-700 text-white font-montserrat"
                             placeholder="Hi! How can I help you today?"
                           />
                         </div>
@@ -1364,7 +1989,7 @@ export default function DashboardPage() {
                             id="websiteUrl"
                             value={websiteUrl}
                             onChange={(e) => setWebsiteUrl(e.target.value)}
-                            className="bg-transparent border-gray-700 text-white"
+                            className="bg-transparent border-gray-700 text-white font-montserrat"
                             placeholder="https://yourwebsite.com"
                           />
                           <Button
@@ -1398,7 +2023,7 @@ export default function DashboardPage() {
                           Add Question
                         </Button>
                       </CardTitle>
-                      <CardDescription className="text-gray-400">
+                      <CardDescription className="text-gray-400 font-montserrat">
                         Configure questions for appointment booking
                       </CardDescription>
                     </CardHeader>
@@ -1419,7 +2044,7 @@ export default function DashboardPage() {
                                     e.target.value
                                   )
                                 }
-                                className="bg-transparent border-gray-600 text-white text-sm"
+                                className="bg-transparent border-gray-600 text-white text-sm font-montserrat"
                               />
                               <Button
                                 size="sm"
@@ -1515,7 +2140,7 @@ export default function DashboardPage() {
             <h3 className="text-xl font-semibold text-gray-400 mb-2">
               Subscription Required
             </h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-gray-500 mb-6 font-montserrat">
               Subscribe to access dashboard features for {currentChatbot?.name}
             </p>
             <Button
@@ -1535,6 +2160,17 @@ export default function DashboardPage() {
         onOpenChange={setShowCancelSubDialog}
       >
         <AlertDialogContent className="  backdrop-blur-md">
+          <AlertDialogDescription
+            className="text-gray-400 mb-4"
+            font-montserrat
+          >
+            Cancelling your subscription will result in the loss of access to
+            premium features. You can choose to cancel immediately or at the end
+            of your current billing cycle.
+          </AlertDialogDescription>
+          <AlertDialogTitle>
+            Are you sure you want to cancel your subscription?
+          </AlertDialogTitle>
           <AlertDialogContent>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]">

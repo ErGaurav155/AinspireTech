@@ -98,7 +98,7 @@ const ContactForm = () => {
                 AWAITS.
               </span>
             </h1>
-            <p className="text-gray-300 mt-6 text-lg">
+            <p className="text-gray-300 mt-6 text-lg font-montserrat">
               Got a burning AI idea, question, or just want to chat about what
               we do? We are all ears! Reach out, and our friendly team at
               AinspireTech AI will be right there to guide, assist, or simply
@@ -156,7 +156,7 @@ const ContactForm = () => {
                         <FormControl>
                           <Input
                             type="text"
-                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
+                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
                             placeholder="Full Name"
                             {...field}
                           />
@@ -173,7 +173,7 @@ const ContactForm = () => {
                         <FormControl>
                           <Input
                             type="number"
-                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
+                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
                             placeholder="Phone Number"
                             {...field}
                           />
@@ -194,7 +194,7 @@ const ContactForm = () => {
                         <FormControl>
                           <Input
                             type="text"
-                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
+                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
                             placeholder="Subject"
                             {...field}
                           />
@@ -211,7 +211,7 @@ const ContactForm = () => {
                         <FormControl>
                           <Input
                             type="email"
-                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
+                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
                             placeholder="Enter email"
                             {...field}
                           />
@@ -233,10 +233,10 @@ const ContactForm = () => {
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
-                          <SelectTrigger className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]">
+                          <SelectTrigger className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat">
                             <SelectValue placeholder="Choose Budget" />
                           </SelectTrigger>
-                          <SelectContent className="bg-gray-900 border border-[#B026FF]/30 backdrop-blur-md">
+                          <SelectContent className="bg-gray-900 border border-[#B026FF]/30 font-montserrat backdrop-blur-md">
                             {[
                               "$100 - $500",
                               "$500 - $1000",
@@ -247,7 +247,7 @@ const ContactForm = () => {
                               <SelectItem
                                 key={option}
                                 value={option}
-                                className="text-white hover:bg-gray-800/50 py-3"
+                                className="text-white hover:bg-gray-800/50 py-3 font-montserrat"
                               >
                                 {option}
                               </SelectItem>
@@ -266,7 +266,7 @@ const ContactForm = () => {
                         <FormControl>
                           <Input
                             type="text"
-                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
+                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
                             placeholder="Enter address"
                             {...field}
                           />
@@ -286,7 +286,7 @@ const ContactForm = () => {
                       <FormControl>
                         <Textarea
                           rows={6}
-                          className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-4 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
+                          className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-4 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
                           placeholder="Your Message"
                           {...field}
                         />

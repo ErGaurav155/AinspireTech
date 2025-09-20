@@ -185,7 +185,88 @@ export default function Home() {
             );
           })}
         </div>
+        <section className="container mx-auto px-4 py-16 md:py-24">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              How CommentFlow Works
+            </h2>
+            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+              Set up in minutes and start automating your Instagram comments
+            </p>
+          </div>
 
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row gap-8 items-center mb-16">
+              <div className="md:w-1/2">
+                <div className="text-cyan-400 font-bold text-lg mb-2">
+                  Step 1
+                </div>
+                <h3 className="text-2xl font-semibold mb-4">
+                  Connect Your Instagram Account
+                </h3>
+                <p className="text-gray-300 font-montserrat">
+                  Securely connect your Instagram business account with our
+                  compliant API integration. We never store your password and
+                  use official Instagram APIs.
+                </p>
+              </div>
+              <div className="md:w-1/2  border border-gray-700/50 rounded-2xl p-6 aspect-video flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-5xl mb-4">📱</div>
+                  <div className="text-gray-400">
+                    Instagram Connection Interface
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row-reverse gap-8 items-center mb-16">
+              <div className="md:w-1/2">
+                <div className="text-cyan-400 font-bold text-lg mb-2">
+                  Step 2
+                </div>
+                <h3 className="text-2xl font-semibold mb-4">
+                  Set Up Response Rules
+                </h3>
+                <p className="text-gray-300 font-montserrat">
+                  Create custom response templates based on keywords, question
+                  types, or sentiment. Our AI can help suggest responses or you
+                  can create your own.
+                </p>
+              </div>
+              <div className="md:w-1/2  border border-gray-700/50 rounded-2xl p-6 aspect-video flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-5xl mb-4">⚙️</div>
+                  <div className="text-gray-400">
+                    Response Rules Configuration
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-8 items-center">
+              <div className="md:w-1/2">
+                <div className="text-cyan-400 font-bold text-lg mb-2">
+                  Step 3
+                </div>
+                <h3 className="text-2xl font-semibold mb-4">
+                  Monitor & Improve
+                </h3>
+                <p className="text-gray-300 font-montserrat">
+                  Use our dashboard to monitor responses, analyze engagement
+                  metrics, and continuously improve your automated comment
+                  system.
+                </p>
+              </div>
+              <div className="md:w-1/2  border border-gray-700/50 rounded-2xl p-6 aspect-video flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-5xl mb-4">📊</div>
+                  <div className="text-gray-400">Analytics Dashboard</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
         <ComparisonTable />
         {/* Testimonials */}
         <section className="py-16 backdrop-blur-sm">

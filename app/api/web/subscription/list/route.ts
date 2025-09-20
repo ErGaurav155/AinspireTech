@@ -1,17 +1,17 @@
-import { NextResponse } from "next/server";
-
-import { auth } from "@clerk/nextjs";
+import { NextRequest, NextResponse } from "next/server";
 import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const { userId } = auth();
-
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "No user ID provided" },
+        { status: 400 }
+      );
     }
-
     await connectToDatabase();
 
     const subscriptions = await WebSubscription.find({
@@ -26,7 +26,7 @@ export async function GET() {
       },
       status: "active",
     });
-
+    console.log("Fetched subscriptions:", subscriptions);
     if (!subscriptions || subscriptions.length === 0) {
       return NextResponse.json([], { status: 200 });
     }

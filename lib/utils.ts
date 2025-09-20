@@ -80,8 +80,8 @@ class ApiClient {
   }
 
   // Subscription methods
-  async getSubscriptions() {
-    return this.request("/web/subscription/list");
+  async getSubscriptions(userId: string) {
+    return this.request(`/web/subscription/list?userId=${userId}`);
   }
 
   async createSubscription(

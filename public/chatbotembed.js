@@ -1,7 +1,6 @@
 (function () {
   "use strict";
 
-  // Chatbot Widget Class
   class ChatbotWidget {
     constructor(config) {
       this.config = {

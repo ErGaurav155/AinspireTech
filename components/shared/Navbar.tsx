@@ -35,7 +35,8 @@ export function NavBar() {
   }, [router, userId]);
 
   const navItems = [
-    { id: "services", label: "Services", href: "/OurService" },
+    { id: "insta", label: "Insta", href: "/insta" },
+    { id: "web", label: "Web", href: "/web" },
     { id: "about", label: "AboutUs", href: "/Aboutus" },
     { id: "review", label: "Review", href: "/Review" },
   ];
@@ -114,14 +115,14 @@ export function NavBar() {
             ) : (
               <>
                 <button
-                  onClick={() => router.push("/web")}
+                  onClick={() => router.push("/web/UserDashboard")}
                   className="hidden md:flex items-center justify-center px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                 >
                   <span className="mr-2">WebBot</span>
                   <ArrowRight className="hidden lg:flex" size={16} />
                 </button>
                 <button
-                  onClick={() => router.push("/insta")}
+                  onClick={() => router.push("/insta/dashboard")}
                   className="hidden md:flex items-center justify-center px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                 >
                   <span className="mr-2">InstaBot</span>
@@ -225,7 +226,7 @@ export function NavBar() {
                 <>
                   <button
                     onClick={() => {
-                      router.push("/web");
+                      router.push("/web/UserDashboard");
                       setIsMenuOpen(false);
                     }}
                     className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
@@ -234,7 +235,7 @@ export function NavBar() {
                   </button>
                   <button
                     onClick={() => {
-                      router.push("/insta");
+                      router.push("/insta/dashboard");
                       setIsMenuOpen(false);
                     }}
                     className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"

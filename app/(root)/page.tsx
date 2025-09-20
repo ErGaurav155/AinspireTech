@@ -5,7 +5,6 @@ import { Footer } from "@/components/shared/Footer";
 import FunFacts from "@/components/shared/FunFact";
 import { HeroSlider } from "@/components/shared/HeroSlider";
 import OutProduct from "@/components/shared/product";
-import Service from "@/components/shared/Service";
 import TestimonialSection from "@/components/shared/Testimonial";
 
 const Home = async () => {
@@ -14,7 +13,6 @@ const Home = async () => {
       <DiscountBanner />
       <HeroSlider />
       <FunFacts />
-      <Service />
       <OutProduct />
       <Features />
       <OurClientReviev />

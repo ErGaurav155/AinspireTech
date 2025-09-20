@@ -14,7 +14,7 @@ const PrivacyPolicy = () => {
 
           <div className="space-y-10">
             <section className="border-b border-gray-800 pb-8">
-              <p className="text-gray-300">
+              <p className="text-gray-300 font-montserrat">
                 Welcome to AinspireTechAI. Your privacy is paramount to us, and
                 we are committed to protecting your personal data. This privacy
                 policy explains how we handle your personal information in
@@ -27,7 +27,7 @@ const PrivacyPolicy = () => {
               <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 Important Information and Who We Are
               </h2>
-              <p className="text-gray-300">
+              <p className="text-gray-300 font-montserrat">
                 AinspireTechAI operates in accordance with the INDs data
                 protection regulations. We are the controller and are
                 responsible for your personal data.
@@ -38,7 +38,7 @@ const PrivacyPolicy = () => {
               <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 The Data We Collect About You
               </h2>
-              <p className="text-gray-300">
+              <p className="text-gray-300 font-montserrat">
                 The categories of personal data that we collect may include, but
                 are not limited to, Identity Data, Contact Data, Financial Data,
                 Transaction Data, and Technical Data.
@@ -49,7 +49,7 @@ const PrivacyPolicy = () => {
               <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 How Is Your Personal Data Collected?
               </h2>
-              <p className="text-gray-300">
+              <p className="text-gray-300 font-montserrat">
                 Data is collected through direct interactions with our website
                 and services, as well as through automated technologies that
                 record your interactions with our website.
@@ -60,7 +60,7 @@ const PrivacyPolicy = () => {
               <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 How We Use Your Personal Data
               </h2>
-              <p className="text-gray-300">
+              <p className="text-gray-300 font-montserrat">
                 We comply with IND data protection laws and use your personal
                 data only where it is lawful to do so. This may include
                 fulfilling contracts, pursuing legitimate interests, or
@@ -72,7 +72,7 @@ const PrivacyPolicy = () => {
               <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 Data Security
               </h2>
-              <p className="text-gray-300">
+              <p className="text-gray-300 font-montserrat">
                 In compliance with IND law, we have implemented strong security
                 measures to protect your data from unauthorized access,
                 alteration, or disclosure.
@@ -83,7 +83,7 @@ const PrivacyPolicy = () => {
               <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 Data Retention
               </h2>
-              <p className="text-gray-300">
+              <p className="text-gray-300 font-montserrat">
                 We retain personal data for as long as necessary to fulfill the
                 purposes outlined in this policy, in line with the legal
                 requirements and regulations of the IND.
@@ -94,7 +94,7 @@ const PrivacyPolicy = () => {
               <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 Your Legal Rights
               </h2>
-              <p className="text-gray-300">
+              <p className="text-gray-300 font-montserrat">
                 You have specific rights regarding your personal data under IND
                 law, including the right to access, correct, or request the
                 deletion of your personal data.
@@ -105,7 +105,7 @@ const PrivacyPolicy = () => {
               <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 International Transfers
               </h2>
-              <p className="text-gray-300">
+              <p className="text-gray-300 font-montserrat">
                 We comply with IND regulations regarding the international
                 transfer of personal data, ensuring that your data is protected
                 in accordance with IND law when transferred across borders.
@@ -116,7 +116,7 @@ const PrivacyPolicy = () => {
               <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 Third-Party Links
               </h2>
-              <p className="text-gray-300">
+              <p className="text-gray-300 font-montserrat">
                 Our website may link to external sites that are not operated by
                 us. We have no control over and assume no responsibility for the
                 content or privacy practices of any third-party sites.
@@ -127,7 +127,7 @@ const PrivacyPolicy = () => {
               <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 Contact Details
               </h2>
-              <p className="text-gray-300 mb-5">
+              <p className="text-gray-300 mb-5 font-montserrat">
                 If you have any questions about this privacy policy or our
                 privacy practices, please contact us:
               </p>
@@ -152,7 +152,7 @@ const PrivacyPolicy = () => {
               <h2 className="font-bold text-2xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                 Changes to the Privacy Policy
               </h2>
-              <p className="text-gray-300">
+              <p className="text-gray-300 font-montserrat">
                 We reserve the right to update this policy at any time. Changes
                 will be posted on this page with an updated revision date.
               </p>
