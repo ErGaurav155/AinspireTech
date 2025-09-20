@@ -62,7 +62,7 @@ const Pricing = () => {
         setLoading(false);
       } else {
         try {
-          const response = await apiClient.getSubscriptions();
+          const response = await apiClient.getSubscriptions(userId);
 
           const filteredSubscriptions = response.map((sub: any) => ({
             chatbotType: sub.chatbotType,
