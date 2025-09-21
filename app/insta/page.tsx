@@ -20,6 +20,9 @@ import Link from "next/link";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import Faq from "@/components/shared/Faq";
 import ComparisonTable from "@/components/insta/ComparisonTable";
+import { FeatureSection } from "@/components/web/Feature";
+import { ClientShowcase } from "@/components/web/ClientShowcase";
+import { FeatureShowcase } from "@/components/web/FeatureShowcase";
 
 export default function Home() {
   const features = [
@@ -185,6 +188,10 @@ export default function Home() {
             );
           })}
         </div>
+        <FeatureSection />
+        <ClientShowcase />
+        <FeatureShowcase />
+
         <section className="container mx-auto px-4 py-16 md:py-24">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">

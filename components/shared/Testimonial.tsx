@@ -1,28 +1,38 @@
 "use client";
 
 import * as React from "react";
-import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import { testimonials } from "@/constant";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoscroll from "embla-carousel-auto-scroll";
 
 export function TestimonialSection() {
-  const plugin = React.useRef(
-    Autoplay({ delay: 2000, stopOnInteraction: false })
+  // Forward scrolling carousel (left to right)
+  const [emblaRefForward] = useEmblaCarousel(
+    {
+      loop: true,
+    },
+    [
+      Autoscroll({
+        speed: 1,
+        direction: "forward",
+      }),
+    ]
   );
 
-  // Create pairs of testimonials (two per item)
-  const testimonialPairs = [];
-  for (let i = 0; i < testimonials.length; i += 2) {
-    testimonialPairs.push(testimonials.slice(i, i + 2));
-  }
+  // Backward scrolling carousel (right to left)
+  const [emblaRefBackward] = useEmblaCarousel(
+    {
+      loop: true,
+    },
+    [
+      Autoscroll({
+        speed: 1,
+        direction: "backward",
+      }),
+    ]
+  );
 
   return (
     <section className="w-full py-10 relative z-10">
@@ -39,62 +49,99 @@ export function TestimonialSection() {
           </p>
         </div>
 
-        {/* Testimonial Carousel */}
-        <Carousel
-          plugins={[plugin.current]}
-          className="w-full min-h-max max-w-6xl mx-auto"
-          onMouseEnter={plugin.current.stop}
-          onMouseLeave={plugin.current.reset}
-        >
-          <CarouselContent>
-            {testimonialPairs.map((pair, index) => (
-              <CarouselItem
-                key={index}
-                className="md:basis-1/2 lg:basis-1/3 p-4"
-              >
-                <div className="flex flex-col   gap-6">
-                  {pair.map((testimonial) => (
-                    <Card
-                      key={testimonial.id}
-                      className="bg-[#0a0a0a]/60 backdrop-blur-sm border   border-[#00F0FF]/30 rounded-xl hover:border-[#B026FF] transition-all"
-                    >
-                      <CardContent className="p-3 ">
-                        <div className="flex flex-col gap-6">
-                          <div className="flex gap-4 items-center">
-                            <div className="relative">
-                              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
-                              <div className="relative w-16 h-16 rounded-full overflow-hidden bg-[#0a0a0a] flex items-center justify-center">
-                                <Image
-                                  src={testimonial.image}
-                                  alt={`Testimonial ${testimonial.id}`}
-                                  fill
-                                  sizes="100%"
-                                  className="rounded-full object-cover"
-                                  loading="lazy"
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <h4 className="text-lg font-bold text-white">
-                                {testimonial.title}
-                              </h4>
-                              <span className="text-sm  text-gray-300">
-                                {testimonial.name}
-                              </span>
+        {/* Forward Direction Carousel (Left to Right) */}
+        <div className="mb-12">
+          <div ref={emblaRefForward} className="overflow-hidden w-full">
+            <div className="flex">
+              {testimonials.map((testimonial) => (
+                <div
+                  key={testimonial.id}
+                  className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 p-4"
+                >
+                  <Card className="bg-[#0a0a0a]/60 backdrop-blur-sm border border-[#00F0FF]/30 rounded-xl hover:border-[#B026FF] transition-all">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col gap-6">
+                        <div className="flex gap-4 items-center">
+                          <div className="relative">
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
+                            <div className="relative w-16 h-16 rounded-full overflow-hidden bg-[#0a0a0a] flex items-center justify-center">
+                              <Image
+                                src={testimonial.image}
+                                alt={`Testimonial ${testimonial.id}`}
+                                fill
+                                sizes="100%"
+                                className="rounded-full object-cover"
+                                loading="lazy"
+                              />
                             </div>
                           </div>
-                          <p className="text-gray-300 h-[10rem] md:h-[14rem] overflow-y-auto no-scrollbar font-montserrat">
-                            {testimonial.text}
-                          </p>
+                          <div>
+                            <h4 className=" text-xs md:text-lg font-medium text-white">
+                              {testimonial.title}
+                            </h4>
+                            <span className=" text-xs md:text-sm text-gray-300">
+                              {testimonial.name}
+                            </span>
+                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        <p className="text-gray-300 h-[10rem] overflow-y-auto no-scrollbar font-montserrat">
+                          {testimonial.text}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Backward Direction Carousel (Right to Left) */}
+        <div>
+          <div ref={emblaRefBackward} className="overflow-hidden w-full">
+            <div className="flex">
+              {testimonials.map((testimonial) => (
+                <div
+                  key={testimonial.id}
+                  className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 p-4"
+                >
+                  <Card className="bg-[#0a0a0a]/60 backdrop-blur-sm border border-[#00F0FF]/30 rounded-xl hover:border-[#B026FF] transition-all">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col gap-6">
+                        <div className="flex gap-4 items-center">
+                          <div className="relative">
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
+                            <div className="relative w-16 h-16 rounded-full overflow-hidden bg-[#0a0a0a] flex items-center justify-center">
+                              <Image
+                                src={testimonial.image}
+                                alt={`Testimonial ${testimonial.id}`}
+                                fill
+                                sizes="100%"
+                                className="rounded-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className=" text-xs md:text-lg font-medium text-white">
+                              {testimonial.title}
+                            </h4>
+                            <span className=" text-xs md:text-sm text-gray-300">
+                              {testimonial.name}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-gray-300 h-[10rem] overflow-y-auto no-scrollbar font-montserrat">
+                          {testimonial.text}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -20,7 +20,7 @@ import {
 import Link from "next/link";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import Faq from "@/components/shared/Faq";
-
+import { AIAgentHero } from "@/components/web/AiAgentHero";
 export default function Home() {
   const features = [
     {
@@ -94,6 +94,7 @@ export default function Home() {
     <div className="min-h-screen max-w-7xl m-auto text-white">
       {/* Hero Section */}
       <BreadcrumbsDefault />
+      <AIAgentHero />
       <div className="container mx-auto px-4 py-20">
         <div className="text-center mb-20">
           <div className="flex justify-center mb-6">
