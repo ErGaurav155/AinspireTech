@@ -16,6 +16,8 @@ export function TestimonialSection() {
     [
       Autoscroll({
         speed: 1,
+        stopOnInteraction: false,
+        stopOnMouseEnter: false,
         direction: "forward",
       }),
     ]
@@ -29,6 +31,8 @@ export function TestimonialSection() {
     [
       Autoscroll({
         speed: 1,
+        stopOnInteraction: false,
+        stopOnMouseEnter: false,
         direction: "backward",
       }),
     ]

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   MessageCircle,
   Play,
@@ -28,6 +29,83 @@ import {
 
 export function FeatureShowcase() {
   const [activeCategory, setActiveCategory] = useState("all");
+
+  // EXACT same animation variants as FeatureSection component
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.8,
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const cardVariants = {
+    hidden: {
+      opacity: 0,
+      y: 60,
+      scale: 0.9,
+      rotateX: -10,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      rotateX: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+    hover: {
+      y: -8,
+      scale: 1.02,
+      borderColor: "rgba(37, 139, 148, 0.4)",
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const titleVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const textVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+        delay: 0.2,
+      },
+    },
+  };
+
+  const iconVariants = {
+    hidden: { opacity: 0, scale: 0 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut",
+      },
+    },
+  };
 
   const features = [
     {
@@ -228,27 +306,74 @@ export function FeatureShowcase() {
       : features.filter((feature) => feature.category === activeCategory);
 
   return (
-    <section className="w-full py-20 bg-transparent text-white">
-      <div className="container mx-auto px-4">
+    <section className="w-full bg-transparent text-white py-20 backdrop-blur-sm">
+      <motion.div
+        className=" mx-auto md:px-4"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, margin: "-100px" }}
+      >
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
+        <motion.div
+          className="text-center mb-16"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, margin: "-100px" }}
+        >
+          <motion.div
+            className="inline-flex items-center text-[#00F0FF] border border-[#00F0FF]/30 rounded-full px-4 py-1 mb-4"
+            variants={titleVariants}
+            whileInView="visible"
+            viewport={{ once: false }}
+            initial="hidden"
+          >
+            <span className="text-sm font-medium uppercase tracking-widest">
+              FEATURE SHOWCASE
+            </span>
+          </motion.div>
+          <motion.h2
+            className="text-4xl md:text-5xl font-bold mb-6 gradient-text-main"
+            variants={titleVariants}
+            whileInView="visible"
+            viewport={{ once: false }}
+            initial="hidden"
+          >
             Unlock The Full Potential
-          </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8 font-montserrat">
+          </motion.h2>
+          <motion.p
+            className="text-lg p-2 text-gray-300 max-w-3xl mx-auto font-montserrat"
+            variants={textVariants}
+            whileInView="visible"
+            viewport={{ once: false }}
+            initial="hidden"
+          >
             Dive deep into AinspireTech capabilities with these standout
             features, each designed to enhance your experience and streamline
             your tasks. Discover what sets us apart.
-          </p>
+          </motion.p>
 
           {/* Divider */}
-          <div className="w-24 h-1 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full mx-auto mb-12"></div>
-        </div>
+          <motion.div
+            className="w-24 h-1 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full mx-auto mb-12"
+            variants={iconVariants}
+            whileInView="visible"
+            viewport={{ once: false }}
+            initial="hidden"
+          />
+        </motion.div>
 
         {/* Category Filters */}
-        <div className="flex flex-wrap justify-center gap-1 md:gap-4 mb-4 md:mb-12">
+        <motion.div
+          className="flex flex-wrap justify-center gap-1 md:gap-4 mb-4 md:mb-12"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, margin: "-50px" }}
+        >
           {categories.map((category) => (
-            <button
+            <motion.button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
               className={`px-2 py-1 md:px-6 md:py-3 rounded-full border transition-all duration-300 ${
@@ -256,6 +381,12 @@ export function FeatureShowcase() {
                   ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black border-transparent"
                   : "border-[#00F0FF]/30 text-gray-300 hover:border-[#00F0FF] hover:text-white"
               }`}
+              variants={cardVariants}
+              whileInView="visible"
+              viewport={{ once: false, margin: "-50px" }}
+              initial="hidden"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <span className="text-xs md:text-base font-thin md:font-medium">
                 {category.name}
@@ -263,40 +394,79 @@ export function FeatureShowcase() {
               <span className="ml-1 md:ml-2 text-sm opacity-80">
                 ({category.count})
               </span>
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, margin: "-50px" }}
+        >
           {filteredFeatures.map((feature, index) => (
-            <div
+            <motion.div
               key={index}
-              className="bg-transparent border border-gray-800 rounded-2xl p-4 hover:border-[#00F0FF]/50 hover:transform hover:scale-105 transition-all duration-300 group relative overflow-hidden flex flex-col items-start justify-center gap-2"
+              className="bg-transparent border border-white/10 rounded-2xl p-4 group relative overflow-hidden flex flex-col items-start justify-center gap-2 hover:border-[#258b94]/40 transition-colors duration-300"
+              variants={cardVariants}
+              whileHover="hover"
+              whileInView="visible"
+              viewport={{ once: false, margin: "-50px" }}
+              initial="hidden"
             >
-              <div className="flex items-start justify-center gap-2">
-                {/* Background Gradient Effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#00F0FF]/5 to-[#B026FF]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              {/* Background Gradient Effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00F0FF]/5 to-[#B026FF]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+              <div className="flex items-start justify-center gap-2 relative z-10">
                 {/* Icon */}
-                <div className="relative z-10 w-14 h-14 px-3 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <motion.div
+                  className="w-14 h-14 px-3 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-xl flex items-center justify-center mb-6"
+                  variants={iconVariants}
+                  whileInView="visible"
+                  viewport={{ once: false }}
+                  initial="hidden"
+                  whileHover={{ scale: 1.1 }}
+                >
                   <div className="text-white">{feature.icon}</div>
-                </div>
-                <div className="">
+                </motion.div>
+
+                <div className="flex-1">
                   {/* Title */}
-                  <h3 className="text-lg font-medium  text-white group-hover:text-[#00F0FF] transition-colors duration-300 relative z-10">
+                  <motion.h3
+                    className="text-lg font-medium text-white group-hover:text-[#00F0FF] transition-colors duration-300 mb-2"
+                    variants={titleVariants}
+                    whileInView="visible"
+                    viewport={{ once: false }}
+                    initial="hidden"
+                  >
                     {feature.title}
-                  </h3>
+                  </motion.h3>
 
                   {/* Description */}
-                  <p className="text-gray-300 text-sm  relative z-10 font-montserrat">
+                  <motion.p
+                    className="text-gray-300 text-sm font-montserrat"
+                    variants={textVariants}
+                    whileInView="visible"
+                    viewport={{ once: false }}
+                    initial="hidden"
+                  >
                     {feature.description}
-                  </p>
-                </div>{" "}
-                {/* Category Badge */}
-                {/* Learn More Link */}
+                  </motion.p>
+                </div>
               </div>
-              <div className="w-full flex items-center justify-between ">
-                <button className="inline-flex items-center text-[#00F0FF] hover:text-[#B026FF] transition-colors duration-300 relative z-10">
+
+              <div className="w-full flex items-center justify-between relative z-10">
+                <motion.button
+                  className="inline-flex items-center text-[#00F0FF] hover:text-[#B026FF] transition-colors duration-300"
+                  variants={textVariants}
+                  whileInView="visible"
+                  viewport={{ once: false }}
+                  initial="hidden"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <span className="text-sm font-medium">Learn more</span>
                   <svg
                     className="w-4 h-4 ml-2"
@@ -312,17 +482,23 @@ export function FeatureShowcase() {
                       d="M9 5l7 7-7 7"
                     />
                   </svg>
-                </button>
-                <div className="">
+                </motion.button>
+
+                <motion.div
+                  variants={iconVariants}
+                  whileInView="visible"
+                  viewport={{ once: false }}
+                  initial="hidden"
+                >
                   <span className="text-xs px-2 py-1 rounded-full bg-gray-800 text-gray-300 capitalize">
                     {feature.category}
                   </span>
-                </div>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
