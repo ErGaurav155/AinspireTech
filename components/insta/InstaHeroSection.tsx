@@ -17,6 +17,8 @@ import {
   Play,
   ShoppingBag,
 } from "lucide-react";
+import Image from "next/image";
+import instaPost from "@/public/assets/img/instappost.jpg";
 
 // TypingAnimation Component
 const TypingAnimation = ({
@@ -49,6 +51,7 @@ const TypingAnimation = ({
       if (onComplete) onComplete();
     }
   }, [currentIndex, onComplete, speed, text]);
+
   useEffect(() => {
     if (delay > 0) {
       const timer = setTimeout(() => {
@@ -59,6 +62,7 @@ const TypingAnimation = ({
       startTyping();
     }
   }, [delay, startTyping]);
+
   return (
     <span className={className}>
       {displayText}
@@ -67,605 +71,9 @@ const TypingAnimation = ({
   );
 };
 
-// Instagram Post Component - Frame 003
-const InstagramPostDemo = ({ onComplete }: { onComplete: () => void }) => {
-  const [currentStep, setCurrentStep] = useState(0);
-
-  const steps = [
-    // Step 1: Show post header and content
-    {
-      elements: (
-        <div className="bg-gray-800 rounded-lg p-3 mb-3">
-          <p className="text-white text-sm mb-2 leading-relaxed">
-            <span className="text-white text-sm"># fitness.star</span>
-          </p>
-          <div className="h-32 bg-gradient-to-br from-purple-900 to-gray-800 rounded-lg mb-2 flex items-center justify-center">
-            <div className="text-gray-400 text-xs">---</div>
-          </div>
-        </div>
-      ),
-    },
-    // Step 2: Show Jessica's comment
-    {
-      elements: (
-        <div className="bg-gray-900 rounded-lg p-2">
-          <div className="flex justify-between items-start">
-            <div>
-              <span className="font-semibold text-white text-sm">
-                Jessica Peel
-              </span>
-              <span className="text-gray-400 text-xs ml-2">2h</span>
-              <p className="text-gray-300 text-sm mt-1">
-                I will be watching 💬️
-              </p>
-            </div>
-            <span className="text-blue-400 text-xs">Reply</span>
-          </div>
-        </div>
-      ),
-    },
-    // Step 3: Show The Star's reply to Jessica
-    {
-      elements: (
-        <div className="bg-gray-900 rounded-lg p-2">
-          <div className="flex justify-between items-start">
-            <div>
-              <span className="font-semibold text-white text-sm">
-                Jessica Peel
-              </span>
-              <span className="text-gray-400 text-xs ml-2">2h</span>
-              <p className="text-gray-300 text-sm mt-1">
-                I will be watching 💬️
-              </p>
-            </div>
-            <span className="text-blue-400 text-xs">Reply</span>
-          </div>
-          <div className="mt-2 pl-4 border-l-2 border-blue-500">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="font-semibold text-white text-sm">
-                  The Star
-                </span>
-                <span className="text-gray-400 text-xs ml-2">2h</span>
-                <p className="text-gray-300 text-sm mt-1">
-                  @Jess... Check your DM!
-                </p>
-              </div>
-              <span className="text-blue-400 text-xs">Reply</span>
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    // Step 4: Show Noa's comment
-    {
-      elements: (
-        <div className="space-y-2">
-          <div className="bg-gray-900 rounded-lg p-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="font-semibold text-white text-sm">
-                  Jessica Peel
-                </span>
-                <span className="text-gray-400 text-xs ml-2">2h</span>
-                <p className="text-gray-300 text-sm mt-1">
-                  I will be watching 💬️
-                </p>
-              </div>
-              <span className="text-blue-400 text-xs">Reply</span>
-            </div>
-            <div className="mt-2 pl-4 border-l-2 border-blue-500">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="font-semibold text-white text-sm">
-                    The Star
-                  </span>
-                  <span className="text-gray-400 text-xs ml-2">2h</span>
-                  <p className="text-gray-300 text-sm mt-1">
-                    @Jess... Check your DM!
-                  </p>
-                </div>
-                <span className="text-blue-400 text-xs">Reply</span>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="font-semibold text-white text-sm">
-                  Noa Baumbakh
-                </span>
-                <span className="text-gray-400 text-xs ml-2">3h</span>
-                <p className="text-gray-300 text-sm mt-1">
-                  Cant wait for it 💬️
-                </p>
-              </div>
-              <span className="text-blue-400 text-xs">Reply</span>
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    // Step 5: Show The Star's reply to Noa
-    {
-      elements: (
-        <div className="space-y-2">
-          <div className="bg-gray-900 rounded-lg p-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="font-semibold text-white text-sm">
-                  Jessica Peel
-                </span>
-                <span className="text-gray-400 text-xs ml-2">2h</span>
-                <p className="text-gray-300 text-sm mt-1">
-                  I will be watching 💬️
-                </p>
-              </div>
-              <span className="text-blue-400 text-xs">Reply</span>
-            </div>
-            <div className="mt-2 pl-4 border-l-2 border-blue-500">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="font-semibold text-white text-sm">
-                    The Star
-                  </span>
-                  <span className="text-gray-400 text-xs ml-2">2h</span>
-                  <p className="text-gray-300 text-sm mt-1">
-                    @Jess... Check your DM!
-                  </p>
-                </div>
-                <span className="text-blue-400 text-xs">Reply</span>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="font-semibold text-white text-sm">
-                  Noa Baumbakh
-                </span>
-                <span className="text-gray-400 text-xs ml-2">3h</span>
-                <p className="text-gray-300 text-sm mt-1">
-                  Cant wait for it 💬️
-                </p>
-              </div>
-              <span className="text-blue-400 text-xs">Reply</span>
-            </div>
-            <div className="mt-2 pl-4 border-l-2 border-blue-500">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="font-semibold text-white text-sm">
-                    The Star
-                  </span>
-                  <span className="text-gray-400 text-xs ml-2">3h</span>
-                  <p className="text-gray-300 text-sm mt-1">
-                    @Noa... Lets get it started
-                  </p>
-                </div>
-                <span className="text-blue-400 text-xs">Reply</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    // Step 6: Show Mila's comment and reply
-    {
-      elements: (
-        <div className="space-y-2">
-          <div className="bg-gray-900 rounded-lg p-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="font-semibold text-white text-sm">
-                  Jessica Peel
-                </span>
-                <span className="text-gray-400 text-xs ml-2">2h</span>
-                <p className="text-gray-300 text-sm mt-1">
-                  I will be watching 💬️
-                </p>
-              </div>
-              <span className="text-blue-400 text-xs">Reply</span>
-            </div>
-            <div className="mt-2 pl-4 border-l-2 border-blue-500">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="font-semibold text-white text-sm">
-                    The Star
-                  </span>
-                  <span className="text-gray-400 text-xs ml-2">2h</span>
-                  <p className="text-gray-300 text-sm mt-1">
-                    @Jess... Check your DM!
-                  </p>
-                </div>
-                <span className="text-blue-400 text-xs">Reply</span>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="font-semibold text-white text-sm">
-                  Noa Baumbakh
-                </span>
-                <span className="text-gray-400 text-xs ml-2">3h</span>
-                <p className="text-gray-300 text-sm mt-1">
-                  Cant wait for it 💬️
-                </p>
-              </div>
-              <span className="text-blue-400 text-xs">Reply</span>
-            </div>
-            <div className="mt-2 pl-4 border-l-2 border-blue-500">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="font-semibold text-white text-sm">
-                    The Star
-                  </span>
-                  <span className="text-gray-400 text-xs ml-2">3h</span>
-                  <p className="text-gray-300 text-sm mt-1">
-                    @Noa... Lets get it started
-                  </p>
-                </div>
-                <span className="text-blue-400 text-xs">Reply</span>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="font-semibold text-white text-sm">
-                  Mila Carpenter
-                </span>
-                <span className="text-gray-400 text-xs ml-2">5h</span>
-                <p className="text-gray-300 text-sm mt-1">Love it 💬️</p>
-              </div>
-              <span className="text-blue-400 text-xs">Reply</span>
-            </div>
-            <div className="mt-2 pl-4 border-l-2 border-blue-500">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="font-semibold text-white text-sm">
-                    The Star
-                  </span>
-                  <span className="text-gray-400 text-xs ml-2">5h</span>
-                  <p className="text-gray-300 text-sm mt-1">
-                    @Mila... You are in!
-                  </p>
-                </div>
-                <span className="text-blue-400 text-xs">Reply</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      ),
-    },
-  ];
-
-  useEffect(() => {
-    const timer = setTimeout(
-      () => {
-        if (currentStep < steps.length - 1) {
-          setCurrentStep(currentStep + 1);
-        } else {
-          setTimeout(() => onComplete(), 2000);
-        }
-      },
-      currentStep === 0 ? 1000 : 1500
-    );
-
-    return () => clearTimeout(timer);
-  }, [currentStep, onComplete, steps.length]);
-
-  return (
-    <div className="bg-transparent border border-gray-800 rounded-2xl p-4 shadow-2xl w-full max-w-sm mx-auto font-sans">
-      {/* Instagram Post Header */}
-      <div className="flex items-center space-x-3 mb-3">
-        <div className="w-8 h-8 bg-gradient-to-r from-[#FFD600] via-[#FF0069] to-[#833AB4] rounded-full flex items-center justify-center">
-          <Instagram className="h-4 w-4 text-white" />
-        </div>
-        <div>
-          <div className="font-bold text-white text-sm">fitness.star</div>
-          <div className="text-xs text-gray-400">Sponsored</div>
-        </div>
-      </div>
-
-      {/* Animated Steps */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentStep}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5 }}
-        >
-          {steps[currentStep].elements}
-        </motion.div>
-      </AnimatePresence>
-
-      <div className="text-center mt-3">
-        <span className="text-[#00F0FF] text-xs font-medium">
-          Auto-reply on every comment 1/2
-        </span>
-      </div>
-    </div>
-  );
-};
-
-// Instagram DM Flow Component - Frame 009
-const InstagramDMFlow = ({ onComplete }: { onComplete: () => void }) => {
-  const [currentStep, setCurrentStep] = useState(0);
-
-  const steps = [
-    // Step 1: Initial messages
-    {
-      elements: (
-        <div className="space-y-3">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-blue-600 rounded-lg p-3 max-w-[80%]"
-          >
-            <p className="text-white text-sm">
-              <TypingAnimation
-                text="Hey Eve! Ready to move your muscles?"
-                speed={40}
-                className="text-white text-sm"
-              />
-            </p>
-          </motion.div>
-        </div>
-      ),
-    },
-    // Step 2: User response
-    {
-      elements: (
-        <div className="space-y-3">
-          <div className="bg-blue-600 rounded-lg p-3 max-w-[80%]">
-            <p className="text-white text-sm">
-              Hey Eve! Ready to move your muscles?
-            </p>
-          </div>
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-gray-700 rounded-lg p-3 max-w-[80%] ml-auto"
-          >
-            <p className="text-white text-sm">
-              <TypingAnimation
-                text="Can not wait"
-                speed={40}
-                className="text-white text-sm"
-              />
-            </p>
-          </motion.div>
-        </div>
-      ),
-    },
-    // Step 3: Follow request
-    {
-      elements: (
-        <div className="space-y-3">
-          <div className="bg-blue-600 rounded-lg p-3 max-w-[80%]">
-            <p className="text-white text-sm">
-              Hey Eve! Ready to move your muscles?
-            </p>
-          </div>
-          <div className="bg-gray-700 rounded-lg p-3 max-w-[80%] ml-auto">
-            <p className="text-white text-sm">Cant wait</p>
-          </div>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-blue-600 rounded-lg p-3 max-w-[80%]"
-          >
-            <p className="text-white text-sm">
-              <TypingAnimation
-                text="Oops, seems like you don't follow me. Please follow so you can get the video!"
-                speed={40}
-                className="text-white text-sm"
-              />
-            </p>
-          </motion.div>
-        </div>
-      ),
-    },
-    // Step 4: User followed
-    {
-      elements: (
-        <div className="space-y-3">
-          <div className="bg-blue-600 rounded-lg p-3 max-w-[80%]">
-            <p className="text-white text-sm">
-              Hey Eve! Ready to move your muscles?
-            </p>
-          </div>
-          <div className="bg-gray-700 rounded-lg p-3 max-w-[80%] ml-auto">
-            <p className="text-white text-sm">Cat wait</p>
-          </div>
-          <div className="bg-blue-600 rounded-lg p-3 max-w-[80%]">
-            <p className="text-white text-sm">
-              Oops, seems like you dont follow me. Please follow so you can get
-              the video!
-            </p>
-          </div>
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-gray-700 rounded-lg p-3 max-w-[80%] ml-auto"
-          >
-            <p className="text-white text-sm">
-              <TypingAnimation
-                text="Followed"
-                speed={40}
-                className="text-white text-sm"
-              />
-            </p>
-          </motion.div>
-        </div>
-      ),
-    },
-    // Step 5: Success message
-    {
-      elements: (
-        <div className="space-y-3">
-          <div className="bg-blue-600 rounded-lg p-3 max-w-[80%]">
-            <p className="text-white text-sm">
-              Hey Eve! Ready to move your muscles?
-            </p>
-          </div>
-          <div className="bg-gray-700 rounded-lg p-3 max-w-[80%] ml-auto">
-            <p className="text-white text-sm">Cant wait</p>
-          </div>
-          <div className="bg-blue-600 rounded-lg p-3 max-w-[80%]">
-            <p className="text-white text-sm">
-              Oops, seems like you dont follow me. Please follow so you can get
-              the video!
-            </p>
-          </div>
-          <div className="bg-gray-700 rounded-lg p-3 max-w-[80%] ml-auto">
-            <p className="text-white text-sm">Followed</p>
-          </div>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-blue-600 rounded-lg p-3 max-w-[80%]"
-          >
-            <p className="text-white text-sm">
-              <TypingAnimation
-                text="Yay! Let's go! Here's your link:"
-                speed={40}
-                className="text-white text-sm"
-              />
-            </p>
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-semibold py-2 px-4 rounded-full mt-2 flex items-center"
-            >
-              <ShoppingBag className="h-3 w-3 mr-1" />
-              Start the workout
-            </motion.button>
-          </motion.div>
-        </div>
-      ),
-    },
-  ];
-
-  useEffect(() => {
-    const timer = setTimeout(
-      () => {
-        if (currentStep < steps.length - 1) {
-          setCurrentStep(currentStep + 1);
-        } else {
-          setTimeout(() => onComplete(), 3000);
-        }
-      },
-      currentStep === 0 ? 1000 : 2000
-    );
-
-    return () => clearTimeout(timer);
-  }, [currentStep, onComplete, steps.length]);
-
-  return (
-    <div className="bg-transparent border border-gray-800 rounded-2xl p-4 shadow-2xl w-full max-w-sm mx-auto font-sans">
-      {/* DM Header */}
-      <div className="flex items-center space-x-3 mb-4">
-        <div className="w-10 h-10 bg-gradient-to-r from-[#FFD600] via-[#FF0069] to-[#833AB4] rounded-full flex items-center justify-center">
-          <Instagram className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <div className="font-bold text-white">fitness.star</div>
-          <div className="text-xs text-gray-400">Instagram Direct</div>
-        </div>
-      </div>
-
-      {/* Animated Steps */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentStep}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5 }}
-        >
-          {steps[currentStep].elements}
-        </motion.div>
-      </AnimatePresence>
-
-      <div className="text-center mt-3">
-        <span className="text-[#00F0FF] text-xs font-medium">
-          Convert audience into subscribers 2/2
-        </span>
-      </div>
-    </div>
-  );
-};
-
-// Demo Carousel Component
-const InstagramDemoCarousel = () => {
-  const [activeDemo, setActiveDemo] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const demos = [
-    {
-      component: InstagramPostDemo,
-      title: "Auto-Reply to Comments",
-      description:
-        "Automatically respond to Instagram comments with personalized DMs",
-    },
-    {
-      component: InstagramDMFlow,
-      title: "Convert to Subscribers",
-      description: "Turn commenters into followers and customers",
-    },
-  ];
-
-  const handleDemoComplete = () => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      setActiveDemo((prev) => (prev + 1) % demos.length);
-      setIsAnimating(false);
-    }, 2000);
-  };
-
-  const CurrentDemoComponent = demos[activeDemo].component;
-
-  return (
-    <div className="relative font-montserrat">
-      {/* Demo Indicator */}
-      <div className="flex justify-center mb-6 space-x-2">
-        {demos.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => !isAnimating && setActiveDemo(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              index === activeDemo
-                ? "bg-[#00F0FF] w-8"
-                : "bg-gray-600 hover:bg-gray-400"
-            } ${isAnimating ? "opacity-50 cursor-not-allowed" : ""}`}
-          />
-        ))}
-      </div>
-
-      <motion.div
-        key={activeDemo}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative"
-      >
-        <CurrentDemoComponent onComplete={handleDemoComplete} />
-      </motion.div>
-
-      {/* Decorative elements */}
-      <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] rounded-full opacity-20 blur-xl"></div>
-      <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-r from-[#FF2E9F] to-[#B026FF] rounded-full opacity-20 blur-xl"></div>
-    </div>
-  );
-};
-
 export function InstagramAutomationHero() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const FeatureItem = ({
     icon,
     text,
@@ -696,7 +104,7 @@ export function InstagramAutomationHero() {
 
   return (
     <section className="w-full bg-transparent text-white pb-20">
-      <div className="container mx-auto px-4">
+      <div className=" mx-auto md:px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
           {/* Left Column - Content */}
           <motion.div
@@ -714,7 +122,7 @@ export function InstagramAutomationHero() {
                 className="inline-flex items-center bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-[#00F0FF]/30 rounded-full px-6 py-3"
               >
                 <Zap className="h-5 w-5 text-[#00F0FF] mr-2" />
-                <span className="text-sm font-medium uppercase tracking-widest text-[#00F0FF]">
+                <span className="text-xs md:text-sm font-medium text-nowrap uppercase tracking-widest text-[#00F0FF]">
                   INSTAGRAM AUTOMATION
                 </span>
               </motion.div>
@@ -741,7 +149,7 @@ export function InstagramAutomationHero() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="text-lg lg:text-xl text-gray-300 leading-relaxed font-montserrat"
+                className="text-base md:text-lg lg:text-xl text-gray-300 leading-relaxed font-montserrat"
               >
                 Automatically reply to Instagram comments with personalized DMs
                 that convert followers into subscribers and customers. No coding
@@ -754,7 +162,7 @@ export function InstagramAutomationHero() {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-montserrat"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 font-montserrat"
             >
               {[
                 {
@@ -815,7 +223,7 @@ export function InstagramAutomationHero() {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 1.1 }}
-              className="flex flex-wrap items-center gap-6 text-sm text-gray-400"
+              className="flex flex-wrap items-center gap-3 md:gap-6 text-sm text-gray-400"
             >
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-green-400" />
@@ -832,8 +240,160 @@ export function InstagramAutomationHero() {
             </motion.div>
           </motion.div>
 
-          {/* Right Column - Instagram Demo Carousel */}
-          <InstagramDemoCarousel />
+          {/* Right Column - Instagram Demo Video */}
+          <motion.div
+            initial={{ opacity: 0, x: 30, rotateY: 10 }}
+            whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
+            transition={{
+              duration: 1.2,
+              type: "spring",
+              stiffness: 50,
+              damping: 15,
+            }}
+            className="relative max-w-max mx-auto"
+          >
+            {/* Main Video Container with Enhanced Animations */}
+            <motion.div
+              initial={{ scale: 0.8, rotate: -2 }}
+              whileInView={{ scale: 1, rotate: 0 }}
+              transition={{
+                duration: 0.8,
+                delay: 0.3,
+                type: "spring",
+                stiffness: 100,
+              }}
+              whileHover={{
+                scale: 1.02,
+                rotate: 0,
+                y: -5,
+                transition: { duration: 0.3 },
+              }}
+              className="relative rounded-3xl overflow-hidden shadow-2xl shadow-[#00F0FF]/20"
+            >
+              {/* Video with 8px crop from top and bottom */}
+              <div className="relative overflow-hidden">
+                <motion.video
+                  ref={videoRef}
+                  src="/assets/InstaVid.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  initial={{ scale: 1.1, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 1, delay: 0.5 }}
+                  className="w-full h-[30rem] md:h-[38rem] max-w-md mx-auto scale-[1.03] -translate-y-1"
+                  style={{
+                    clipPath: "inset(8px 0 8px 0)",
+                    marginTop: "-8px",
+                    marginBottom: "-8px",
+                  }}
+                />
+              </div>
+
+              {/* Animated Border Glow */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 1, delay: 0.8 }}
+                className="absolute inset-0 rounded-3xl  border-[0.5px] border-transparent bg-gradient-to-r from-[#00F0FF] via-[#B026FF] to-[#FF2E9F] opacity-30"
+                style={{
+                  mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                  WebkitMask:
+                    "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                  maskComposite: "exclude",
+                  WebkitMaskComposite: "xor",
+                  padding: "2px",
+                }}
+              />
+
+              {/* Floating Play Button */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0, y: 20 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{
+                  duration: 0.6,
+                  delay: 1,
+                  type: "spring",
+                  stiffness: 200,
+                }}
+                whileHover={{
+                  scale: 1.1,
+                  rotate: 5,
+                  transition: { duration: 0.2 },
+                }}
+                className="absolute top-4 right-2 w-16 h-16 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full flex items-center justify-center shadow-lg cursor-pointer"
+                onClick={() => videoRef.current?.play()}
+              >
+                <Play className="h-5 w-5 text-white ml-0.5 fill-white" />
+              </motion.div>
+
+              {/* Instagram UI Mock Elements */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.2 }}
+                className="absolute bottom-4 left-4 right-4 flex justify-between items-center"
+              >
+                <div className="flex space-x-3">
+                  <Heart className="h-5 w-5 text-white" />
+                  <MessageCircle className="h-5 w-5 text-white" />
+                  <Instagram className="h-5 w-5 text-white" />
+                </div>
+                <ShoppingBag className="h-5 w-5 text-white" />
+              </motion.div>
+            </motion.div>
+
+            {/* Enhanced Floating Decorations */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0, y: 20 }}
+              whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{
+                duration: 0.8,
+                delay: 0.7,
+                type: "spring",
+                stiffness: 150,
+              }}
+              animate={{
+                y: [0, -10, 0],
+                rotate: [0, 5, 0],
+              }}
+              className="absolute -top-6 -right-6 w-10 h-10 bg-[#FF2E9F] rounded-full z-30 shadow-lg shadow-[#FF2E9F]/50"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0, y: 20 }}
+              whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{
+                duration: 0.8,
+                delay: 0.9,
+                type: "spring",
+                stiffness: 150,
+              }}
+              animate={{
+                y: [0, 10, 0],
+                rotate: [0, -5, 0],
+              }}
+              className="absolute -bottom-6 -left-6 w-8 h-8 bg-[#00F0FF] rounded-full z-30 shadow-lg shadow-[#00F0FF]/50"
+            />
+
+            {/* Additional Floating Element */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{
+                duration: 0.6,
+                delay: 1.1,
+                type: "spring",
+                stiffness: 200,
+              }}
+              animate={{
+                y: [0, -15, 0],
+                x: [0, 5, 0],
+              }}
+              className="absolute -top-4 left-8 w-6 h-6 bg-gradient-to-r from-[#B026FF] to-[#FF2E9F] rounded-full z-20 shadow-lg"
+            />
+          </motion.div>
         </div>
       </div>
     </section>

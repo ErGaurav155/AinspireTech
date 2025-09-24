@@ -34,7 +34,7 @@ export default function Home() {
     <div className="min-h-screen max-w-7xl m-auto text-white">
       <BreadcrumbsDefault />
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-20">
+      <div className="container mx-auto px-4 pb-20">
         <InstagramAutomationHero />
         <InstaFeaturesGrid />
         <FeatureSection />
