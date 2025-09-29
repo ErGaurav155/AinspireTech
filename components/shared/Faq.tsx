@@ -15,7 +15,17 @@ const Faq = () => {
       },
     },
   };
-
+  const itemVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+  };
   const cardVariants = {
     hidden: {
       opacity: 0,
@@ -121,8 +131,8 @@ const Faq = () => {
           whileInView="visible"
           viewport={{ once: false, margin: "-100px" }}
         >
-          <motion.div className="text-center mb-12" variants={titleVariants}>
-            <h2 className="text-3xl font-bold text-[#a12368] mb-4">
+          <motion.div variants={itemVariants} className="mb-4">
+            <h2 className="text-4xl font-bold mb-4 gradient-text-main text-center">
               Frequently Asked Questions
             </h2>
           </motion.div>

@@ -5,6 +5,7 @@ import Image from "next/image";
 import React from "react";
 import { motion } from "framer-motion";
 import cup from "@/public/assets/img/pricecup.png";
+import { useRouter } from "next/navigation";
 
 const Check = ({ className }: { className?: string }) => (
   <svg
@@ -25,6 +26,7 @@ const Check = ({ className }: { className?: string }) => (
 
 const ComparisonTable: React.FC = () => {
   // EXACT same animation variants as FeatureSection component
+  const router = useRouter();
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -227,7 +229,7 @@ const ComparisonTable: React.FC = () => {
             viewport={{ once: false }}
             initial="hidden"
           >
-            Same features just for 99 INR, switch now
+            Same features just for 299 INR, switch now
           </motion.p>
 
           <motion.div
@@ -262,7 +264,7 @@ const ComparisonTable: React.FC = () => {
                 <div className="w-2 h-2 rounded-full bg-blue-400"></div>
               </div>
               <span className="text-lg font-medium text-white">
-                99INR ($1.1) Per month
+                299INR ($3.3) Per month
               </span>
             </motion.div>
           </motion.div>
@@ -272,6 +274,9 @@ const ComparisonTable: React.FC = () => {
             variants={cardVariants}
             whileInView="visible"
             viewport={{ once: false }}
+            onClick={() => {
+              router.push("/insta/dashboard");
+            }}
             initial="hidden"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

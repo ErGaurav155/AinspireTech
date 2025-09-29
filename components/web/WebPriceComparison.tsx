@@ -27,6 +27,7 @@ import {
   BookOpen,
   HelpCircle,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const comparisonData = [
   {
@@ -384,6 +385,7 @@ const FeatureComparisonTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("rating");
   const [expandedFeatures, setExpandedFeatures] = useState(false);
+  const router = useRouter();
 
   const filteredData = comparisonData
     .filter(
@@ -520,8 +522,7 @@ const FeatureComparisonTable = () => {
               AI Chatbot Feature Comparison 2024
             </span>
           </motion.div>
-
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+          <h2 className="text-4xl font-bold mb-4 gradient-text-main text-center">
             Compare AI Chatbot Features
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-montserrat">
@@ -567,6 +568,7 @@ const FeatureComparisonTable = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={() => router.push("/web/pricing")}
                   className="bg-gradient-to-r from-[#0ce05d] to-[#054e29] text-white font-semibold px-6 py-3 rounded-lg"
                 >
                   Try Free
@@ -720,6 +722,11 @@ const FeatureComparisonTable = () => {
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
+                          onClick={() =>
+                            item.highlight
+                              ? router.push("/web/pricing")
+                              : setExpandedFeatures(!expandedFeatures)
+                          }
                           className={`inline-flex items-center px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
                             item.highlight
                               ? "bg-gradient-to-r from-[#0ce05d] to-[#054e29] text-white shadow-lg"

@@ -12,8 +12,10 @@ import {
   Instagram,
 } from "lucide-react";
 import Image from "next/image";
-import featureImg from "@/public/assets/img/featureImg.png";
+import featureImg from "@/public/assets/img/featureImg4.png";
 import featureImg2 from "@/public/assets/img/featureImg2.png";
+import featureImg3 from "@/public/assets/img/headingimg.png";
+import featureImg4 from "@/public/assets/img/FeatureImg3.png";
 
 export function FeatureSection() {
   // EXACT same animation variants as testimonials component
@@ -124,7 +126,7 @@ export function FeatureSection() {
     {
       icon: <Instagram className="h-6 w-6" />,
       title: "Auto-Reply to Instagram Post Comments",
-      url: featureImg2,
+      url: featureImg3,
 
       description:
         "Reply to Instagram post comments automatically with a DM sent straight to the users inbox.",
@@ -140,7 +142,7 @@ export function FeatureSection() {
     {
       icon: <MessageCircle className="h-6 w-6" />,
       title: "Auto-Respond to Instagram Story Replies",
-      url: featureImg,
+      url: featureImg4,
 
       description:
         "Automatically respond to story replies with a DM sent directly to the users inbox. Add trigger keywords or respond to all comments.",
@@ -200,7 +202,7 @@ export function FeatureSection() {
             </span>
           </motion.div>
           <motion.h2
-            className="text-4xl md:text-5xl font-bold mb-6 gradient-text-main"
+            className="text-4xl font-bold mb-6 gradient-text-main"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -222,7 +224,7 @@ export function FeatureSection() {
 
         {/* Features Grid */}
         <motion.div
-          className="flex flex-col-reverse gap-4 sm:gap-8 md:gap-12 max-w-7xl mx-auto items-center justify-center h-full"
+          className="flex flex-col gap-4 sm:gap-8 md:gap-12 max-w-7xl mx-auto items-center justify-center h-full"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -242,7 +244,7 @@ export function FeatureSection() {
             >
               {/* Instagram Post Visual */}
               <motion.div
-                className="flex-1 relative m-auto w-full min-h-[50vh] h-[50vh] lg:h-[70vh] border border-white/10 rounded-2xl overflow-hidden"
+                className="flex-1 relative m-auto w-full  min-h-[50vh] h-[50vh] lg:h-[70vh] border border-white/10 rounded-2xl overflow-hidden"
                 variants={imageVariants}
                 whileInView="visible"
                 viewport={{ once: false }}
@@ -253,7 +255,7 @@ export function FeatureSection() {
                   alt="Curtain Collection"
                   fill
                   sizes="100%"
-                  className="object-contain sm:object-cover  "
+                  className="object-cover  "
                   loading="lazy"
                 />
               </motion.div>

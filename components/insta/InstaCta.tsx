@@ -5,9 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 function InstaCTASection() {
   // EXACT same animation variants as testimonials component
+  const router = useRouter();
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -163,7 +165,7 @@ function InstaCTASection() {
                   variant="outline"
                   className="text-lg px-8 border-[#B026FF]/30 bg-transparent text-[#B026FF] hover:bg-[#B026FF]/10"
                 >
-                  View Pricing
+                  <Link href="/insta/pricing">View Pricing </Link>
                 </Button>
               </motion.div>
             </motion.div>

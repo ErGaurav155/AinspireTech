@@ -871,12 +871,12 @@ export const features: Feature[] = [
   },
   {
     name: "Plan / Month",
-    comment2DM: "¥99",
-    autoDM: "¥499",
-    linkplease: "¥399",
-    rapiddm: "¥499",
-    zorcha: "¥1200",
-    instantDM: "¥2000",
+    comment2DM: "₹99",
+    autoDM: "₹499",
+    linkplease: "₹399",
+    rapiddm: "₹499",
+    zorcha: "₹1200",
+    instantDM: "₹2000",
   },
   {
     name: "Automation",
@@ -958,5 +958,121 @@ export const features: Feature[] = [
     rapiddm: "Regular",
     zorcha: "Regular",
     instantDM: "Regular",
+  },
+];
+
+export const webChatFeatures = [
+  {
+    id: 1,
+    name: "Efficient lead capture",
+    description:
+      "Gather visitor details with pre-chat forms and chatbots. Qualify them based on their browsing behavior with automated lead scoring and pass this to your CRM automatically to streamline your sales process.",
+    tools: [
+      "Pre-chat forms",
+      "Lead scoring",
+      "CRM integration",
+      "Automated qualification",
+    ],
+    role: "Lead Generation",
+    link: "#",
+    tag: ["AI", "Automation"],
+  },
+  {
+    id: 2,
+    name: "Timely lead nurturing",
+    description:
+      "Understand your visitors with real-time visitor insights and proactively engage with them with chat triggers based on lead score, page they're on, time spent, specific actions, and more.",
+    tools: [
+      "Real-time analytics",
+      "Behavioral triggers",
+      "Proactive engagement",
+      "Personalized messaging",
+    ],
+    role: "Lead Nurturing",
+    link: "#",
+    tag: ["Analytics", "Automation"],
+  },
+  {
+    id: 3,
+    name: "Omnichannel customer",
+    description:
+      "Delight customers with exceptional support. Instantly respond to queries, resolve issues, and create great customer experience with our fully-equipped live chat for websites, mobile apps, and instant messaging channels.",
+    tools: ["Live chat", "Mobile apps", "Instant messaging", "Multi-platform"],
+    role: "Customer Support",
+    link: "#",
+    tag: ["Omnichannel", "Support"],
+  },
+  {
+    id: 4,
+    name: "Round-the-clock support",
+    description:
+      "Help your customers 24/7 without having to hire as many staff. Create chatbots easily with our chatbot builder and deploy them across channels to handle the first line of customer support.",
+    tools: ["Chatbot builder", "24/7 support", "Multi-channel", "AI responses"],
+    role: "Customer Service",
+    link: "#",
+    tag: ["AI", "Support"],
+  },
+];
+
+export const instagramFeatures = [
+  {
+    id: 1,
+    name: "Comment Automation",
+    description:
+      "Automatically respond to Instagram comments with AI-powered responses. Handle FAQs, engage with followers, and maintain active presence 24/7 without manual intervention.",
+    tools: [
+      "AI responses",
+      "FAQ handling",
+      "24/7 engagement",
+      "Sentiment analysis",
+    ],
+    role: "Engagement Automation",
+    link: "#",
+    tag: ["AI", "Automation"],
+  },
+  {
+    id: 2,
+    name: "DM Automation",
+    description:
+      "Automate direct message responses, qualify leads through DMs, and route conversations to the right team members based on content and sentiment analysis.",
+    tools: [
+      "DM automation",
+      "Lead qualification",
+      "Sentiment analysis",
+      "Team routing",
+    ],
+    role: "Message Management",
+    link: "#",
+    tag: ["Automation", "AI"],
+  },
+  {
+    id: 3,
+    name: "Content Automation",
+    description:
+      "Schedule and automate engagement on your reels and posts. Smart algorithms identify high-value comments and prioritize responses for maximum impact.",
+    tools: [
+      "Content scheduling",
+      "Smart algorithms",
+      "Priority response",
+      "Performance tracking",
+    ],
+    role: "Content Management",
+    link: "#",
+    tag: ["Scheduling", "AI"],
+  },
+  {
+    id: 4,
+    name: "Audience Analytics",
+    description:
+      "Track engagement metrics, response rates, and growth analytics. Optimize your automation strategy with detailed insights and performance reports.",
+    tools: [
+      "Engagement metrics",
+      "Growth analytics",
+      "Performance reports",
+      "Strategy optimization",
+    ],
+    role: "Analytics & Insights",
+    link: "#",
+    tag: ["Analytics", "Insights"],
   },
 ];

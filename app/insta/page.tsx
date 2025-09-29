@@ -36,11 +36,11 @@ export default function Home() {
       {/* Hero Section */}
       <div className="container mx-auto px-4 pb-20">
         <InstagramAutomationHero />
+        <InstaHowItWorksSection />
         <InstaFeaturesGrid />
         <FeatureSection />
         <ClientShowcase />
         <FeatureShowcase />
-        <InstaHowItWorksSection />
         <ComparisonTable />
         <InstaTestimonialsSection />
         <InstaCTASection />

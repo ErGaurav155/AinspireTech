@@ -26,10 +26,11 @@ import {
   Gauge,
   InstagramIcon,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function FeatureShowcase() {
   const [activeCategory, setActiveCategory] = useState("all");
-
+  const router = useRouter();
   // EXACT same animation variants as FeatureSection component
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -133,24 +134,6 @@ export function FeatureShowcase() {
       category: "automation",
     },
     {
-      icon: <AtSign className="h-6 w-6" />,
-      title: "Story Mentions",
-      description: "Automatically reply to story @mentions with a DM",
-      category: "automation",
-    },
-    {
-      icon: <Inbox className="h-6 w-6" />,
-      title: "Inbox Starters",
-      description: "Display up to 4 conversation starters in your inbox",
-      category: "engagement",
-    },
-    {
-      icon: <Calendar className="h-6 w-6" />,
-      title: "Next Post",
-      description: "Draft your next linked post in advance",
-      category: "planning",
-    },
-    {
       icon: <BarChart3 className="h-6 w-6" />,
       title: "Click Analytics",
       description: "Track link click analytics on DMs sent",
@@ -172,13 +155,14 @@ export function FeatureShowcase() {
     {
       icon: <Shield className="h-6 w-6" />,
       title: "White Label",
-      description: "Remove LinkDM branding from DMs sent",
+      description: "Remove AinspireTech branding from DMs sent",
       category: "branding",
     },
     {
       icon: <Users className="h-6 w-6" />,
       title: "Multiple Accounts",
-      description: "Connect up to 3 Instagram Accounts to your LinkDM Profile",
+      description:
+        "Connect up to 3 Instagram Accounts to your AinspireTech Profile",
       category: "management",
     },
     {
@@ -200,36 +184,6 @@ export function FeatureShowcase() {
       category: "automation",
     },
     {
-      icon: <Megaphone className="h-6 w-6" />,
-      title: "Advertising AutoDM",
-      description: "Auto-reply to comments on your sponsored content",
-      category: "automation",
-    },
-    {
-      icon: <Inbox className="h-6 w-6" />,
-      title: "Inbox Automation",
-      description: "Automatically reply to Inbox messages",
-      category: "automation",
-    },
-    {
-      icon: <Gift className="h-6 w-6" />,
-      title: "Referral Program",
-      description: "Access our referral program and start earning",
-      category: "growth",
-    },
-    {
-      icon: <Mail className="h-6 w-6" />,
-      title: "Lead Generation",
-      description: "Capture email addresses directly in chat",
-      category: "growth",
-    },
-    {
-      icon: <BookOpen className="h-6 w-6" />,
-      title: "DM Planner",
-      description: "Draft DMs for scheduled posts in advance",
-      category: "planning",
-    },
-    {
       icon: <Infinity className="h-6 w-6" />,
       title: "DM Send Limit+",
       description: "Send up to 300,000 DMs per account/per month",
@@ -238,22 +192,17 @@ export function FeatureShowcase() {
     {
       icon: <Users className="h-6 w-6" />,
       title: "Accounts+",
-      description: "Connect up to 5 Instagram accounts to your LinkDM profile",
+      description:
+        "Connect up to 5 Instagram accounts to your AinspireTech profile",
       category: "management",
     },
-    {
-      icon: <Clock className="h-6 w-6" />,
-      title: "DM Queue",
-      description: "Never miss sending a DM with the advance queue system",
-      category: "automation",
-    },
-    {
-      icon: <Gauge className="h-6 w-6" />,
-      title: "Slow Down Mode",
-      description:
-        "When your Reels are blowing up, Let us slow down your automation",
-      category: "automation",
-    },
+    // {
+    //   icon: <Gauge className="h-6 w-6" />,
+    //   title: "Slow Down Mode",
+    //   description:
+    //     "When your Reels are blowing up, Let us slow down your automation",
+    //   category: "automation",
+    // },
   ];
 
   const categories = [
@@ -268,20 +217,11 @@ export function FeatureShowcase() {
       name: "Analytics",
       count: features.filter((f) => f.category === "analytics").length,
     },
-    {
-      id: "planning",
-      name: "Planning",
-      count: features.filter((f) => f.category === "planning").length,
-    },
+
     {
       id: "management",
       name: "Account Management",
       count: features.filter((f) => f.category === "management").length,
-    },
-    {
-      id: "growth",
-      name: "Growth",
-      count: features.filter((f) => f.category === "growth").length,
     },
     {
       id: "limits",
@@ -292,11 +232,6 @@ export function FeatureShowcase() {
       id: "branding",
       name: "Branding",
       count: features.filter((f) => f.category === "branding").length,
-    },
-    {
-      id: "engagement",
-      name: "Engagement",
-      count: features.filter((f) => f.category === "engagement").length,
     },
   ];
 
@@ -334,7 +269,7 @@ export function FeatureShowcase() {
             </span>
           </motion.div>
           <motion.h2
-            className="text-4xl md:text-5xl font-bold mb-6 gradient-text-main"
+            className="text-4xl font-bold mb-6 gradient-text-main"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -459,6 +394,9 @@ export function FeatureShowcase() {
 
               <div className="w-full flex items-center justify-between relative z-10">
                 <motion.button
+                  onClick={() => {
+                    router.push("/insta/dashboard");
+                  }}
                   className="inline-flex items-center text-[#00F0FF] hover:text-[#B026FF] transition-colors duration-300"
                   variants={textVariants}
                   whileInView="visible"

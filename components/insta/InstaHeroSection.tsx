@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import instaPost from "@/public/assets/img/instappost.jpg";
+import { useRouter } from "next/navigation";
 
 // TypingAnimation Component
 const TypingAnimation = ({
@@ -37,7 +38,6 @@ const TypingAnimation = ({
   const [displayText, setDisplayText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
-
   const startTyping = useCallback(() => {
     if (currentIndex < text.length) {
       const timer = setTimeout(() => {
@@ -73,6 +73,7 @@ const TypingAnimation = ({
 
 export function InstagramAutomationHero() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const router = useRouter();
 
   const FeatureItem = ({
     icon,
@@ -201,7 +202,8 @@ export function InstagramAutomationHero() {
               <motion.button
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-2 lg:py-3 lg:px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
+                onClick={() => router.push("/insta/dashboard")}
+                className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
               >
                 <Rocket className="h-5 w-5 mr-2" />
                 Start Free Trial
@@ -210,11 +212,12 @@ export function InstagramAutomationHero() {
 
               <motion.button
                 whileHover={{ scale: 1.05 }}
+                onClick={() => router.push("/insta/pricing")}
                 whileTap={{ scale: 0.95 }}
-                className="border-2 border-[#00F0FF] text-[#00F0FF] font-semibold py-2 px-2 lg:py-3 lg:px-4 rounded-2xl hover:bg-[#00F0FF]/10 transition-all duration-300 flex items-center justify-center"
+                className="border-2 border-[#00F0FF] text-[#00F0FF] font-semibold py-2 px-4 md:py-3 md:px-6 rounded-2xl hover:bg-[#00F0FF]/10 transition-all duration-300 flex items-center justify-center"
               >
                 <Calendar className="h-5 w-5 mr-2" />
-                Book Demo
+                View Pricing
               </motion.button>
             </motion.div>
 

@@ -147,69 +147,92 @@ export function InstaFeaturesGrid() {
   };
 
   return (
-    <motion.div
-      className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"
-      variants={containerVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: false, margin: "-100px" }}
-    >
-      {features.map((feature, index) => {
-        const Icon = feature.icon;
-        const colorKey = feature.color as keyof typeof colorClasses;
+    <>
+      <div className="text-center mb-12">
+        <motion.h2
+          className="text-4xl font-bold text-white mb-4 gradient-text-main"
+          variants={titleVariants}
+          whileInView="visible"
+          viewport={{ once: false }}
+          initial="hidden"
+        >
+          Why Choose AinspireTech Automation for Instagram
+        </motion.h2>
+        <motion.p
+          className="text-xl text-gray-300 font-montserrat"
+          variants={containerVariants}
+          whileInView="visible"
+          viewport={{ once: false }}
+          initial="hidden"
+        >
+          Join thousands of creators who have transformed their Instagram
+          engagement
+        </motion.p>
+      </div>
+      <motion.div
+        className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, margin: "-100px" }}
+      >
+        {features.map((feature, index) => {
+          const Icon = feature.icon;
+          const colorKey = feature.color as keyof typeof colorClasses;
 
-        return (
-          <motion.div
-            key={index}
-            variants={cardVariants}
-            whileHover="hover"
-            whileInView="visible"
-            viewport={{ once: false, margin: "-50px" }}
-            initial="hidden"
-          >
-            <Card
-              className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br  ${
-                colorClasses[feature.color as keyof typeof colorClasses]
-              } bg-transparent border h-full`}
+          return (
+            <motion.div
+              key={index}
+              variants={cardVariants}
+              whileHover="hover"
+              whileInView="visible"
+              viewport={{ once: false, margin: "-50px" }}
+              initial="hidden"
             >
-              <CardHeader className="p-6">
-                <motion.div
-                  className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 bg-gradient-to-br from-white/10 to-white/5`}
-                  variants={iconVariants}
-                  whileInView="visible"
-                  viewport={{ once: false }}
-                  initial="hidden"
-                >
-                  <Icon className={`h-6 w-6 ${iconColors[colorKey]}`} />
-                </motion.div>
+              <Card
+                className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br  ${
+                  colorClasses[feature.color as keyof typeof colorClasses]
+                } bg-transparent border h-full`}
+              >
+                <CardHeader className="p-6">
+                  <motion.div
+                    className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 bg-gradient-to-br from-white/10 to-white/5`}
+                    variants={iconVariants}
+                    whileInView="visible"
+                    viewport={{ once: false }}
+                    initial="hidden"
+                  >
+                    <Icon className={`h-6 w-6 ${iconColors[colorKey]}`} />
+                  </motion.div>
 
-                <motion.div
-                  variants={titleVariants}
-                  whileInView="visible"
-                  viewport={{ once: false }}
-                  initial="hidden"
-                >
-                  <CardTitle className="text-white text-xl mb-2">
-                    {feature.title}
-                  </CardTitle>
-                </motion.div>
+                  <motion.div
+                    variants={titleVariants}
+                    whileInView="visible"
+                    viewport={{ once: false }}
+                    initial="hidden"
+                  >
+                    <CardTitle className="text-white text-xl mb-2">
+                      {feature.title}
+                    </CardTitle>
+                  </motion.div>
 
-                <motion.div
-                  variants={descriptionVariants}
-                  whileInView="visible"
-                  viewport={{ once: false }}
-                  initial="hidden"
-                >
-                  <CardDescription className="text-gray-300 font-montserrat">
-                    {feature.description}
-                  </CardDescription>
-                </motion.div>
-              </CardHeader>
-            </Card>
-          </motion.div>
-        );
-      })}
-    </motion.div>
+                  <motion.div
+                    variants={descriptionVariants}
+                    whileInView="visible"
+                    viewport={{ once: false }}
+                    initial="hidden"
+                  >
+                    <CardDescription className="text-gray-300 font-montserrat">
+                      {feature.description}
+                    </CardDescription>
+                  </motion.div>
+                </CardHeader>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </motion.div>
+    </>
   );
 }
 

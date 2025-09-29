@@ -120,7 +120,7 @@ export function SetupProcess() {
 
   return (
     <motion.section
-      className="w-full py-10 bg-transparent text-white"
+      className="w-full py-20 bg-transparent text-white"
       initial={{ opacity: 0, scale: 0.9 }}
       whileInView={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, delay: 0.2 }}
@@ -128,10 +128,9 @@ export function SetupProcess() {
       <div className="container mx-auto px-4 w-full">
         {/* Header */}
         <motion.div className="text-center mb-16" variants={itemVariants}>
-          <h2 className="text-3xl font-bold text-[#a12368] mb-4">
+          <h2 className="text-4xl font-bold mb-4 gradient-text-main text-center">
             How to Add AI Chatbot to Your Website
           </h2>
-
           {/* Divider */}
           <motion.div
             className="w-24 h-1 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full mx-auto mb-12"
@@ -484,44 +483,6 @@ export function SetupProcess() {
                       </AnimatePresence>
                     </motion.div>
                   </div>
-
-                  {/* Navigation Arrows */}
-                  <motion.div
-                    className="flex justify-between pt-6 border-t border-gray-800"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                  >
-                    <motion.button
-                      onClick={() => setActiveStep(Math.max(1, activeStep - 1))}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                        activeStep > 1
-                          ? "text-[#00F0FF] hover:bg-[#00F0FF]/10"
-                          : "text-gray-500 cursor-not-allowed"
-                      }`}
-                      disabled={activeStep === 1}
-                      whileHover={activeStep > 1 ? { scale: 1.05 } : {}}
-                      whileTap={activeStep > 1 ? { scale: 0.95 } : {}}
-                    >
-                      <ArrowRight className="h-4 w-4 rotate-180" />
-                      <span>Previous</span>
-                    </motion.button>
-
-                    <motion.button
-                      onClick={() => setActiveStep(Math.min(3, activeStep + 1))}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                        activeStep < 3
-                          ? "text-[#00F0FF] hover:bg-[#00F0FF]/10"
-                          : "text-gray-500 cursor-not-allowed"
-                      }`}
-                      disabled={activeStep === 3}
-                      whileHover={activeStep < 3 ? { scale: 1.05 } : {}}
-                      whileTap={activeStep < 3 ? { scale: 0.95 } : {}}
-                    >
-                      <span>Next</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </motion.button>
-                  </motion.div>
                 </motion.div>
               </TabsContent>
             ))}

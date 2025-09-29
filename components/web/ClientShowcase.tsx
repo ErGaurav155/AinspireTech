@@ -240,7 +240,7 @@ export function ClientShowcase() {
           </motion.div>
 
           <motion.h2
-            className="text-3xl md:text-5xl font-bold mb-6 gradient-text-main"
+            className="text-4xl  font-bold mb-6 gradient-text-main"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -248,7 +248,7 @@ export function ClientShowcase() {
           >
             Who is Using{" "}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
-              LinkDM
+              AinspireTech
             </span>
             ?
           </motion.h2>
@@ -260,8 +260,8 @@ export function ClientShowcase() {
             viewport={{ once: false }}
             initial="hidden"
           >
-            Join thousands of creators, brands, and businesses that trust LinkDM
-            to automate their engagement and grow their audience.
+            Join thousands of creators, brands, and businesses that trust
+            AinspireTech to automate their engagement and grow their audience.
           </motion.p>
 
           {/* Divider */}
@@ -367,7 +367,7 @@ export function ClientShowcase() {
                         >
                           <Instagram className="h-5 w-5 text-white" />
                         </motion.div>
-                        <span className="text-xs md:text-base font-thin md:font-medium group-hover:text-[#00F0FF] transition-colors">
+                        <span className="text-xs md:text-base font-thin md:font-medium group-hover:text-[#00F0FF] transition-colors font-montserrat">
                           {creator}
                         </span>
                       </div>
@@ -416,7 +416,7 @@ export function ClientShowcase() {
                         >
                           <Building2 className="h-5 w-5 text-white" />
                         </motion.div>
-                        <span className="text-sm font-medium group-hover:text-[#FF2E9F] transition-colors">
+                        <span className="text-sm font-medium font-montserrat group-hover:text-[#FF2E9F] transition-colors">
                           {brand}
                         </span>
                       </div>
@@ -465,7 +465,7 @@ export function ClientShowcase() {
                           >
                             <CheckCircle className="h-5 w-5 text-[#00F0FF] mr-3" />
                           </motion.div>
-                          <span className="text-sm font-medium group-hover:text-[#00F0FF] transition-colors">
+                          <span className="text-sm font-medium font-montserrat group-hover:text-[#00F0FF] transition-colors">
                             {niche.name}
                           </span>
                         </div>

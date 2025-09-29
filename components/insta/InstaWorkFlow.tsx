@@ -93,7 +93,7 @@ function InstaHowItWorksSection() {
   };
 
   return (
-    <section className="container mx-auto px-4 py-16 md:py-24 backdrop-blur-sm">
+    <section className=" mx-auto md:px-4 py-16 md:py-24 backdrop-blur-sm">
       <motion.div
         className="text-center mb-16"
         variants={containerVariants}
@@ -122,7 +122,7 @@ function InstaHowItWorksSection() {
       </motion.div>
 
       <motion.div
-        className="max-w-4xl mx-auto"
+        className="max-w-6xl mx-auto"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -184,7 +184,7 @@ function InstaHowItWorksSection() {
               viewport={{ once: false, margin: "-50px" }}
             >
               <motion.div
-                className="text-5xl mb-4"
+                className="text-5xl mb-4 w-full "
                 variants={iconVariants}
                 whileInView="visible"
                 viewport={{ once: false }}
@@ -261,7 +261,7 @@ function InstaHowItWorksSection() {
               viewport={{ once: false, margin: "-50px" }}
             >
               <motion.div
-                className="text-5xl mb-4"
+                className="text-5xl mb-4 w-full"
                 variants={iconVariants}
                 whileInView="visible"
                 viewport={{ once: false }}
@@ -337,7 +337,7 @@ function InstaHowItWorksSection() {
               viewport={{ once: false, margin: "-50px" }}
             >
               <motion.div
-                className="text-5xl mb-4"
+                className="text-5xl mb-4 w-full"
                 variants={iconVariants}
                 whileInView="visible"
                 viewport={{ once: false }}
@@ -352,7 +352,7 @@ function InstaHowItWorksSection() {
                 viewport={{ once: false }}
                 initial="hidden"
               >
-                Analytics Dashboard
+                User Analytics Dashboard
               </motion.div>
             </motion.div>
           </motion.div>

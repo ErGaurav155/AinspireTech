@@ -147,7 +147,7 @@ export function WebCTASection() {
                     className="btn-gradient-cyan text-lg px-8 hover:opacity-90 transition-opacity"
                     asChild
                   >
-                    <Link href="/insta/dashboard">
+                    <Link href="/web/UserDashboard">
                       Start Free Trial <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
@@ -159,7 +159,7 @@ export function WebCTASection() {
                     variant="outline"
                     className="text-lg px-8 border-[#B026FF]/30 bg-transparent text-[#B026FF] hover:bg-[#B026FF]/10"
                   >
-                    View Pricing
+                    <Link href="/web/pricing">View Pricing</Link>
                   </Button>
                 </motion.div>
               </motion.div>

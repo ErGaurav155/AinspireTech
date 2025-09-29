@@ -437,7 +437,7 @@ const ProductShowcase = () => {
               </div>
 
               {/* Section CTA */}
-              <motion.div
+              {/* <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
@@ -450,16 +450,16 @@ const ProductShowcase = () => {
                 >
                   <Button
                     size="lg"
-                    className={`bg-gradient-to-r ${section.gradient} text-white font-semibold px-8 py-6 rounded-xl backdrop-blur-sm border-0`}
+                    className={`bg-gradient-to-r ${section.gradient} text-white font-semibold px-4 md:px-8  py-2 md:py-6 rounded-xl backdrop-blur-sm border-0`}
                     onClick={() =>
                       router.push(sectionIndex === 0 ? "/web" : "/insta")
                     }
                   >
-                    <Rocket className="mr-2 h-5 w-5" />
+                    <Rocket className=" mr-2 h-5 w-5" />
                     Explore All {section.title.split(" ")[0]} Solutions
                   </Button>
                 </motion.div>
-              </motion.div>
+              </motion.div> */}
             </motion.section>
           ))}
         </div>

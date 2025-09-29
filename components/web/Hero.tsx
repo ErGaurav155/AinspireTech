@@ -3,20 +3,29 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Zap, Check, BadgeCheck, Bot } from "lucide-react";
+import {
+  Zap,
+  Check,
+  BadgeCheck,
+  Bot,
+  Calendar,
+  Rocket,
+  ArrowRight,
+} from "lucide-react";
 import Image from "next/image";
 import Rimg1 from "@/public/assets/img/chatbot.png";
 import Rimg2 from "@/public/assets/img/headingimg.png";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const slides = [<InstagramSection key={1} />, <WebChatbotSection key={0} />];
+  const slides = [<InstagramSection key={0} />, <WebChatbotSection key={1} />];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 7000);
+    }, 70000);
 
     return () => clearInterval(interval);
   }, [slides.length]);
@@ -278,8 +287,6 @@ function InstagramSection() {
               </motion.div>
             ))}
           </motion.div>
-
-          {/* CTA Buttons */}
           <motion.div
             className="flex flex-col md:flex-row lg:flex-col xl:flex-row gap-4 mb-4"
             variants={containerVariants}
@@ -287,25 +294,26 @@ function InstagramSection() {
             viewport={{ once: false }}
             initial="hidden"
           >
-            <motion.div variants={buttonVariants} whileHover="hover">
-              <Button
-                onClick={() => router.push("/insta/dashboard")}
-                className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black text-lg py-6 px-8 w-full md:w-auto"
-              >
-                Start Automating - It&apos;s Free!
-              </Button>
-            </motion.div>
-            <motion.div variants={buttonVariants} whileHover="hover">
-              <Button
-                onClick={() => router.push("/insta/pricing")}
-                variant="outline"
-                className="border-gray-600 text-gray-300 text-lg py-6 px-8 w-full md:w-auto hover:bg-gray-800"
-              >
-                Watch Demo
-              </Button>
-            </motion.div>
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push("/web")}
+              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
+            >
+              <Rocket className="h-5 w-5 mr-2" />
+              Start Automating - It&apos;s Free!
+              <ArrowRight className="h-5 w-5 ml-2" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              onClick={() => router.push("/web/pricing")}
+              whileTap={{ scale: 0.95 }}
+              className="border-2 border-[#00F0FF] text-[#00F0FF] font-semibold py-2 px-4  rounded-2xl hover:bg-[#00F0FF]/10 transition-all duration-300 flex items-center justify-center"
+            >
+              <Calendar className="h-5 w-5 mr-2" />
+              View Pricing
+            </motion.button>
           </motion.div>
-
           <motion.p
             className="text-sm text-gray-400 font-montserrat"
             variants={textVariants}
@@ -573,7 +581,6 @@ function WebChatbotSection() {
               </motion.div>
             ))}
           </motion.div>
-
           {/* CTA Buttons */}
           <motion.div
             className="flex flex-col md:flex-row lg:flex-col xl:flex-row gap-4 mb-4"
@@ -582,23 +589,25 @@ function WebChatbotSection() {
             viewport={{ once: false }}
             initial="hidden"
           >
-            <motion.div variants={buttonVariants} whileHover="hover">
-              <Button
-                onClick={() => router.push("/web/UserDashboard")}
-                className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black text-lg py-6 px-8 w-full md:w-auto"
-              >
-                Start Automating - It&apos;s Free!
-              </Button>
-            </motion.div>
-            <motion.div variants={buttonVariants} whileHover="hover">
-              <Button
-                variant="outline"
-                onClick={() => router.push("/web/pricing")}
-                className="border-gray-600 text-gray-300 text-lg py-6 px-8 w-full md:w-auto hover:bg-gray-800"
-              >
-                Watch Demo
-              </Button>
-            </motion.div>
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push("/insta")}
+              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
+            >
+              <Rocket className="h-5 w-5 mr-2" />
+              Start Automating - It&apos;s Free!
+              <ArrowRight className="h-5 w-5 ml-2" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              onClick={() => router.push("/insta/pricing")}
+              whileTap={{ scale: 0.95 }}
+              className="border-2 border-[#00F0FF] text-[#00F0FF] font-semibold py-2 px-4  rounded-2xl hover:bg-[#00F0FF]/10 transition-all duration-300 flex items-center justify-center"
+            >
+              <Calendar className="h-5 w-5 mr-2" />
+              View Pricing
+            </motion.button>
           </motion.div>
 
           <motion.p
