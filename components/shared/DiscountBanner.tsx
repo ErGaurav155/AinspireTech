@@ -90,7 +90,7 @@ const DiscountBanner = () => {
         <div className="flex flex-row-reverse items-center justify-between w-full ">
           <button
             onClick={handleClose}
-            className=" p-1.5 rounded-full bg-[#1a1a1a]/80 border border-[#333] hover:bg-[#FF2E9F]/20 hover:border-[#FF2E9F]/50 transition-all duration-300 group"
+            className="relative p-1.5 rounded-full bg-[#1a1a1a]/80 border border-[#333] hover:bg-[#FF2E9F]/20 hover:border-[#FF2E9F]/50 transition-all duration-300 group z-40"
           >
             <XMarkIcon
               height={18}
