@@ -148,9 +148,20 @@ export function InstaFeaturesGrid() {
 
   return (
     <>
+      <motion.div
+        className="flex items-center justify-center text-[#00F0FF] mb-4"
+        variants={titleVariants}
+        whileInView="visible"
+        viewport={{ once: false }}
+        initial="hidden"
+      >
+        <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+          WHY WE
+        </span>
+      </motion.div>
       <div className="text-center mb-12">
         <motion.h2
-          className="text-4xl font-bold text-white mb-4 gradient-text-main"
+          className="text-3xl font-bold text-white mb-4 gradient-text-main"
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -194,7 +205,7 @@ export function InstaFeaturesGrid() {
                   colorClasses[feature.color as keyof typeof colorClasses]
                 } bg-transparent border h-full`}
               >
-                <CardHeader className="p-6">
+                <CardHeader className="p-3 md:p-6">
                   <motion.div
                     className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 bg-gradient-to-br from-white/10 to-white/5`}
                     variants={iconVariants}

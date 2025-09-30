@@ -112,9 +112,20 @@ function InstaCTASection() {
         initial="hidden"
       >
         <Card className="max-w-4xl mx-auto bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a]/90 border border-white/10 backdrop-blur-lg">
-          <CardContent className="pt-12 pb-12">
+          <CardContent className="py-12 px-3">
+            <motion.div
+              className="flex items-center justify-center text-[#00F0FF] mb-4"
+              variants={titleVariants}
+              whileInView="visible"
+              viewport={{ once: false }}
+              initial="hidden"
+            >
+              <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+                CTA SECTION
+              </span>
+            </motion.div>
             <motion.h2
-              className="text-4xl font-bold mb-4 gradient-text-main"
+              className="text-3xl font-bold mb-4 gradient-text-main"
               variants={titleVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -134,7 +145,7 @@ function InstaCTASection() {
               300%.
             </motion.p>
             <motion.div
-              className="flex flex-wrap gap-4 justify-center"
+              className="flex flex-wrap gap-4 justify-center "
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"

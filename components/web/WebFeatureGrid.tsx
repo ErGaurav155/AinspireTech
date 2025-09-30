@@ -159,9 +159,20 @@ function WebFeaturesGrid() {
 
   return (
     <>
+      <motion.div
+        className="flex items-center justify-center text-[#00F0FF] mb-4"
+        variants={titleVariants}
+        whileInView="visible"
+        viewport={{ once: false }}
+        initial="hidden"
+      >
+        <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+          CHATBOT FEATURE
+        </span>
+      </motion.div>
       <div className="text-center mb-12">
         <motion.h2
-          className="text-4xl font-bold text-white mb-4 gradient-text-main"
+          className="text-3xl font-bold text-white mb-4 gradient-text-main"
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}

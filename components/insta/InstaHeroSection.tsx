@@ -245,7 +245,6 @@ export function InstagramAutomationHero() {
 
           {/* Right Column - Instagram Demo Video */}
           <motion.div
-            initial={{ opacity: 0, x: 30, rotateY: 10 }}
             whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
             transition={{
               duration: 1.2,
@@ -282,7 +281,7 @@ export function InstagramAutomationHero() {
                   loop
                   muted
                   playsInline
-                  initial={{ scale: 1.1, opacity: 0 }}
+                  initial={{ scale: 0.8, opacity: 0 }}
                   whileInView={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 1, delay: 0.5 }}
                   className="w-full h-[30rem] md:h-[38rem] max-w-md mx-auto scale-[1.03] -translate-y-1"

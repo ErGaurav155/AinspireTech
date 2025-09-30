@@ -517,34 +517,32 @@ export function AIVoiceAgentShowcase() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
+            className="flex items-center justify-center text-[#00F0FF] mb-4"
+            variants={titleVariants}
+            whileInView="visible"
+            viewport={{ once: false }}
+            initial="hidden"
+          >
+            <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+              PRODUCT SHOWCASE{" "}
+            </span>
+          </motion.div>
+          <motion.div
             className="flex items-center justify-center gap-3 mb-4"
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: false, margin: "-50px" }}
           >
-            <div className="w-16 h-16 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-2xl flex items-center justify-center">
-              <Volume2 className="h-8 w-8 text-white" />
-            </div>
             <motion.h2
-              className="text-4xl md:text-5xl font-bold gradient-text-main"
+              className="text-3xl font-bold gradient-text-main"
               variants={titleVariants}
               whileInView="visible"
               viewport={{ once: false }}
               initial="hidden"
             >
-              AI Voice Agent
+              OUR PRODUCTS{" "}
             </motion.h2>
-          </motion.div>
-
-          <motion.div
-            className="flex justify-center mb-6"
-            variants={textVariants}
-            whileInView="visible"
-            viewport={{ once: false }}
-            initial="hidden"
-          >
-            <ArrowDown className="h-6 w-6 text-[#00F0FF] animate-bounce" />
           </motion.div>
 
           <motion.p
@@ -721,7 +719,7 @@ export function AIVoiceAgentShowcase() {
             >
               {/* Voice Agent UI Preview */}
               <motion.div
-                className="lg:col-span-2 bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
+                className="lg:col-span-2 bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-3 md:p-6 backdrop-blur-sm"
                 variants={cardVariants}
                 whileHover="hover"
               >
@@ -755,7 +753,7 @@ export function AIVoiceAgentShowcase() {
 
               {/* Voice Agent Details */}
               <motion.div
-                className="bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
+                className="bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-3 md:p-6 backdrop-blur-sm"
                 variants={cardVariants}
                 whileHover="hover"
               >
@@ -842,7 +840,7 @@ export function AIVoiceAgentShowcase() {
             >
               {/* Instagram UI Preview */}
               <motion.div
-                className="lg:col-span-2 bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
+                className="lg:col-span-2 bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-3 md:p-6 backdrop-blur-sm"
                 variants={cardVariants}
                 whileHover="hover"
               >
@@ -888,7 +886,7 @@ export function AIVoiceAgentShowcase() {
 
               {/* Automation Details */}
               <motion.div
-                className="bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
+                className="bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-3  md:p-6 backdrop-blur-sm"
                 variants={cardVariants}
                 whileHover="hover"
               >

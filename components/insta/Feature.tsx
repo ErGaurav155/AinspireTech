@@ -202,7 +202,7 @@ export function FeatureSection() {
             </span>
           </motion.div>
           <motion.h2
-            className="text-4xl font-bold mb-6 gradient-text-main"
+            className="text-3xl font-bold mb-6 gradient-text-main"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -270,7 +270,7 @@ export function FeatureSection() {
                 initial="hidden"
               >
                 {/* Icon */}
-                <div className="flex w-full flex-row items-center justify-between gap-5">
+                <div className="flex w-full flex-row items-center justify-between gap-3 md:gap-5">
                   <motion.div
                     className="w-14 h-14 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-xl flex items-center justify-center mb-6"
                     variants={iconVariants}
@@ -278,12 +278,12 @@ export function FeatureSection() {
                     viewport={{ once: false }}
                     initial="hidden"
                   >
-                    <div className="text-white p-1 md:p-3">{feature.icon}</div>
+                    <div className="text-white p-3">{feature.icon}</div>
                   </motion.div>
 
                   {/* Title */}
                   <motion.h3
-                    className=" text-lg md:text-xl font-bold mb-4 text-white"
+                    className=" text-lg md:text-xl font-semibold mb-4 text-white"
                     variants={titleVariants}
                     whileInView="visible"
                     viewport={{ once: false }}

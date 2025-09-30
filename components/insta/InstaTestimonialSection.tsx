@@ -126,8 +126,19 @@ function InstaTestimonialsSection() {
         whileInView="visible"
         viewport={{ once: false, margin: "-100px" }}
       >
+        <motion.div
+          className="flex items-center justify-center text-[#00F0FF] mb-4"
+          variants={titleVariants}
+          whileInView="visible"
+          viewport={{ once: false }}
+          initial="hidden"
+        >
+          <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+            CLIENT REVIEW
+          </span>
+        </motion.div>
         <motion.h2
-          className="text-4xl font-bold text-white mb-4 gradient-text-main"
+          className="text-3xl font-bold text-white mb-4 gradient-text-main"
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -164,7 +175,7 @@ function InstaTestimonialsSection() {
             initial="hidden"
           >
             <Card className="bg-[#0a0a0a]/60 border border-white/10 hover:border-[#258b94]/40 transition-colors duration-300 backdrop-blur-sm h-full">
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 <motion.div
                   className="flex items-center gap-1 mb-4"
                   variants={ratingVariants}

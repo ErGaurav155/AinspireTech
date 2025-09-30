@@ -123,7 +123,7 @@ const Faq = () => {
   return (
     <div>
       {/* FAQ Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section className="py-16  ">
         <motion.div
           className="max-w-4xl mx-auto"
           variants={containerVariants}
@@ -131,8 +131,19 @@ const Faq = () => {
           whileInView="visible"
           viewport={{ once: false, margin: "-100px" }}
         >
+          <motion.div
+            className="flex items-center justify-center text-[#00F0FF] mb-4"
+            variants={titleVariants}
+            whileInView="visible"
+            viewport={{ once: false }}
+            initial="hidden"
+          >
+            <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+              FAQ SECTION
+            </span>
+          </motion.div>
           <motion.div variants={itemVariants} className="mb-4">
-            <h2 className="text-4xl font-bold mb-4 gradient-text-main text-center">
+            <h2 className="text-3xl font-bold mb-4 gradient-text-main text-center">
               Frequently Asked Questions
             </h2>
           </motion.div>
@@ -148,7 +159,7 @@ const Faq = () => {
                 initial="hidden"
               >
                 <Card className="bg-[#0a0a0a]/60 border border-[#333] hover:border-[#258b94]/40 transition-colors duration-300">
-                  <CardContent className="p-6">
+                  <CardContent className="p-3 md:p-6">
                     <motion.h3
                       className="font-semibold text-[#258b94] mb-2"
                       variants={questionVariants}

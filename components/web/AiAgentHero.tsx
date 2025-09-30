@@ -573,11 +573,11 @@ export function AIAgentHero() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="inline-flex items-center bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-[#00F0FF]/30 rounded-full px-6 py-3 mb-4"
+                className="flex justify-center items-center bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-[#00F0FF]/30 rounded-full px-6 py-3 mb-4"
               >
                 <Sparkles className="h-5 w-5 text-[#00F0FF] mr-2" />
                 <span className="text-sm font-medium uppercase tracking-widest text-[#00F0FF]">
-                  AI-POWERED SUPPORT
+                  WEB CHATBOTS
                 </span>
               </motion.div>
 
@@ -678,7 +678,7 @@ export function AIAgentHero() {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 1.1 }}
-              className="flex items-center space-x-6 text-sm text-gray-400"
+              className="flex items-center space-x-3 md:space-x-6 text-sm text-gray-400"
             >
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-green-400" />

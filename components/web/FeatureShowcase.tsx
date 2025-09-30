@@ -269,7 +269,7 @@ export function FeatureShowcase() {
             </span>
           </motion.div>
           <motion.h2
-            className="text-4xl font-bold mb-6 gradient-text-main"
+            className="text-3xl font-bold mb-6 gradient-text-main"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -344,7 +344,7 @@ export function FeatureShowcase() {
           {filteredFeatures.map((feature, index) => (
             <motion.div
               key={index}
-              className="bg-transparent border border-white/10 rounded-2xl p-4 group relative overflow-hidden flex flex-col items-start justify-center gap-2 hover:border-[#258b94]/40 transition-colors duration-300"
+              className="bg-transparent border border-white/10 rounded-2xl p-3 group relative overflow-hidden flex flex-col items-start justify-center gap-2 hover:border-[#258b94]/40 transition-colors duration-300"
               variants={cardVariants}
               whileHover="hover"
               whileInView="visible"

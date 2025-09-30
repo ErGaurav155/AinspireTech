@@ -102,7 +102,17 @@ export function WebCTASection() {
       },
     },
   };
-
+  const titleVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+  };
   return (
     <motion.div
       className="text-center"
@@ -114,8 +124,19 @@ export function WebCTASection() {
       <motion.div variants={cardVariants} whileHover="hover">
         <motion.div variants={gradientPulseVariants} animate="visible">
           <Card className="max-w-4xl mx-auto bg-transparent border border-white/10 backdrop-blur-lg overflow-hidden">
-            <CardContent className="pt-12 pb-12 relative">
+            <CardContent className="p-3 pt-12 pb-12 relative">
               {/* Animated background elements */}
+              <motion.div
+                className="flex items-center justify-center text-[#00F0FF] mb-4"
+                variants={titleVariants}
+                whileInView="visible"
+                viewport={{ once: false }}
+                initial="hidden"
+              >
+                <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+                  CTA SECTION{" "}
+                </span>
+              </motion.div>
               <motion.div
                 className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00F0FF] to-transparent"
                 initial={{ scaleX: 0 }}
@@ -125,7 +146,7 @@ export function WebCTASection() {
               />
 
               <motion.div variants={itemVariants} className="mb-4">
-                <h2 className="text-4xl font-bold mb-4 gradient-text-main">
+                <h2 className="text-3xl font-bold mb-4 gradient-text-main">
                   🚀 Ready to Convert Your Website Traffic Into Paying Clients?{" "}
                 </h2>
               </motion.div>

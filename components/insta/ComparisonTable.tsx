@@ -184,7 +184,7 @@ const ComparisonTable: React.FC = () => {
   };
 
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-transparent backdrop-blur-sm">
+    <section className="py-16  bg-transparent backdrop-blur-sm">
       <motion.div
         className="max-w-7xl mx-auto"
         variants={containerVariants}

@@ -130,8 +130,19 @@ function StickyFeaturesSection() {
         whileInView="visible"
         viewport={{ once: false, margin: "-100px" }}
       >
+        <motion.div
+          className="flex items-center justify-center text-[#00F0FF] mb-4"
+          variants={titleVariants}
+          whileInView="visible"
+          viewport={{ once: false }}
+          initial="hidden"
+        >
+          <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+            WHY WE{" "}
+          </span>
+        </motion.div>
         <motion.h2
-          className="text-3xl md:text-4xl font-bold mb-4 gradient-text-main"
+          className="text-3xl font-bold mb-4 gradient-text-main"
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -165,27 +176,27 @@ function StickyFeaturesSection() {
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
-              className={`px-2 md:px-6 py-1 md:py-3 rounded-lg text-xs md:text-sm font-semibold transition-all duration-300 text-nowrap ${
+              className={`px-3 md:px-6 py-1 md:py-3 rounded-lg text-sm font-semibold transition-all duration-300 text-nowrap ${
                 activeTab === "webchat"
                   ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
                   : "text-gray-400 hover:text-white hover:bg-gray-700/50"
               }`}
               onClick={() => setActiveTab("webchat")}
             >
-              💬 Web Chatbots
+              💬 Web
             </motion.button>
             <motion.button
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
-              className={` px-2 py-1 md:px-6 md:py-3 rounded-lg font-semibold transition-all duration-300 text-nowrap text-xs md:text-sm ${
+              className={` px-3 py-1 md:px-6 md:py-3 rounded-lg font-semibold transition-all duration-300 text-nowrap text-sm ${
                 activeTab === "instagram"
                   ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white"
                   : "text-gray-400 hover:text-white hover:bg-gray-700/50"
               }`}
               onClick={() => setActiveTab("instagram")}
             >
-              📸 Insta Automation
+              📸 Insta
             </motion.button>
           </div>
         </div>

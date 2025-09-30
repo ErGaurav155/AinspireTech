@@ -62,6 +62,17 @@ export function SetupProcess() {
       },
     },
   };
+  const titleVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+  };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -126,9 +137,20 @@ export function SetupProcess() {
       transition={{ duration: 0.5, delay: 0.2 }}
     >
       <div className="container mx-auto px-4 w-full">
+        <motion.div
+          className="flex items-center justify-center text-[#00F0FF] mb-4"
+          variants={titleVariants}
+          whileInView="visible"
+          viewport={{ once: false }}
+          initial="hidden"
+        >
+          <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+            SETUP PROCEDURE
+          </span>
+        </motion.div>
         {/* Header */}
         <motion.div className="text-center mb-16" variants={itemVariants}>
-          <h2 className="text-4xl font-bold mb-4 gradient-text-main text-center">
+          <h2 className="text-3xl font-bold mb-4 gradient-text-main text-center">
             How to Add AI Chatbot to Your Website
           </h2>
           {/* Divider */}

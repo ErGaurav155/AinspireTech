@@ -95,6 +95,17 @@ function InstaHowItWorksSection() {
   return (
     <section className=" mx-auto md:px-4 py-16 md:py-24 backdrop-blur-sm">
       <motion.div
+        className="flex items-center justify-center text-[#00F0FF] mb-4"
+        variants={titleVariants}
+        whileInView="visible"
+        viewport={{ once: false }}
+        initial="hidden"
+      >
+        <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+          WORKING FLOW
+        </span>
+      </motion.div>
+      <motion.div
         className="text-center mb-16"
         variants={containerVariants}
         initial="hidden"
@@ -102,7 +113,7 @@ function InstaHowItWorksSection() {
         viewport={{ once: false, margin: "-100px" }}
       >
         <motion.h2
-          className="text-3xl md:text-4xl font-bold mb-4 gradient-text-main"
+          className="text-3xl  font-bold mb-4 gradient-text-main"
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}

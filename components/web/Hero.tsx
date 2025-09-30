@@ -25,7 +25,7 @@ export default function HeroSection() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 70000);
+    }, 7000);
 
     return () => clearInterval(interval);
   }, [slides.length]);
@@ -298,11 +298,11 @@ function InstagramSection() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push("/web")}
-              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-2 md:px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
             >
-              <Rocket className="h-5 w-5 mr-2" />
-              Start Automating - It&apos;s Free!
-              <ArrowRight className="h-5 w-5 ml-2" />
+              <Rocket className="h-5 w-5 mr-1 md:mr-2" />
+              Start Automating - Free!
+              <ArrowRight className="h-5 w-5 ml-1 md:ml-2" />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -593,11 +593,11 @@ function WebChatbotSection() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push("/insta")}
-              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-2 md:px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
             >
-              <Rocket className="h-5 w-5 mr-2" />
-              Start Automating - It&apos;s Free!
-              <ArrowRight className="h-5 w-5 ml-2" />
+              <Rocket className="h-5 w-5 mr-1 md:mr-2" />
+              Start Automating - Free!
+              <ArrowRight className="h-5 w-5 ml-1 md:ml-2" />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}

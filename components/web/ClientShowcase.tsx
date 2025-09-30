@@ -233,14 +233,13 @@ export function ClientShowcase() {
             viewport={{ once: false }}
             initial="hidden"
           >
-            <Sparkles className="h-4 w-4 mr-2" />
             <span className="text-sm font-medium uppercase tracking-widest">
               OUR COMMUNITY
             </span>
           </motion.div>
 
           <motion.h2
-            className="text-4xl  font-bold mb-6 gradient-text-main"
+            className="text-3xl  font-bold mb-6 gradient-text-main"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -287,17 +286,17 @@ export function ClientShowcase() {
               {
                 id: "creators",
                 label: "Creators",
-                icon: <Users className="h-5 w-5" />,
+                icon: <Users className="h-3 w-3 md:h-5 md:w-5" />,
               },
               {
                 id: "brands",
                 label: "Brands",
-                icon: <Building2 className="h-5 w-5" />,
+                icon: <Building2 className="h-3 w-3 md:h-5 md:w-5" />,
               },
               {
                 id: "niches",
                 label: "Niches",
-                icon: <Tag className="h-5 w-5" />,
+                icon: <Tag className="h-3 w-3 md:h-5 md:w-5" />,
               },
             ].map((tab) => (
               <motion.button
@@ -416,7 +415,7 @@ export function ClientShowcase() {
                         >
                           <Building2 className="h-5 w-5 text-white" />
                         </motion.div>
-                        <span className="text-sm font-medium font-montserrat group-hover:text-[#FF2E9F] transition-colors">
+                        <span className="text-xs md:text-base font-thin md:font-medium font-montserrat group-hover:text-[#FF2E9F] transition-colors">
                           {brand}
                         </span>
                       </div>
@@ -465,7 +464,7 @@ export function ClientShowcase() {
                           >
                             <CheckCircle className="h-5 w-5 text-[#00F0FF] mr-3" />
                           </motion.div>
-                          <span className="text-sm font-medium font-montserrat group-hover:text-[#00F0FF] transition-colors">
+                          <span className="text-xs md:text-base font-thin md:font-medium font-montserrat group-hover:text-[#00F0FF] transition-colors">
                             {niche.name}
                           </span>
                         </div>
@@ -483,14 +482,14 @@ export function ClientShowcase() {
 
         {/* Stats Section */}
         <motion.div
-          className="mt-16 bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border border-[#00F0FF]/30 rounded-2xl p-8 max-w-4xl mx-auto backdrop-blur-sm"
+          className="mt-16 bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border border-[#00F0FF]/30 rounded-2xl p-3 md:p-6 max-w-4xl mx-auto backdrop-blur-sm"
           variants={cardVariants}
           whileHover="hover"
           whileInView="visible"
           viewport={{ once: false, margin: "-50px" }}
           initial="hidden"
         >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 text-center">
             {[
               {
                 number: "50K+",

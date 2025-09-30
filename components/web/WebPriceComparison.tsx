@@ -452,25 +452,17 @@ const FeatureComparisonTable = () => {
     );
   };
 
-  const FeatureIcon = ({
-    feature,
-    value,
-  }: {
-    feature: any;
-    value: boolean;
-  }) => (
-    <motion.div
-      whileHover={{ scale: 1.1 }}
-      className={`flex items-center justify-center p-2 rounded-lg ${
-        value
-          ? "bg-gradient-to-r from-[#0ce05d]/20 to-[#054e29]/20 text-[#0ce05d]"
-          : "bg-gray-800/50 text-gray-600"
-      }`}
-    >
-      <feature.icon className="h-5 w-5" />
-    </motion.div>
-  );
-
+  const titleVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+      },
+    },
+  };
   return (
     <section className="w-full py-20 bg-transparent text-white relative overflow-hidden">
       {/* Animated Background */}
@@ -512,17 +504,17 @@ const FeatureComparisonTable = () => {
           className="text-center mb-12"
         >
           <motion.div
-            initial={{ scale: 0 }}
-            whileInView={{ scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-white/10 rounded-full px-6 py-2 mb-6"
+            className="flex items-center justify-center text-[#00F0FF] mb-4"
+            variants={titleVariants}
+            whileInView="visible"
+            viewport={{ once: false }}
+            initial="hidden"
           >
-            <Award className="h-4 w-4 text-[#00F0FF]" />
-            <span className="text-sm font-medium text-gray-300">
-              AI Chatbot Feature Comparison 2024
+            <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+              Feature Comparison
             </span>
           </motion.div>
-          <h2 className="text-4xl font-bold mb-4 gradient-text-main text-center">
+          <h2 className="text-3xl font-bold mb-4 gradient-text-main text-center">
             Compare AI Chatbot Features
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-montserrat">
