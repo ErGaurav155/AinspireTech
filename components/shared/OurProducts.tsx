@@ -68,7 +68,6 @@ export function AIVoiceAgentShowcase() {
       y: -8,
       scale: 1.02,
       borderColor: "rgba(37, 139, 148, 0.4)",
-      boxShadow: "0 20px 40px -10px rgba(37, 139, 148, 0.2)",
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -245,10 +244,10 @@ export function AIVoiceAgentShowcase() {
 
   // Voice Agent UI Components
   const VoiceCallInterface = () => (
-    <div className="bg-gradient-to-br from-cyan-900/20 to-blue-900/20 rounded-xl p-6 border border-cyan-500/30">
+    <div className="bg-gradient-to-br from-cyan-900/20 to-blue-900/20 rounded-xl p-2 md:p-6 border border-cyan-500/30">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
+        <div className="flex flex-col md:flex-row items-center space-x-3">
+          <div className="hidden w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full md:flex items-center justify-center">
             <User className="h-6 w-6 text-white" />
           </div>
           <div>
@@ -404,7 +403,7 @@ export function AIVoiceAgentShowcase() {
   const InstagramDMInterface = () => (
     <div className="bg-white rounded-lg border border-gray-300 overflow-hidden max-w-sm mx-auto h-96 flex flex-col">
       {/* DM Header */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-1 border-b">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></div>
           <div className="w-20 h-4 bg-gray-200 rounded"></div>
@@ -417,9 +416,9 @@ export function AIVoiceAgentShowcase() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+      <div className="flex-1 p-0 space-y-3 overflow-y-auto">
         {/* Received Message */}
-        <div className="flex space-x-2">
+        <div className="flex space-x-1 md:space-x-2">
           <div className="w-6 h-6 bg-gray-300 rounded-full"></div>
           <div className="max-w-xs">
             <div className="bg-gray-100 rounded-lg p-3">
@@ -431,7 +430,7 @@ export function AIVoiceAgentShowcase() {
         </div>
 
         {/* Sent Message */}
-        <div className="flex space-x-2 justify-end">
+        <div className="flex space-x-1 md:space-x-2 justify-end">
           <div className="max-w-xs">
             <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg p-3">
               <div className="w-28 h-3 bg-white/50 rounded mb-1"></div>
@@ -445,7 +444,7 @@ export function AIVoiceAgentShowcase() {
         </div>
 
         {/* AI Auto-response */}
-        <div className="flex space-x-2">
+        <div className="flex space-x-1 md:space-x-2">
           <div className="w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center">
             <Zap className="h-3 w-3 text-white" />
           </div>
@@ -501,7 +500,7 @@ export function AIVoiceAgentShowcase() {
 
   return (
     <motion.section
-      className="w-full py-20 bg-transparent text-white backdrop-blur-sm"
+      className="w-full py-20 bg-transparent text-white "
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
@@ -569,13 +568,13 @@ export function AIVoiceAgentShowcase() {
             {[
               {
                 id: "webchat",
-                label: "Voice Agents",
+                label: "Web",
                 icon: <Mic className="h-5 w-5" />,
                 gradient: "from-cyan-600 to-blue-600",
               },
               {
                 id: "instagram",
-                label: "Instagram Automation",
+                label: "Insta",
                 icon: <Instagram className="h-5 w-5" />,
                 gradient: "from-pink-600 to-purple-600",
               },
@@ -614,17 +613,17 @@ export function AIVoiceAgentShowcase() {
               {[
                 {
                   id: "support",
-                  label: "AI Support Agent",
+                  label: "AI Support",
                   icon: <Phone className="h-5 w-5" />,
                 },
                 {
                   id: "education",
-                  label: "AI Booking Agent",
+                  label: "AI Education",
                   icon: <Calendar className="h-5 w-5" />,
                 },
                 {
                   id: "leadgen",
-                  label: "AI Lead Qualification Agent",
+                  label: "AI Lead Genaration",
                   icon: <Users className="h-5 w-5" />,
                 },
               ].map((tab) => (
@@ -634,7 +633,7 @@ export function AIVoiceAgentShowcase() {
                   className={`flex items-center px-4 py-2 rounded-lg transition-all duration-300 ${
                     activeWebChatTab === tab.id
                       ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
-                      : "bg-[#1a1a1a] border border-gray-800 text-gray-300 hover:text-white"
+                      : "bg-[#1a1a1a]  text-gray-300 hover:text-white"
                   }`}
                   variants={cardVariants}
                   whileHover="hover"
@@ -719,16 +718,16 @@ export function AIVoiceAgentShowcase() {
             >
               {/* Voice Agent UI Preview */}
               <motion.div
-                className="lg:col-span-2 bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-3 md:p-6 backdrop-blur-sm"
+                className="lg:col-span-2 bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-1 md:p-6 backdrop-blur-sm"
                 variants={cardVariants}
                 whileHover="hover"
               >
                 <div className="flex items-center justify-between mb-6">
                   <motion.h3
-                    className="text-xl font-bold text-white"
+                    className="text-lg font-bold text-white"
                     variants={titleVariants}
                   >
-                    Voice Agent Interface
+                    Website Chatbots
                   </motion.h3>
                   <div className="flex items-center space-x-2 text-cyan-400">
                     <Volume2 className="h-5 w-5" />
@@ -753,7 +752,7 @@ export function AIVoiceAgentShowcase() {
 
               {/* Voice Agent Details */}
               <motion.div
-                className="bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-3 md:p-6 backdrop-blur-sm"
+                className="bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-1 md:p-6 backdrop-blur-sm"
                 variants={cardVariants}
                 whileHover="hover"
               >
@@ -840,16 +839,16 @@ export function AIVoiceAgentShowcase() {
             >
               {/* Instagram UI Preview */}
               <motion.div
-                className="lg:col-span-2 bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-3 md:p-6 backdrop-blur-sm"
+                className="lg:col-span-2 bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-2 md:p-6 backdrop-blur-sm"
                 variants={cardVariants}
                 whileHover="hover"
               >
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col md:flex-row items-center justify-between mb-6">
                   <motion.h3
                     className="text-xl font-bold text-white"
                     variants={titleVariants}
                   >
-                    Instagram Automation Preview
+                    Instagram Automation
                   </motion.h3>
                   <div className="flex items-center space-x-2 text-pink-400">
                     <Instagram className="h-5 w-5" />
@@ -886,7 +885,7 @@ export function AIVoiceAgentShowcase() {
 
               {/* Automation Details */}
               <motion.div
-                className="bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-3  md:p-6 backdrop-blur-sm"
+                className="bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-2  md:p-6 backdrop-blur-sm"
                 variants={cardVariants}
                 whileHover="hover"
               >
@@ -894,7 +893,7 @@ export function AIVoiceAgentShowcase() {
                   className="flex items-center gap-3 mb-6"
                   variants={containerVariants}
                 >
-                  <div className="w-12 h-12 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 p-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl flex items-center justify-center">
                     {currentInsta.icon}
                   </div>
                   <div>

@@ -192,7 +192,7 @@ function WebFeaturesGrid() {
         </motion.p>
       </div>
       <motion.div
-        className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"
+        className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 bg-[#0a0a0a]/10 backdrop-blur-sm"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"

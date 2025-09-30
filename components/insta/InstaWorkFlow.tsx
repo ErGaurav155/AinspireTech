@@ -93,7 +93,7 @@ function InstaHowItWorksSection() {
   };
 
   return (
-    <section className=" mx-auto md:px-4 py-16 md:py-24 backdrop-blur-sm">
+    <section className=" mx-auto md:px-4 py-16 md:py-24 bg-transparent">
       <motion.div
         className="flex items-center justify-center text-[#00F0FF] mb-4"
         variants={titleVariants}
@@ -133,7 +133,7 @@ function InstaHowItWorksSection() {
       </motion.div>
 
       <motion.div
-        className="max-w-6xl mx-auto"
+        className="max-w-6xl mx-auto bg-[#0a0a0a]/10 backdrop-blur-sm"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -141,7 +141,7 @@ function InstaHowItWorksSection() {
       >
         {/* Step 1 */}
         <motion.div
-          className="flex flex-col md:flex-row gap-8 items-center mb-16"
+          className="flex flex-col md:flex-row gap-8 items-center mb-16 "
           variants={cardVariants}
           whileHover="hover"
           whileInView="visible"
@@ -180,7 +180,7 @@ function InstaHowItWorksSection() {
             </motion.p>
           </div>
           <motion.div
-            className="md:w-1/2 border border-gray-700/50 rounded-2xl p-6 aspect-video flex items-center justify-center bg-[#0a0a0a]/60 backdrop-blur-sm hover:border-[#258b94]/40 transition-colors duration-300"
+            className="md:w-1/2 border border-gray-700/50 rounded-2xl p-6 aspect-video flex items-center justify-center  hover:border-[#258b94]/40 transition-colors duration-300"
             variants={cardVariants}
             whileHover="hover"
             whileInView="visible"

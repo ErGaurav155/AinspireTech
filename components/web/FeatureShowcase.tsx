@@ -241,7 +241,7 @@ export function FeatureShowcase() {
       : features.filter((feature) => feature.category === activeCategory);
 
   return (
-    <section className="w-full bg-transparent text-white py-20 backdrop-blur-sm">
+    <section className="w-full bg-transparent text-white py-20 ">
       <motion.div
         className=" mx-auto md:px-4"
         variants={containerVariants}
@@ -301,7 +301,7 @@ export function FeatureShowcase() {
 
         {/* Category Filters */}
         <motion.div
-          className="flex flex-wrap justify-center gap-1 md:gap-4 mb-4 md:mb-12"
+          className="flex flex-wrap justify-center gap-1 md:gap-4 mb-4 md:mb-12 bg-[#0a0a0a]/10 backdrop-blur-sm"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -311,7 +311,7 @@ export function FeatureShowcase() {
             <motion.button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`px-2 py-1 md:px-6 md:py-3 rounded-full border transition-all duration-300 ${
+              className={`px-2 py-1 md:px-6 md:py-3 rounded-full border transition-all bg-[#0a0a0a]/10 backdrop-blur-sm duration-300 ${
                 activeCategory === category.id
                   ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black border-transparent"
                   : "border-[#00F0FF]/30 text-gray-300 hover:border-[#00F0FF] hover:text-white"
@@ -335,7 +335,7 @@ export function FeatureShowcase() {
 
         {/* Features Grid */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto bg-[#0a0a0a]/10 backdrop-blur-sm"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -344,7 +344,7 @@ export function FeatureShowcase() {
           {filteredFeatures.map((feature, index) => (
             <motion.div
               key={index}
-              className="bg-transparent border border-white/10 rounded-2xl p-3 group relative overflow-hidden flex flex-col items-start justify-center gap-2 hover:border-[#258b94]/40 transition-colors duration-300"
+              className=" border border-white/10 rounded-2xl p-3 group relative overflow-hidden flex flex-col items-start justify-center gap-2 hover:border-[#258b94]/40 transition-colors duration-300 "
               variants={cardVariants}
               whileHover="hover"
               whileInView="visible"

@@ -70,7 +70,7 @@ export function Footer() {
                 <h3 className="font-bold text-white">Contact</h3>
                 <a
                   href="mailto:gauravgkhaire@gmail.com"
-                  className="text-gray-300 hover:text-[#00F0FF] transition-colors duration-300 text-md md:text-base"
+                  className="text-gray-300 hover:text-[#00F0FF] transition-colors duration-300 text-sm md:text-base"
                 >
                   gauravgkhaire@gmail.com
                 </a>

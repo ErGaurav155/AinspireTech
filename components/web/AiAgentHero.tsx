@@ -499,7 +499,7 @@ const ChatDemoCarousel = () => {
       </div>
 
       {/* Chat Container */}
-      <div className="container bg-transparent border border-gray-800 rounded-2xl p-2 shadow-2xl w-full h-[40rem] sm:h-[33rem]">
+      <div className="container bg-[#0a0a0a]/10 backdrop-blur-sm border border-gray-800 rounded-2xl p-2 shadow-2xl w-full h-[40rem] sm:h-[33rem]">
         {/* Chat Header  lg:w-[80%] h-[96vh] */}
         <div className="flex items-center space-x-3 mb-3">
           <div className="w-12 h-12 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full flex items-center justify-center">
@@ -573,7 +573,7 @@ export function AIAgentHero() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="flex justify-center items-center bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-[#00F0FF]/30 rounded-full px-6 py-3 mb-4"
+                className="flex justify-center items-center bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-[#00F0FF]/30 rounded-full px-6 py-3 mb-4 max-w-min text-nowrap"
               >
                 <Sparkles className="h-5 w-5 text-[#00F0FF] mr-2" />
                 <span className="text-sm font-medium uppercase tracking-widest text-[#00F0FF]">

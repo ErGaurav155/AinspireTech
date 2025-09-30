@@ -211,7 +211,7 @@ export function ClientShowcase() {
 
   return (
     <motion.section
-      className="w-full py-20 bg-transparent text-white backdrop-blur-sm"
+      className="w-full py-20 bg-transparent text-white "
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
@@ -322,7 +322,7 @@ export function ClientShowcase() {
 
         {/* Content */}
         <motion.div
-          className="max-w-6xl mx-auto"
+          className="max-w-6xl mx-auto bg-[#0a0a0a]/10 backdrop-blur-sm"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"

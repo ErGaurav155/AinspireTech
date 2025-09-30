@@ -184,7 +184,7 @@ const ComparisonTable: React.FC = () => {
   };
 
   return (
-    <section className="py-16  bg-transparent backdrop-blur-sm">
+    <section className="py-16  bg-transparent ">
       <motion.div
         className="max-w-7xl mx-auto"
         variants={containerVariants}
@@ -287,7 +287,7 @@ const ComparisonTable: React.FC = () => {
 
         {/* Comparison Table */}
         <motion.div
-          className="overflow-x-auto"
+          className="overflow-x-auto bg-[#0a0a0a]/10 backdrop-blur-sm"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"

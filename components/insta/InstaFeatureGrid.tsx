@@ -181,7 +181,7 @@ export function InstaFeaturesGrid() {
         </motion.p>
       </div>
       <motion.div
-        className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"
+        className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 bg-[#0a0a0a]/10 backdrop-blur-sm"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -203,7 +203,7 @@ export function InstaFeaturesGrid() {
               <Card
                 className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br  ${
                   colorClasses[feature.color as keyof typeof colorClasses]
-                } bg-transparent border h-full`}
+                } bg-[#0a0a0a]/10  border h-full`}
               >
                 <CardHeader className="p-3 md:p-6">
                   <motion.div

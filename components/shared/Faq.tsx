@@ -148,7 +148,7 @@ const Faq = () => {
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-[#0a0a0a]/10 backdrop-blur-sm">
             {faqData.map((faq, index) => (
               <motion.div
                 key={index}

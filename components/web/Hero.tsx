@@ -204,9 +204,7 @@ function InstagramSection() {
             initial="hidden"
           >
             <Zap className="h-4 w-4 mr-1" />
-            <span className="text-sm font-medium">
-              Meta-Approved Instagram Automation
-            </span>
+            <span className="text-sm font-medium">Instagram Automation</span>
           </motion.div>
 
           <motion.h1
@@ -502,11 +500,11 @@ function WebChatbotSection() {
             initial="hidden"
           >
             <Bot className="h-4 w-4 mr-1" />
-            <span className="text-sm font-medium">AI-Powered Web Chatbot</span>
+            <span className="text-sm font-medium"> Website Chatbot</span>
           </motion.div>
 
           <motion.h1
-            className="text-3xl md:text-4xl font-bold leading-tight mb-4"
+            className="text-2xl md:text-4xl font-bold leading-tight mb-4"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}

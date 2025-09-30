@@ -118,7 +118,7 @@ function InstaTestimonialsSection() {
   };
 
   return (
-    <section className="py-16 backdrop-blur-sm">
+    <section className="py-16 bg-transparent">
       <motion.div
         className="text-center mb-12"
         variants={containerVariants}
@@ -159,7 +159,7 @@ function InstaTestimonialsSection() {
       </motion.div>
 
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+        className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 bg-[#0a0a0a]/10 backdrop-blur-sm"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"

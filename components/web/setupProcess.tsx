@@ -168,7 +168,7 @@ export function SetupProcess() {
           className="space-y-6 max-w-7xl w-full mx-auto flex flex-wrap flex-col items-center justify-center"
         >
           <motion.div variants={itemVariants}>
-            <TabsList className="bg-[#0a0a0a]/60 border min-h-max flex flex-wrap items-center justify-center max-w-max gap-1 md:gap-3 text-white w-full grid-cols-3 border-gray-900">
+            <TabsList className="bg-[#0a0a0a]/10 backdrop-blur-sm border min-h-max flex flex-wrap items-center justify-center max-w-max gap-1 md:gap-3 text-white w-full grid-cols-3 border-gray-900">
               {steps.map((step) => (
                 <motion.div
                   key={step.number}
@@ -211,7 +211,7 @@ export function SetupProcess() {
                 >
                   <div className="max-w-4xl mx-auto">
                     <motion.div
-                      className="bg-transparent border border-gray-800 rounded-2xl p-2 md:p-8"
+                      className="bg-[#0a0a0a]/10 backdrop-blur-sm border border-gray-800 rounded-2xl p-2 md:p-8"
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: 0.1 }}

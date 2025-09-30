@@ -116,7 +116,7 @@ function StickyFeaturesSection() {
   return (
     <motion.div
       id="features"
-      className="relative z-50 py-12 lg:py-24 backdrop-blur-sm p-5"
+      className="relative z-50 py-12 lg:py-24  p-5"
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"

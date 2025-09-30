@@ -174,7 +174,7 @@ export function FeatureSection() {
   ];
 
   return (
-    <section className="w-full bg-transparent text-white py-16 backdrop-blur-sm">
+    <section className="w-full bg-transparent text-white py-16 ">
       <motion.div
         className="mx-auto"
         variants={containerVariants}
@@ -224,7 +224,7 @@ export function FeatureSection() {
 
         {/* Features Grid */}
         <motion.div
-          className="flex flex-col gap-4 sm:gap-8 md:gap-12 max-w-7xl mx-auto items-center justify-center h-full"
+          className="flex flex-col gap-4 sm:gap-8 md:gap-12 max-w-7xl mx-auto items-center justify-center h-full bg-[#0a0a0a]/10 backdrop-blur-sm"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -262,7 +262,7 @@ export function FeatureSection() {
 
               {/* Feature Description */}
               <motion.div
-                className="flex-1 min-h-[50vh]   flex flex-col items-start justify-center bg-[#0a0a0a]/60 backdrop-blur-sm border border-white/10 rounded-2xl p-2 md:p-6 hover:border-[#258b94]/40 transition-colors duration-300"
+                className="flex-1 min-h-[50vh]   flex flex-col items-start justify-center  border border-white/10 rounded-2xl p-2 md:p-6 hover:border-[#258b94]/40 transition-colors duration-300"
                 variants={cardVariants}
                 whileHover="hover"
                 whileInView="visible"

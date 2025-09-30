@@ -125,7 +125,7 @@ export function WebTestimonialsSection() {
 
   return (
     <motion.section
-      className="py-16 backdrop-blur-sm"
+      className="py-16 "
       initial="hidden"
       whileInView="visible"
       viewport={{ once: false, margin: "-100px" }}
@@ -165,7 +165,7 @@ export function WebTestimonialsSection() {
       </div>
 
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+        className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 bg-[#0a0a0a]/10 backdrop-blur-sm"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -179,8 +179,9 @@ export function WebTestimonialsSection() {
             whileInView="visible"
             viewport={{ once: false, margin: "-50px" }}
             initial="hidden"
+            className="h-full "
           >
-            <Card className="bg-[#0a0a0a]/60 border border-white/10 hover:border-[#258b94]/40 transition-colors duration-300 backdrop-blur-sm">
+            <Card className="bg-[#0a0a0a]/10 border border-white/10 hover:border-[#258b94]/40 transition-colors duration-300 ">
               <CardContent className="p-3 md:p-6">
                 <motion.div
                   className="flex items-center gap-1 mb-4"
