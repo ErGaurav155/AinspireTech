@@ -113,7 +113,7 @@ export function BusinessMessagingTemplate() {
 
   return (
     <section className="w-full bg-transparent text-white py-20">
-      <div className="flex flex-col gap-12 items-center max-w-7xl mx-auto px-4 ">
+      <div className="flex flex-col gap-6 items-center max-w-7xl mx-auto px-4 ">
         {/* Left Column - Content */}
         <motion.div
           className="text-center mb-12"
@@ -123,7 +123,7 @@ export function BusinessMessagingTemplate() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className="flex items-center justify-center text-[#00F0FF] mb-4"
+            className="flex items-center justify-center text-[#00F0FF] "
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -163,7 +163,7 @@ export function BusinessMessagingTemplate() {
             stiffness: 50,
             damping: 15,
           }}
-          className="relative  w-full max-w-5xl mx-auto"
+          className="relative max-w-5xl  w-full md:w-[50vw]  m-auto"
         >
           {/* Main Video Container with Enhanced Animations */}
           <motion.div
@@ -181,7 +181,7 @@ export function BusinessMessagingTemplate() {
               y: -5,
               transition: { duration: 0.3 },
             }}
-            className="relative rounded-3xl overflow-hidden px-2 md:px-5 shadow-2xl shadow-[#00F0FF]/20"
+            className=" rounded-3xl overflow-hidden p-0 shadow-2xl shadow-[#00F0FF]/20"
           >
             {/* Video with 8px crop from top and bottom */}
             <motion.video
@@ -194,7 +194,7 @@ export function BusinessMessagingTemplate() {
               initial={{ scale: 0.8, opacity: 0 }}
               whileInView={{ scale: 1, opacity: 1 }}
               transition={{ duration: 1, delay: 0.5 }}
-              className="max-w-5xl h-auto w-full m-auto scale-[1.03] -translate-y-1"
+              className=" h-auto w-full  m-auto scale-[1.03] -translate-y-1"
               style={{
                 clipPath: "inset(8px 0 8px 0)",
                 marginTop: "-8px",
@@ -269,7 +269,7 @@ export function BusinessMessagingTemplate() {
               y: [0, -10, 0],
               rotate: [0, 5, 0],
             }}
-            className="absolute -top-5 right-5   w-10 h-10 bg-[#FF2E9F] rounded-full z-30 shadow-lg shadow-[#FF2E9F]/50"
+            className="absolute -top-5 right-0    w-10 h-10 bg-[#FF2E9F] rounded-full z-30 shadow-lg shadow-[#FF2E9F]/50"
           />
 
           <motion.div
@@ -285,7 +285,7 @@ export function BusinessMessagingTemplate() {
               y: [0, 10, 0],
               rotate: [0, -5, 0],
             }}
-            className="absolute -bottom-6 -left-6 w-8 h-8 bg-[#00F0FF] rounded-full z-30 shadow-lg shadow-[#00F0FF]/50"
+            className="absolute -bottom-6 left-0  w-8 h-8 bg-[#00F0FF] rounded-full z-30 shadow-lg shadow-[#00F0FF]/50"
           />
 
           {/* Additional Floating Element */}
@@ -302,7 +302,7 @@ export function BusinessMessagingTemplate() {
               y: [0, -15, 0],
               x: [0, 5, 0],
             }}
-            className="absolute -top-4 left-8 w-6 h-6 bg-gradient-to-r from-[#B026FF] to-[#FF2E9F] rounded-full z-20 shadow-lg"
+            className="absolute -top-4 left-0 w-6 h-6 bg-gradient-to-r from-[#B026FF] to-[#FF2E9F] rounded-full z-20 shadow-lg"
           />
         </motion.div>
       </div>

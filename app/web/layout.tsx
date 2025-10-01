@@ -19,7 +19,7 @@ export default function RootLayout({
     <main className="">
       <Navbar />
       {children}
-      <AIChatBot />
+      {/* <AIChatBot /> */}
       <Footer />
       <Toaster />
     </main>

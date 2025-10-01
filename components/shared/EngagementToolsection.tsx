@@ -1,9 +1,9 @@
 "use client";
 
-import { instagramFeatures, webChatFeatures } from "@/constant";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { instagramFeatures, webChatFeatures } from "@/constant";
 
 function StickyFeaturesSection() {
   const [activeTab, setActiveTab] = useState<"webchat" | "instagram">(
@@ -308,27 +308,16 @@ function StickyFeaturesSection() {
                   viewport={{ once: false, margin: "-50px" }}
                   initial="hidden"
                 >
-                  <div className="relative w-full max-w-md aspect-video bg-gradient-to-br from-[#1a1a1a] to-[#2a2a2a] border border-gray-700 rounded-xl overflow-hidden flex items-center justify-center">
+                  <div className="relative w-full max-w-md aspect-video  rounded-xl overflow-hidden flex items-center justify-center">
                     {/* Placeholder for feature image - you can replace this with actual images */}
                     <div className="text-center p-8">
-                      <motion.div
-                        className="text-5xl mb-4"
-                        variants={iconVariants}
-                        whileInView="visible"
-                        viewport={{ once: false }}
-                        initial="hidden"
-                      >
-                        {activeTab === "webchat" ? "💬" : "📸"}
-                      </motion.div>
-                      <motion.p
-                        className="text-gray-400"
-                        variants={textVariants}
-                        whileInView="visible"
-                        viewport={{ once: false }}
-                        initial="hidden"
-                      >
-                        {feature.name} Visualization
-                      </motion.p>
+                      <Image
+                        src={feature.link}
+                        alt={feature.role}
+                        fill
+                        className="object-contain"
+                        loading="lazy"
+                      />
                     </div>
                   </div>
                 </motion.div>

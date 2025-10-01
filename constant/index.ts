@@ -1,5 +1,8 @@
 import { Feature, PricingPlan } from "@/types/types";
-
+import poster1 from "@/public/assets/img/analytics.png";
+import poster2 from "@/public/assets/img/home-chatbot.png";
+import poster3 from "@/public/assets/img/lead-capture.png";
+import poster4 from "@/public/assets/img/customer-support.png";
 export const testimonials = [
   {
     id: 5,
@@ -974,7 +977,7 @@ export const webChatFeatures = [
       "Automated qualification",
     ],
     role: "Lead Generation",
-    link: "#",
+    link: poster1,
     tag: ["AI", "Automation"],
   },
   {
@@ -989,7 +992,7 @@ export const webChatFeatures = [
       "Personalized messaging",
     ],
     role: "Lead Nurturing",
-    link: "#",
+    link: poster2,
     tag: ["Analytics", "Automation"],
   },
   {
@@ -999,7 +1002,7 @@ export const webChatFeatures = [
       "Delight customers with exceptional support. Instantly respond to queries, resolve issues, and create great customer experience with our fully-equipped live chat for websites, mobile apps, and instant messaging channels.",
     tools: ["Live chat", "Mobile apps", "Instant messaging", "Multi-platform"],
     role: "Customer Support",
-    link: "#",
+    link: poster3,
     tag: ["Omnichannel", "Support"],
   },
   {
@@ -1009,7 +1012,7 @@ export const webChatFeatures = [
       "Help your customers 24/7 without having to hire as many staff. Create chatbots easily with our chatbot builder and deploy them across channels to handle the first line of customer support.",
     tools: ["Chatbot builder", "24/7 support", "Multi-channel", "AI responses"],
     role: "Customer Service",
-    link: "#",
+    link: poster4,
     tag: ["AI", "Support"],
   },
 ];
@@ -1027,7 +1030,7 @@ export const instagramFeatures = [
       "Sentiment analysis",
     ],
     role: "Engagement Automation",
-    link: "#",
+    link: poster4,
     tag: ["AI", "Automation"],
   },
   {
@@ -1042,7 +1045,7 @@ export const instagramFeatures = [
       "Team routing",
     ],
     role: "Message Management",
-    link: "#",
+    link: poster3,
     tag: ["Automation", "AI"],
   },
   {
@@ -1057,7 +1060,7 @@ export const instagramFeatures = [
       "Performance tracking",
     ],
     role: "Content Management",
-    link: "#",
+    link: poster2,
     tag: ["Scheduling", "AI"],
   },
   {
@@ -1072,7 +1075,7 @@ export const instagramFeatures = [
       "Strategy optimization",
     ],
     role: "Analytics & Insights",
-    link: "#",
+    link: poster1,
     tag: ["Analytics", "Insights"],
   },
 ];

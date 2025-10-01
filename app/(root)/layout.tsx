@@ -25,7 +25,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {children}
       {/* <AIChatBot /> */}
-      <WidgetDemoPage />
+      {/* <WidgetDemoPage /> */}
       <Toaster />
     </main>
   );
