@@ -29,10 +29,7 @@ const columns = [
     header: "Address",
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor("budget", {
-    header: "Budget",
-    cell: (info) => info.getValue(),
-  }),
+
   columnHelper.accessor("subject", {
     header: "Subject",
     cell: (info) => info.getValue(),

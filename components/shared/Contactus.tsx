@@ -12,13 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,7 +30,6 @@ const ContactForm = () => {
       subject: "",
       email: "",
       address: "",
-      budget: "",
       phone: "",
       message: "",
     },
@@ -51,7 +44,6 @@ const ContactForm = () => {
         phone: values.phone,
         address: values.address,
         email: values.email,
-        budget: values.budget,
         subject: values.subject,
         message: values.message,
       };
@@ -126,7 +118,7 @@ const ContactForm = () => {
                   <span className="text-[#00F0FF] min-w-[100px]">Email:</span>
                   <a
                     href="mailto:gauravgkhaire@gmail.com"
-                    className="text-[#55edab] hover:underline"
+                    className="text-[#55edab] hover:underline text-xs sm:text-sm"
                   >
                     gauravgkhaire@gmail.com
                   </a>
@@ -224,40 +216,6 @@ const ContactForm = () => {
 
                 {/* Budget and Address Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="budget"
-                    render={({ field }) => (
-                      <FormItem>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <SelectTrigger className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat">
-                            <SelectValue placeholder="Choose Budget" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-gray-900 border border-[#B026FF]/30 font-montserrat backdrop-blur-md">
-                            {[
-                              "$100 - $500",
-                              "$500 - $1000",
-                              "$1,000 - $1,500",
-                              "$1,500- $2,000",
-                              "$2,000 +",
-                            ].map((option) => (
-                              <SelectItem
-                                key={option}
-                                value={option}
-                                className="text-white hover:bg-gray-800/50 py-3 font-montserrat"
-                              >
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage className="text-red-400" />
-                      </FormItem>
-                    )}
-                  />
                   <FormField
                     control={form.control}
                     name="address"

@@ -31,7 +31,6 @@ export async function getAllAppointments() {
         address: appointment.address,
         email: appointment.email, // Ensure date is in string format
         subject: appointment.subject,
-        budget: appointment.budget,
         message: appointment.message || "",
         createdAt: appointment.createdAt.toISOString(), // Ensure createdAt is a string
       };

@@ -3,7 +3,6 @@ export interface MyAppointmentParams {
   phone: string;
   address?: string;
   subject: string;
-  budget: string;
   email: string;
   message?: string;
 }

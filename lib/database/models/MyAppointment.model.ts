@@ -19,10 +19,6 @@ const AppointmentSchema = new Schema({
     type: String,
     required: true,
   },
-  budget: {
-    type: String,
-    required: true,
-  },
   subject: {
     type: String,
     required: true,

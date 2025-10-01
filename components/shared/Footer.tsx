@@ -33,7 +33,6 @@ export function Footer() {
             </div>
             <ul className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6">
               {[
-                { href: "/Aboutus", label: "About Us" },
                 { href: "/contactUs", label: "Contact Us" },
                 { href: "/privacy-policy", label: "Privacy Policy" },
                 { href: "/TermsandCondition", label: "Terms & Conditions" },
