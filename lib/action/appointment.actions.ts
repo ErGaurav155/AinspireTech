@@ -42,19 +42,3 @@ export async function getAllAppointments() {
     throw new Error("Failed to fetch appointments");
   }
 }
-
-export async function getOwner() {
-  try {
-    const ownerId = process.env.OWNER_USER_ID;
-
-    if (!ownerId) {
-      throw new Error(
-        "OWNER_USER_ID is not defined in the environment variables."
-      );
-    }
-
-    return ownerId;
-  } catch (error) {
-    handleError(error);
-  }
-}

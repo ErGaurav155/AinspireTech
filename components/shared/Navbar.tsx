@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import Logo from "/public/assets/img/logo.png";
 import { SignedIn, SignedOut, useAuth, UserButton } from "@clerk/nextjs";
-import { getOwner } from "@/lib/action/appointment.actions";
 import { ArrowRight } from "lucide-react";
 
 export function NavBar() {
@@ -28,10 +27,13 @@ export function NavBar() {
 
   useEffect(() => {
     const isOwner = async () => {
-      const ownerId = await getOwner();
-      setIsOwn(userId === ownerId);
+      const response = await fetch("/api/admin/verify-owner");
+      const ownerId = await response.json();
+      setIsOwn(ownerId.isOwner);
     };
-    if (userId) isOwner();
+    if (userId) {
+      isOwner();
+    }
   }, [router, userId]);
 
   const navItems = [
