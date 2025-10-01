@@ -6,6 +6,7 @@ import Image from "next/image";
 import Logo from "/public/assets/img/logo.png";
 import { SignedIn, SignedOut, useAuth, UserButton } from "@clerk/nextjs";
 import { ArrowRight } from "lucide-react";
+import { getUserById } from "@/lib/action/user.actions";
 
 export function NavBar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -27,7 +28,11 @@ export function NavBar() {
 
   useEffect(() => {
     const isOwner = async () => {
-      const response = await fetch("/api/admin/verify-owner");
+      const userInfo = await getUserById(userId!);
+
+      const response = await fetch(
+        `/api/admin/verify-owner?email=${userInfo.email}`
+      );
       const ownerId = await response.json();
       setIsOwn(ownerId.isOwner);
     };

@@ -38,7 +38,6 @@ export function isOwner(request: NextRequest): boolean {
     request.headers.get("x-user-email") ||
     request.nextUrl.searchParams.get("email") ||
     "";
-
   return email === "gauravgkhaire@gmail.com";
 }
 
