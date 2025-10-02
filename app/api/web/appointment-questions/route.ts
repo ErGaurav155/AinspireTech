@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       // Return default questions if none exist
       const defaultQuestions = {
         clerkId: userId,
-        chatbotType,
+        chatbotType: chatbotType,
         questions: [
           {
             id: 1,
