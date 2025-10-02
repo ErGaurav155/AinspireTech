@@ -43,7 +43,9 @@ export async function POST(req: NextRequest) {
       case "subscription.cancelled":
         await handleSubscriptionCancelled(subscriptionId);
         break;
-
+      case "subscription.halted":
+        await handleSubscriptionCancelled(subscriptionId);
+        break;
       case "subscription.charged":
         const nextBillingDate = new Date(
           body.payload.subscription.entity.charge_at * 1000
@@ -149,6 +151,7 @@ async function handleInstaAccountCleanup(userId: string) {
           accountLimit: 1,
           totalReplies: 0,
           replyLimit: 500,
+          updatedAt: new Date(),
         },
       }
     );

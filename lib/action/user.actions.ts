@@ -380,3 +380,32 @@ export async function updateUserLimits(
 //     handleError(error);
 //   }
 // }
+export async function resetFreeCouponsForAllUsers() {
+  try {
+    const twentyEightDaysAgo = new Date();
+    twentyEightDaysAgo.setDate(twentyEightDaysAgo.getDate() - 28);
+
+    // Find users who need coupon reset (updatedAt older than 28 days)
+    const usersToReset = await User.find({
+      updatedAt: { $lte: twentyEightDaysAgo },
+    });
+
+    // Reset their coupons and update updatedAt
+    await User.updateMany(
+      {
+        updatedAt: { $lte: twentyEightDaysAgo },
+      },
+      {
+        $set: {
+          totalReplies: 0,
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    return usersToReset.length;
+  } catch (error) {
+    console.error("Error resetting free coupons:", error);
+    throw error;
+  }
+}

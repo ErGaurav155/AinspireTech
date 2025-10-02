@@ -40,7 +40,7 @@ const SubscriptionSchema = new mongoose.Schema(
     billingCycle: {
       type: String,
       enum: ["monthly", "yearly"],
-      reuired: true,
+      required: true,
     },
 
     status: {

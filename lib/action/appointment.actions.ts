@@ -36,7 +36,7 @@ export async function getAllAppointments() {
       };
     });
 
-    return { data: formattedAppointments };
+    return { formattedAppointments };
   } catch (error) {
     handleError(error);
     throw new Error("Failed to fetch appointments");

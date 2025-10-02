@@ -12,6 +12,7 @@ export default authMiddleware({
     "/Review",
     "/web/product/:path*",
     "/new/product",
+    "/api/cron",
     "/api/webhooks/clerk",
     "/api/webhooks/instagram",
     "/api/webhooks/instagram/infoupdate",

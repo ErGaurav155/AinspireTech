@@ -26,7 +26,6 @@ export async function GET(req: NextRequest) {
       },
       status: "active",
     });
-    console.log("Fetched subscriptions:", subscriptions);
     if (!subscriptions || subscriptions.length === 0) {
       return NextResponse.json([], { status: 200 });
     }

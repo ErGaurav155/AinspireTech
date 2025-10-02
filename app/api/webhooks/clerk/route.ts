@@ -76,6 +76,7 @@ export async function POST(req: Request) {
     const totalReplies = (public_metadata?.totalReplies as number) || 0;
     const replyLimit = (public_metadata?.replyLimit as number) || 500;
     const accountLimit = (public_metadata?.accountLimit as number) || 1;
+    const timestamps = (public_metadata?.timestamps as boolean) || true;
 
     const user = {
       clerkId: id,
@@ -91,6 +92,7 @@ export async function POST(req: Request) {
       replyLimit: replyLimit,
       accountLimit: accountLimit,
       photo: image_url,
+      timestamps,
     };
     const newUser = await createUser(user);
 
