@@ -93,7 +93,7 @@ const AppointmentQuestionsSchema = new Schema<IAppointmentQuestions>(
 );
 
 // Indexes for optimized queries
-AppointmentQuestionsSchema.index({ chatbotType: 1 }, { unique: true });
+AppointmentQuestionsSchema.index({ chatbotType: 1 });
 AppointmentQuestionsSchema.index({ clerkId: 1 });
 
 const WebAppointmentQuestions =
