@@ -389,9 +389,10 @@ export async function resetFreeCouponsForAllUsers() {
     const usersToReset = await User.find({
       updatedAt: { $lte: twentyEightDaysAgo },
     });
+    console.log(" usersToReset:", usersToReset);
 
     // Reset their coupons and update updatedAt
-    await User.updateMany(
+    const userinfo = await User.updateMany(
       {
         updatedAt: { $lte: twentyEightDaysAgo },
       },
@@ -402,6 +403,7 @@ export async function resetFreeCouponsForAllUsers() {
         },
       }
     );
+    console.log(" userinfo:", userinfo);
 
     return usersToReset.length;
   } catch (error) {
