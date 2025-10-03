@@ -228,13 +228,13 @@ function InstagramSection() {
             viewport={{ once: false }}
             initial="hidden"
           >
-            #1 Auto-Reply Platform for Creators and Brands. Never miss a
-            customer comment again.
+            Auto-Reply Platform for Creators and Brands. Never miss a customer
+            comment again.
           </motion.p>
 
           {/* Trust Badges */}
           <motion.div
-            className="flex flex-col md:flex-row items-start md:items-center mb-8 gap-4"
+            className="flex flex-col lg:flex-row items-start lg:items-center mb-8 gap-4"
             variants={containerVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -530,7 +530,7 @@ function WebChatbotSection() {
 
           {/* Trust Badges */}
           <motion.div
-            className="flex items-center space-x-8 mb-8 flex-wrap gap-4"
+            className="flex flex-col lg:flex-row items-start lg:items-center mb-8 gap-4"
             variants={containerVariants}
             whileInView="visible"
             viewport={{ once: false }}

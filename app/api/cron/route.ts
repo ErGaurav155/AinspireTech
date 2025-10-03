@@ -2,7 +2,7 @@
 import { resetFreeCouponsForAllUsers } from "@/lib/action/user.actions";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const secret = url.searchParams.get("secret");
 

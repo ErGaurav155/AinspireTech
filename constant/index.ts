@@ -6,51 +6,51 @@ import poster4 from "@/public/assets/img/customer-support.png";
 export const testimonials = [
   {
     id: 5,
-    name: "Dr. Danny Carter",
-    title: "CEO, HealthSync Solutions",
-    text: "The team at AinspireTech AI completely transformed our workflow processes with their autonomous agents. What used to take hours of manual labor is now accomplished in minutes with zero errors. Their expertise and dedication to delivering exceptional solutions are unmatched!",
+    name: "@thefitcoach",
+    title: "Fitness Influencer",
+    text: "I started using AinspireTech about 6 weeks ago and honestly it has completely changed the way I manage my socials. The automation features save me HOURS every day. It feels like I have a full-time assistant running in the background!",
     image: "/assets/Review/Rimg2.jpg",
   },
   {
     id: 6,
-    name: "Michael Davis",
-    title: "CTO, DataBridge Analytics",
-    text: "AinspireTech AI's 'Natural Language to SQL' system has revolutionized how our team interacts with data. The precision and user-friendliness of their solution allowed us to unlock valuable insights faster than ever. A truly game-changing experience!",
+    name: "@craftycorner",
+    title: "Lifestyle Blogger",
+    text: "AinspireTech has helped me scale my small business faster than I thought possible. I can finally focus on creating content while the tool handles engagement. My DMs and sales have never been this consistent!",
     image: "/assets/Review/Rimg3.jpg",
   },
   {
     id: 7,
-    name: "Sammy Lee",
-    title: "Marketing head, TrendEdge Media",
-    text: "The chatbots AinspireTech AI developed for us have dramatically improved our customer engagement. Their GPT-based solutions feel so natural that customers often can't tell it's AI. Our client satisfaction rates have soared thanks to their innovation.",
+    name: "@techwithsara",
+    title: "Tech Creator",
+    text: "The analytics on AinspireTech are game-changing. I can see exactly what’s working and what’s not, which makes adjusting my strategy so much easier. Plus, their support team is always available when I need help. Highly recommend for any creator serious about growth.",
     image: "/assets/Review/Rimg4.jpg",
   },
   {
     id: 8,
-    name: "Raj Patel",
+    name: "Adam Hamdan",
     title: "Founder, TechNova Inc.",
-    text: "We partnered with AinspireTech AI to streamline our data pipelines, and the results exceeded our expectations. Their autonomous agents not only improved efficiency but also added predictive analytics capabilities, keeping us ahead of the curve. Highly recommend their services!",
+    text: "AinspireTech is an outstanding AI chatbot with zero-effort setup. I was amazed at how much it knew about our company and answered support questions in depth, with no training needed. Highly effective for lead generation.",
 
     image: "/assets/Review/Rimg7.jpg",
   },
   {
     id: 9,
     name: "Olivia Green",
-    title: "Product Manager, ShopSmart",
-    text: "The SEO optimization and marketing strategies implemented by AinspireTech AI have significantly increased our website traffic and conversion rates. Their team combines creativity with technical expertise, and it shows in the results. Working with them was an excellent decision.",
+    title: "PR Manager, ShopSmart",
+    text: "Working with AinspireTech has been a game-changer. Their chatbot provides seamless integration and perfectly tailored solutions. The expertise in AI and customer interaction is evident in every interaction.",
     image: "/assets/Review/Rimg6.jpg",
   },
   {
     id: 10,
     name: "Sarah Mitchell",
-    title: " CEO, Horizon Enterprises",
-    text: "Partnering with AinspireTech ai transformed our customer support system. Their AI-powered chatbots are seamless, intuitive, and have reduced our response time by over 70%. The team's dedication to understanding our needs and delivering a tailored solution was phenomenal!",
+    title: " CEO, Horizon Inc.",
+    text: "AinspireTech impressed us with its simplicity and power. It provided enterprise-grade RAG implementation without the complexity of building it ourselves. The AI's contextual understanding has significantly improved our customer engagement.",
     image: "/assets/Review/Rimg5.jpg",
   },
   {
     id: 11,
     name: "Priya Kapoor",
-    title: "Marketing Head, BrandEcho",
+    title: "PR Head, BrandEcho",
     text: "From AI-driven marketing chatbots to workflow automation, AinspireTech ai has been a key partner in our digital transformation journey. The solutions they provided are not only innovative but also seamlessly integrate into our existing systems.",
 
     image: "/assets/Review/Rimg9.jpg",
@@ -58,14 +58,14 @@ export const testimonials = [
   {
     id: 12,
     name: "James Peterson",
-    title: "Operations Manager, LogisticsPro",
-    text: "The autonomous agents developed by AinspireTech have streamlined our logistics processes dramatically. Their ability to adapt to real-time changes and optimize operations has saved us countless hours and resources.",
+    title: "Op Manager, LogisticsPro",
+    text: "AinspireTech transformed the way we handle customer queries. The setup was seamless and within hours, it was resolving 70% of support tickets automatically. Our team can now focus on complex issues instead of repetitive ones.",
     image: "/assets/Review/Rimg10.jpg",
   },
   {
     id: 13,
     name: " Isabella Romero",
-    title: "Founder, Bella HealthTech",
+    title: "Founder, Bella Cor.",
     text: "We needed a chatbot that could handle complex patient queries with empathy and precision. AinspireTech exceeded our expectations by delivering a secure, dynamic, and user-friendly chatbot that has enhanced our patient engagement.",
 
     image: "/assets/Review/Rimg8.jpg",
@@ -73,7 +73,7 @@ export const testimonials = [
   {
     id: 14,
     name: "Liam Adams",
-    title: "Head of IT, Apex Financials",
+    title: "Head of IT, Apex Fin",
     text: "The self-adaptive decision systems created by AinspireTech have brought a new level of efficiency to our risk analysis processes. Their AI expertise and hands-on support were instrumental in our project’s success.",
 
     image: "/assets/Review/Rimg11.jpg",
@@ -81,16 +81,16 @@ export const testimonials = [
   {
     id: 15,
     name: "Emily Turner",
-    title: "Product Manager, GreenTech",
-    text: "The AI solutions provided by AinspireTech are intuitive, reliable, and innovative. Their team’s ability to translate our requirements into actionable AI systems was truly impressive.",
+    title: "Manager, GreenTech",
+    text: "We integrated AinspireTech into our e-commerce platform and saw immediate improvements. Cart abandonment follow-ups and personalized recommendations have boosted our sales conversion by 34% in just two months.",
 
     image: "/assets/Review/Rimg12.jpg",
   },
   {
     id: 16,
     name: "Daniel Kim",
-    title: "CTO, DataBridge Solutions",
-    text: "The natural language to SQL feature developed by AinspireTech is a game-changer for our data analytics team. It’s intuitive, precise, and has made data interaction accessible even to our non-technical staff. Their expertise in AI is unmatched.",
+    title: "CTO, DataBridge Sol.",
+    text: "AinspireTech has been invaluable in the education sector. It answers student queries instantly, helps with enrollment FAQs, and even guides parents through the process. The efficiency gain has been massive.",
 
     image: "/assets/Review/Rimg13.jpg",
   },
