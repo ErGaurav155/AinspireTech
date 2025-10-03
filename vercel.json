@@ -6,7 +6,7 @@
   },
   "crons": [
     {
-      "path": "/api/cron?secret=whsec_BG+rEpsnDXDHGZ/XhYB9CxSgfYW5PQHS9x5R8",
+      "path": "/api/cron?secret=whsec_BGrEpsnDXDHGZ/XhYB9CxSgfYW5PQHS9x5R8",
       "schedule": "0 8 * * *"
     }
   ],
