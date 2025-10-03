@@ -109,7 +109,7 @@ export async function setWebsiteScrapped(userId: string) {
     await connectToDatabase();
 
     const user = await User.findOneAndUpdate(
-      { _id: userId },
+      { clerkId: userId },
       { $set: { isScrapped: true } },
       { new: true }
     );
@@ -129,7 +129,7 @@ export async function setScrappedFile(userId: string, fileName: string) {
     await connectToDatabase();
 
     const user = await User.findOneAndUpdate(
-      { _id: userId },
+      { clerkId: userId },
       { $set: { scrappedFile: fileName } },
       { new: true }
     );

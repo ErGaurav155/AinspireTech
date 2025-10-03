@@ -204,7 +204,7 @@ export const getAgentSubscriptionInfo = async (
 
     // Filter subscriptions by userId and subscriptionStatus
     const subscriptions = await WebSubscription.find({
-      _id: userId,
+      clerkId: userId,
       chatbotType: agentId,
       status: "active", // Only fetch active subscriptions
     });

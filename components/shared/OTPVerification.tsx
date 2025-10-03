@@ -95,27 +95,6 @@ export default function OTPVerification({
     },
   };
 
-  const buttonVariants = {
-    initial: {
-      background: "linear-gradient(135deg, #00F0FF 0%, #B026FF 100%)",
-    },
-    hover: {
-      background: "linear-gradient(135deg, #00F0FF 20%, #B026FF 80%)",
-      scale: 1.02,
-      boxShadow: "0 10px 30px rgba(0, 240, 255, 0.3)",
-      transition: {
-        duration: 0.3,
-        ease: "easeOut",
-      },
-    },
-    tap: {
-      scale: 0.98,
-    },
-    loading: {
-      background: "linear-gradient(135deg, #666 0%, #888 100%)",
-    },
-  };
-
   useEffect(() => {
     // Focus first input on mount
     if (inputRefs.current[0]) {
@@ -348,13 +327,8 @@ export default function OTPVerification({
             </motion.div>
 
             {/* Verify Button */}
-            <motion.button
+            <button
               type="submit"
-              variants={buttonVariants}
-              initial="initial"
-              whileHover={isVerifying ? "loading" : "hover"}
-              whileTap="tap"
-              animate={isVerifying ? "loading" : "initial"}
               className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
                 isVerifying ? "cursor-not-allowed" : ""
               }`}
@@ -382,7 +356,7 @@ export default function OTPVerification({
                   Verify OTP
                 </motion.span>
               )}
-            </motion.button>
+            </button>
           </form>
 
           {/* Footer */}

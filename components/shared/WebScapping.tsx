@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   getUserByDbId,
+  getUserById,
   setScrappedFile,
   setWebsiteScrapped,
 } from "@/lib/action/user.actions";
@@ -57,15 +58,20 @@ export const WebScapping = ({
         String(userId),
         String(agentId)
       );
+      console.log("agentSubscriptions:", agentSubscriptions);
+
       if (!agentSubscriptions.length) {
+        console.log("I run here");
+
         router.push("/");
         return;
       }
 
-      const user = await getUserByDbId(userId);
+      const user = await getUserById(userId);
       const mainUrl = user.websiteUrl;
-
       if (user.isScrapped) {
+        console.log("I am not here");
+
         router.push("/");
         return;
       }
@@ -79,6 +85,8 @@ export const WebScapping = ({
 
       const data = await response.json();
       if (data.success) {
+        console.log("I scrapped successfully here");
+
         await setScrappedFile(userId, data.fileName);
       } else {
         console.error("Error:", data.message);

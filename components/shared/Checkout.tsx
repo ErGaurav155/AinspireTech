@@ -210,7 +210,7 @@ export const Checkout = ({
               createdAt: new Date(),
             });
             router.push(
-              `/web/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
+              `/web/WebsiteOnboarding?userId=${userId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
             );
           } else {
             toast({
@@ -449,35 +449,8 @@ export const Checkout = ({
                       </motion.div>
 
                       {/* Send OTP Button */}
-                      <motion.button
+                      <button
                         type="submit"
-                        variants={{
-                          initial: {
-                            background:
-                              "linear-gradient(135deg, #00F0FF 0%, #B026FF 100%)",
-                          },
-                          hover: {
-                            background:
-                              "linear-gradient(135deg, #00F0FF 20%, #B026FF 80%)",
-                            scale: 1.02,
-                            boxShadow: "0 10px 30px rgba(0, 240, 255, 0.3)",
-                            transition: {
-                              duration: 0.3,
-                              ease: "easeOut",
-                            },
-                          },
-                          tap: {
-                            scale: 0.98,
-                          },
-                          loading: {
-                            background:
-                              "linear-gradient(135deg, #666 0%, #888 100%)",
-                          },
-                        }}
-                        initial="initial"
-                        whileHover={isOtpSubmitting ? "loading" : "hover"}
-                        whileTap="tap"
-                        animate={isOtpSubmitting ? "loading" : "initial"}
                         className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
                           isOtpSubmitting ? "cursor-not-allowed" : ""
                         }`}
@@ -508,7 +481,7 @@ export const Checkout = ({
                             Send OTP
                           </motion.span>
                         )}
-                      </motion.button>
+                      </button>
                     </form>
 
                     {/* Footer */}
@@ -677,35 +650,8 @@ export const Checkout = ({
                         </motion.div>
 
                         {/* Save URL Button */}
-                        <motion.button
+                        <button
                           type="submit"
-                          variants={{
-                            initial: {
-                              background:
-                                "linear-gradient(135deg, #00F0FF 0%, #B026FF 100%)",
-                            },
-                            hover: {
-                              background:
-                                "linear-gradient(135deg, #00F0FF 20%, #B026FF 80%)",
-                              scale: 1.02,
-                              boxShadow: "0 10px 30px rgba(0, 240, 255, 0.3)",
-                              transition: {
-                                duration: 0.3,
-                                ease: "easeOut",
-                              },
-                            },
-                            tap: {
-                              scale: 0.98,
-                            },
-                            loading: {
-                              background:
-                                "linear-gradient(135deg, #666 0%, #888 100%)",
-                            },
-                          }}
-                          initial="initial"
-                          whileHover={isSubmitting ? "loading" : "hover"}
-                          whileTap="tap"
-                          animate={isSubmitting ? "loading" : "initial"}
                           className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
                             isSubmitting ? "cursor-not-allowed" : ""
                           }`}
@@ -750,7 +696,7 @@ export const Checkout = ({
                               Save URL
                             </motion.span>
                           )}
-                        </motion.button>
+                        </button>
                       </form>
 
                       {/* Footer */}
