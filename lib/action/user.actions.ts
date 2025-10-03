@@ -380,32 +380,47 @@ export async function updateUserLimits(
 //     handleError(error);
 //   }
 // }
+// lib/action/user.actions.ts - Batch version
 export async function resetFreeCouponsForAllUsers() {
   try {
+    await connectToDatabase();
+
     const twentyEightDaysAgo = new Date();
     twentyEightDaysAgo.setDate(twentyEightDaysAgo.getDate() - 28);
 
-    // Find users who need coupon reset (updatedAt older than 28 days)
-    const usersToReset = await User.find({
-      updatedAt: { $lte: twentyEightDaysAgo },
-    });
-    console.log(" usersToReset:", usersToReset);
+    let processedCount = 0;
+    const batchSize = 100;
+    let hasMore = true;
 
-    // Reset their coupons and update updatedAt
-    const userinfo = await User.updateMany(
-      {
-        updatedAt: { $lte: twentyEightDaysAgo },
-      },
-      {
-        $set: {
-          totalReplies: 0,
-          updatedAt: new Date(),
+    while (hasMore) {
+      // Process in batches
+      const result = await User.updateMany(
+        {
+          updatedAt: { $lte: twentyEightDaysAgo },
         },
-      }
-    );
-    console.log(" userinfo:", userinfo);
+        {
+          $set: {
+            totalReplies: 0,
+            updatedAt: new Date(),
+          },
+        },
+        {
+          limit: batchSize,
+        }
+      );
 
-    return usersToReset.length;
+      processedCount += result.modifiedCount;
+
+      // If we processed less than batchSize, we're done
+      if (result.modifiedCount < batchSize) {
+        hasMore = false;
+      }
+
+      console.log(`Processed batch: ${result.modifiedCount} users`);
+    }
+
+    console.log(`Total free coupons reset for ${processedCount} users`);
+    return processedCount;
   } catch (error) {
     console.error("Error resetting free coupons:", error);
     throw error;
