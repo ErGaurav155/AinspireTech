@@ -50,8 +50,11 @@ export async function POST(req: NextRequest, res: NextResponse) {
       maxResults: 9999999,
     };
     // Start and wait for scraping to complete
-    const run = await client.actor(scraperConfig.actorId).start(scraperConfig);
-
+    // const run = await client.actor(scraperConfig.actorId).start(scraperConfig);
+    const run = await client.actor(scraperConfig.actorId).start({
+      ...scraperConfig,
+      memory: 2048,
+    });
     await client.run(run.id).waitForFinish();
 
     // Fetch scraped data
