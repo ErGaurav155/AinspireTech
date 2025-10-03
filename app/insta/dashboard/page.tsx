@@ -38,11 +38,7 @@ import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { useAuth } from "@clerk/nextjs";
 import { getUserById } from "@/lib/action/user.actions";
-import {
-  getInstaSubscriptionInfo,
-  cancelRazorPaySubscription,
-  setSubsciptionCanceled,
-} from "@/lib/action/subscription.action";
+import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";

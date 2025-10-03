@@ -1,9 +1,7 @@
 "use client";
 
-import { Footer } from "@/components/shared/Footer";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { productSubscriptionDetails } from "@/constant";
-import Bestseller from "@/public/assets/bestseller1.png";
 import {
   HeadsetIcon,
   AmbulanceIcon,
@@ -18,10 +16,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Checkout } from "@/components/shared/Checkout";
-import { getSubscriptionInfo } from "@/lib/action/subscription.action";
-import { getUserById } from "@/lib/action/user.actions";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
-import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
 import { apiClient } from "@/lib/utils";
 

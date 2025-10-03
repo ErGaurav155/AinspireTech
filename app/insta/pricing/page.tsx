@@ -24,7 +24,6 @@ import {
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { instagramPricingPlans } from "@/constant";
 import { toast } from "sonner";
-import { setSubsciptionCanceled } from "@/lib/action/subscription.action";
 import { Button } from "@/components/ui/button";
 import {
   getInstaAccounts,

@@ -255,7 +255,7 @@ function InstagramSection() {
             >
               <BadgeCheck className="h-5 w-5 text-[#00F0FF]" />
               <span className="text-sm text-gray-300">
-                300+ creators, brands and agencies!
+                500+ creators, brands and agencies!
               </span>
             </motion.div>
           </motion.div>
@@ -550,7 +550,7 @@ function WebChatbotSection() {
               variants={badgeVariants}
             >
               <BadgeCheck className="h-5 w-5 text-[#00F0FF]" />
-              <p>Used by 150+ businesses worldwide!</p>
+              <p>Used by 500+ businesses worldwide!</p>
             </motion.div>
           </motion.div>
 

@@ -17,8 +17,7 @@ import {
   Play,
   ShoppingBag,
 } from "lucide-react";
-import Image from "next/image";
-import instaPost from "@/public/assets/img/instappost.jpg";
+
 import { useRouter } from "next/navigation";
 
 // TypingAnimation Component
@@ -132,7 +131,7 @@ export function InstagramAutomationHero() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight"
+                className="text-3xl md:text-4xl  font-semibold leading-tight"
               >
                 Turn Comments Into
                 <br />
@@ -163,7 +162,7 @@ export function InstagramAutomationHero() {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 font-montserrat"
+              className="space-y-2 font-montserrat"
             >
               {[
                 {
@@ -234,7 +233,7 @@ export function InstagramAutomationHero() {
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="h-4 w-4 text-blue-400" />
-                <span>5,000+ Creators</span>
+                <span>1,000+ Creators</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Star className="h-4 w-4 text-yellow-400" />

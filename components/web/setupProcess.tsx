@@ -22,11 +22,11 @@ export function SetupProcess() {
       title: "Provide Your Website Domain",
       subtitle: "Setup",
       description:
-        "Simply input your website's domain or subdomain. DenserAI chatbot will crawl all publicly accessible pages to create a comprehensive knowledge base for your AI chatbot for website.",
+        "Simply input your website's domain or subdomain. Ainspiretech chatbot will crawl all publicly accessible pages to create a comprehensive knowledge base for your AI chatbot for website.",
       details: {
         type: "WEB",
         website: "Enter the URL of the website you want to build a chatbot for",
-        url: "https://bootet.ai",
+        url: "https://ainspiretech.com",
         language: "English",
         languageDescription: "Select language of source website",
         button: "Build Item",
@@ -38,7 +38,7 @@ export function SetupProcess() {
       title: "Analyze & Index Content for AI Chatbot",
       subtitle: "Process",
       description:
-        "DenserAI chatbots learn from every page—understanding text, images, charts, and tables—ensuring your AI chatbot for website captures all key information. Once complete, your chatbot is ready to engage.",
+        "Ainspiretech chatbots learn from every page—understanding text, images, charts, and tables—ensuring your AI chatbot for website captures all key information. Once complete, your chatbot is ready to engage.",
     },
     {
       number: 3,
@@ -47,7 +47,7 @@ export function SetupProcess() {
       subtitle: "Launch",
       description:
         "Deploy the AI chatbot for your website to answer questions in natural languages. From products to services and policies, it provides full customer support with instant, AI-powered responses and links to relevant pages.",
-      chatPreview: "Hello, I am DenserAI. How can I help you today?",
+      chatPreview: "Hello, I am Ainspiretech AI. How can I help you today?",
     },
   ];
 

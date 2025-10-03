@@ -210,7 +210,7 @@ export const Checkout = ({
               createdAt: new Date(),
             });
             router.push(
-              `/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
+              `/web/WebsiteOnboarding?userId=${buyerId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
             );
           } else {
             toast({

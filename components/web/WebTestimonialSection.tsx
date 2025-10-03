@@ -159,8 +159,8 @@ export function WebTestimonialsSection() {
           viewport={{ once: false }}
           initial="hidden"
         >
-          Join thousands of creators who have transformed their Instagram
-          engagement
+          Join Thousands Of Business Owners Who Have Transformed Their Website
+          Visitors Into Booking Clients
         </motion.p>
       </div>
 

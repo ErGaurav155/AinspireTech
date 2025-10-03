@@ -175,7 +175,7 @@ export function AIVoiceAgentShowcase() {
   const webChatTypes = {
     support: {
       title: "AI Support Agent",
-      description: "Streamline support with natural voice conversations",
+      description: "Streamline support with Human like conversations",
       icon: <Phone className="h-6 w-6" />,
       features: [
         "24/7 voice-based customer support",
@@ -208,10 +208,11 @@ export function AIVoiceAgentShowcase() {
     },
     leadgen: {
       title: "AI Lead Qualification Agent",
-      description: "Qualify leads through intelligent voice conversations",
+      description:
+        "Qualify leads through intelligent human like chat conversations",
       icon: <Users className="h-6 w-6" />,
       features: [
-        "Voice-based lead scoring",
+        "chat-based lead scoring",
         "Automated qualification questions",
         "Lead routing intelligence",
         "Conversation analytics",

@@ -1,6 +1,5 @@
 "use server";
 
-import Subscription from "@/lib/database/models/insta/InstaSubscription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { handleError } from "../utils";
 import Razorpay from "razorpay";
@@ -179,7 +178,7 @@ export const getWebSubscriptionInfo = async (
     await connectToDatabase(); // Ensure database connection
 
     // Filter subscriptions by userId and subscriptionStatus
-    const subscriptions = await Subscription.find({
+    const subscriptions = await WebSubscription.find({
       userId,
       productId: agentId,
       billingMode: billingCycle,
@@ -204,10 +203,10 @@ export const getAgentSubscriptionInfo = async (
     await connectToDatabase(); // Ensure database connection
 
     // Filter subscriptions by userId and subscriptionStatus
-    const subscriptions = await Subscription.find({
-      userId,
-      productId: agentId,
-      subscriptionStatus: "active", // Only fetch active subscriptions
+    const subscriptions = await WebSubscription.find({
+      _id: userId,
+      chatbotType: agentId,
+      status: "active", // Only fetch active subscriptions
     });
 
     if (!subscriptions || subscriptions.length === 0) {
@@ -220,53 +219,6 @@ export const getAgentSubscriptionInfo = async (
     throw new Error("Failed to retrieve subscription info.");
   }
 };
-export async function setIsScrapped(orderCreationId: string) {
-  try {
-    await connectToDatabase();
-
-    const Subs = await Subscription.findOneAndUpdate(
-      { subscriptionId: orderCreationId },
-      { $set: { isScapped: true } },
-      { new: true }
-    );
-
-    if (!Subs) {
-      throw new Error("User not found");
-    }
-
-    return JSON.parse(JSON.stringify(Subs));
-  } catch (error) {
-    handleError(error);
-  }
-}
-
-export async function setSubsciptionActive(
-  orderCreationId: string,
-  nextBillingDate: Date
-) {
-  try {
-    await connectToDatabase();
-
-    const Subs = await Subscription.findOneAndUpdate(
-      { subscriptionId: orderCreationId },
-      {
-        $set: {
-          subscriptionStatus: "active",
-          subscriptionEndDate: nextBillingDate,
-        },
-      },
-      { new: true }
-    );
-
-    if (!Subs) {
-      throw new Error("No matching subscription found to update.");
-    }
-
-    return JSON.parse(JSON.stringify(Subs));
-  } catch (error) {
-    handleError(error);
-  }
-}
 
 export async function cancelRazorPaySubscription(
   subscriptionId: string,
@@ -291,32 +243,5 @@ export async function cancelRazorPaySubscription(
       message:
         error instanceof Error ? error.message : "An unknown error occurred",
     };
-  }
-}
-export async function setSubsciptionCanceled(
-  subscriptionId: string,
-  reason: string
-) {
-  try {
-    await connectToDatabase();
-
-    const Subs = await Subscription.findOneAndUpdate(
-      { subscriptionId: subscriptionId },
-      {
-        $set: {
-          subscriptionStatus: "cancelled",
-          cancelReason: reason,
-        },
-      },
-      { new: true }
-    );
-
-    if (!Subs) {
-      throw new Error("No matching subscription found to update.");
-    }
-
-    return JSON.parse(JSON.stringify(Subs));
-  } catch (error) {
-    handleError(error);
   }
 }

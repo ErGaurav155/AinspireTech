@@ -568,7 +568,7 @@ export function AIAgentHero() {
             className="space-y-4 flex-1"
           >
             {/* Header */}
-            <div className="">
+            <div className="space-y-2">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -585,9 +585,9 @@ export function AIAgentHero() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight"
+                className="text-3xl md:text-4xl  font-semibold leading-tight"
               >
-                Intelligent AI Agent
+                Chatbot that converts website visitor
                 <br />
                 <motion.span
                   initial={{ opacity: 0 }}
@@ -595,7 +595,7 @@ export function AIAgentHero() {
                   transition={{ duration: 0.8, delay: 0.5 }}
                   className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] via-[#B026FF] to-[#FF2E9F]"
                 >
-                  for Your Business
+                  in to paying Customer
                 </motion.span>
               </motion.h1>
 
@@ -686,7 +686,7 @@ export function AIAgentHero() {
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="h-4 w-4 text-blue-400" />
-                <span>10,000+ Users</span>
+                <span>1,000+ Users</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Star className="h-4 w-4 text-yellow-400" />

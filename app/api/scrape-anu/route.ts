@@ -51,12 +51,16 @@ export async function POST(req: NextRequest, res: NextResponse) {
     };
     // Start and wait for scraping to complete
     const run = await client.actor(scraperConfig.actorId).start(scraperConfig);
+
     await client.run(run.id).waitForFinish();
 
     // Fetch scraped data
     const { items } = await client.dataset(run.defaultDatasetId).listItems();
+    console.log("items:", items);
 
     if (!items || items.length === 0) {
+      console.log("I am Not Working");
+
       return NextResponse.json(
         { success: false, message: "No data scraped" },
         { status: 400 }
@@ -68,23 +72,27 @@ export async function POST(req: NextRequest, res: NextResponse) {
       description: item.description || "",
       text: item.text, // From meta tags
     }));
+    console.log("extractedData:", extractedData);
 
     const existingFile = await File.findOne({
       fileName: `${domain}.json`,
     });
-
+    console.log("existingFile:", existingFile);
     if (existingFile) {
       // Update existing record
       existingFile.content = extractedData;
+      console.log("existingFile.content:", existingFile.content);
+
       await existingFile.save();
     } else {
       // Create new record
-      await File.create({
+      const file = await File.create({
         fileName: `${domain}.json`,
         userId: userId,
         content: extractedData,
         domain,
       });
+      console.log("file:", file);
     }
 
     return NextResponse.json(

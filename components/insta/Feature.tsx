@@ -235,34 +235,16 @@ export function FeatureSection() {
               key={index}
               className={`flex ${
                 index % 2 === 0 ? "sm:flex-row" : "sm:flex-row-reverse"
-              } flex-col items-center justify-between  md:w-[90%] gap-10 `}
+              } flex-col items-center justify-between  md:w-[90%] gap-2 sm:gap-4 md:gap-8`}
               variants={cardVariants}
               whileHover="hover"
               whileInView="visible"
               viewport={{ once: false, margin: "-50px" }}
               initial="hidden"
             >
-              {/* Instagram Post Visual */}
-              <motion.div
-                className="flex-1 relative m-auto w-full  min-h-[50vh] h-[50vh] lg:h-[70vh] border border-white/10 rounded-2xl overflow-hidden"
-                variants={imageVariants}
-                whileInView="visible"
-                viewport={{ once: false }}
-                initial="hidden"
-              >
-                <Image
-                  src={feature.url}
-                  alt="Curtain Collection"
-                  fill
-                  sizes="100%"
-                  className="object-cover  "
-                  loading="lazy"
-                />
-              </motion.div>
-
               {/* Feature Description */}
               <motion.div
-                className="flex-1 min-h-[50vh]   flex flex-col items-start justify-center  border border-white/10 rounded-2xl p-2 md:p-6 hover:border-[#258b94]/40 transition-colors duration-300"
+                className="flex-1 min-h-[50vh]   flex flex-col items-start justify-center   p-2 md:p-6  "
                 variants={cardVariants}
                 whileHover="hover"
                 whileInView="visible"
@@ -339,6 +321,23 @@ export function FeatureSection() {
                     />
                   </svg>
                 </motion.button>
+              </motion.div>
+              {/* Instagram Post Visual */}
+              <motion.div
+                className="flex-1 relative m-auto w-full  aspect-square   overflow-hidden"
+                variants={imageVariants}
+                whileInView="visible"
+                viewport={{ once: false }}
+                initial="hidden"
+              >
+                <Image
+                  src={feature.url}
+                  alt="Curtain Collection"
+                  fill
+                  sizes="100%"
+                  className="object-cover  "
+                  loading="lazy"
+                />
               </motion.div>
             </motion.div>
           ))}

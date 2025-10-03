@@ -1,6 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import instadash from "@/public/assets/Feature/instadash.png";
+import instatemp from "@/public/assets/Feature/instatemp.png";
+import instalogin from "@/public/assets/Feature/lnstalogin.png";
+import Image from "next/image";
 
 function InstaHowItWorksSection() {
   // EXACT same animation variants as testimonials component
@@ -133,7 +137,7 @@ function InstaHowItWorksSection() {
       </motion.div>
 
       <motion.div
-        className="max-w-6xl mx-auto bg-[#0a0a0a]/10 backdrop-blur-sm"
+        className="max-w-5xl w-full mx-auto bg-[#0a0a0a]/10 backdrop-blur-sm"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -141,14 +145,14 @@ function InstaHowItWorksSection() {
       >
         {/* Step 1 */}
         <motion.div
-          className="flex flex-col md:flex-row gap-8 items-center mb-16 "
+          className="flex flex-col md:flex-row gap-8 items-center justify-between w-full mb-16 "
           variants={cardVariants}
           whileHover="hover"
           whileInView="visible"
           viewport={{ once: false, margin: "-50px" }}
           initial="hidden"
         >
-          <div className="md:w-1/2">
+          <div className="md:w-2/3">
             <motion.div
               className="text-cyan-400 font-bold text-lg mb-2"
               variants={stepVariants}
@@ -180,7 +184,7 @@ function InstaHowItWorksSection() {
             </motion.p>
           </div>
           <motion.div
-            className="md:w-1/2 border border-gray-700/50 rounded-2xl p-6 aspect-video flex items-center justify-center  hover:border-[#258b94]/40 transition-colors duration-300"
+            className="md:w-1/3    aspect-square md:aspect-auto flex items-center justify-center  "
             variants={cardVariants}
             whileHover="hover"
             whileInView="visible"
@@ -188,13 +192,13 @@ function InstaHowItWorksSection() {
             initial="hidden"
           >
             <motion.div
-              className="text-center"
+              className="text-center w-full"
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: false, margin: "-50px" }}
             >
-              <motion.div
+              {/* <motion.div
                 className="text-5xl mb-4 w-full "
                 variants={iconVariants}
                 whileInView="visible"
@@ -211,6 +215,21 @@ function InstaHowItWorksSection() {
                 initial="hidden"
               >
                 Instagram Connection Interface
+              </motion.div> */}
+              <motion.div
+                className="flex-1 relative m-auto w-full  min-h-[40vh] sm:h-[50vh] lg:h-[70vh]  overflow-hidden"
+                whileInView="visible"
+                viewport={{ once: false }}
+                initial="hidden"
+              >
+                <Image
+                  src={instalogin}
+                  alt="Curtain Collection"
+                  fill
+                  sizes="100%"
+                  className="object-fill  "
+                  loading="lazy"
+                />
               </motion.div>
             </motion.div>
           </motion.div>
@@ -218,14 +237,14 @@ function InstaHowItWorksSection() {
 
         {/* Step 2 */}
         <motion.div
-          className="flex flex-col md:flex-row-reverse gap-8 items-center mb-16"
+          className="flex flex-col md:flex-row-reverse gap-8 items-center justify-between w-full mb-16"
           variants={cardVariants}
           whileHover="hover"
           whileInView="visible"
           viewport={{ once: false, margin: "-50px" }}
           initial="hidden"
         >
-          <div className="md:w-1/2">
+          <div className="md:w-2/3 ">
             <motion.div
               className="text-cyan-400 font-bold text-lg mb-2"
               variants={stepVariants}
@@ -257,7 +276,7 @@ function InstaHowItWorksSection() {
             </motion.p>
           </div>
           <motion.div
-            className="md:w-1/2 border border-gray-700/50 rounded-2xl p-6 aspect-video flex items-center justify-center bg-[#0a0a0a]/60 backdrop-blur-sm hover:border-[#258b94]/40 transition-colors duration-300"
+            className="md:w-1/3   aspect-square md:aspect-auto flex items-center justify-center "
             variants={cardVariants}
             whileHover="hover"
             whileInView="visible"
@@ -265,13 +284,13 @@ function InstaHowItWorksSection() {
             initial="hidden"
           >
             <motion.div
-              className="text-center"
+              className="text-center w-full"
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: false, margin: "-50px" }}
             >
-              <motion.div
+              {/* <motion.div
                 className="text-5xl mb-4 w-full"
                 variants={iconVariants}
                 whileInView="visible"
@@ -288,6 +307,21 @@ function InstaHowItWorksSection() {
                 initial="hidden"
               >
                 Response Rules Configuration
+              </motion.div> */}
+              <motion.div
+                className="flex-1 relative m-auto w-full  min-h-[40vh] sm:h-[50vh] lg:h-[70vh]  overflow-hidden"
+                whileInView="visible"
+                viewport={{ once: false }}
+                initial="hidden"
+              >
+                <Image
+                  src={instatemp}
+                  alt="Curtain Collection"
+                  fill
+                  sizes="100%"
+                  className="object-fill  "
+                  loading="lazy"
+                />
               </motion.div>
             </motion.div>
           </motion.div>
@@ -295,14 +329,14 @@ function InstaHowItWorksSection() {
 
         {/* Step 3 */}
         <motion.div
-          className="flex flex-col md:flex-row gap-8 items-center"
+          className="flex flex-col md:flex-row gap-8 items-center justify-between w-full"
           variants={cardVariants}
           whileHover="hover"
           whileInView="visible"
           viewport={{ once: false, margin: "-50px" }}
           initial="hidden"
         >
-          <div className="md:w-1/2">
+          <div className="md:w-2/3">
             <motion.div
               className="text-cyan-400 font-bold text-lg mb-2"
               variants={stepVariants}
@@ -333,7 +367,7 @@ function InstaHowItWorksSection() {
             </motion.p>
           </div>
           <motion.div
-            className="md:w-1/2 border border-gray-700/50 rounded-2xl p-6 aspect-video flex items-center justify-center bg-[#0a0a0a]/60 backdrop-blur-sm hover:border-[#258b94]/40 transition-colors duration-300"
+            className="md:w-1/3  aspect-square md:aspect-auto flex items-center justify-center  "
             variants={cardVariants}
             whileHover="hover"
             whileInView="visible"
@@ -341,13 +375,13 @@ function InstaHowItWorksSection() {
             initial="hidden"
           >
             <motion.div
-              className="text-center"
+              className="text-center w-full "
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: false, margin: "-50px" }}
             >
-              <motion.div
+              {/* <motion.div
                 className="text-5xl mb-4 w-full"
                 variants={iconVariants}
                 whileInView="visible"
@@ -364,6 +398,21 @@ function InstaHowItWorksSection() {
                 initial="hidden"
               >
                 User Analytics Dashboard
+              </motion.div> */}
+              <motion.div
+                className="flex-1 relative m-auto w-full  min-h-[40vh]  sm:h-[50vh] lg:h-[70vh]   overflow-hidden"
+                whileInView="visible"
+                viewport={{ once: false }}
+                initial="hidden"
+              >
+                <Image
+                  src={instadash}
+                  alt="Curtain Collection"
+                  fill
+                  sizes="100%"
+                  className="object-fill md:object-contain  "
+                  loading="lazy"
+                />
               </motion.div>
             </motion.div>
           </motion.div>

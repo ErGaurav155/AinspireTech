@@ -187,8 +187,8 @@ function WebFeaturesGrid() {
           viewport={{ once: false }}
           initial="hidden"
         >
-          Join thousands of creators who have transformed their Instagram
-          engagement
+          Build an AI chatbot for your website to deliver instant, accurate, and
+          human-like responses, enhancing customer experience.
         </motion.p>
       </div>
       <motion.div
