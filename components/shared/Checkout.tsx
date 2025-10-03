@@ -1,5 +1,5 @@
 "use client";
-
+import { motion, AnimatePresence } from "framer-motion";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
@@ -323,92 +323,212 @@ export const Checkout = ({
           <div>
             {step === "phone" && (
               <AlertDialog defaultOpen>
-                <AlertDialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
-                  <div className="flex justify-between items-center gap-3">
-                    <AlertDialogTitle className="text-pink-400">
-                      Otp Verification
-                    </AlertDialogTitle>
-                    <AlertDialogCancel
-                      onClick={() => router.push(`/web/pricing`)}
-                      className="border-0 p-0 hover:bg-transparent text-gray-400 hover:text-red-800 transition-colors  bg-transparent"
-                    >
-                      <XMarkIcon className="h-6 w-6 cursor-pointer text-pink-400" />
-                    </AlertDialogCancel>
-                  </div>
-
-                  <AlertDialogHeader>
-                    <h3 className="p-16-semibold text-white text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-                      PLEASE ENTER YOUR MOBILE NUMBER
-                    </h3>
-                  </AlertDialogHeader>
-
-                  <form
-                    onSubmit={handlePhoneSubmit(handlePhoneSubmission)}
-                    className="space-y-6 p-4"
+                <AlertDialogContent className="bg-gradient-to-br from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] backdrop-blur-2xl border border-white/10 rounded-2xl max-w-md p-0 overflow-hidden shadow-2xl">
+                  <motion.div
+                    variants={{
+                      hidden: { opacity: 0, scale: 0.9 },
+                      visible: {
+                        opacity: 1,
+                        scale: 1,
+                        transition: {
+                          duration: 0.5,
+                          ease: "easeOut",
+                        },
+                      },
+                    }}
+                    initial="hidden"
+                    animate="visible"
+                    className="relative"
                   >
-                    <div className="w-full">
-                      <label
-                        htmlFor="MobileNumber"
-                        className="block text-md font-medium text-gray-300 mb-2"
-                      >
-                        Enter Your Phone Number
-                      </label>
-                      <div className="flex items-center justify-start w-full bg-[#1a1a1a]/50 backdrop-blur-sm border border-[#333] rounded-xl overflow-hidden">
-                        <select
-                          value={countryCode}
-                          onChange={(e) => setCountryCode(e.target.value)}
-                          className="bg-transparent text-white p-3 border-r border-[#333] focus:outline-none focus:ring-2 focus:ring-[#00F0FF] no-scrollbar"
+                    {/* Animated Background */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#00F0FF]/5 via-transparent to-[#B026FF]/5"></div>
+
+                    {/* Header */}
+                    <div className="relative p-6 border-b border-white/10">
+                      <div className="flex justify-between items-center">
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 }}
                         >
-                          {countryCodes.map((countryCode, index) => (
-                            <option
-                              key={index}
-                              className="bg-[#1a1a1a] text-gray-300"
-                              value={countryCode.code}
-                            >
-                              {countryCode.code}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          id="MobileNumber"
-                          type="text"
-                          {...registerPhone("MobileNumber")}
-                          className="w-full bg-transparent py-3 px-4 text-white placeholder:text-gray-500 focus:outline-none"
-                          placeholder="Phone number"
-                        />
+                          <AlertDialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                            OTP Verification
+                          </AlertDialogTitle>
+                          <p className="text-sm text-gray-400 mt-1">
+                            Secure your account
+                          </p>
+                        </motion.div>
+
+                        <AlertDialogCancel
+                          onClick={() => router.push(`/web/pricing`)}
+                          className="border-0 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group bg-transparent"
+                        >
+                          <XMarkIcon className="h-6 w-6 text-gray-400 group-hover:text-white transition-colors" />
+                        </AlertDialogCancel>
                       </div>
-                      {phoneErrors.MobileNumber && (
-                        <p className="text-red-400 text-sm mt-2">
-                          {phoneErrors.MobileNumber.message}
-                        </p>
-                      )}
                     </div>
 
-                    <div className="flex justify-center">
-                      <button
+                    {/* Content */}
+                    <form
+                      onSubmit={handlePhoneSubmit(handlePhoneSubmission)}
+                      className="p-6 space-y-6"
+                    >
+                      {/* Title */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="text-center"
+                      >
+                        <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                          PLEASE ENTER YOUR MOBILE NUMBER
+                        </h3>
+                      </motion.div>
+
+                      {/* Phone Input */}
+                      <motion.div
+                        className="space-y-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        <label className="block text-sm font-medium text-gray-300">
+                          Enter Your Phone Number
+                        </label>
+
+                        <motion.div
+                          className="flex items-center w-full bg-[#1a1a1a]/80 backdrop-blur-sm border-2 border-white/10 rounded-xl overflow-hidden transition-all duration-300"
+                          whileFocus={{
+                            borderColor: "#00F0FF",
+                            boxShadow: "0 0 20px rgba(0, 240, 255, 0.2)",
+                          }}
+                          whileHover={{
+                            borderColor: "#B026FF",
+                            boxShadow: "0 0 15px rgba(176, 38, 255, 0.1)",
+                          }}
+                        >
+                          <select
+                            value={countryCode}
+                            onChange={(e) => setCountryCode(e.target.value)}
+                            className="bg-[#1a1a1a] text-white p-4 border-r border-white/10 focus:outline-none focus:ring-2 focus:ring-[#00F0FF] no-scrollbar appearance-none cursor-pointer"
+                          >
+                            {countryCodes.map((countryCode, index) => (
+                              <option
+                                key={index}
+                                className="bg-[#1a1a1a] text-gray-300 py-2"
+                                value={countryCode.code}
+                              >
+                                {countryCode.code}
+                              </option>
+                            ))}
+                          </select>
+
+                          <input
+                            id="MobileNumber"
+                            type="text"
+                            {...registerPhone("MobileNumber")}
+                            className="w-full bg-transparent py-4 px-4 text-white placeholder:text-gray-500 focus:outline-none text-lg"
+                            placeholder="Phone number"
+                          />
+                        </motion.div>
+
+                        <AnimatePresence>
+                          {phoneErrors.MobileNumber && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="text-center"
+                            >
+                              <p className="text-red-400 text-sm bg-red-400/10 py-2 rounded-lg border border-red-400/20">
+                                {phoneErrors.MobileNumber.message}
+                              </p>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+
+                      {/* Send OTP Button */}
+                      <motion.button
                         type="submit"
-                        className={`w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90 transition-all ${
-                          isOtpSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                        variants={{
+                          initial: {
+                            background:
+                              "linear-gradient(135deg, #00F0FF 0%, #B026FF 100%)",
+                          },
+                          hover: {
+                            background:
+                              "linear-gradient(135deg, #00F0FF 20%, #B026FF 80%)",
+                            scale: 1.02,
+                            boxShadow: "0 10px 30px rgba(0, 240, 255, 0.3)",
+                            transition: {
+                              duration: 0.3,
+                              ease: "easeOut",
+                            },
+                          },
+                          tap: {
+                            scale: 0.98,
+                          },
+                          loading: {
+                            background:
+                              "linear-gradient(135deg, #666 0%, #888 100%)",
+                          },
+                        }}
+                        initial="initial"
+                        whileHover={isOtpSubmitting ? "loading" : "hover"}
+                        whileTap="tap"
+                        animate={isOtpSubmitting ? "loading" : "initial"}
+                        className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
+                          isOtpSubmitting ? "cursor-not-allowed" : ""
                         }`}
                         disabled={isOtpSubmitting}
                       >
                         {isOtpSubmitting ? (
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="w-4 h-4 border-t-2 border-white border-solid rounded-full animate-spin"></div>
+                          <motion.div
+                            className="flex items-center justify-center gap-3"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                          >
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                                ease: "linear",
+                              }}
+                              className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                            />
                             Sending OTP...
-                          </div>
+                          </motion.div>
                         ) : (
-                          "Send OTP"
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                          >
+                            Send OTP
+                          </motion.span>
                         )}
-                      </button>
-                    </div>
-                  </form>
+                      </motion.button>
+                    </form>
 
-                  <AlertDialogDescription className="p-4 text-center text-sm text-gray-400 border-t border-[#333] pt-4">
-                    <span className="text-[#00F0FF]">
-                      IT WILL HELP US TO PROVIDE BETTER SERVICES
-                    </span>
-                  </AlertDialogDescription>
+                    {/* Footer */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.6 }}
+                      className="p-4 text-center border-t border-white/10 bg-black/20"
+                    >
+                      <AlertDialogDescription className="text-sm">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF] font-semibold font-montserrat">
+                          IT WILL HELP US TO PROVIDE BETTER SERVICES
+                        </span>
+                      </AlertDialogDescription>
+                    </motion.div>
+
+                    {/* Decorative Elements */}
+                    <div className="absolute top-0 left-0 w-20 h-20 bg-[#00F0FF]/10 rounded-full blur-xl -translate-x-1/2 -translate-y-1/2"></div>
+                    <div className="absolute bottom-0 right-0 w-20 h-20 bg-[#B026FF]/10 rounded-full blur-xl translate-x-1/2 translate-y-1/2"></div>
+                  </motion.div>
                 </AlertDialogContent>
               </AlertDialog>
             )}
@@ -424,69 +544,233 @@ export const Checkout = ({
             {step === "weblink" && (
               <div>
                 <AlertDialog defaultOpen>
-                  <AlertDialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
-                    {" "}
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="text-pink-400">
-                        Enter Website URL
-                      </AlertDialogTitle>
-                      <div className="flex justify-between items-center">
-                        <p className="p-16-semibold text-white text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-                          PLEASE ENTER YOUR WEBSITE URL/LINK
-                        </p>
-                        <AlertDialogCancel
-                          onClick={() => router.push(`/`)}
-                          className="border-0 p-0 hover:bg-transparent text-gray-400 hover:text-white transition-colors"
-                        >
-                          <XMarkIcon className="size-6 cursor-pointer" />
-                        </AlertDialogCancel>
-                      </div>
-                    </AlertDialogHeader>
-                    <form
-                      onSubmit={handleWebsiteSubmit(handleWebsiteSubmission)}
-                      className="space-y-4"
+                  <AlertDialogContent className="bg-gradient-to-br from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] backdrop-blur-2xl border border-white/10 rounded-2xl max-w-md p-0 overflow-hidden shadow-2xl">
+                    <motion.div
+                      variants={{
+                        hidden: { opacity: 0, scale: 0.9 },
+                        visible: {
+                          opacity: 1,
+                          scale: 1,
+                          transition: {
+                            duration: 0.5,
+                            ease: "easeOut",
+                          },
+                        },
+                      }}
+                      initial="hidden"
+                      animate="visible"
+                      className="relative"
                     >
-                      <div className="w-full">
-                        <label
-                          htmlFor="websiteUrl"
-                          className="block text-md font-medium text-gray-300 mb-2"
-                        >
-                          Website URL
-                        </label>
-                        <input
-                          id="websiteUrl"
-                          type="url"
-                          {...registerWebsite("websiteUrl")}
-                          className="w-full bg-[#1a1a1a]/50 backdrop-blur-sm border border-[#333] rounded-xl py-4 px-4 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00F0FF]"
-                        />
-                        {websiteErrors.websiteUrl && (
-                          <p className="text-red-500 text-xs mt-1">
-                            {websiteErrors.websiteUrl.message}
-                          </p>
-                        )}
+                      {/* Animated Background */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#00F0FF]/5 via-transparent to-[#B026FF]/5"></div>
+
+                      {/* Header */}
+                      <div className="relative p-6 border-b border-white/10">
+                        <div className="flex justify-between items-center">
+                          <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            <AlertDialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                              Enter Website URL
+                            </AlertDialogTitle>
+                            <p className="text-sm text-gray-400 mt-1">
+                              Connect your website
+                            </p>
+                          </motion.div>
+
+                          <AlertDialogCancel
+                            onClick={() => router.push(`/`)}
+                            className="border-0 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group bg-transparent"
+                          >
+                            <XMarkIcon className="h-6 w-6 text-gray-400 group-hover:text-white transition-colors" />
+                          </AlertDialogCancel>
+                        </div>
                       </div>
-                      <div className="flex justify-center">
-                        <button
+
+                      {/* Content */}
+                      <form
+                        onSubmit={handleWebsiteSubmit(handleWebsiteSubmission)}
+                        className="p-6 space-y-6"
+                      >
+                        {/* Title */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                          className="text-center"
+                        >
+                          <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                            PLEASE ENTER YOUR WEBSITE URL/LINK
+                          </h3>
+                        </motion.div>
+
+                        {/* Website Input */}
+                        <motion.div
+                          className="space-y-4"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.4 }}
+                        >
+                          <label className="block text-sm font-medium text-gray-300">
+                            Website URL
+                          </label>
+
+                          <motion.div
+                            whileFocus={{
+                              borderColor: "#00F0FF",
+                              boxShadow: "0 0 20px rgba(0, 240, 255, 0.2)",
+                            }}
+                            whileHover={{
+                              borderColor: "#B026FF",
+                              boxShadow: "0 0 15px rgba(176, 38, 255, 0.1)",
+                            }}
+                            className="relative"
+                          >
+                            <input
+                              id="websiteUrl"
+                              type="url"
+                              {...registerWebsite("websiteUrl")}
+                              className="w-full bg-[#1a1a1a]/80 backdrop-blur-sm border-2 border-white/10 rounded-xl py-4 px-4 text-white placeholder:text-gray-500 focus:outline-none text-lg transition-all duration-300"
+                              placeholder="https://example.com"
+                            />
+                            {/* URL Icon */}
+                            <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.5 }}
+                                className="w-6 h-6 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-lg flex items-center justify-center"
+                              >
+                                <svg
+                                  className="w-3 h-3 text-white"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                                  />
+                                </svg>
+                              </motion.div>
+                            </div>
+                          </motion.div>
+
+                          <AnimatePresence>
+                            {websiteErrors.websiteUrl && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="text-center"
+                              >
+                                <p className="text-red-400 text-sm bg-red-400/10 py-2 rounded-lg border border-red-400/20">
+                                  {websiteErrors.websiteUrl.message}
+                                </p>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </motion.div>
+
+                        {/* Save URL Button */}
+                        <motion.button
                           type="submit"
-                          className={`w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#00F0FF]/90 hover:to-[#B026FF]/90 transition-all ${
-                            isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                          variants={{
+                            initial: {
+                              background:
+                                "linear-gradient(135deg, #00F0FF 0%, #B026FF 100%)",
+                            },
+                            hover: {
+                              background:
+                                "linear-gradient(135deg, #00F0FF 20%, #B026FF 80%)",
+                              scale: 1.02,
+                              boxShadow: "0 10px 30px rgba(0, 240, 255, 0.3)",
+                              transition: {
+                                duration: 0.3,
+                                ease: "easeOut",
+                              },
+                            },
+                            tap: {
+                              scale: 0.98,
+                            },
+                            loading: {
+                              background:
+                                "linear-gradient(135deg, #666 0%, #888 100%)",
+                            },
+                          }}
+                          initial="initial"
+                          whileHover={isSubmitting ? "loading" : "hover"}
+                          whileTap="tap"
+                          animate={isSubmitting ? "loading" : "initial"}
+                          className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
+                            isSubmitting ? "cursor-not-allowed" : ""
                           }`}
                           disabled={isSubmitting}
                         >
                           {isSubmitting ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <div className="w-4 h-4 border-t-2 border-white border-solid rounded-full animate-spin"></div>
-                              Saving Url...
-                            </div>
+                            <motion.div
+                              className="flex items-center justify-center gap-3"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                            >
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{
+                                  duration: 1,
+                                  repeat: Infinity,
+                                  ease: "linear",
+                                }}
+                                className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                              />
+                              Saving URL...
+                            </motion.div>
                           ) : (
-                            "Save Url"
+                            <motion.span
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className="flex items-center justify-center gap-2"
+                            >
+                              <svg
+                                className="w-5 h-5 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                              Save URL
+                            </motion.span>
                           )}
-                        </button>
-                      </div>
-                    </form>
-                    <AlertDialogDescription className="p-16-regular py-3 text-green-500">
-                      IT WILL HELP US TO PROVIDE BETTER SERVICES
-                    </AlertDialogDescription>
+                        </motion.button>
+                      </form>
+
+                      {/* Footer */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6 }}
+                        className="p-4 text-center border-t border-white/10 bg-black/20"
+                      >
+                        <AlertDialogDescription className="text-sm">
+                          <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF] font-semibold font-montserrat">
+                            IT WILL HELP US TO PROVIDE BETTER SERVICES
+                          </span>
+                        </AlertDialogDescription>
+                      </motion.div>
+
+                      {/* Decorative Elements */}
+                      <div className="absolute top-0 left-0 w-20 h-20 bg-[#00F0FF]/10 rounded-full blur-xl -translate-x-1/2 -translate-y-1/2"></div>
+                      <div className="absolute bottom-0 right-0 w-20 h-20 bg-[#B026FF]/10 rounded-full blur-xl translate-x-1/2 translate-y-1/2"></div>
+                    </motion.div>
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
