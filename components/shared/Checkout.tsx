@@ -23,8 +23,8 @@ import { countryCodes } from "@/constant";
 import { toast } from "../ui/use-toast";
 import Script from "next/script";
 import { createTransaction } from "@/lib/action/transaction.action";
-import { Button } from "../ui/button";
 import { apiClient } from "@/lib/utils";
+import { Button } from "../ui/button";
 
 interface CheckoutProps {
   amount: number;
@@ -449,9 +449,36 @@ export const Checkout = ({
                       </motion.div>
 
                       {/* Send OTP Button */}
-                      <button
+                      <motion.button
                         type="submit"
-                        className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
+                        variants={{
+                          initial: {
+                            background:
+                              "linear-gradient(135deg, #00F0FF 0%, #B026FF 100%)",
+                          },
+                          hover: {
+                            background:
+                              "linear-gradient(135deg, #00F0FF 20%, #B026FF 80%)",
+                            scale: 1.02,
+                            boxShadow: "0 10px 30px rgba(0, 240, 255, 0.3)",
+                            transition: {
+                              duration: 0.3,
+                              ease: "easeOut",
+                            },
+                          },
+                          tap: {
+                            scale: 0.98,
+                          },
+                          loading: {
+                            background:
+                              "linear-gradient(135deg, #666 0%, #888 100%)",
+                          },
+                        }}
+                        initial="initial"
+                        whileHover={isOtpSubmitting ? "loading" : "hover"}
+                        whileTap="tap"
+                        animate={isOtpSubmitting ? "loading" : "initial"}
+                        className={`w-full py-4 relative z-30 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
                           isOtpSubmitting ? "cursor-not-allowed" : ""
                         }`}
                         disabled={isOtpSubmitting}
@@ -481,7 +508,7 @@ export const Checkout = ({
                             Send OTP
                           </motion.span>
                         )}
-                      </button>
+                      </motion.button>
                     </form>
 
                     {/* Footer */}
@@ -650,9 +677,36 @@ export const Checkout = ({
                         </motion.div>
 
                         {/* Save URL Button */}
-                        <button
+                        <motion.button
                           type="submit"
-                          className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
+                          variants={{
+                            initial: {
+                              background:
+                                "linear-gradient(135deg, #00F0FF 0%, #B026FF 100%)",
+                            },
+                            hover: {
+                              background:
+                                "linear-gradient(135deg, #00F0FF 20%, #B026FF 80%)",
+                              scale: 1.02,
+                              boxShadow: "0 10px 30px rgba(0, 240, 255, 0.3)",
+                              transition: {
+                                duration: 0.3,
+                                ease: "easeOut",
+                              },
+                            },
+                            tap: {
+                              scale: 0.98,
+                            },
+                            loading: {
+                              background:
+                                "linear-gradient(135deg, #666 0%, #888 100%)",
+                            },
+                          }}
+                          initial="initial"
+                          whileHover={isSubmitting ? "loading" : "hover"}
+                          whileTap="tap"
+                          animate={isSubmitting ? "loading" : "initial"}
+                          className={`w-full py-4 relative z-30 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
                             isSubmitting ? "cursor-not-allowed" : ""
                           }`}
                           disabled={isSubmitting}
@@ -696,7 +750,7 @@ export const Checkout = ({
                               Save URL
                             </motion.span>
                           )}
-                        </button>
+                        </motion.button>
                       </form>
 
                       {/* Footer */}
