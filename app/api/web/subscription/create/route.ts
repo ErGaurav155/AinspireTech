@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 import WebSubscription from "@/lib/database/models/web/Websubcription.model";
+import { connectToDatabase } from "@/lib/database/mongoose";
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = auth();
+    await connectToDatabase(); // 👈 ensure DB connection before queries
 
+    const { userId } = auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -33,7 +35,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate expiry date
     const now = new Date();
     const expiresAt = new Date(now);
     if (billingCycle === "monthly") {
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
       expiresAt.setFullYear(expiresAt.getFullYear() + 1);
     }
 
-    const newSubscription = {
+    const newSubscription = await WebSubscription.create({
       clerkId: userId,
       chatbotType,
       subscriptionId,
@@ -52,16 +53,11 @@ export async function POST(request: NextRequest) {
       createdAt: now,
       expiresAt,
       updatedAt: now,
-    };
-
-    const result = await WebSubscription.create(newSubscription);
+    });
 
     return NextResponse.json({
       message: "Subscription created successfully",
-      subscription: {
-        id: result.insertedId,
-        ...newSubscription,
-      },
+      subscription: newSubscription,
     });
   } catch (error) {
     console.error("Subscription creation error:", error);
