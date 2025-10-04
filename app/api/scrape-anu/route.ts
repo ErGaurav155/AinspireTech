@@ -1,8 +1,6 @@
 import { ApifyClient } from "apify-client";
 import { NextRequest, NextResponse } from "next/server";
-
 import File from "@/lib/database/models/web/scrappeddata.model";
-
 import { URL } from "url";
 import { connectToDatabase } from "@/lib/database/mongoose";
 
@@ -27,13 +25,13 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const scraperConfig = {
       actorId: "apify/website-content-crawler",
       startUrls: [{ url: mainUrl.trim() }],
-      maxCrawlDepth: 2,
-      maxCrawlPages: 10,
+      maxCrawlDepth: 1, // Reduced from 2 to 1 to use less memory
+      maxCrawlPages: 5, // Reduced from 10 to 5 to use less memory
       proxyConfiguration: {
         useApifyProxy: true,
         apifyProxyGroups: ["RESIDENTIAL"],
       },
-      useSitemaps: true,
+      useSitemaps: false, // Disable sitemaps to reduce memory
       crawlerType: "playwright:adaptive",
       removeElementsCssSelector: `nav, footer, script, style, noscript, svg, img[src^='data:'],
         [role="alert"],
@@ -43,21 +41,18 @@ export async function POST(req: NextRequest, res: NextResponse) {
         [role="region"][aria-label*="skip" i],
         [aria-modal="true"]`,
       removeCookieWarnings: true,
-      htmlTransformer: "none", // Disable HTML-to-text transformation
-      saveHtml: false, // Don't save raw HTML
-      saveMarkdown: false, // Disable markdown output
-      saveFiles: false, // Avoid saving files/screenshots
-      maxResults: 9999999,
+      htmlTransformer: "none",
+      saveHtml: false,
+      saveMarkdown: false,
+      saveFiles: false,
+      maxResults: 50, // Reduced from 9999999 to reasonable limit
     };
-    // Start and wait for scraping to complete
-    // const run = await client.actor(scraperConfig.actorId).start(scraperConfig);
-    const run = await client.actor(scraperConfig.actorId).start({
-      ...scraperConfig,
-      memory: 2048,
-    });
+
+    // Remove memory specification - use default
+    const run = await client.actor(scraperConfig.actorId).start(scraperConfig);
     await client.run(run.id).waitForFinish();
 
-    // Fetch scraped data
+    // Rest of your code remains the same...
     const { items } = await client.dataset(run.defaultDatasetId).listItems();
     console.log("items:", items);
 
@@ -69,33 +64,31 @@ export async function POST(req: NextRequest, res: NextResponse) {
         { status: 400 }
       );
     }
+
     const extractedData = items.map((item) => ({
       url: item.url,
       title: item.title,
       description: item.description || "",
-      text: item.text, // From meta tags
+      text: item.text,
     }));
     console.log("extractedData:", extractedData);
-
     const existingFile = await File.findOne({
       fileName: `${domain}.json`,
     });
     console.log("existingFile:", existingFile);
+
     if (existingFile) {
-      // Update existing record
       existingFile.content = extractedData;
       console.log("existingFile.content:", existingFile.content);
-
       await existingFile.save();
     } else {
-      // Create new record
-      const file = await File.create({
+      await File.create({
         fileName: `${domain}.json`,
         userId: userId,
         content: extractedData,
         domain,
       });
-      console.log("file:", file);
+      console.log("file:", File);
     }
 
     return NextResponse.json(

@@ -30,8 +30,21 @@ export default function AIChatBot() {
   ]);
   const [submit, setSubmit] = useState(false);
 
+  // const toggleOpen = async () => {
+  //   setOpen(true);
+  //   const response = await fetch("/api/scrape-anu", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({
+  //       mainUrl: "https://ainspiretech.com/",
+  //       userId: "user_2zSxTB9PwSs67PGtuSzFw37CpNv",
+  //     }),
+  //   });
+  //   console.log("response:", response);
+  // };
   const toggleOpen = () => setOpen((cur) => !cur);
-
   const form = useForm<z.infer<typeof formSchema1>>({
     resolver: zodResolver(formSchema1),
     defaultValues: {
@@ -92,12 +105,13 @@ export default function AIChatBot() {
           open ? "hidden" : "inline-block"
         }`}
       >
-        <div className="bg-gradient-to-r h-14 w-14 from-[#00F0FF] to-[#FF2E9F] rounded-full shadow-lg p-3 flex items-center justify-center hover:shadow-[0_0_15px_5px_rgba(0,240,255,0.5)] transition-all duration-300">
-          <ChatBubbleLeftIcon
-            onClick={toggleOpen}
-            className="text-white h-12 w-12"
-          />
-        </div>
+        <button
+          onClick={toggleOpen}
+          disabled={open}
+          className="bg-gradient-to-r h-14 w-14 from-[#00F0FF] to-[#FF2E9F] rounded-full shadow-lg p-3 flex items-center justify-center hover:shadow-[0_0_15px_5px_rgba(0,240,255,0.5)] transition-all duration-300"
+        >
+          <ChatBubbleLeftIcon className="text-white h-12 w-12" />
+        </button>
         <h1 className="font-semibold text-base text-white mt-1">Help </h1>
       </div>
 
