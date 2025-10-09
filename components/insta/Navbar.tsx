@@ -7,19 +7,47 @@ import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 import Logo from "/public/assets/img/logo.png";
+import { useTheme } from "next-themes";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const navBg = theme === "dark" ? "bg-[#0a0a0a]/80" : "bg-white/80";
+
+  const borderColor = theme === "dark" ? "border-white/10" : "border-gray-200";
+
+  const logoBg = theme === "dark" ? "bg-[#0A0A0A]" : "bg-white";
+
+  const linkText =
+    theme === "dark"
+      ? "text-gray-300 hover:text-[#00F0FF]"
+      : "text-gray-600 hover:text-[#00F0FF]";
+
+  const outlineButton =
+    theme === "dark"
+      ? "border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/10"
+      : "border-[#00F0FF]/50 text-[#00F0FF] hover:bg-[#00F0FF]/5";
+
+  const mobileMenuBg = theme === "dark" ? "border-white/10" : "border-gray-200";
+
+  const mobileButton = theme === "dark" ? "text-white" : "text-gray-700";
 
   return (
-    <nav className="bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
+    <nav
+      className={`${navBg} backdrop-blur-md border-b ${borderColor} sticky top-0 z-50`}
+    >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <div className="relative h-7 w-7 md:w-10 md:h-10 mr-1 md:mr-3">
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
-              <div className="absolute inset-1 rounded-full bg-[#0A0A0A] flex items-center justify-center">
+              <div
+                className={`absolute inset-1 rounded-full ${logoBg} flex items-center justify-center`}
+              >
                 <Image
                   alt="Logo"
                   src={Logo}
@@ -33,42 +61,30 @@ export default function Navbar() {
               Ainpire<span className="text-[#B026FF]">Tech</span>
             </h1>
           </Link>
-          {/* <Link
-            href="/"
-            className="flex items-center space-x-1 lg:space-x-2 group"
-          >
-            <div className="relative">
-              <Instagram className="h-8 w-8 text-[#00F0FF] group-hover:text-[#B026FF] transition-colors" />
-              <div className="absolute -top-1 -right-1 h-3 w-3 bg-[#FF2E9F] rounded-full animate-pulse" />
-            </div>
-            <span className="text-lg lg:text-xl font-bold gradient-text-main">
-              InstaBot
-            </span>
-          </Link> */}
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-2 lg:space-x-8 text-sm lg:text-lg">
             <Link
               href="/insta/dashboard"
-              className="text-gray-300 hover:text-[#00F0FF] transition-colors font-normal"
+              className={`transition-colors font-normal ${linkText}`}
             >
               Dashboard
             </Link>
             <Link
               href="/insta/accounts"
-              className="text-gray-300 hover:text-[#00F0FF] transition-colors font-medium"
+              className={`transition-colors font-medium ${linkText}`}
             >
               Accounts
             </Link>
             <Link
               href="/insta/templates"
-              className="text-gray-300 hover:text-[#00F0FF] transition-colors font-medium"
+              className={`transition-colors font-medium ${linkText}`}
             >
               Templates
             </Link>
             <Link
               href="/insta/analytics"
-              className="text-gray-300 hover:text-[#00F0FF] transition-colors font-medium"
+              className={`transition-colors font-medium ${linkText}`}
             >
               Analytics
             </Link>
@@ -79,14 +95,14 @@ export default function Navbar() {
             <SignedOut>
               <Button
                 variant="outline"
-                className="border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/10"
+                className={`hover:opacity-90 transition-opacity ${outlineButton}`}
                 asChild
               >
                 <Link href="/sign-in">Sign In</Link>
               </Button>
             </SignedOut>
             <Button
-              className="btn-gradient-cyan hover:opacity-90 transition-opacity"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white hover:opacity-90 transition-opacity"
               asChild
             >
               <Link href="/insta/pricing">
@@ -94,20 +110,24 @@ export default function Navbar() {
                 Get Pricing
               </Link>
             </Button>
+            {/* <div className="flex justify-center p-1 gap-1 md:gap-2 rounded-md bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"> */}
+            <ThemeToggle />
             <SignedIn>
               <UserButton afterSignOutUrl="/" />
             </SignedIn>
+            {/* </div> */}
           </div>
 
           {/* Mobile menu button */}
+          <div className="flex md:hidden items-center justify-center gap-2">
+            <ThemeToggle />
 
-          <div className=" flex md:hidden items-center justify-center gap-2">
             <SignedIn>
               <UserButton afterSignOutUrl="/" />
             </SignedIn>
             <Button
               variant="ghost"
-              className="md:hidden h-9 w-9 p-0 text-white"
+              className={`md:hidden h-9 w-9 p-0 ${mobileButton}`}
               onClick={() => setIsOpen(!isOpen)}
             >
               {isOpen ? (
@@ -121,32 +141,32 @@ export default function Navbar() {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t border-white/10">
+          <div className={`md:hidden py-4 border-t ${mobileMenuBg}`}>
             <div className="flex flex-col space-y-3">
               <Link
                 href="/insta/dashboard"
-                className="text-gray-300 hover:text-[#00F0FF] transition-colors font-medium px-2 py-1"
+                className={`transition-colors font-medium px-2 py-1 ${linkText}`}
                 onClick={() => setIsOpen(false)}
               >
                 Dashboard
               </Link>
               <Link
                 href="/insta/accounts"
-                className="text-gray-300 hover:text-[#00F0FF] transition-colors font-medium px-2 py-1"
+                className={`transition-colors font-medium px-2 py-1 ${linkText}`}
                 onClick={() => setIsOpen(false)}
               >
                 Accounts
               </Link>
               <Link
                 href="/insta/templates"
-                className="text-gray-300 hover:text-[#00F0FF] transition-colors font-medium px-2 py-1"
+                className={`transition-colors font-medium px-2 py-1 ${linkText}`}
                 onClick={() => setIsOpen(false)}
               >
                 Templates
               </Link>
               <Link
                 href="/insta/analytics"
-                className="text-gray-300 hover:text-[#00F0FF] transition-colors font-medium px-2 py-1"
+                className={`transition-colors font-medium px-2 py-1 ${linkText}`}
                 onClick={() => setIsOpen(false)}
               >
                 Analytics
@@ -155,7 +175,7 @@ export default function Navbar() {
                 <SignedOut>
                   <Button
                     variant="outline"
-                    className="border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/10"
+                    className={`hover:opacity-90 transition-opacity ${outlineButton}`}
                     asChild
                   >
                     <Link href="/sign-in">Sign In</Link>
@@ -163,7 +183,7 @@ export default function Navbar() {
                 </SignedOut>
 
                 <Button
-                  className="btn-gradient-cyan hover:opacity-90 transition-opacity"
+                  className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white hover:opacity-90 transition-opacity"
                   asChild
                 >
                   <Link href="/insta/pricing">

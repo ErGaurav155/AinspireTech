@@ -12,7 +12,7 @@ import WebFeaturesGrid from "@/components/web/WebFeatureGrid";
 import { WebCTASection } from "@/components/web/WebCta";
 export default function Home() {
   return (
-    <div className="min-h-screen max-w-7xl m-auto text-white ">
+    <div className="min-h-screen max-w-7xl m-auto  ">
       {/* Hero Section */}
       <BreadcrumbsDefault />
       <AIAgentHero />

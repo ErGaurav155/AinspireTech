@@ -16,8 +16,36 @@ import featureImg from "@/public/assets/img/featureImg4.png";
 import featureImg2 from "@/public/assets/img/featureImg2.png";
 import featureImg3 from "@/public/assets/img/headingimg.png";
 import featureImg4 from "@/public/assets/img/FeatureImg3.png";
+import { useTheme } from "next-themes";
 
 export function FeatureSection() {
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+
+  const badgeBorder =
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+
+  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const dividerBg =
+    theme === "dark"
+      ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF]"
+      : "bg-gradient-to-r from-[#00F0FF] to-[#B026FF]";
+
+  const ctaText =
+    theme === "dark"
+      ? "text-[#00F0FF] hover:text-[#B026FF]"
+      : "text-[#00F0FF] hover:text-[#B026FF]";
+
+  const cardHoverBorder =
+    theme === "dark"
+      ? "borderColor: 'rgba(37, 139, 148, 0.4)'"
+      : "borderColor: 'rgba(37, 139, 148, 0.2)'";
+
   // EXACT same animation variants as testimonials component
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -50,7 +78,10 @@ export function FeatureSection() {
     hover: {
       y: -8,
       scale: 1.02,
-      borderColor: "rgba(37, 139, 148, 0.4)",
+      borderColor:
+        theme === "dark"
+          ? "rgba(37, 139, 148, 0.4)"
+          : "rgba(37, 139, 148, 0.2)",
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -174,7 +205,7 @@ export function FeatureSection() {
   ];
 
   return (
-    <section className="w-full bg-transparent text-white py-16 ">
+    <section className={`w-full bg-transparent text-foreground py-16`}>
       <motion.div
         className="mx-auto"
         variants={containerVariants}
@@ -191,7 +222,7 @@ export function FeatureSection() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className="inline-flex items-center text-[#00F0FF] border border-[#00F0FF]/30 rounded-full px-4 py-1 mb-4"
+            className={`inline-flex items-center text-[#00F0FF] border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -211,7 +242,7 @@ export function FeatureSection() {
             Feature Breakdown
           </motion.h2>
           <motion.p
-            className="text-lg p-2 text-gray-300 max-w-3xl mx-auto font-montserrat"
+            className={`text-lg p-2 max-w-3xl mx-auto font-montserrat ${descriptionText}`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -224,7 +255,7 @@ export function FeatureSection() {
 
         {/* Features Grid */}
         <motion.div
-          className="flex flex-col gap-4 sm:gap-8 md:gap-12 max-w-7xl mx-auto items-center justify-center h-full bg-[#0a0a0a]/10 backdrop-blur-sm"
+          className={`flex flex-col gap-4 sm:gap-8 md:gap-12 max-w-7xl mx-auto items-center justify-center h-full ${containerBg} backdrop-blur-sm`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -244,7 +275,7 @@ export function FeatureSection() {
             >
               {/* Feature Description */}
               <motion.div
-                className="flex-1 min-h-[50vh]   flex flex-col items-start justify-center   p-2 md:p-6  "
+                className="flex-1 min-h-[50vh] flex flex-col items-start justify-center p-2 md:p-6"
                 variants={cardVariants}
                 whileHover="hover"
                 whileInView="visible"
@@ -265,7 +296,7 @@ export function FeatureSection() {
 
                   {/* Title */}
                   <motion.h3
-                    className=" text-lg md:text-xl font-semibold mb-4 text-white"
+                    className={`text-lg md:text-xl font-semibold mb-4 ${titleText}`}
                     variants={titleVariants}
                     whileInView="visible"
                     viewport={{ once: false }}
@@ -277,7 +308,7 @@ export function FeatureSection() {
 
                 {/* Description */}
                 <motion.p
-                  className="text-gray-300 leading-relaxed mb-6 font-montserrat"
+                  className={`leading-relaxed mb-6 font-montserrat ${descriptionText}`}
                   variants={textVariants}
                   whileInView="visible"
                   viewport={{ once: false }}
@@ -288,7 +319,7 @@ export function FeatureSection() {
 
                 {/* Divider */}
                 <motion.div
-                  className="w-20 h-1 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full mb-6"
+                  className={`w-20 h-1 ${dividerBg} rounded-full mb-6`}
                   variants={iconVariants}
                   whileInView="visible"
                   viewport={{ once: false }}
@@ -297,7 +328,7 @@ export function FeatureSection() {
 
                 {/* CTA Button */}
                 <motion.button
-                  className="inline-flex items-center text-[#00F0FF] hover:text-[#B026FF] transition-colors duration-300"
+                  className={`inline-flex items-center transition-colors duration-300 ${ctaText}`}
                   variants={textVariants}
                   whileInView="visible"
                   viewport={{ once: false }}
@@ -324,7 +355,7 @@ export function FeatureSection() {
               </motion.div>
               {/* Instagram Post Visual */}
               <motion.div
-                className="flex-1 relative m-auto w-full  aspect-square   overflow-hidden"
+                className="flex-1 relative m-auto w-full aspect-square overflow-hidden"
                 variants={imageVariants}
                 whileInView="visible"
                 viewport={{ once: false }}
@@ -332,10 +363,10 @@ export function FeatureSection() {
               >
                 <Image
                   src={feature.url}
-                  alt="Curtain Collection"
+                  alt={`${feature.title} example`}
                   fill
                   sizes="100%"
-                  className="object-cover  "
+                  className="object-cover"
                   loading="lazy"
                 />
               </motion.div>

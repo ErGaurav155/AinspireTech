@@ -90,6 +90,7 @@ import {
   getSubscription,
 } from "@/lib/action/subscription.action";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+import { useTheme } from "next-themes";
 
 // Chatbot types configuration
 const chatbotTypes = [
@@ -123,7 +124,6 @@ const chatbotTypes = [
       "FAQ automation",
     ],
   },
-
   // {
   //   id: "chatbot-e-commerce",
   //   name: "E-Commerce",
@@ -166,7 +166,6 @@ export default function DashboardPage() {
   const [subscriptions, setSubscriptions] = useState<any>({});
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [websiteUrl, setWebsiteUrl] = useState("");
-
   const [websiteData, setWebsiteData] = useState("");
   const [appointmentQuestions, setAppointmentQuestions] = useState([
     {
@@ -203,19 +202,53 @@ export default function DashboardPage() {
   ]);
   const [analytics, setAnalytics] = useState<any>(null);
   const [defaultValue, setDefaultValue] = useState("overview");
-
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showCancelSubDialog, setShowCancelSubDialog] = useState(false);
   const [cancelSub, setCancelSub] = useState(false);
   const [selectedChatbotId, setSelectedChatbotId] = useState("");
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImmediateSubmitting, setIsImmediateSubmitting] = useState(false);
-
   const [mode, setMode] = useState<"Immediate" | "End-of-term">("End-of-term");
   const { userId } = useAuth();
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const containerBg = theme === "dark" ? "bg-transparent" : "bg-gray-50";
+  const loadingBg = theme === "dark" ? "bg-black" : "bg-white";
+  const cardBg = theme === "dark" ? "bg-gray-900/30" : "bg-white";
+  const cardBorder =
+    theme === "dark" ? "border-gray-800/50" : "border-gray-200";
+  const hoverBorder =
+    theme === "dark" ? "hover:border-gray-700/50" : "hover:border-gray-300";
+  const activeBorder =
+    theme === "dark" ? "border-[#00F0FF]/50" : "border-[#00F0FF]";
+  const badgeActiveBg =
+    theme === "dark"
+      ? "bg-green-500/20 text-green-400 border-green-500/30"
+      : "bg-green-100 text-green-600 border-green-300";
+  const badgeInactiveBg =
+    theme === "dark"
+      ? "bg-gray-700/50 text-gray-400"
+      : "bg-gray-100 text-gray-600 border-gray-300";
+  const tableHeaderBg = theme === "dark" ? "bg-gray-800/50" : "bg-gray-100";
+  const tableBorder = theme === "dark" ? "border-gray-700" : "border-gray-300";
+  const tableRowHover =
+    theme === "dark" ? "hover:bg-gray-800/20" : "hover:bg-gray-50";
+  const inputBg = theme === "dark" ? "bg-transparent" : "bg-white";
+  const inputBorder = theme === "dark" ? "border-gray-700" : "border-gray-300";
+  const dialogBg =
+    theme === "dark"
+      ? "bg-gray-900/95 backdrop-blur-md"
+      : "bg-white backdrop-blur-md";
+  const alertBg =
+    theme === "dark"
+      ? "bg-gray-900/95 backdrop-blur-md"
+      : "bg-white backdrop-blur-md";
 
   const loadDashboardData = useCallback(async () => {
     try {
@@ -286,6 +319,7 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }, [selectedChatbot, userId]);
+
   useEffect(() => {
     if (!userId) {
       router.push("/sign-in");
@@ -300,7 +334,6 @@ export default function DashboardPage() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
   // const handleCancelSubscription = async (chatbotId: string) => {
   //   try {
   //     await apiClient.cancelSubscription(chatbotId);
@@ -363,7 +396,6 @@ export default function DashboardPage() {
       setIsImmediateSubmitting(false);
     }
   };
-
   // const handleCancelSubscription = async (chatbotId: string) => {
   //   setCancelSub(true);
   //   try {
@@ -437,10 +469,12 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-transparent text-white flex items-center justify-center">
+      <div
+        className={`min-h-screen ${containerBg} ${textPrimary} flex items-center justify-center`}
+      >
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-[#00F0FF] mx-auto mb-4" />
-          <p className="text-gray-400">Loading dashboard...</p>
+          <p className={textSecondary}>Loading dashboard...</p>
         </div>
       </div>
     );
@@ -583,8 +617,9 @@ export default function DashboardPage() {
       baseStats["chatbot-customer-support"]
     );
   };
+
   return (
-    <div className="min-h-screen bg-transparent text-white">
+    <div className={`min-h-screen ${containerBg} ${textPrimary}`}>
       {/* Header */}
       {error && (
         <div className="mb-6 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center">
@@ -603,7 +638,7 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Chatbot Selection Tabs */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">
+          <h2 className={`text-2xl font-bold ${textPrimary} mb-6`}>
             Your AI Chatbots
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -615,10 +650,14 @@ export default function DashboardPage() {
               return (
                 <Card
                   key={chatbot.id}
-                  className={`cursor-pointer transition-all duration-300 ${
+                  className={`cursor-pointer transition-all duration-300 ${cardBg} ${cardBorder} ${
                     isActive
-                      ? "bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-2 border-[#00F0FF]/50"
-                      : "bg-gray-900/30 border-gray-800/50 hover:border-gray-700/50"
+                      ? `bg-gradient-to-br ${
+                          theme === "dark"
+                            ? "from-gray-800/50 to-gray-900/50"
+                            : "from-blue-50 to-purple-50"
+                        } ${activeBorder}`
+                      : `${hoverBorder}`
                   }`}
                   onClick={() => setSelectedChatbot(chatbot.id)}
                 >
@@ -626,24 +665,23 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mb-3">
                       <chatbot.icon className={`h-8 w-8 ${chatbot.color}`} />
                       {hasSubscription ? (
-                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                        <Badge className={badgeActiveBg}>
                           <Crown className="h-3 w-3 mr-1" />
                           Active
                         </Badge>
                       ) : (
-                        <Badge
-                          variant="secondary"
-                          className="bg-gray-700/50 text-gray-400"
-                        >
+                        <Badge variant="secondary" className={badgeInactiveBg}>
                           <Lock className="h-3 w-3 mr-1" />
                           Inactive
                         </Badge>
                       )}
                     </div>
-                    <h3 className="font-semibold text-white mb-1">
+                    <h3 className={`font-semibold ${textPrimary} mb-1`}>
                       {chatbot.name}
                     </h3>
-                    <p className="text-xs text-gray-400 mb-3 font-montserrat">
+                    <p
+                      className={`text-xs ${textSecondary} mb-3 font-montserrat`}
+                    >
                       {chatbot.description}
                     </p>
                     {!hasSubscription && (
@@ -665,7 +703,11 @@ export default function DashboardPage() {
                           setShowCancelSubDialog(true),
                             setSelectedChatbotId(chatbot.id);
                         }}
-                        className={`border-red-500/50 text-red-400  w-full bg-gradient-to-r hover:bg-red-500/10 from-[#7d3c3c]/50 to-[#921642]/20 hover:opacity-90  font-medium`}
+                        className={`border-red-500/50 text-red-400 w-full bg-gradient-to-r hover:bg-red-500/10 ${
+                          theme === "dark"
+                            ? "from-[#7d3c3c]/50 to-[#921642]/20"
+                            : "from-red-50 to-pink-50"
+                        } hover:opacity-90 font-medium`}
                       >
                         <X className="h-4 w-4 mr-2" />
                         Cancel Subscription
@@ -678,8 +720,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Current Chatbot Info */}
-
         {/* Stats Grid - Only show if subscribed */}
         {currentChatbot?.id === "chatbot-lead-generation" &&
           isSubscribed &&
@@ -688,15 +728,15 @@ export default function DashboardPage() {
               {getStatsForChatbot(selectedChatbot).map((stat, index) => (
                 <Card
                   key={index}
-                  className="bg-gray-900/30 backdrop-blur-sm border-gray-800/50"
+                  className={`${cardBg} backdrop-blur-sm ${cardBorder}`}
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400 mb-1">
+                        <p className={`text-sm ${textSecondary} mb-1`}>
                           {stat.title}
                         </p>
-                        <p className="text-2xl font-bold text-white">
+                        <p className={`text-2xl font-bold ${textPrimary}`}>
                           {stat.value}
                         </p>
                         <p className="text-xs text-green-400 mt-1 font-montserrat">
@@ -714,12 +754,18 @@ export default function DashboardPage() {
         {/* Main Content Tabs - Only show if subscribed */}
         {isSubscribed ? (
           <Tabs defaultValue={`${defaultValue}`} className="space-y-6">
-            <TabsList className="bg-[#0a0a0a]/60 border min-h-max flex flex-wrap max-w-max gap-1 md:gap-3 text-white border-gray-800">
+            <TabsList
+              className={`${
+                theme === "dark"
+                  ? "bg-[#0a0a0a]/60 border-gray-800"
+                  : "bg-gray-100 border-gray-300"
+              } border min-h-max flex flex-wrap max-w-max gap-1 md:gap-3 ${textPrimary}`}
+            >
               {(selectedChatbot === "chatbot-lead-generation" ||
                 selectedChatbot === "chatbot-customer-support") && (
                 <TabsTrigger
                   value="overview"
-                  className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                  className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
                 >
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Overview
@@ -729,7 +775,7 @@ export default function DashboardPage() {
                 selectedChatbot === "chatbot-customer-support") && (
                 <TabsTrigger
                   value="conversations"
-                  className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                  className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Chatting
@@ -737,30 +783,33 @@ export default function DashboardPage() {
               )}
               <TabsTrigger
                 value="integration"
-                className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
               >
                 <Code className="h-4 w-4 mr-2" />
                 Integration
               </TabsTrigger>
               <TabsTrigger
                 value="settings"
-                className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </TabsTrigger>
             </TabsList>
+
             <TabsContent value="overview" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Conversation Trends */}
                 {analytics &&
                   currentChatbot?.id === "chatbot-lead-generation" && (
-                    <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                    <Card
+                      className={`${cardBg} backdrop-blur-sm ${cardBorder}`}
+                    >
                       <CardHeader>
-                        <CardTitle className="text-white">
+                        <CardTitle className={textPrimary}>
                           Conversation Trends
                         </CardTitle>
-                        <CardDescription className="text-gray-400 font-montserrat">
+                        <CardDescription className={textSecondary}>
                           Daily conversation volume for {currentChatbot?.name}
                         </CardDescription>
                       </CardHeader>
@@ -770,23 +819,30 @@ export default function DashboardPage() {
                             <LineChart data={analytics.trends}>
                               <CartesianGrid
                                 strokeDasharray="3 3"
-                                stroke="#374151"
+                                stroke={
+                                  theme === "dark" ? "#374151" : "#e5e7eb"
+                                }
                               />
                               <XAxis
                                 dataKey="name"
-                                stroke="#9CA3AF"
-                                tick={{ fill: "#9CA3AF" }}
+                                stroke={textSecondary}
+                                tick={{ fill: textSecondary }}
                               />
                               <YAxis
-                                stroke="#9CA3AF"
-                                tick={{ fill: "#9CA3AF" }}
+                                stroke={textSecondary}
+                                tick={{ fill: textSecondary }}
                               />
                               <Tooltip
                                 contentStyle={{
-                                  backgroundColor: "#1F2937",
-                                  border: "1px solid #374151",
+                                  backgroundColor:
+                                    theme === "dark" ? "#1F2937" : "#ffffff",
+                                  border:
+                                    theme === "dark"
+                                      ? "1px solid #374151"
+                                      : "1px solid #e5e7eb",
                                   borderRadius: "8px",
-                                  color: "#F3F4F6",
+                                  color:
+                                    theme === "dark" ? "#F3F4F6" : "#1f2937",
                                 }}
                               />
                               <Line
@@ -813,12 +869,14 @@ export default function DashboardPage() {
                 {/* Response Time Distribution */}
                 {analytics &&
                   currentChatbot?.id === "chatbot-lead-generation" && (
-                    <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                    <Card
+                      className={`${cardBg} backdrop-blur-sm ${cardBorder}`}
+                    >
                       <CardHeader>
-                        <CardTitle className="text-white">
+                        <CardTitle className={textPrimary}>
                           Response Time Distribution
                         </CardTitle>
-                        <CardDescription className="text-gray-400 font-montserrat">
+                        <CardDescription className={textSecondary}>
                           How quickly your {currentChatbot?.name.toLowerCase()}{" "}
                           responds
                         </CardDescription>
@@ -829,29 +887,36 @@ export default function DashboardPage() {
                             <BarChart data={analytics.responseTime}>
                               <CartesianGrid
                                 strokeDasharray="3 3"
-                                stroke="#374151"
+                                stroke={
+                                  theme === "dark" ? "#374151" : "#e5e7eb"
+                                }
                               />
                               <XAxis
                                 dataKey="time"
-                                stroke="#9CA3AF"
-                                tick={{ fill: "#9CA3AF" }}
+                                stroke={textSecondary}
+                                tick={{ fill: textSecondary }}
                               />
                               <YAxis
-                                stroke="#9CA3AF"
-                                tick={{ fill: "#9CA3AF" }}
+                                stroke={textSecondary}
+                                tick={{ fill: textSecondary }}
                               />
                               <Tooltip
                                 contentStyle={{
-                                  backgroundColor: "#1F2937",
-                                  border: "1px solid #374151",
+                                  backgroundColor:
+                                    theme === "dark" ? "#1F2937" : "#ffffff",
+                                  border:
+                                    theme === "dark"
+                                      ? "1px solid #374151"
+                                      : "1px solid #e5e7eb",
                                   borderRadius: "8px",
-                                  color: "#F3F4F6", // Better text visibility
+                                  color:
+                                    theme === "dark" ? "#F3F4F6" : "#1f2937",
                                 }}
                               />
                               <Bar
                                 dataKey="count"
                                 fill="#B026FF"
-                                radius={[4, 4, 0, 0]} // Rounded top corners
+                                radius={[4, 4, 0, 0]}
                               />
                             </BarChart>
                           </ResponsiveContainer>
@@ -863,26 +928,23 @@ export default function DashboardPage() {
                 {/* Customer Satisfaction */}
                 {analytics &&
                   currentChatbot?.id === "chatbot-lead-generation" && (
-                    <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                    <Card
+                      className={`${cardBg} backdrop-blur-sm ${cardBorder}`}
+                    >
                       <CardHeader className="p-2">
-                        <CardTitle className="text-white">
+                        <CardTitle className={textPrimary}>
                           Customer Satisfaction
                         </CardTitle>
-                        <CardDescription className="text-gray-400 font-montserrat">
+                        <CardDescription className={textSecondary}>
                           Feedback ratings from{" "}
                           {currentChatbot?.name.toLowerCase()} users
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="">
-                        <div className="h-64   overflow-x-auto">
-                          <ResponsiveContainer
-                            className={` `}
-                            width={500}
-                            height="100%"
-                          >
-                            <PieChart className="">
+                        <div className="h-64 overflow-x-auto">
+                          <ResponsiveContainer width={500} height="100%">
+                            <PieChart>
                               <Pie
-                                className=" "
                                 data={analytics.satisfaction}
                                 cx="50%"
                                 cy="50%"
@@ -912,12 +974,12 @@ export default function DashboardPage() {
                 {/* Recent Conversations */}
                 {(selectedChatbot === "chatbot-lead-generation" ||
                   selectedChatbot === "chatbot-customer-support") && (
-                  <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                  <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
                     <CardHeader className="p-2">
-                      <CardTitle className="text-white">
+                      <CardTitle className={textPrimary}>
                         Recent Conversations
                       </CardTitle>
-                      <CardDescription className="text-gray-400 font-montserrat">
+                      <CardDescription className={textSecondary}>
                         Latest {currentChatbot?.name.toLowerCase()} interactions
                       </CardDescription>
                     </CardHeader>
@@ -928,11 +990,15 @@ export default function DashboardPage() {
                           .map((conversation, index) => (
                             <div
                               key={conversation.id ? conversation.id : index}
-                              className="flex items-start space-x-3 p-3 rounded-lg bg-[#5d1a6d]/10 hover:bg-[#5a1e92]/15 transition-colors"
+                              className={`flex items-start space-x-3 p-3 rounded-lg ${
+                                theme === "dark"
+                                  ? "bg-[#5d1a6d]/10 hover:bg-[#5a1e92]/15"
+                                  : "bg-purple-50 hover:bg-purple-100"
+                              } transition-colors`}
                             >
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
-                                  <p className="text-sm font-medium text-white">
+                                  <p className="text-sm font-medium ">
                                     {conversation.customerName || "Anonymous"}
                                   </p>
                                   <Badge
@@ -950,11 +1016,15 @@ export default function DashboardPage() {
                                     {conversation.status}
                                   </Badge>
                                 </div>
-                                <p className="text-sm text-gray-400 truncate font-montserrat">
+                                <p
+                                  className={`text-sm ${textSecondary} truncate font-montserrat`}
+                                >
                                   {conversation.messages[0]?.content ||
                                     "No message"}{" "}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-1 font-montserrat">
+                                <p
+                                  className={`text-xs ${textMuted} mt-1 font-montserrat`}
+                                >
                                   {new Date(
                                     conversation.createdAt
                                   ).toLocaleString()}{" "}
@@ -968,13 +1038,14 @@ export default function DashboardPage() {
                 )}
               </div>
             </TabsContent>
+
             <TabsContent value="conversations" className="space-y-6">
-              <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+              <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
                 <CardHeader className="p-2">
-                  <CardTitle className="text-white">
+                  <CardTitle className={textPrimary}>
                     All Conversations - {currentChatbot?.name}
                   </CardTitle>
-                  <CardDescription className="text-gray-400 font-montserrat">
+                  <CardDescription className={textSecondary}>
                     Manage and respond to {currentChatbot?.name.toLowerCase()}{" "}
                     conversations
                   </CardDescription>
@@ -984,11 +1055,15 @@ export default function DashboardPage() {
                     {conversations?.map((conversation, index) => (
                       <div
                         key={conversation.id ? conversation.id : index}
-                        className="flex items-start space-x-3 p-4 rounded-lg bg-[#147679]/10 hover:bg-[#308285]/15  transition-colors"
+                        className={`flex items-start space-x-3 p-4 rounded-lg ${
+                          theme === "dark"
+                            ? "bg-[#147679]/10 hover:bg-[#308285]/15"
+                            : "bg-cyan-50 hover:bg-cyan-100"
+                        } transition-colors`}
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-2">
-                            <p className="text-sm font-medium text-white">
+                            <p className="text-sm font-medium ">
                               {conversation.customerName || "Anonymous"}
                             </p>
                             <div className="flex items-center space-x-2">
@@ -1017,12 +1092,16 @@ export default function DashboardPage() {
                                     View
                                   </Button>
                                 </DialogTrigger>
-                                <DialogContent className="bg-transparent backdrop-blur-md border-gray-800 text-white max-w-2xl p-2">
+                                <DialogContent
+                                  className={`${dialogBg} border-gray-800  max-w-2xl p-2`}
+                                >
                                   <DialogHeader>
                                     <DialogTitle>
                                       Conversation Details
                                     </DialogTitle>
-                                    <DialogDescription className="text-gray-400 font-montserrat">
+                                    <DialogDescription
+                                      className={textSecondary}
+                                    >
                                       Customer:{" "}
                                       {conversation.customerName || "Anonymous"}{" "}
                                       | Chatbot: {currentChatbot?.name}
@@ -1040,8 +1119,12 @@ export default function DashboardPage() {
                                               key={message.id}
                                               className={`p-3 rounded ${
                                                 message.type === "user"
-                                                  ? "bg-blue-900/20"
-                                                  : "bg-gray-800/50"
+                                                  ? theme === "dark"
+                                                    ? "bg-blue-900/20"
+                                                    : "bg-blue-100"
+                                                  : theme === "dark"
+                                                  ? "bg-gray-800/50"
+                                                  : "bg-gray-100"
                                               }`}
                                             >
                                               <div className="flex items-center justify-between mb-1">
@@ -1050,13 +1133,17 @@ export default function DashboardPage() {
                                                     ? "Customer"
                                                     : "Bot"}
                                                 </span>
-                                                <span className="text-xs text-gray-500 font-montserrat">
+                                                <span
+                                                  className={`text-xs ${textMuted}`}
+                                                >
                                                   {new Date(
                                                     message.timestamp
                                                   ).toLocaleTimeString()}
                                                 </span>
                                               </div>
-                                              <p className="text-sm text-gray-300 font-montserrat">
+                                              <p
+                                                className={`text-sm ${textSecondary}`}
+                                              >
                                                 {message.content}
                                               </p>
                                             </div>
@@ -1064,7 +1151,6 @@ export default function DashboardPage() {
                                         )}
                                       </div>
                                     </div>
-
                                     {/* <div className="bg-[#b71b86]/10 p-4 rounded space-y-2">
                                       <h4 className="font-medium mb-2">
                                         Form Data
@@ -1171,8 +1257,8 @@ export default function DashboardPage() {
                                           return null;
                                         }
                                       )}
-                                    </div> */}
-                                    {/* {conversation?.formData[0]?.find((f: any) =>
+                                    </div>
+                                    {conversation?.formData[0]?.find((f: any) =>
                                       /message|additional comments/i.test(
                                         f.question
                                       )
@@ -1195,14 +1281,17 @@ export default function DashboardPage() {
                                     )} */}
                                   </div>
                                 </DialogContent>
-                                np
                               </Dialog>
                             </div>
                           </div>
-                          <p className="text-sm text-gray-400 font-montserrat">
+                          <p
+                            className={`text-sm ${textSecondary} font-montserrat`}
+                          >
                             {conversation.messages[0]?.content || "No message"}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1 font-montserrat">
+                          <p
+                            className={`text-xs ${textMuted} mt-1 font-montserrat`}
+                          >
                             {new Date(conversation.createdAt).toLocaleString()}
                           </p>
                         </div>
@@ -1212,66 +1301,76 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </TabsContent>
-            {/* Add this to your DashboardPage component, replacing the
-            integration section */}
 
             <TabsContent value="integration" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
                   <CardHeader className="p-4">
-                    <CardTitle className="text-white flex items-center">
+                    <CardTitle className={`${textPrimary} flex items-center`}>
                       <Code className="h-5 w-5 mr-2" />
                       {currentChatbot?.name} Widget Integration
                     </CardTitle>
-                    <CardDescription className="text-gray-400">
+                    <CardDescription className={textSecondary}>
                       Copy and paste the code below to integrate{" "}
                       {currentChatbot?.name} into your website
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-4">
                     <Tabs defaultValue="universal" className="w-full">
-                      <TabsList className="bg-[#0a0a0a]/60 border min-h-max flex flex-wrap max-w-max gap-1 md:gap-3 text-white border-gray-800">
+                      <TabsList
+                        className={`${
+                          theme === "dark"
+                            ? "bg-[#0a0a0a]/60 border-gray-800"
+                            : "bg-gray-100 border-gray-300"
+                        } border min-h-max flex flex-wrap max-w-max gap-1 md:gap-3 ${textPrimary}`}
+                      >
                         <TabsTrigger
                           value="universal"
-                          className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                          className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
                         >
                           Universal
                         </TabsTrigger>
                         <TabsTrigger
                           value="wordpress"
-                          className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                          className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
                         >
                           WordPress
                         </TabsTrigger>
                         <TabsTrigger
                           value="react"
-                          className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                          className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
                         >
                           React
                         </TabsTrigger>
                         <TabsTrigger
                           value="angular"
-                          className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                          className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
                         >
                           Angular
                         </TabsTrigger>
                         <TabsTrigger
                           value="html"
-                          className="text-gray-400 data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
+                          className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
                         >
                           HTML/JS
                         </TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="universal" className="space-y-4">
-                        <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4 mb-4">
+                        <div
+                          className={`${
+                            theme === "dark"
+                              ? "bg-blue-900/20 border-blue-400/30"
+                              : "bg-blue-50 border-blue-200"
+                          } border rounded-lg p-4 mb-4`}
+                        >
                           <div className="flex items-start space-x-3">
                             <AlertCircle className="h-5 w-5 text-blue-400 mt-0.5" />
                             <div>
                               <h4 className="text-sm font-medium text-blue-400">
                                 Universal Integration
                               </h4>
-                              <p className="text-sm text-gray-300 mt-1">
+                              <p className={`text-sm ${textSecondary} mt-1`}>
                                 This code works on any website platform. Simply
                                 copy and paste it before the closing
                                 &lt;/body&gt; tag.
@@ -1281,7 +1380,13 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="relative">
-                          <pre className="bg-gray-900/80 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
+                          <pre
+                            className={`${
+                              theme === "dark"
+                                ? "bg-gray-900/80"
+                                : "bg-gray-100"
+                            } p-4 rounded-lg text-sm ${textSecondary} overflow-x-auto`}
+                          >
                             <code>{`<script>
   (function() {
     const chatbotConfig = {
@@ -1345,15 +1450,22 @@ export default function DashboardPage() {
                         </div>
                       </TabsContent>
 
+                      {/* Other tab contents remain the same structure with theme classes */}
                       <TabsContent value="wordpress" className="space-y-4">
-                        <div className="bg-purple-900/20 border border-purple-400/30 rounded-lg p-4 mb-4">
+                        <div
+                          className={`${
+                            theme === "dark"
+                              ? "bg-purple-900/20 border-purple-400/30"
+                              : "bg-purple-50 border-purple-200"
+                          } border rounded-lg p-4 mb-4`}
+                        >
                           <div className="flex items-start space-x-3">
                             <AlertCircle className="h-5 w-5 text-purple-400 mt-0.5" />
                             <div>
                               <h4 className="text-sm font-medium text-purple-400">
                                 WordPress Integration
                               </h4>
-                              <p className="text-sm text-gray-300 mt-1">
+                              <p className={`text-sm ${textSecondary} mt-1`}>
                                 For WordPress, you can use a plugin like Header
                                 and Footer Scripts or add the code to your
                                 themes functions.php file.
@@ -1363,7 +1475,13 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="relative">
-                          <pre className="bg-gray-900/80 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
+                          <pre
+                            className={`${
+                              theme === "dark"
+                                ? "bg-gray-900/80"
+                                : "bg-gray-100"
+                            } p-4 rounded-lg text-sm ${textSecondary} overflow-x-auto`}
+                          >
                             <code>{`// Add this to your theme's functions.php or a custom plugin
 function add_chatbot_widget() {
     echo '<script>
@@ -1436,14 +1554,20 @@ add_action('wp_footer', 'add_chatbot_widget');`;
                       </TabsContent>
 
                       <TabsContent value="react" className="space-y-4">
-                        <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4 mb-4">
+                        <div
+                          className={`${
+                            theme === "dark"
+                              ? "bg-purple-900/20 border-purple-400/30"
+                              : "bg-purple-50 border-purple-200"
+                          } border rounded-lg p-4 mb-4`}
+                        >
                           <div className="flex items-start space-x-3">
                             <AlertCircle className="h-5 w-5 text-blue-400 mt-0.5" />
                             <div>
                               <h4 className="text-sm font-medium text-blue-400">
                                 React Integration
                               </h4>
-                              <p className="text-sm text-gray-300 mt-1">
+                              <p className={`text-sm ${textSecondary} mt-1`}>
                                 For React applications, add this code to your
                                 main App component or layout component.
                               </p>
@@ -1452,7 +1576,14 @@ add_action('wp_footer', 'add_chatbot_widget');`;
                         </div>
 
                         <div className="relative">
-                          <pre className="bg-gray-900/80 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
+                          <pre
+                            className={`${
+                              theme === "dark"
+                                ? "bg-gray-900/80"
+                                : "bg-gray-100"
+                            } p-4 rounded-lg text-sm ${textSecondary} overflow-x-auto`}
+                          >
+                            {" "}
                             <code>{`// Add this to your main App.js or layout component
 import { useEffect } from 'react';
 
@@ -1542,14 +1673,21 @@ function App() {
                       </TabsContent>
 
                       <TabsContent value="angular" className="space-y-4">
-                        <div className="bg-red-900/20 border border-red-400/30 rounded-lg p-4 mb-4">
+                        <div
+                          className={`${
+                            theme === "dark"
+                              ? "bg-purple-900/20 border-purple-400/30"
+                              : "bg-purple-50 border-purple-200"
+                          } border rounded-lg p-4 mb-4`}
+                        >
+                          {" "}
                           <div className="flex items-start space-x-3">
                             <AlertCircle className="h-5 w-5 text-red-400 mt-0.5" />
                             <div>
                               <h4 className="text-sm font-medium text-red-400">
                                 Angular Integration
                               </h4>
-                              <p className="text-sm text-gray-300 mt-1">
+                              <p className={`text-sm ${textSecondary} mt-1`}>
                                 For Angular applications, add this code to your
                                 main component or in the index.html file.
                               </p>
@@ -1558,7 +1696,14 @@ function App() {
                         </div>
 
                         <div className="relative">
-                          <pre className="bg-gray-900/80 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
+                          <pre
+                            className={`${
+                              theme === "dark"
+                                ? "bg-gray-900/80"
+                                : "bg-gray-100"
+                            } p-4 rounded-lg text-sm ${textSecondary} overflow-x-auto`}
+                          >
+                            {" "}
                             <code>{`// Add this to your index.html file before the closing </body> tag
 <script>
   (function() {
@@ -1692,14 +1837,21 @@ export class AppComponent implements OnInit {
                       </TabsContent>
 
                       <TabsContent value="html" className="space-y-4">
-                        <div className="bg-green-900/20 border border-green-400/30 rounded-lg p-4 mb-4">
+                        <div
+                          className={`${
+                            theme === "dark"
+                              ? "bg-purple-900/20 border-purple-400/30"
+                              : "bg-purple-50 border-purple-200"
+                          } border rounded-lg p-4 mb-4`}
+                        >
+                          {" "}
                           <div className="flex items-start space-x-3">
                             <AlertCircle className="h-5 w-5 text-green-400 mt-0.5" />
                             <div>
                               <h4 className="text-sm font-medium text-green-400">
                                 HTML/JS Integration
                               </h4>
-                              <p className="text-sm text-gray-300 mt-1">
+                              <p className={`text-sm ${textSecondary} mt-1`}>
                                 For plain HTML websites, add this code before
                                 the closing &lt;/body&gt; tag on every page.
                               </p>
@@ -1708,7 +1860,14 @@ export class AppComponent implements OnInit {
                         </div>
 
                         <div className="relative">
-                          <pre className="bg-gray-900/80 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
+                          <pre
+                            className={`${
+                              theme === "dark"
+                                ? "bg-gray-900/80"
+                                : "bg-gray-100"
+                            } p-4 rounded-lg text-sm ${textSecondary} overflow-x-auto`}
+                          >
+                            {" "}
                             <code>{`<!-- Add this before the closing </body> tag on your HTML pages -->
 <script>
   (function() {
@@ -1774,14 +1933,22 @@ export class AppComponent implements OnInit {
                       </TabsContent>
                     </Tabs>
 
-                    <div className="mt-6 p-4 bg-amber-900/20 border border-amber-400/30 rounded-lg">
+                    <div
+                      className={`mt-6 p-4 ${
+                        theme === "dark"
+                          ? "bg-amber-900/20 border-amber-400/30"
+                          : "bg-amber-50 border-amber-200"
+                      } border rounded-lg`}
+                    >
                       <div className="flex items-start space-x-3">
                         <AlertCircle className="h-5 w-5 text-amber-400 mt-0.5" />
                         <div>
                           <h4 className="text-sm font-medium text-amber-400">
                             Important Notes
                           </h4>
-                          <ul className="text-sm text-gray-300 mt-1 list-disc list-inside space-y-1">
+                          <ul
+                            className={`text-sm ${textSecondary} mt-1 list-disc list-inside space-y-1`}
+                          >
                             <li>
                               The widget will only work if your subscription is
                               active (isAuthorized: true)
@@ -1804,27 +1971,28 @@ export class AppComponent implements OnInit {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+
+                <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
                   <CardHeader className="p-2">
-                    <CardTitle className="text-white flex items-center">
+                    <CardTitle className={`${textPrimary} flex items-center`}>
                       <Globe className="h-5 w-5 mr-2" />
                       Website Data for {currentChatbot?.name}
                     </CardTitle>
-                    <CardDescription className="text-gray-400 font-montserrat">
+                    <CardDescription className={textSecondary}>
                       Update your website information for better AI responses
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-2">
                     <div className="space-y-4">
                       <div>
-                        <Label htmlFor="websiteData" className="text-gray-300">
+                        <Label htmlFor="websiteData" className={textSecondary}>
                           Website Information
                         </Label>
                         <Textarea
                           id="websiteData"
                           value={websiteData}
                           onChange={(e) => setWebsiteData(e.target.value)}
-                          className="mt-2 bg-[#8f28a4]/5 border-gray-700 text-white min-h-[200px] font-montserrat"
+                          className={`mt-2 ${inputBg} ${inputBorder} ${textPrimary} min-h-[200px] font-montserrat`}
                           placeholder="Enter your website information, services, business hours, etc."
                         />
                       </div>
@@ -1930,15 +2098,16 @@ export class AppComponent implements OnInit {
                 </Card>
               </div>
             </TabsContent> */}
+
             <TabsContent value="settings" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Chatbot Settings */}
-                <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
                   <CardHeader className="p-2">
-                    <CardTitle className="text-white">
+                    <CardTitle className={textPrimary}>
                       {currentChatbot?.name} Settings
                     </CardTitle>
-                    <CardDescription className="text-gray-400 font-montserrat">
+                    <CardDescription className={textSecondary}>
                       Configure your chatbot behavior and appearance
                     </CardDescription>
                   </CardHeader>
@@ -1948,26 +2117,26 @@ export class AppComponent implements OnInit {
                         <div>
                           <Label
                             htmlFor="chatbotName"
-                            className="text-gray-300"
+                            className={textSecondary}
                           >
                             Chatbot Name
                           </Label>
                           <Input
                             id="chatbotName"
-                            className="mt-2 bg-transparent border-gray-700 text-white font-montserrat"
+                            className={`mt-2 ${inputBg} ${inputBorder} ${textPrimary} font-montserrat`}
                             placeholder={currentChatbot?.name}
                           />
                         </div>
                         <div>
                           <Label
                             htmlFor="welcomeMessage"
-                            className="text-gray-300"
+                            className={textSecondary}
                           >
                             Welcome Message
                           </Label>
                           <Input
                             id="welcomeMessage"
-                            className="mt-2 bg-transparent border-gray-700 text-white font-montserrat"
+                            className={`mt-2 ${inputBg} ${inputBorder} ${textPrimary} font-montserrat`}
                             placeholder="Hi! How can I help you today?"
                           />
                         </div>
@@ -1981,21 +2150,18 @@ export class AppComponent implements OnInit {
                         </Button>
                       </div>
                       <div className="">
-                        <Label htmlFor="websiteUrl" className="text-gray-300">
+                        <Label htmlFor="websiteUrl" className={textSecondary}>
                           Website URL
                         </Label>
-                        <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0  sm:space-x-2 mt-2">
+                        <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
                           <Input
                             id="websiteUrl"
                             value={websiteUrl}
                             onChange={(e) => setWebsiteUrl(e.target.value)}
-                            className="bg-transparent border-gray-700 text-white font-montserrat"
+                            className={`${inputBg} ${inputBorder} ${textPrimary} font-montserrat`}
                             placeholder="https://yourwebsite.com"
                           />
-                          <Button
-                            // onClick={saveWebsiteUrl}
-                            className="bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-black"
-                          >
+                          <Button className="bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-black">
                             <Upload className="h-4 w-4 mr-1" />
                             Upload
                           </Button>
@@ -2007,9 +2173,11 @@ export class AppComponent implements OnInit {
 
                 {/* Appointment Form Questions */}
                 {currentChatbot?.id === "chatbot-lead-generation" && (
-                  <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
+                  <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
                     <CardHeader className="p-2">
-                      <CardTitle className="text-white flex flex-wrap gap-2 p-0 items-center justify-between">
+                      <CardTitle
+                        className={`${textPrimary} flex flex-wrap gap-2 p-0 items-center justify-between`}
+                      >
                         <span className="flex items-center">
                           <Calendar className="h-5 w-5 mr-2" />
                           Appointment Form Questions
@@ -2023,7 +2191,7 @@ export class AppComponent implements OnInit {
                           Add Question
                         </Button>
                       </CardTitle>
-                      <CardDescription className="text-gray-400 font-montserrat">
+                      <CardDescription className={textSecondary}>
                         Configure questions for appointment booking
                       </CardDescription>
                     </CardHeader>
@@ -2032,7 +2200,11 @@ export class AppComponent implements OnInit {
                         {appointmentQuestions.map((question) => (
                           <div
                             key={question.id}
-                            className="p-4 bg-[#921a58]/10 rounded-lg"
+                            className={`p-4 rounded-lg ${
+                              theme === "dark"
+                                ? "bg-[#921a58]/10"
+                                : "bg-pink-50"
+                            }`}
                           >
                             <div className="flex items-center justify-between mb-2">
                               <Input
@@ -2044,7 +2216,11 @@ export class AppComponent implements OnInit {
                                     e.target.value
                                   )
                                 }
-                                className="bg-transparent border-gray-600 text-white text-sm font-montserrat"
+                                className={`${inputBg} ${
+                                  theme === "dark"
+                                    ? "border-gray-600"
+                                    : "border-gray-300"
+                                } ${textPrimary} text-sm font-montserrat`}
                               />
                               <Button
                                 size="sm"
@@ -2067,40 +2243,21 @@ export class AppComponent implements OnInit {
                                     e.target.value
                                   )
                                 }
-                                className=" bg-[#805283]/40 border border-gray-600 rounded px-2 py-1 text-white text-sm"
+                                className={`${
+                                  theme === "dark"
+                                    ? "bg-[#805283]/40 border-gray-600"
+                                    : "bg-white border-gray-300"
+                                } border rounded px-2 py-1 ${textPrimary} text-sm`}
                               >
-                                <option
-                                  className="bg-transparent  border border-gray-600 rounded px-2 py-1  text-sm text-black"
-                                  value="text"
-                                >
-                                  Text
-                                </option>
-                                <option
-                                  className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
-                                  value="email"
-                                >
-                                  Email
-                                </option>
-                                <option
-                                  className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
-                                  value="tel"
-                                >
-                                  Phone
-                                </option>
-                                <option
-                                  className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
-                                  value="date"
-                                >
-                                  Date
-                                </option>
-                                <option
-                                  className="bg-transparent border border-gray-600 rounded px-2 py-1 text-black text-sm"
-                                  value="select"
-                                >
-                                  Select
-                                </option>
+                                <option value="text">Text</option>
+                                <option value="email">Email</option>
+                                <option value="tel">Phone</option>
+                                <option value="date">Date</option>
+                                <option value="select">Select</option>
                               </select>
-                              <label className="flex items-center text-sm text-gray-300">
+                              <label
+                                className={`flex items-center text-sm ${textSecondary}`}
+                              >
                                 <input
                                   type="checkbox"
                                   checked={question.required}
@@ -2137,10 +2294,10 @@ export class AppComponent implements OnInit {
         ) : (
           <div className="text-center py-16">
             <Lock className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-400 mb-2">
+            <h3 className={`text-xl font-semibold ${textSecondary} mb-2`}>
               Subscription Required
             </h3>
-            <p className="text-gray-500 mb-6 font-montserrat">
+            <p className={`${textMuted} mb-6 font-montserrat`}>
               Subscribe to access dashboard features for {currentChatbot?.name}
             </p>
             <Button
@@ -2155,39 +2312,43 @@ export class AppComponent implements OnInit {
           </div>
         )}
       </div>
+
       <AlertDialog
         open={showCancelSubDialog}
         onOpenChange={setShowCancelSubDialog}
       >
-        <AlertDialogContent className="  backdrop-blur-md">
-          <AlertDialogDescription
-            className="text-gray-400 mb-4"
-            font-montserrat
-          >
+        <AlertDialogContent className={`${alertBg}`}>
+          <AlertDialogDescription className={`${textSecondary} mb-4`}>
             Cancelling your subscription will result in the loss of access to
             premium features. You can choose to cancel immediately or at the end
             of your current billing cycle.
           </AlertDialogDescription>
-          <AlertDialogTitle>
+          <AlertDialogTitle className={textPrimary}>
             Are you sure you want to cancel your subscription?
           </AlertDialogTitle>
-          <AlertDialogContent>
+          <div className="space-y-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]">
+              <h2
+                className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]`}
+              >
                 Cancel Subscription
               </h2>
               <XMarkIcon
                 onClick={() => setShowCancelSubDialog(false)}
-                className="text-gray-400 size-6 cursor-pointer hover:text-white"
+                className={`${textSecondary} size-6 cursor-pointer hover:${textPrimary}`}
               />
             </div>
             <form onSubmit={handleCancelSubscription} className="space-y-6">
-              <label className="block text-lg font-semibold text-gray-200">
+              <label className={`block text-lg font-semibold ${textSecondary}`}>
                 Please Provide Reason
               </label>
               <textarea
                 name="reason"
-                className="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-[#B026FF]"
+                className={`w-full ${
+                  theme === "dark"
+                    ? "bg-gray-800/50 border-gray-700"
+                    : "bg-gray-100 border-gray-300"
+                } border rounded-lg p-3 ${textPrimary} focus:outline-none focus:ring-2 focus:ring-[#B026FF]`}
                 placeholder="Cancellation reason"
                 required
               />
@@ -2195,20 +2356,20 @@ export class AppComponent implements OnInit {
                 <button
                   type="submit"
                   onClick={() => setMode("Immediate")}
-                  className="px-6 py-2 bg-gradient-to-r from-[#FF2E9F]/20 to-[#B026FF]/20 bg-transparent  text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+                  className="px-6 py-2 bg-gradient-to-r from-[#FF2E9F]/20 to-[#B026FF]/20 bg-transparent text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
                 >
                   {isSubmitting ? "Cancelling..." : "Immediate"}
                 </button>
                 <button
                   type="submit"
                   onClick={() => setMode("End-of-term")}
-                  className="px-6 py-2 bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20 bg-transparent  text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+                  className="px-6 py-2 bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20 bg-transparent text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
                 >
                   {isImmediateSubmitting ? "Cancelling..." : "End-of-term"}
                 </button>
               </div>
             </form>
-          </AlertDialogContent>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
     </div>

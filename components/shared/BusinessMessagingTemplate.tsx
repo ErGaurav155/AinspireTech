@@ -1,80 +1,14 @@
 "use client";
-
-import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   MessageCircle,
   Heart,
-  Users,
-  Zap,
-  Rocket,
-  Shield,
-  Star,
-  ArrowRight,
-  Calendar,
-  CheckCircle,
   Instagram,
   Play,
   ShoppingBag,
 } from "lucide-react";
-import Image from "next/image";
-import instaPost from "@/public/assets/img/instappost.jpg";
-import { useRouter } from "next/navigation";
-
-// TypingAnimation Component
-const TypingAnimation = ({
-  text,
-  speed = 30,
-  className = "",
-  onComplete,
-  delay = 0,
-}: {
-  text: string;
-  speed?: number;
-  className?: string;
-  onComplete?: () => void;
-  delay?: number;
-}) => {
-  const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
-  const startTyping = useCallback(() => {
-    if (currentIndex < text.length) {
-      const timer = setTimeout(() => {
-        setDisplayText((prev) => prev + text[currentIndex]);
-        setCurrentIndex((prev) => prev + 1);
-      }, speed);
-
-      return () => clearTimeout(timer);
-    } else {
-      setIsComplete(true);
-      if (onComplete) onComplete();
-    }
-  }, [currentIndex, onComplete, speed, text]);
-
-  useEffect(() => {
-    if (delay > 0) {
-      const timer = setTimeout(() => {
-        startTyping();
-      }, delay);
-      return () => clearTimeout(timer);
-    } else {
-      startTyping();
-    }
-  }, [delay, startTyping]);
-
-  return (
-    <span className={className}>
-      {displayText}
-      {!isComplete && <span className="animate-pulse">|</span>}
-    </span>
-  );
-};
 
 export function BusinessMessagingTemplate() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const router = useRouter();
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -85,7 +19,17 @@ export function BusinessMessagingTemplate() {
       },
     },
   };
-
+  const badgeVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+      },
+    },
+  };
   const titleVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: {
@@ -123,15 +67,13 @@ export function BusinessMessagingTemplate() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className="flex items-center justify-center text-[#00F0FF] "
-            variants={titleVariants}
+            className={`inline-flex items-center text-blue-600 border border-blue-400/50} rounded-full px-4 py-1 mb-4`}
+            variants={badgeVariants}
             whileInView="visible"
             viewport={{ once: false }}
             initial="hidden"
           >
-            <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
-              CUSTOMER GAIN{" "}
-            </span>
+            <span className="text-sm font-medium"> CUSTOMER GAIN</span>
           </motion.div>
           <motion.h2
             className="text-3xl md:text-4xl font-bold text-white mb-4 gradient-text-main"
@@ -143,7 +85,7 @@ export function BusinessMessagingTemplate() {
             Be where your customers are
           </motion.h2>
           <motion.p
-            className="text-xl text-gray-300 font-montserrat"
+            className="text-xl text-gray-500 font-montserrat"
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -185,7 +127,6 @@ export function BusinessMessagingTemplate() {
           >
             {/* Video with 8px crop from top and bottom */}
             <motion.video
-              ref={videoRef}
               src="/assets/MainVid.mp4"
               autoPlay
               loop
@@ -234,7 +175,6 @@ export function BusinessMessagingTemplate() {
                 transition: { duration: 0.2 },
               }}
               className="hidden absolute top-4 right-2 w-16 h-16 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full md:flex items-center justify-center shadow-lg cursor-pointer"
-              onClick={() => videoRef.current?.play()}
             >
               <Play className="h-5 w-5 text-white ml-0.5 fill-white" />
             </motion.div>

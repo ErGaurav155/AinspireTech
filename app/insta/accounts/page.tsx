@@ -34,6 +34,8 @@ import defaultImg from "@/public/assets/img/default-img.jpg"; // Default image f
 import { refreshInstagramToken } from "@/lib/utils";
 import { getUserById } from "@/lib/action/user.actions";
 import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
+import { useTheme } from "next-themes";
+
 // Cache key
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
@@ -47,6 +49,21 @@ export default function AccountsPage() {
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [userInfo, setUserInfo] = useState<any>();
   const [dialog, setDialog] = useState(false);
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
+  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
+  const badgeBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
+  const alertBg = theme === "dark" ? "bg-[#6d1717]/5" : "bg-red-50/80";
+  const buttonOutlineBorder =
+    theme === "dark" ? "border-white/20" : "border-gray-300";
+  const buttonOutlineText =
+    theme === "dark" ? "text-gray-300" : "text-gray-700";
 
   // Fetch accounts with caching
   const fetchAccounts = useCallback(async () => {
@@ -250,10 +267,12 @@ export default function AccountsPage() {
   };
   if (isLoading) {
     return (
-      <div className="min-h-screen text-white flex items-center justify-center">
+      <div
+        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
+      >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading accounts...</p>
+          <p className={textSecondary}>Loading accounts...</p>
         </div>
       </div>
     );
@@ -261,10 +280,12 @@ export default function AccountsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen text-white flex items-center justify-center">
+      <div
+        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
+      >
         <div className="text-center p-6 bg-red-900/20 rounded-lg max-w-md">
           <h2 className="text-xl font-bold mb-4">Error Loading Accounts</h2>
-          <p className="text-gray-300 mb-6">{error}</p>
+          <p className={`mb-6 ${textSecondary}`}>{error}</p>
           <Button onClick={fetchAccounts} className="btn-gradient-cyan">
             <RefreshCw className="mr-2 h-4 w-4" />
             Try Again
@@ -297,20 +318,28 @@ export default function AccountsPage() {
     setHasError((prev) => [...prev, id]); // Add the ID to the error array
   };
   return (
-    <div className="min-h-screen text-white">
+    <div className={`min-h-screen ${textPrimary} ${containerBg}`}>
       <BreadcrumbsDefault />
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-wrap gap-3 md:gap-0 justify-between items-center mb-8">
           <div>
-            <div className="inline-flex items-center bg-blue-100/10 text-blue-400 border border-blue-400/30 rounded-full px-4 py-1 mb-4">
+            <div
+              className={`inline-flex items-center ${
+                theme === "dark"
+                  ? "bg-blue-100/10 text-blue-400 border-blue-400/30"
+                  : "bg-blue-100 text-blue-600 border-blue-300"
+              } border rounded-full px-4 py-1 mb-4`}
+            >
               <Instagram className="h-4 w-4 mr-1" />
               <span className="text-sm font-medium">Account Management</span>
             </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 gradient-text-main">
+            <h1
+              className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-2 gradient-text-main ${textPrimary}`}
+            >
               Instagram Accounts
             </h1>
-            <p className="text-gray-300  font-montserrat text-xl">
+            <p className={`${textSecondary} font-montserrat text-xl`}>
               Manage all your connected Instagram accounts and their auto-reply
               settings
             </p>
@@ -319,7 +348,7 @@ export default function AccountsPage() {
             <Button
               onClick={() => refresh()}
               variant="outline"
-              className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10"
+              className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#05a957]/80  hover:bg-white/10`}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
@@ -345,9 +374,9 @@ export default function AccountsPage() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="card-hover">
+          <Card className={`card-hover ${cardBg} ${cardBorder}`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">
+              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
                 Total Accounts
               </CardTitle>
               <Instagram className="h-4 w-4 text-[#00F0FF]" />
@@ -359,15 +388,15 @@ export default function AccountsPage() {
                   ? userInfo?.accountLimit
                   : 1}
               </div>
-              <p className="text-xs text-gray-400 font-montserrat">
+              <p className={`text-xs ${textMuted} font-montserrat`}>
                 {activeAccounts || 0} active
               </p>
             </CardContent>
           </Card>
 
-          <Card className="card-hover">
+          <Card className={`card-hover ${cardBg} ${cardBorder}`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">
+              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
                 Total Followers
               </CardTitle>
               <Users className="h-4 w-4 text-[#B026FF]" />
@@ -376,15 +405,15 @@ export default function AccountsPage() {
               <div className="text-2xl font-bold text-[#B026FF]">
                 {totalFollowers || 0}
               </div>
-              <p className="text-xs text-gray-400 font-montserrat">
+              <p className={`text-xs ${textMuted} font-montserrat`}>
                 Across all accounts
               </p>
             </CardContent>
           </Card>
 
-          <Card className="card-hover">
+          <Card className={`card-hover ${cardBg} ${cardBorder}`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">
+              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
                 Auto Replies
               </CardTitle>
               <Zap className="h-4 w-4 text-[#FF2E9F]" />
@@ -394,15 +423,15 @@ export default function AccountsPage() {
                 {totalReplies || userInfo?.totalReplies || 0} /{" "}
                 {subscriptions.length > 0 ? userInfo?.replyLimit : 500}
               </div>
-              <p className="text-xs text-gray-400 font-montserrat">
+              <p className={`text-xs ${textMuted} font-montserrat`}>
                 Total sent
               </p>
             </CardContent>
           </Card>
 
-          <Card className="card-hover">
+          <Card className={`card-hover ${cardBg} ${cardBorder}`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">
+              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
                 Avg Engagement
               </CardTitle>
               <BarChart3 className="h-4 w-4 text-[#00F0FF]" />
@@ -411,7 +440,7 @@ export default function AccountsPage() {
               <div className="text-2xl font-bold text-[#00F0FF]">
                 {avgEngagement || 0}%
               </div>
-              <p className="text-xs text-gray-400 font-montserrat">
+              <p className={`text-xs ${textMuted} font-montserrat`}>
                 Engagement rate
               </p>
             </CardContent>
@@ -425,10 +454,10 @@ export default function AccountsPage() {
             displayedAccounts?.map((account: any) => (
               <Card
                 key={account?.id}
-                className={`card-hover transition-all duration-300 ${
+                className={`card-hover transition-all duration-300 ${cardBg} ${cardBorder} ${
                   account?.isActive
                     ? "border-[#00F0FF]/30 bg-gradient-to-r from-[#00F0FF]/5 to-transparent"
-                    : "border-white/10"
+                    : ""
                 }`}
               >
                 <CardContent className="pt-6 p-2 md:p-4">
@@ -448,14 +477,14 @@ export default function AccountsPage() {
                           className="h-16 w-16 rounded-full object-cover"
                         />
                         <div
-                          className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-[#0a0a0a] ${
+                          className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 ${badgeBg} ${
                             account?.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
                           }`}
                         />
                       </div>
                       <div className="flex flex-col items-center text-center">
                         <div className="flex items-center gap-2 ">
-                          <h3 className="text-lg font-bold text-white">
+                          <h3 className={`text-lg font-bold ${textPrimary}`}>
                             @{account?.username || "unknown"}
                           </h3>
                           <Badge
@@ -465,23 +494,27 @@ export default function AccountsPage() {
                             className={
                               account?.isActive
                                 ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
-                                : "bg-gray-800 text-gray-400"
+                                : `${
+                                    theme === "dark"
+                                      ? "bg-gray-800 text-gray-400"
+                                      : "bg-gray-200 text-gray-600"
+                                  }`
                             }
                           >
                             {account?.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </div>
-                        <p className="text-gray-400">
+                        <p className={textMuted}>
                           {account?.displayName || "unknown"}
                         </p>
                         <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
-                          <span className="text-sm text-gray-400">
+                          <span className={`text-sm ${textMuted}`}>
                             {account?.followersCount || 0} followers
                           </span>
-                          <span className="text-sm text-gray-400">
+                          <span className={`text-sm ${textMuted}`}>
                             {account?.postsCount || 0} posts
                           </span>
-                          <span className="text-sm text-gray-400">
+                          <span className={`text-sm ${textMuted}`}>
                             {account?.engagementRate || 0}% engagement
                           </span>
                         </div>
@@ -491,30 +524,32 @@ export default function AccountsPage() {
                     <div className="flex flex-col md:flex-row items-center gap-4 mt-4 md:mt-0">
                       <div className="flex items-center gap-4">
                         <div className="flex flex-col items-center">
-                          <span className="font-bold">
+                          <span className={`font-bold ${textPrimary}`}>
                             {account?.templatesCount || 0}
                           </span>
-                          <span className="text-xs text-gray-400">
+                          <span className={`text-xs ${textMuted}`}>
                             Templates
                           </span>
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className="font-bold">
+                          <span className={`font-bold ${textPrimary}`}>
                             {account?.accountReply || 0}
                           </span>
-                          <span className="text-xs text-gray-400">Replies</span>
+                          <span className={`text-xs ${textMuted}`}>
+                            Replies
+                          </span>
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className="font-bold">
+                          <span className={`font-bold ${textPrimary}`}>
                             {formatLastActivity(account?.lastActivity) || "N/A"}
                           </span>
-                          <span className="text-xs text-gray-400">Active</span>
+                          <span className={`text-xs ${textMuted}`}>Active</span>
                         </div>
                       </div>
 
                       <div className="flex flex-col lg:flex-row items-center gap-3 w-full">
                         <div className="flex items-center justify-center gap-2">
-                          <Label className="text-sm text-gray-300 mr-2">
+                          <Label className={`text-sm ${textSecondary} mr-2`}>
                             Auto-replies
                           </Label>
                           <Switch
@@ -534,7 +569,7 @@ export default function AccountsPage() {
                                 onClick={() => refreshInstagramToken(userId)}
                                 variant="outline"
                                 size="sm"
-                                className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10"
+                                className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
                               >
                                 <RefreshCw className="mr-2 h-4 w-4" />
                                 Refresh Token
@@ -544,7 +579,7 @@ export default function AccountsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-white/20 text-gray-300 p-2  bg-[#B026FF]/10 hover:bg-[#B026FF]/15 transition-colors"
+                            className={`${buttonOutlineBorder} ${buttonOutlineText} p-2 bg-[#B026FF]/10 hover:bg-[#B026FF]/15 transition-colors`}
                             asChild
                           >
                             <Link href={`/insta/accounts/${account?.id}`}>
@@ -560,15 +595,19 @@ export default function AccountsPage() {
             ))}
 
           {displayedAccounts?.length === 0 && (
-            <Card className="card-hover">
+            <Card className={`card-hover ${cardBg} ${cardBorder}`}>
               <CardContent className="text-center py-12">
-                <div className="mx-auto w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                <div
+                  className={`mx-auto w-24 h-24 ${
+                    theme === "dark" ? "bg-white/5" : "bg-gray-100"
+                  } rounded-full flex items-center justify-center mb-4`}
+                >
                   <Instagram className="h-8 w-8 text-gray-500" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2 text-white">
+                <h3 className={`text-lg font-semibold mb-2 ${textPrimary}`}>
                   No accounts connected
                 </h3>
-                <p className="text-gray-400 mb-4 font-mono">
+                <p className={`${textMuted} mb-4 font-mono`}>
                   Connect your first Instagram account to start automating
                   replies
                 </p>
@@ -584,10 +623,12 @@ export default function AccountsPage() {
         </div>
       </div>
       <AlertDialog open={dialog} onOpenChange={setDialog}>
-        <AlertDialogContent className=" bg-[#6d1717]/5 backdrop-blur-md">
+        <AlertDialogContent className={`${alertBg} backdrop-blur-md`}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Your Account Limit Reached</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className={textPrimary}>
+              Your Account Limit Reached
+            </AlertDialogTitle>
+            <AlertDialogDescription className={textSecondary}>
               To add more account you need to update your subscription.
             </AlertDialogDescription>
           </AlertDialogHeader>

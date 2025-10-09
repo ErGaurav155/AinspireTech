@@ -29,6 +29,7 @@ import {
   getInstaAccounts,
   deleteInstaAccount,
 } from "@/lib/action/insta.action";
+import { useTheme } from "next-themes";
 
 import PaymentModal from "@/components/insta/PaymentModal";
 import { AccountSelectionDialog } from "@/components/insta/AccountSelectionDialog";
@@ -60,6 +61,25 @@ export default function Pricing() {
   const [isgettingAcc, setIsGettingAcc] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
+  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
+  const badgeBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
+  const alertBg = theme === "dark" ? "bg-[#6d1717]/5" : "bg-red-50/80";
+  const buttonOutlineBorder =
+    theme === "dark" ? "border-white/20" : "border-gray-300";
+  const buttonOutlineText =
+    theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const dialogBg = theme === "dark" ? "bg-[#0a0a0a]/95" : "bg-white/95";
+  const inputBg = theme === "dark" ? "bg-white/5" : "bg-white";
+  const inputBorder = theme === "dark" ? "border-white/20" : "border-gray-300";
+  const inputText = theme === "dark" ? "text-white" : "text-gray-900";
 
   // New states for dialogs
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -196,7 +216,6 @@ export default function Pricing() {
 
     fetchUserData();
   }, [userId, router, activeProductId]);
-
   // Get account limit for a plan
   // const getAccountLimit = (plan: PricingPlan) => {
   //   switch (plan.id) {
@@ -291,7 +310,6 @@ export default function Pricing() {
 
     try {
       const accountLimit = 1;
-      // getAccountLimit(pendingPlan);
       if (userAccounts.length > accountLimit) {
         // Show account selection dialog
         setPendingPlan(pendingPlan);
@@ -439,7 +457,6 @@ export default function Pricing() {
       //   currentSubscription.subscriptionId,
       //   "User requested cancellation"
       // );
-
       toast.success("Subscription cancelled successfully", {
         description: "Your plan has been cancelled",
       });
@@ -457,37 +474,49 @@ export default function Pricing() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center ">
+      <div
+        className={`min-h-screen flex items-center justify-center bg-transparent`}
+      >
         <div className="flex flex-col items-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#00F0FF]" />
-          <p className="mt-4 text-gray-400">Loading subscription data...</p>
+          <p className={`mt-4 ${textMuted}`}>Loading subscription data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen text-white ">
+    <div className={`min-h-screen ${textPrimary} bg-transparent`}>
       <BreadcrumbsDefault />
-      <section className="py-16 px-4 sm:px-6 lg:px-8 ">
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center  text-blue-400 border border-blue-400/30 rounded-full px-4 py-1 mb-4">
+          <div
+            className={`inline-flex items-center ${
+              theme === "dark"
+                ? "bg-blue-100/10 text-blue-400 border-blue-400/30"
+                : "bg-blue-100 text-blue-600 border-blue-300"
+            } border rounded-full px-4 py-1 mb-4`}
+          >
             <Zap className="h-4 w-4 mr-1" />
             <span className="text-sm font-medium">
               Never Miss a Customer Comment
             </span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
+          <h1
+            className={`text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]`}
+          >
             Instagram Comment Automation
           </h1>
-          <p className="text-xl  text-gray-300 mb-8 max-w-2xl mx-auto font-montserrat">
+          <p
+            className={`text-xl ${textSecondary} mb-8 max-w-2xl mx-auto font-montserrat`}
+          >
             Reply instantly to every comment. No setup fees. Cancel anytime.
           </p>
 
           <div className="flex items-center justify-center gap-4 mb-12">
             <span
               className={`text-sm font-medium ${
-                billingCycle === "monthly" ? "text-white" : "text-gray-500"
+                billingCycle === "monthly" ? textPrimary : textMuted
               }`}
             >
               Monthly
@@ -501,12 +530,18 @@ export default function Pricing() {
             />
             <span
               className={`text-sm font-medium ${
-                billingCycle === "yearly" ? "text-white" : "text-gray-500"
+                billingCycle === "yearly" ? textPrimary : textMuted
               }`}
             >
               Yearly
             </span>
-            <div className="bg-green-900/20 text-xs text-green-400 border border-green-400/30 rounded-full px-3 py-1 md:ml-2">
+            <div
+              className={`${
+                theme === "dark"
+                  ? "bg-green-900/20 text-green-400 border-green-400/30"
+                  : "bg-green-100 text-green-600 border-green-300"
+              } text-xs border rounded-full px-3 py-1 md:ml-2`}
+            >
               Save 16%
             </div>
           </div>
@@ -514,17 +549,21 @@ export default function Pricing() {
       </section>
 
       <section className="px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="max-w-6xl mx-auto ">
+        <div className="max-w-6xl mx-auto">
           <div
-            className={`relative mb-10 group rounded-lg backdrop-blur-sm border transition-all duration-300 border-[#00F0FF]/20 hover:border-[#00F0FF] `}
+            className={`relative mb-10 group rounded-lg backdrop-blur-sm border transition-all duration-300 ${cardBorder} hover:border-[#00F0FF] bg-transparent`}
           >
             <div
               className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity from-[#FF2E9F]/10 to-transparent`}
             ></div>
             <div className=" relative z-10 h-full flex flex-col md:flex-row items-center justify-between p-6">
               <div className="flex-[10%] flex flex-col  justify-between items-center md:items-start ">
-                <h3 className="text-xl font-bold mb-2 text-white">Free</h3>
-                <p className="text-center md:text-start text-gray-400 mb-6 font-montserrat text-lg">
+                <h3 className={`text-xl font-bold mb-2 ${textPrimary}`}>
+                  Free
+                </h3>
+                <p
+                  className={`text-center md:text-start ${textMuted} mb-6 font-montserrat text-lg`}
+                >
                   Default plan for new users
                 </p>
               </div>
@@ -546,7 +585,7 @@ export default function Pricing() {
                     <Check
                       className={`h-5 w-5 mt-1 mr-3 ${"text-[#FF2E9F]"}`}
                     />
-                    <span className="text-gray-300">{feature}</span>
+                    <span className={textSecondary}>{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -590,7 +629,7 @@ export default function Pricing() {
                       : plan.id === "Insta-Automation-Starter"
                       ? "border-[#00F0FF]/20 hover:border-[#00F0FF]"
                       : "border-[#FF2E9F]/20 hover:border-[#FF2E9F]"
-                  } ${
+                  } bg-transparent ${
                     isCurrentPlan ? "ring-2 ring-[#00F0FF] ring-opacity-80" : ""
                   }`}
                 >
@@ -619,14 +658,14 @@ export default function Pricing() {
                   ></div>
                   <div className="relative z-10 h-full flex flex-col items-center justify-between p-6">
                     <div className="flex justify-between items-start">
-                      <h3 className="text-xl font-bold mb-2 text-white">
+                      <h3 className={`text-xl font-bold mb-2 ${textPrimary}`}>
                         {plan.name}
                       </h3>
                       {isCurrentPlan && (
                         <BadgeCheck className=" ml-1 h-6 w-6 text-[#00F0FF]" />
                       )}
                     </div>
-                    <p className="text-gray-400 mb-6 font-montserrat text-lg">
+                    <p className={`${textMuted} mb-6 font-montserrat text-lg`}>
                       {plan.description}
                     </p>
                     <div className="flex items-end mb-6">
@@ -644,7 +683,7 @@ export default function Pricing() {
                           ? plan.monthlyPrice.toFixed(0)
                           : plan.yearlyPrice.toFixed(0)}
                       </span>
-                      <span className="text-gray-400 ml-1">
+                      <span className={textMuted}>
                         /{billingCycle === "monthly" ? "month" : "year"}
                       </span>
                     </div>
@@ -665,7 +704,9 @@ export default function Pricing() {
                                 : "text-[#FF2E9F]"
                             }`}
                           />
-                          <span className="text-gray-300 font-montserrat text-base">
+                          <span
+                            className={`${textSecondary} font-montserrat text-base`}
+                          >
                             {feature}
                           </span>
                         </li>
@@ -732,13 +773,13 @@ export default function Pricing() {
           </div>
         </div>
       </section>
-      <section className="py-16 px-4 sm:px-6 lg:px-8 ">
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] mb-4">
               Feature Comparison
             </h2>
-            <p className="text-xl text-gray-300 font-montserrat">
+            <p className={`text-xl ${textSecondary} font-montserrat`}>
               Everything you get with each plan
             </p>
           </div>
@@ -746,8 +787,14 @@ export default function Pricing() {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b-2 border-[#333]">
-                  <th className="text-left py-4 px-6 font-semibold text-white">
+                <tr
+                  className={`border-b-2 ${
+                    theme === "dark" ? "border-[#333]" : "border-gray-300"
+                  }`}
+                >
+                  <th
+                    className={`text-left py-4 px-6 font-semibold ${textPrimary}`}
+                  >
                     Features
                   </th>
                   <th className="text-center py-4 px-6 font-semibold text-[#00F0FF]">
@@ -761,7 +808,11 @@ export default function Pricing() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#333]">
+              <tbody
+                className={`divide-y ${
+                  theme === "dark" ? "divide-[#333]" : "divide-gray-300"
+                }`}
+              >
                 {[
                   {
                     feature: "Comments per month",
@@ -844,36 +895,38 @@ export default function Pricing() {
                 ].map((row, index) => (
                   <tr
                     key={index}
-                    className="hover:bg-[#1a1a1a]/50 font-montserrat text-base"
+                    className={`hover:${
+                      theme === "dark" ? "bg-[#1a1a1a]/50" : "bg-gray-100/50"
+                    } font-montserrat text-base`}
                   >
-                    <td className="py-4 px-6 font-medium text-gray-300 ">
+                    <td className={`py-4 px-6 font-medium ${textSecondary}`}>
                       {row.feature}
                     </td>
                     <td className="py-4 px-6 text-center">
                       {row.starter === "✓" ? (
                         <Check className="h-5 w-5 text-[#00F0FF] mx-auto" />
                       ) : row.starter === "✗" ? (
-                        <span className="text-gray-500">—</span>
+                        <span className={textMuted}>—</span>
                       ) : (
-                        <span className="text-gray-300">{row.starter}</span>
+                        <span className={textSecondary}>{row.starter}</span>
                       )}
                     </td>
                     <td className="py-4 px-6 text-center">
                       {row.growth === "✓" ? (
                         <Check className="h-5 w-5 text-[#B026FF] mx-auto" />
                       ) : row.growth === "✗" ? (
-                        <span className="text-gray-500">—</span>
+                        <span className={textMuted}>—</span>
                       ) : (
-                        <span className="text-gray-300">{row.growth}</span>
+                        <span className={textSecondary}>{row.growth}</span>
                       )}
                     </td>
                     <td className="py-4 px-6 text-center">
                       {row.pro === "✓" ? (
                         <Check className="h-5 w-5 text-[#FF2E9F] mx-auto" />
                       ) : row.pro === "✗" ? (
-                        <span className="text-gray-500">—</span>
+                        <span className={textMuted}>—</span>
                       ) : (
-                        <span className="text-gray-300">{row.pro}</span>
+                        <span className={textSecondary}>{row.pro}</span>
                       )}
                     </td>
                   </tr>
@@ -885,7 +938,9 @@ export default function Pricing() {
       </section>
       {showCancelDialog && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="p-3 md:p-8 rounded-xl max-w-md w-full bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] ">
+          <div
+            className={`p-3 md:p-8 rounded-xl max-w-md w-full ${dialogBg} backdrop-blur-lg border ${cardBorder}`}
+          >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]">
                 Cancel Subscription
@@ -895,24 +950,26 @@ export default function Pricing() {
                 size="icon"
                 onClick={() => setShowCancelDialog(false)}
               >
-                <X className="text-gray-400 h-5 w-5 hover:text-white" />
+                <X className={`${textMuted} h-5 w-5 hover:${textPrimary}`} />
               </Button>
             </div>
             <div className="space-y-6">
               <div>
-                <label className="block text-lg font-semibold text-gray-200 mb-2">
+                <label
+                  className={`block text-lg font-semibold ${textSecondary} mb-2`}
+                >
                   Please Provide Reason
                 </label>
                 <Textarea
                   value={cancellationReason}
                   onChange={(e) => setCancellationReason(e.target.value)}
-                  className="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-[#B026FF] font-montserrat"
+                  className={`w-full ${inputBg} ${inputBorder} rounded-lg p-3 ${inputText} focus:outline-none focus:ring-2 focus:ring-[#B026FF] font-montserrat`}
                   placeholder="Cancellation reason"
                   required
                 />
               </div>
 
-              <div className="text-xs text-gray-400 font-montserrat ">
+              <div className={`text-xs ${textMuted} font-montserrat`}>
                 <p className="mb-2">
                   <strong>Immediate Cancellation:</strong> Service ends
                   immediately
@@ -998,16 +1055,24 @@ export default function Pricing() {
         open={showCancelConfirmDialog}
         onOpenChange={setShowCancelConfirmDialog}
       >
-        <AlertDialogContent className=" bg-[#6d1717]/5 backdrop-blur-md">
+        <AlertDialogContent className={`${alertBg} backdrop-blur-md`}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Cancellation</AlertDialogTitle>
-            <AlertDialogDescription className="font-montserrat">
+            <AlertDialogTitle className={textPrimary}>
+              Confirm Cancellation
+            </AlertDialogTitle>
+            <AlertDialogDescription
+              className={`font-montserrat ${textSecondary}`}
+            >
               Are you sure you want to cancel your subscription? Your plan will
               revert to the Free plan which only allows 1 Instagram account.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel
+              className={`${buttonOutlineBorder} ${buttonOutlineText}`}
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmedCancellation}
               disabled={isCancelling}

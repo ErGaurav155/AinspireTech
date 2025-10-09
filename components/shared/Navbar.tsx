@@ -7,6 +7,7 @@ import Logo from "/public/assets/img/logo.png";
 import { SignedIn, SignedOut, useAuth, UserButton } from "@clerk/nextjs";
 import { ArrowRight } from "lucide-react";
 import { getUserById } from "@/lib/action/user.actions";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function NavBar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -28,18 +29,24 @@ export function NavBar() {
 
   useEffect(() => {
     const isOwner = async () => {
-      const userInfo = await getUserById(userId!);
+      if (!userId) return;
 
-      const response = await fetch(
-        `/api/admin/verify-owner?email=${userInfo.email}`
-      );
-      const ownerId = await response.json();
-      setIsOwn(ownerId.isOwner);
+      try {
+        const userInfo = await getUserById(userId);
+        const response = await fetch(
+          `/api/admin/verify-owner?email=${userInfo.email}`
+        );
+        const ownerId = await response.json();
+        setIsOwn(ownerId.isOwner);
+      } catch (error) {
+        console.error("Error checking owner status:", error);
+      }
     };
+
     if (userId) {
       isOwner();
     }
-  }, [router, userId]);
+  }, [userId]);
 
   const navItems = [
     { id: "insta", label: "Insta", href: "/insta" },
@@ -54,11 +61,11 @@ export function NavBar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-[#00F0FF]/20 transition-all duration-300 ${
+      className={`sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b transition-all duration-300 ${
         isScrolled ? "rounded-lg shadow-md" : "rounded-none"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between gap-2 items-center ">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between gap-2 items-center">
         {/* Logo */}
         <Link
           href="/"
@@ -67,7 +74,7 @@ export function NavBar() {
         >
           <div className="relative h-7 w-7 md:w-10 md:h-10 mr-1 md:mr-3">
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
-            <div className="absolute inset-1 rounded-full bg-[#0A0A0A] flex items-center justify-center">
+            <div className="absolute inset-1 rounded-full bg-background flex items-center justify-center">
               <Image
                 alt="Logo"
                 src={Logo}
@@ -89,7 +96,7 @@ export function NavBar() {
               key={item.id}
               href={item.href}
               className={`nav-link relative group cursor-pointer ${
-                activeNavItem === item.id ? "text-[#00F0FF]" : "text-white"
+                activeNavItem === item.id ? "text-[#00F0FF]" : "text-foreground"
               }`}
               onClick={() => handleNavClick(item.id)}
             >
@@ -107,13 +114,15 @@ export function NavBar() {
           ))}
         </nav>
 
-        {/* Auth Buttons */}
+        {/* Auth Buttons & Theme Toggle */}
         <div className="flex items-center space-x-2 lg:space-x-4">
+          {/* Theme Toggle */}
+
           <SignedIn>
             {isOwn ? (
               <button
                 onClick={() => router.push("/admin")}
-                className="hidden md:flex items-center justify-center px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
               >
                 <span className="mr-2">Dashboard</span>
                 <ArrowRight className="hidden lg:flex" size={16} />
@@ -122,21 +131,22 @@ export function NavBar() {
               <>
                 <button
                   onClick={() => router.push("/web/UserDashboard")}
-                  className="hidden md:flex items-center justify-center px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                 >
                   <span className="mr-2">WebBot</span>
                   <ArrowRight className="hidden lg:flex" size={16} />
                 </button>
                 <button
                   onClick={() => router.push("/insta/dashboard")}
-                  className="hidden md:flex items-center justify-center px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                 >
                   <span className="mr-2">InstaBot</span>
                   <ArrowRight className="hidden lg:flex" size={16} />
                 </button>
               </>
             )}
-            <div className="hidden md:block">
+            <ThemeToggle />
+            <div className="block">
               <UserButton afterSignOutUrl="/" />
             </div>
           </SignedIn>
@@ -144,13 +154,13 @@ export function NavBar() {
           <SignedOut>
             <button
               onClick={() => router.push("/contactUs")}
-              className="hidden md:flex px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+              className="hidden md:flex px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
             >
               Contact Us
             </button>
             <button
               onClick={() => router.push("/sign-in")}
-              className="hidden md:flex px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+              className="hidden md:flex px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
             >
               Login
             </button>
@@ -158,40 +168,10 @@ export function NavBar() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-2xl text-[#00F0FF] cursor-pointer !rounded-button whitespace-nowrap"
+            className="md:hidden text-2xl text-[#00F0FF] cursor-pointer rounded-full whitespace-nowrap"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {isMenuOpen ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            )}
+            {isMenuOpen ? "✕" : "☰"}
           </button>
         </div>
       </div>
@@ -200,14 +180,16 @@ export function NavBar() {
       <div
         className={`md:hidden transition-all duration-300 overflow-hidden ${
           isMenuOpen ? "max-h-96" : "max-h-0"
-        } bg-[#0a0a0a]/80 backdrop-blur-sm`}
+        } bg-background/80 backdrop-blur-sm`}
       >
-        <div className="container mx-auto px-4 py-4 flex flex-col items-center justify-center max-w-max space-y-4 ">
+        <div className="container mx-auto px-4 py-4 flex flex-col items-center justify-center max-w-max space-y-4">
+          {/* Theme Toggle in Mobile Menu */}
+
           {navItems.map((item) => (
             <Link
               key={item.id}
               href={item.href}
-              className={`text-white hover:text-[#00F0FF] transition-colors cursor-pointer ${
+              className={`text-foreground hover:text-[#00F0FF] transition-colors cursor-pointer ${
                 activeNavItem === item.id ? "text-[#00F0FF]" : ""
               }`}
               onClick={() => handleNavClick(item.id)}
@@ -224,7 +206,7 @@ export function NavBar() {
                     router.push("/admin");
                     setIsMenuOpen(false);
                   }}
-                  className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                  className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                 >
                   Admin Dashboard
                 </button>
@@ -235,7 +217,7 @@ export function NavBar() {
                       router.push("/web/UserDashboard");
                       setIsMenuOpen(false);
                     }}
-                    className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                   >
                     WebBot
                   </button>
@@ -244,15 +226,12 @@ export function NavBar() {
                       router.push("/insta/dashboard");
                       setIsMenuOpen(false);
                     }}
-                    className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                   >
                     InstaBot
                   </button>
                 </>
               )}
-              <div className="flex justify-center">
-                <UserButton afterSignOutUrl="/" />
-              </div>
             </div>
           </SignedIn>
 
@@ -262,7 +241,7 @@ export function NavBar() {
                 router.push("/contactUs");
                 setIsMenuOpen(false);
               }}
-              className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+              className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
             >
               Contact Us
             </button>
@@ -271,7 +250,7 @@ export function NavBar() {
                 router.push("/sign-in");
                 setIsMenuOpen(false);
               }}
-              className="px-4 py-2 !rounded-button bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 w-full transition-opacity whitespace-nowrap cursor-pointer"
+              className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 w-full transition-opacity whitespace-nowrap cursor-pointer"
             >
               Login
             </button>

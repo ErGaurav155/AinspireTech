@@ -39,7 +39,7 @@ export default async function RootLayout({
           className={cn(
             orbitron.variable,
             montserrat.variable,
-            "font-orbitron" // Set Orbitron as default font
+            "font-orbitron min-h-screen bg-background text-foreground transition-colors duration-300"
           )}
         >
           <ThemeProvider
@@ -48,10 +48,8 @@ export default async function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            <div className="min-h-screen bg-[#0a0a0a] text-white relative">
-              <StarsBackground />
-              <div className="relative z-10">{children}</div>
-            </div>
+            <StarsBackground />
+            <div className="relative z-10">{children}</div>
           </ThemeProvider>
         </body>
       </html>

@@ -4,11 +4,14 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { instagramFeatures, webChatFeatures } from "@/constant";
+import { useTheme } from "next-themes";
 
 function StickyFeaturesSection() {
   const [activeTab, setActiveTab] = useState<"webchat" | "instagram">(
     "webchat"
   );
+  const { theme } = useTheme();
+  const tabBorder = theme === "dark" ? "border-gray-800" : "border-gray-300";
 
   // EXACT same animation variants as testimonials component
   const containerVariants = {
@@ -124,23 +127,22 @@ function StickyFeaturesSection() {
     >
       {/* Sticky Header */}
       <motion.div
-        className="text-center mb-16"
+        className="text-center mb-2"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: false, margin: "-100px" }}
       >
         <motion.div
-          className="flex items-center justify-center text-[#00F0FF] mb-4"
+          className={`inline-flex items-center text-blue-600 border border-blue-400/50} rounded-full px-4 py-1 mb-4`}
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}
           initial="hidden"
         >
-          <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
-            WHY WE{" "}
-          </span>
+          <span className="text-sm font-medium"> WHY WE</span>
         </motion.div>
+
         <motion.h2
           className="text-3xl font-bold mb-4 gradient-text-main"
           variants={titleVariants}
@@ -151,7 +153,7 @@ function StickyFeaturesSection() {
           Why Choose AinspireTech{" "}
         </motion.h2>
         <motion.p
-          className="text-lg text-gray-300 max-w-2xl mx-auto font-montserrat"
+          className="text-lg text-gray-500 max-w-2xl mx-auto font-montserrat"
           variants={textVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -170,13 +172,15 @@ function StickyFeaturesSection() {
         whileInView="visible"
         viewport={{ once: false, margin: "-50px" }}
       >
-        <div className="bg-gray-900/80 backdrop-blur-lg rounded-xl p-1 border border-gray-700/50">
+        <div
+          className={`${tabBorder} backdrop-blur-lg rounded-full p-1 border border-gray-500/80`}
+        >
           <div className="flex md:space-x-1">
             <motion.button
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
-              className={`px-3 md:px-6 py-1 md:py-3 rounded-lg text-sm font-semibold transition-all duration-300 text-nowrap ${
+              className={`px-3 md:px-6 py-1 md:py-3 rounded-full text-sm font-semibold transition-all duration-300 text-nowrap ${
                 activeTab === "webchat"
                   ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
                   : "text-gray-400 hover:text-white hover:bg-gray-700/50"
@@ -189,7 +193,7 @@ function StickyFeaturesSection() {
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
-              className={` px-3 py-1 md:px-6 md:py-3 rounded-lg font-semibold transition-all duration-300 text-nowrap text-sm ${
+              className={` px-3 py-1 md:px-6 md:py-3 rounded-full font-semibold transition-all duration-300 text-nowrap text-sm ${
                 activeTab === "instagram"
                   ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white"
                   : "text-gray-400 hover:text-white hover:bg-gray-700/50"

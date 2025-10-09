@@ -5,6 +5,7 @@ import { CreditCard } from "lucide-react";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { PricingPlan } from "@/types/types";
+import { useTheme } from "next-themes";
 
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,19 @@ export default function PaymentModal({
   );
   const razorpayplanId = useRef<string | null>(null);
   const router = useRouter();
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const dialogBg = theme === "dark" ? "bg-[#0a0a0a]/95" : "bg-white/95";
+  const dialogBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const cardBg = theme === "dark" ? "bg-[#1a1a1a]/50" : "bg-gray-100/50";
+  const cardBorder = theme === "dark" ? "border-[#333]" : "border-gray-300";
+  const separatorBg = theme === "dark" ? "bg-[#333]" : "bg-gray-300";
+  const hoverBorder =
+    theme === "dark" ? "hover:border-[#00F0FF]/50" : "hover:border-[#00F0FF]";
 
   if (!plan) return null;
 
@@ -187,13 +201,17 @@ export default function PaymentModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-md bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
+        <DialogContent
+          className={`max-w-md ${dialogBg} backdrop-blur-lg border ${dialogBorder} rounded-xl`}
+        >
           <DialogHeader>
-            <DialogTitle className="text-center text-white font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+            <DialogTitle
+              className={`text-center font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF] ${textPrimary}`}
+            >
               {isInstaAccount ? "Step-2: Payment" : "Step-1: Connect Instagram"}
             </DialogTitle>
           </DialogHeader>
-          <DialogDescription>
+          <DialogDescription className={textSecondary}>
             {isInstaAccount
               ? "Make an instant payment to activate your subscription and elevate your Instagram engagement!"
               : "Please connect your Instagram Business account to proceed with the payment."}
@@ -202,9 +220,11 @@ export default function PaymentModal({
           {isInstaAccount ? (
             <div className="space-y-6">
               {/* Plan Summary */}
-              <div className="bg-[#1a1a1a]/50 backdrop-blur-sm p-4 rounded-xl border border-[#333]">
+              <div
+                className={`${cardBg} backdrop-blur-sm p-4 rounded-xl border ${cardBorder}`}
+              >
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-gray-300">
+                  <span className={`font-medium ${textSecondary}`}>
                     {plan.name} Plan
                   </span>
                   <Badge className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white">
@@ -212,8 +232,8 @@ export default function PaymentModal({
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center text-xl font-bold mt-4">
-                  <span className="text-gray-300">Total</span>
-                  <span className="text-white">${price}</span>
+                  <span className={textSecondary}>Total</span>
+                  <span className={textPrimary}>${price}</span>
                 </div>
                 {billingCycle === "yearly" && (
                   <p className="text-sm text-green-400 mt-3 font-medium">
@@ -223,11 +243,11 @@ export default function PaymentModal({
                 )}
               </div>
 
-              <Separator className="bg-[#333]" />
+              <Separator className={separatorBg} />
 
               {/* Payment Method Selection */}
               <div className="space-y-4">
-                <h3 className="font-medium text-gray-300 text-center">
+                <h3 className={`font-medium ${textSecondary} text-center`}>
                   Price in <span className="text-[#00F0FF]">USD</span> and{" "}
                   <span className="text-[#B026FF]">INR</span>
                 </h3>
@@ -237,38 +257,40 @@ export default function PaymentModal({
                     className={`rounded-xl p-4 flex flex-col items-center gap-2 cursor-pointer transition-all duration-300 border ${
                       paymentMethod === "razorpay"
                         ? "border-[#00F0FF] bg-[#00F0FF]/10"
-                        : "border-[#333] hover:border-[#00F0FF]/50"
+                        : `${cardBorder} ${hoverBorder}`
                     }`}
                     onClick={() => setPaymentMethod("razorpay")}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-gray-300">
+                      <span className={`text-xs font-medium ${textSecondary}`}>
                         International
                       </span>
                     </div>
-                    <span className="text-md font-medium text-white mt-2">
+                    <span className={`text-md font-medium ${textPrimary} mt-2`}>
                       Razorpay
                     </span>
-                    <span className="font-bold text-white">${price}</span>
+                    <span className={`font-bold ${textPrimary}`}>${price}</span>
                   </div>
 
                   <div
                     className={`rounded-xl p-4 flex flex-col items-center gap-2 cursor-pointer transition-all duration-300 border ${
                       paymentMethod === "paypal"
                         ? "border-[#B026FF] bg-[#B026FF]/10"
-                        : "border-[#333] hover:border-[#B026FF]/50"
+                        : `${cardBorder} ${hoverBorder}`
                     }`}
                     onClick={() => setPaymentMethod("paypal")}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-gray-300">
+                      <span className={`text-xs font-medium ${textSecondary}`}>
                         India
                       </span>
                     </div>
-                    <span className="text-md font-medium text-white mt-2">
+                    <span className={`text-md font-medium ${textPrimary} mt-2`}>
                       Razorpay
                     </span>
-                    <span className="font-bold text-white">₹{inrPrice}</span>
+                    <span className={`font-bold ${textPrimary}`}>
+                      ₹{inrPrice}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -307,20 +329,20 @@ export default function PaymentModal({
                 </Button>
               </SignedOut>
               {isSubscribed ? (
-                <p className="text-xs text-gray-400 text-center px-4">
+                <p className={`text-xs ${textMuted} text-center px-4`}>
                   Your subscription will be activated immediately after
                   successful payment. You can cancel anytime from your
                   dashboard.
                 </p>
               ) : (
-                <p className="text-xs text-gray-400 text-center px-4">
+                <p className={`text-xs ${textMuted} text-center px-4`}>
                   You had already take one of those subscription.
                 </p>
               )}
             </div>
           ) : (
             <div className="p-4">
-              <p className="text-gray-400 mb-4">
+              <p className={`${textSecondary} mb-4`}>
                 You need to connect an Instagram account before purchasing a
                 subscription.
               </p>

@@ -37,6 +37,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export function AIVoiceAgentShowcase() {
   const [activePlatform, setActivePlatform] = useState<"webchat" | "instagram">(
@@ -48,6 +49,28 @@ export function AIVoiceAgentShowcase() {
   const [activeInstaTab, setActiveInstaTab] = useState<
     "reels" | "posts" | "stories" | "dms"
   >("reels");
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const sectionBg = theme === "dark" ? "bg-transparent" : "bg-transparent";
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
+  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
+  const tabBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-gray-100";
+  const tabBorder = theme === "dark" ? "border-gray-800" : "border-gray-300";
+  const tabText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const tabHover =
+    theme === "dark" ? "hover:text-white" : "hover:text-gray-900";
+  const inactiveTabBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-transparent";
+
+  const analyticsBg = theme === "dark" ? "bg-black/30" : "bg-gray-100/80";
+  const analyticsBorder =
+    theme === "dark" ? "border-cyan-500/30" : "border-cyan-400/50";
+  const instaAnalyticsBorder =
+    theme === "dark" ? "border-pink-500/30" : "border-pink-400/50";
+
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const featureText = theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
 
   // Animation variants
   const containerVariants = {
@@ -81,7 +104,10 @@ export function AIVoiceAgentShowcase() {
     hover: {
       y: -8,
       scale: 1.02,
-      borderColor: "rgba(37, 139, 148, 0.4)",
+      borderColor:
+        theme === "dark"
+          ? "rgba(37, 139, 148, 0.4)"
+          : "rgba(37, 139, 148, 0.2)",
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -285,28 +311,40 @@ export function AIVoiceAgentShowcase() {
   const currentInsta = instaAutomationTypes[activeInstaTab];
 
   const VoiceAnalytics = () => (
-    <div className="bg-gradient-to-br from-cyan-900/20 to-blue-900/20 rounded-lg p-2 lg:p-4 border border-cyan-500/30">
-      <h4 className="font-normal text-base text-white mb-3">Voice Analytics</h4>
+    <div
+      className={`bg-gradient-to-br from-cyan-900/20 to-blue-900/20 rounded-lg p-2 lg:p-4 border ${analyticsBorder}`}
+    >
+      <h4 className={`font-normal text-base ${titleText} mb-3`}>
+        Voice Analytics
+      </h4>
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-black/30 rounded-lg p-3 text-center overflow-hidden">
+        <div
+          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
+        >
           <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-cyan-400">
             98%
           </div>
           <div className="text-xs text-cyan-300">Accuracy</div>
         </div>
-        <div className="bg-black/30 rounded-lg p-3 text-center overflow-hidden">
+        <div
+          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
+        >
           <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-blue-400">
             2.1s
           </div>
           <div className="text-xs text-blue-300">Avg Response</div>
         </div>
-        <div className="bg-black/30 rounded-lg p-3 text-center overflow-hidden">
+        <div
+          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
+        >
           <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-green-400">
             24/7
           </div>
           <div className="text-xs text-green-300">Availability</div>
         </div>
-        <div className="bg-black/30 rounded-lg p-3 text-center overflow-hidden">
+        <div
+          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
+        >
           <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-purple-400">
             5
           </div>
@@ -317,30 +355,40 @@ export function AIVoiceAgentShowcase() {
   );
 
   const InstagramAnalytics = () => (
-    <div className="bg-gradient-to-br from-pink-900/20 to-purple-900/20 rounded-lg p-2 border border-pink-500/30">
-      <h4 className="font-normal text-base text-white mb-3">
+    <div
+      className={`bg-gradient-to-br from-pink-900/20 to-purple-900/20 rounded-lg p-2 border ${instaAnalyticsBorder}`}
+    >
+      <h4 className={`font-normal text-base ${titleText} mb-3`}>
         Automation Performance
       </h4>
       <div className="grid grid-cols-2 gap-1 md:gap-3">
-        <div className="bg-black/30 rounded-lg p-3 text-center overflow-hidden">
+        <div
+          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
+        >
           <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-pink-400">
             98%
           </div>
           <div className="text-xs text-pink-300">Response Rate</div>
         </div>
-        <div className="bg-black/30 rounded-lg p-3 text-center overflow-hidden">
+        <div
+          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
+        >
           <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-purple-400">
             2.3s
           </div>
           <div className="text-xs text-purple-300">Avg Response Time</div>
         </div>
-        <div className="bg-black/30 rounded-lg p-3 text-center overflow-hidden">
+        <div
+          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
+        >
           <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-cyan-400">
             1.4K
           </div>
           <div className="text-xs text-cyan-300">Engagements Today</div>
         </div>
-        <div className="bg-black/30 rounded-lg p-3 text-center overflow-hidden">
+        <div
+          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
+        >
           <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-green-400">
             47%
           </div>
@@ -352,7 +400,7 @@ export function AIVoiceAgentShowcase() {
 
   return (
     <motion.section
-      className="w-full py-20 bg-transparent text-white max-w-7xl"
+      className={`w-full py-20 ${sectionBg} text-foreground max-w-7xl`}
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
@@ -367,7 +415,7 @@ export function AIVoiceAgentShowcase() {
           whileInView="visible"
           viewport={{ once: false, margin: "-100px" }}
         >
-          <motion.div
+          {/* <motion.div
             className="flex items-center justify-center text-[#00F0FF] mb-4"
             variants={titleVariants}
             whileInView="visible"
@@ -377,6 +425,15 @@ export function AIVoiceAgentShowcase() {
             <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
               PRODUCT SHOWCASE
             </span>
+          </motion.div> */}
+          <motion.div
+            className={`inline-flex items-center text-blue-600 border border-blue-400/50} rounded-full px-4 py-1 mb-4`}
+            variants={titleVariants}
+            whileInView="visible"
+            viewport={{ once: false }}
+            initial="hidden"
+          >
+            <span className="text-sm font-medium"> PRODUCT SHOWCASE</span>
           </motion.div>
           <motion.div
             className="flex items-center justify-center gap-3 mb-4"
@@ -397,7 +454,7 @@ export function AIVoiceAgentShowcase() {
           </motion.div>
 
           <motion.p
-            className="text-xl text-gray-300 max-w-2xl mx-auto font-montserrat"
+            className={`text-xl ${descriptionText} max-w-2xl mx-auto font-montserrat`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -416,7 +473,9 @@ export function AIVoiceAgentShowcase() {
           whileInView="visible"
           viewport={{ once: false, margin: "-50px" }}
         >
-          <div className="bg-[#1a1a1a] border border-gray-800 rounded-full p-1 flex backdrop-blur-sm">
+          <div
+            className={`${tabBg} border ${tabBorder} rounded-full p-1 flex backdrop-blur-sm`}
+          >
             {[
               {
                 id: "webchat",
@@ -437,7 +496,7 @@ export function AIVoiceAgentShowcase() {
                 className={`flex items-center px-6 py-3 rounded-full transition-all duration-300 ${
                   activePlatform === tab.id
                     ? `bg-gradient-to-r ${tab.gradient} text-white`
-                    : "text-gray-300 hover:text-white"
+                    : `${tabText} ${tabHover}`
                 }`}
                 variants={buttonVariants}
                 whileHover="hover"
@@ -461,7 +520,9 @@ export function AIVoiceAgentShowcase() {
             whileInView="visible"
             viewport={{ once: false, margin: "-50px" }}
           >
-            <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-1 flex flex-row items-center sm:w-auto  justify-between sm:gap-3 sm:justify-center w-full icbackdrop-blur-sm">
+            <div
+              className={`${tabBg} border ${tabBorder} rounded-xl p-1 flex flex-row items-center sm:w-auto  justify-between sm:gap-3 sm:justify-center w-full icbackdrop-blur-sm`}
+            >
               {[
                 {
                   id: "support",
@@ -485,7 +546,7 @@ export function AIVoiceAgentShowcase() {
                   className={`flex items-center px-0 md:px-4 py-2 rounded-lg transition-all duration-300 ${
                     activeWebChatTab === tab.id
                       ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
-                      : "bg-[#1a1a1a] text-gray-300 hover:text-white"
+                      : `${inactiveTabBg} ${tabText} ${tabHover}`
                   }`}
                   variants={buttonVariants}
                   whileHover="hover"
@@ -508,7 +569,9 @@ export function AIVoiceAgentShowcase() {
             whileInView="visible"
             viewport={{ once: false, margin: "-50px" }}
           >
-            <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-1 flex flex-row backdrop-blur-sm w-full sm:w-auto items-center justify-between sm:gap-3 sm:justify-center">
+            <div
+              className={`${tabBg} border ${tabBorder} rounded-xl p-1 flex flex-row backdrop-blur-sm w-full sm:w-auto items-center justify-between sm:gap-3 sm:justify-center`}
+            >
               {[
                 {
                   id: "reels",
@@ -537,7 +600,7 @@ export function AIVoiceAgentShowcase() {
                   className={`flex items-center px-0 md:px-4 py-2 rounded-lg transition-all duration-300 ${
                     activeInstaTab === tab.id
                       ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white"
-                      : "text-gray-300 hover:text-white"
+                      : `${tabText} ${tabHover}`
                   }`}
                   variants={buttonVariants}
                   whileHover="hover"
@@ -590,7 +653,7 @@ export function AIVoiceAgentShowcase() {
 
               {/* Voice Agent Details */}
               <motion.div
-                className="md:flex-1 self-center bg-[#0a0a0a]/10 border border-white/10 rounded-2xl p-1 md:p-3 backdrop-blur-sm"
+                className={`md:flex-1 self-center ${cardBg} border ${cardBorder} rounded-2xl p-1 md:p-3 backdrop-blur-sm`}
                 variants={cardVariants}
                 whileHover="hover"
               >
@@ -603,13 +666,13 @@ export function AIVoiceAgentShowcase() {
                   </div>
                   <div>
                     <motion.h3
-                      className=" text-base lg:text-lg font-semibold text-white"
+                      className={`text-base lg:text-lg font-semibold ${titleText}`}
                       variants={titleVariants}
                     >
                       {currentWebChat.title}
                     </motion.h3>
                     <motion.p
-                      className="text-gray-400 text-xs md:text-sm"
+                      className={`text-xs md:text-sm ${descriptionText}`}
                       variants={textVariants}
                     >
                       {currentWebChat.description}
@@ -619,7 +682,9 @@ export function AIVoiceAgentShowcase() {
 
                 {/* Features */}
                 <motion.div className="mb-6" variants={containerVariants}>
-                  <h4 className="text-base lg:text-lg font-semibold text-white mb-1 lg:mb-3">
+                  <h4
+                    className={`text-base lg:text-lg font-semibold ${titleText} mb-1 lg:mb-3`}
+                  >
                     Features
                   </h4>
                   {currentWebChat.features.map((feature, index) => (
@@ -629,7 +694,9 @@ export function AIVoiceAgentShowcase() {
                       variants={textVariants}
                     >
                       <div className="w-2 h-2 bg-cyan-500 rounded-full" />
-                      <span className="text-gray-300 text-xs lg:text-sm font-light lg:font-normal">
+                      <span
+                        className={`text-xs lg:text-sm font-light lg:font-normal ${featureText}`}
+                      >
                         {feature}
                       </span>
                     </motion.div>
@@ -692,7 +759,7 @@ export function AIVoiceAgentShowcase() {
 
               {/* Automation Details */}
               <motion.div
-                className="md:flex-[35%] w-full h-full bg-[#0a0a0a]/60 border border-white/10 rounded-2xl p-2 md:p-3 backdrop-blur-sm"
+                className={`md:flex-[35%] w-full h-full ${cardBg} border ${cardBorder} rounded-2xl p-2 md:p-3 backdrop-blur-sm`}
                 variants={cardVariants}
                 whileHover="hover"
               >
@@ -705,13 +772,13 @@ export function AIVoiceAgentShowcase() {
                   </div>
                   <div>
                     <motion.h3
-                      className="text-base lg:text-xl font-semibold text-white"
+                      className={`text-base lg:text-xl font-semibold ${titleText}`}
                       variants={titleVariants}
                     >
                       {currentInsta.title}
                     </motion.h3>
                     <motion.p
-                      className="text-gray-400 text-xs md:text-sm"
+                      className={`text-xs md:text-sm ${descriptionText}`}
                       variants={textVariants}
                     >
                       {currentInsta.description}
@@ -721,7 +788,9 @@ export function AIVoiceAgentShowcase() {
 
                 {/* Features */}
                 <motion.div className="mb-6" variants={containerVariants}>
-                  <h4 className="text-base lg:text-lg font-semibold text-white mb-1 md:mb-3">
+                  <h4
+                    className={`text-base lg:text-lg font-semibold ${titleText} mb-1 md:mb-3`}
+                  >
                     Features
                   </h4>
                   {currentInsta.features.map((feature, index) => (
@@ -731,7 +800,9 @@ export function AIVoiceAgentShowcase() {
                       variants={textVariants}
                     >
                       <div className="w-2 h-2 bg-pink-500 rounded-full" />
-                      <span className="text-gray-300 text-xs font-light lg:font-normal lg:text-sm">
+                      <span
+                        className={`text-xs font-light lg:font-normal lg:text-sm ${featureText}`}
+                      >
                         {feature}
                       </span>
                     </motion.div>

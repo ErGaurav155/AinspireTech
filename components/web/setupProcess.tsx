@@ -11,9 +11,28 @@ import {
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 
 export function SetupProcess() {
   const [activeStep, setActiveStep] = useState(1);
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-100/50";
+  const containerBorder =
+    theme === "dark" ? "border-gray-800" : "border-gray-300";
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/80";
+  const cardBorder = theme === "dark" ? "border-gray-800" : "border-gray-200";
+  const inputBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
+  const inputBorder = theme === "dark" ? "border-gray-700" : "border-gray-300";
+  const gradientBg =
+    theme === "dark"
+      ? "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a]"
+      : "bg-gradient-to-r from-gray-50 to-gray-100";
+  const tabsListBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-100/80";
 
   const steps = [
     {
@@ -131,7 +150,7 @@ export function SetupProcess() {
 
   return (
     <motion.section
-      className="w-full py-20 bg-transparent text-white"
+      className={`w-full py-20 bg-transparent ${textPrimary}`}
       initial={{ opacity: 0, scale: 0.9 }}
       whileInView={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, delay: 0.2 }}
@@ -150,7 +169,9 @@ export function SetupProcess() {
         </motion.div>
         {/* Header */}
         <motion.div className="text-center mb-16" variants={itemVariants}>
-          <h2 className="text-3xl font-bold mb-4 gradient-text-main text-center">
+          <h2
+            className={`text-3xl font-bold mb-4 gradient-text-main text-center ${textPrimary}`}
+          >
             How to Add AI Chatbot to Your Website
           </h2>
           {/* Divider */}
@@ -168,7 +189,9 @@ export function SetupProcess() {
           className="space-y-6 max-w-7xl w-full mx-auto flex flex-wrap flex-col items-center justify-center"
         >
           <motion.div variants={itemVariants}>
-            <TabsList className="bg-[#0a0a0a]/10 backdrop-blur-sm border min-h-max flex flex-wrap items-center justify-center max-w-max gap-1 md:gap-3 text-white w-full grid-cols-3 border-gray-900">
+            <TabsList
+              className={`${tabsListBg} backdrop-blur-sm border min-h-max flex flex-wrap items-center justify-center max-w-max gap-1 md:gap-3 ${textPrimary} w-full grid-cols-3 ${containerBorder}`}
+            >
               {steps.map((step) => (
                 <motion.div
                   key={step.number}
@@ -211,7 +234,7 @@ export function SetupProcess() {
                 >
                   <div className="max-w-4xl mx-auto">
                     <motion.div
-                      className="bg-[#0a0a0a]/10 backdrop-blur-sm border border-gray-800 rounded-2xl p-2 md:p-8"
+                      className={`${cardBg} backdrop-blur-sm border ${cardBorder} rounded-2xl p-2 md:p-8`}
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: 0.1 }}
@@ -236,7 +259,7 @@ export function SetupProcess() {
                           <div className="text-sm text-[#00F0FF] font-semibold uppercase tracking-wide">
                             Step {step.number} • {step.subtitle}
                           </div>
-                          <h3 className="text-2xl font-bold text-white">
+                          <h3 className={`text-2xl font-bold ${textPrimary}`}>
                             {step.title}
                           </h3>
                         </div>
@@ -244,7 +267,7 @@ export function SetupProcess() {
 
                       {/* Description */}
                       <motion.p
-                        className="text-gray-300 leading-relaxed font-montserrat mb-6"
+                        className={`${textSecondary} leading-relaxed font-montserrat mb-6`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5, delay: 0.3 }}
@@ -273,7 +296,7 @@ export function SetupProcess() {
                                 variants={itemVariants}
                               >
                                 <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>
-                                <span className="text-gray-300">FILES</span>
+                                <span className={textMuted}>FILES</span>
                               </motion.div>
                               <motion.div
                                 className="flex items-center space-x-2"
@@ -285,7 +308,9 @@ export function SetupProcess() {
                                 >
                                   <CheckCircle className="h-3 w-3 text-white" />
                                 </motion.div>
-                                <span className="text-white font-semibold">
+                                <span
+                                  className={`${textPrimary} font-semibold`}
+                                >
                                   WEB
                                 </span>
                               </motion.div>
@@ -300,13 +325,13 @@ export function SetupProcess() {
                               transition={{ staggerChildren: 0.1 }}
                             >
                               <motion.label
-                                className="block text-sm font-semibold text-white"
+                                className={`block text-sm font-semibold ${textPrimary}`}
                                 variants={itemVariants}
                               >
                                 Website
                               </motion.label>
                               <motion.p
-                                className="text-sm text-gray-400"
+                                className={`text-sm ${textMuted}`}
                                 variants={itemVariants}
                               >
                                 Enter the URL of the website you want to build a
@@ -317,11 +342,13 @@ export function SetupProcess() {
                                 className="space-y-2"
                                 variants={itemVariants}
                               >
-                                <label className="block text-sm font-medium text-gray-300">
+                                <label
+                                  className={`block text-sm font-medium ${textSecondary}`}
+                                >
                                   Url
                                 </label>
                                 <motion.div
-                                  className="bg-[#0a0a0a] border border-gray-700 rounded-lg p-3"
+                                  className={`${inputBg} border ${inputBorder} rounded-lg p-3`}
                                   whileHover={{ borderColor: "#00F0FF" }}
                                   transition={{ duration: 0.3 }}
                                 >
@@ -335,17 +362,19 @@ export function SetupProcess() {
                                 className="space-y-2"
                                 variants={itemVariants}
                               >
-                                <label className="block text-sm font-medium text-gray-300">
+                                <label
+                                  className={`block text-sm font-medium ${textSecondary}`}
+                                >
                                   Language
                                 </label>
                                 <motion.div
-                                  className="bg-[#0a0a0a] border border-gray-700 rounded-lg p-3"
+                                  className={`${inputBg} border ${inputBorder} rounded-lg p-3`}
                                   whileHover={{ borderColor: "#00F0FF" }}
                                   transition={{ duration: 0.3 }}
                                 >
-                                  <span className="text-white">English</span>
+                                  <span className={textPrimary}>English</span>
                                 </motion.div>
-                                <p className="text-sm text-gray-400">
+                                <p className={`text-sm ${textMuted}`}>
                                   Select language of source website
                                 </p>
                               </motion.div>
@@ -370,7 +399,7 @@ export function SetupProcess() {
                             transition={{ duration: 0.4, delay: 0.4 }}
                           >
                             <motion.div
-                              className="bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border border-[#00F0FF]/30 rounded-lg p-6"
+                              className={`${gradientBg} border border-[#00F0FF]/30 rounded-lg p-6`}
                               whileHover={{
                                 borderColor: "#00F0FF",
                                 transition: { duration: 0.3 },
@@ -390,7 +419,9 @@ export function SetupProcess() {
                                 >
                                   <Zap className="h-6 w-6 text-[#00F0FF]" />
                                 </motion.div>
-                                <h4 className="text-lg font-bold text-white">
+                                <h4
+                                  className={`text-lg font-bold ${textPrimary}`}
+                                >
                                   Crawling & Indexing Process
                                 </h4>
                               </div>
@@ -403,7 +434,7 @@ export function SetupProcess() {
                                 ].map((item, index) => (
                                   <motion.div
                                     key={item}
-                                    className="flex items-center space-x-2 text-sm text-gray-300"
+                                    className={`flex items-center space-x-2 text-sm ${textSecondary}`}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{
@@ -440,7 +471,7 @@ export function SetupProcess() {
                           >
                             {/* Chat Preview */}
                             <motion.div
-                              className="bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border border-[#00F0FF]/30 rounded-lg p-4"
+                              className={`${gradientBg} border border-[#00F0FF]/30 rounded-lg p-4`}
                               whileHover={{ borderColor: "#00F0FF" }}
                               transition={{ duration: 0.3 }}
                             >
@@ -458,21 +489,27 @@ export function SetupProcess() {
                                   <MessageCircle className="h-4 w-4 text-white" />
                                 </motion.div>
                                 <div>
-                                  <div className="font-bold text-white">
+                                  <div className={`font-bold ${textPrimary}`}>
                                     DenserAI
                                   </div>
-                                  <div className="text-xs text-gray-400">
+                                  <div className={`text-xs ${textMuted}`}>
                                     Online
                                   </div>
                                 </div>
                               </div>
                               <motion.div
-                                className="bg-gray-800 rounded-lg p-3"
+                                className={`${
+                                  theme === "dark"
+                                    ? "bg-gray-800"
+                                    : "bg-gray-200"
+                                } rounded-lg p-3`}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: 0.6 }}
                               >
-                                <p className="text-white">{step.chatPreview}</p>
+                                <p className={textPrimary}>
+                                  {step.chatPreview}
+                                </p>
                               </motion.div>
                             </motion.div>
 
@@ -483,7 +520,7 @@ export function SetupProcess() {
                             ].map((item, index) => (
                               <motion.div
                                 key={item}
-                                className="flex items-center space-x-2 text-sm text-gray-300"
+                                className={`flex items-center space-x-2 text-sm ${textSecondary}`}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{

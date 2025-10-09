@@ -28,6 +28,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 
 const comparisonData = [
   {
@@ -275,24 +276,6 @@ const comparisonData = [
   },
 ];
 
-const categories = [
-  { id: "all", label: "All Solutions", color: "from-[#00F0FF] to-[#0080FF]" },
-  { id: "ai", label: "AI Chatbots", color: "from-[#B026FF] to-[#FF2E9F]" },
-  {
-    id: "support",
-    label: "Customer Support",
-    color: "from-[#00F0FF] to-[#00F0FF]",
-  },
-  { id: "sales", label: "Sales", color: "from-[#00F0FF] to-[#B026FF]" },
-  { id: "social", label: "Social Media", color: "from-[#FF2E9F] to-[#B026FF]" },
-  {
-    id: "omnichannel",
-    label: "Omnichannel",
-    color: "from-[#0080FF] to-[#00F0FF]",
-  },
-  { id: "education", label: "Education", color: "from-[#B026FF] to-[#0080FF]" },
-];
-
 const features = [
   {
     key: "availability",
@@ -386,6 +369,27 @@ const FeatureComparisonTable = () => {
   const [sortBy, setSortBy] = useState("rating");
   const [expandedFeatures, setExpandedFeatures] = useState(false);
   const router = useRouter();
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const containerBg = theme === "dark" ? "bg-gray-900/30" : "bg-gray-100/50";
+  const containerBorder =
+    theme === "dark" ? "border-gray-800" : "border-gray-300";
+  const tableHeaderBg = theme === "dark" ? "bg-gray-800/50" : "bg-gray-200/50";
+  const tableBorder = theme === "dark" ? "border-gray-800" : "border-gray-300";
+  const tableRowHover =
+    theme === "dark" ? "hover:bg-gray-800/30" : "hover:bg-gray-100/50";
+  const badgeBg =
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+  const featureCardBg =
+    theme === "dark"
+      ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#00F0FF]/5"
+      : "bg-gradient-to-r from-[#00F0FF]/20 to-[#00F0FF]/10";
+  const featureCardBorder =
+    theme === "dark" ? "border-[#00F0FF]/20" : "border-[#00F0FF]/30";
 
   const filteredData = comparisonData
     .filter(
@@ -414,11 +418,21 @@ const FeatureComparisonTable = () => {
         <Star
           key={star}
           className={`h-4 w-4 ${
-            star <= rating ? "text-yellow-400 fill-current" : "text-gray-600"
+            star <= rating
+              ? "text-yellow-400 fill-current"
+              : theme === "dark"
+              ? "text-gray-600"
+              : "text-gray-400"
           }`}
         />
       ))}
-      <span className="text-sm text-gray-300 ml-1">{rating}</span>
+      <span
+        className={`text-sm ${
+          theme === "dark" ? "text-gray-300" : "text-gray-600"
+        } ml-1`}
+      >
+        {rating}
+      </span>
     </div>
   );
 
@@ -463,8 +477,11 @@ const FeatureComparisonTable = () => {
       },
     },
   };
+
   return (
-    <section className="w-full py-20 bg-transparent text-white relative overflow-hidden">
+    <section
+      className={`w-full py-20 bg-transparent ${textPrimary} relative overflow-hidden`}
+    >
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
@@ -495,7 +512,7 @@ const FeatureComparisonTable = () => {
         />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto  sm:px-3 lg:px-8">
+      <div className="relative z-10 max-w-7xl mx-auto sm:px-3 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -510,14 +527,20 @@ const FeatureComparisonTable = () => {
             viewport={{ once: false }}
             initial="hidden"
           >
-            <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+            <span
+              className={`text-sm font-medium uppercase tracking-widest border ${badgeBg} rounded-full px-4 py-1`}
+            >
               Feature Comparison
             </span>
           </motion.div>
-          <h2 className="text-3xl font-bold mb-4 gradient-text-main text-center">
+          <h2
+            className={`text-3xl font-bold mb-4 gradient-text-main text-center ${textPrimary}`}
+          >
             Compare AI Chatbot Features
           </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-montserrat">
+          <p
+            className={`text-xl ${textSecondary} max-w-3xl mx-auto leading-relaxed font-montserrat`}
+          >
             Detailed feature comparison of top AI chatbot platforms to help you
             choose the perfect solution
           </p>
@@ -540,10 +563,10 @@ const FeatureComparisonTable = () => {
                   <Crown className="h-8 w-8 text-yellow-400" />
                 </motion.div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white">
+                  <h3 className={`text-2xl font-bold ${textPrimary}`}>
                     AinSpireTech
                   </h3>
-                  <p className="text-gray-300 font-montserrat">
+                  <p className={`${textSecondary} font-montserrat`}>
                     The only platform with all 14 essential features
                   </p>
                 </div>
@@ -553,7 +576,7 @@ const FeatureComparisonTable = () => {
                   <div className="text-xl md:text-2xl font-bold text-[#0ce05d]">
                     14/14
                   </div>
-                  <div className="text-gray-300 text-sm">
+                  <div className={`${textSecondary} text-sm`}>
                     Features Available
                   </div>
                 </div>
@@ -581,7 +604,7 @@ const FeatureComparisonTable = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setExpandedFeatures(!expandedFeatures)}
-            className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-[#B026FF]/20 to-[#FF2E9F]/20 backdrop-blur-sm border border-[#B026FF]/30 rounded-full text-gray-300 hover:text-white transition-colors"
+            className={`flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-[#B026FF]/20 to-[#FF2E9F]/20 backdrop-blur-sm border border-[#B026FF]/30 rounded-full ${textSecondary} hover:${textPrimary} transition-colors`}
           >
             <span>
               {expandedFeatures ? "Show Less Features" : "Show All Features"}
@@ -600,19 +623,21 @@ const FeatureComparisonTable = () => {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="bg-gray-900/30 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden shadow-2xl font-montserrat"
+          className={`${containerBg} backdrop-blur-sm border ${containerBorder} rounded-2xl overflow-hidden shadow-2xl font-montserrat`}
         >
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-800 bg-gray-800/50">
-                  <th className="text-left py-6 px-6 font-semibold text-gray-300 min-w-[200px]">
+                <tr className={`border-b ${tableBorder} ${tableHeaderBg}`}>
+                  <th
+                    className={`text-left py-6 px-6 font-semibold ${textSecondary} min-w-[200px]`}
+                  >
                     Software & Pricing
                   </th>
                   {visibleFeatures.map((feature) => (
                     <th
                       key={feature.key}
-                      className="text-center py-6 px-4 font-semibold text-gray-300 min-w-[120px]"
+                      className={`text-center py-6 px-4 font-semibold ${textSecondary} min-w-[120px]`}
                     >
                       <div className="flex flex-col items-center space-y-2">
                         <feature.icon className="h-5 w-5 text-[#00F0FF]" />
@@ -620,12 +645,14 @@ const FeatureComparisonTable = () => {
                       </div>
                     </th>
                   ))}
-                  <th className="text-left py-6 px-6 font-semibold text-gray-300 min-w-[120px]">
+                  <th
+                    className={`text-left py-6 px-6 font-semibold ${textSecondary} min-w-[120px]`}
+                  >
                     Action
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className={`divide-y ${tableBorder}`}>
                 <AnimatePresence>
                   {filteredData.map((item, index) => (
                     <motion.tr
@@ -637,7 +664,7 @@ const FeatureComparisonTable = () => {
                       className={`group transition-all duration-300 ${
                         item.highlight
                           ? "bg-gradient-to-r from-[#0ce05d]/10 to-[#054e29]/10 hover:from-[#0ce05d]/20 hover:to-[#054e29]/20"
-                          : "hover:bg-gray-800/30"
+                          : tableRowHover
                       }`}
                     >
                       {/* Software & Pricing Column */}
@@ -659,7 +686,7 @@ const FeatureComparisonTable = () => {
                             className={`font-semibold ${
                               item.highlight
                                 ? "text-transparent bg-clip-text bg-gradient-to-r from-[#0ce05d] to-[#054e29] text-lg"
-                                : "text-white"
+                                : textPrimary
                             }`}
                           >
                             {item.name}
@@ -691,16 +718,34 @@ const FeatureComparisonTable = () => {
                                 <div className="bg-gradient-to-r from-[#0ce05d]/20 to-[#054e29]/20 p-2 rounded-full">
                                   <Check className="h-5 w-5 text-[#0ce05d]" />
                                 </div>
-                                <span className="text-xs text-gray-400">
+                                <span className={`text-xs ${textMuted}`}>
                                   Available
                                 </span>
                               </div>
                             ) : (
                               <div className="flex flex-col items-center space-y-1">
-                                <div className="bg-gray-800/50 p-2 rounded-full">
-                                  <X className="h-5 w-5 text-gray-600" />
+                                <div
+                                  className={`${
+                                    theme === "dark"
+                                      ? "bg-gray-800/50"
+                                      : "bg-gray-200/50"
+                                  } p-2 rounded-full`}
+                                >
+                                  <X
+                                    className={`h-5 w-5 ${
+                                      theme === "dark"
+                                        ? "text-gray-600"
+                                        : "text-gray-400"
+                                    }`}
+                                  />
                                 </div>
-                                <span className="text-xs text-gray-600">
+                                <span
+                                  className={`text-xs ${
+                                    theme === "dark"
+                                      ? "text-gray-600"
+                                      : "text-gray-500"
+                                  }`}
+                                >
                                   Not Available
                                 </span>
                               </div>
@@ -743,8 +788,12 @@ const FeatureComparisonTable = () => {
               animate={{ opacity: 1 }}
               className="text-center py-12"
             >
-              <Filter className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">
+              <Filter
+                className={`h-12 w-12 ${
+                  theme === "dark" ? "text-gray-600" : "text-gray-400"
+                } mx-auto mb-4`}
+              />
+              <p className={`${textMuted} text-lg`}>
                 No solutions found matching your criteria
               </p>
             </motion.div>
@@ -758,7 +807,7 @@ const FeatureComparisonTable = () => {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="mt-8 font-montserrat"
         >
-          <h3 className="text-2xl font-bold text-white mb-6 text-center">
+          <h3 className={`text-2xl font-bold ${textPrimary} mb-6 text-center`}>
             Feature Availability Overview
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
@@ -774,17 +823,13 @@ const FeatureComparisonTable = () => {
                 <motion.div
                   key={feature.key}
                   whileHover={{ scale: 1.05 }}
-                  className={`${
-                    index % 2 === 0
-                      ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#00F0FF]/5 backdrop-blur-sm border border-[#00F0FF]/20 rounded-xl p-6 text-center"
-                      : "bg-gradient-to-r from-[#0ce05d]/10 to-[#0ce05d]/5 backdrop-blur-sm border border-[#0ce05d]/20 rounded-xl p-6 text-center"
-                  } `}
+                  className={`${featureCardBg} backdrop-blur-sm border ${featureCardBorder} rounded-xl p-6 text-center`}
                 >
                   <feature.icon className="h-6 w-6 text-[#00F0FF] mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">
+                  <div className={`text-2xl font-bold ${textPrimary}`}>
                     {percentage}%
                   </div>
-                  <div className="text-xs text-gray-400">{feature.label}</div>
+                  <div className={`text-xs ${textMuted}`}>{feature.label}</div>
                 </motion.div>
               );
             })}

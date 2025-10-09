@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 
 // TypingAnimation Component
 const TypingAnimation = ({
@@ -73,6 +74,29 @@ const TypingAnimation = ({
 export function InstagramAutomationHero() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const badgeBg =
+    theme === "dark"
+      ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-[#00F0FF]/30"
+      : "bg-gradient-to-r from-[#00F0FF]/5 to-[#B026FF]/5 backdrop-blur-sm border border-[#00F0FF]/20";
+
+  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const featureText =
+    theme === "dark"
+      ? "text-gray-300 group-hover:text-white"
+      : "text-gray-600 group-hover:text-gray-900";
+
+  const outlineButtonBorder =
+    theme === "dark"
+      ? "border-[#00F0FF] text-[#00F0FF] hover:bg-[#00F0FF]/10"
+      : "border-[#00F0FF] text-[#00F0FF] hover:bg-[#00F0FF]/5";
+
+  const trustBadgeText = theme === "dark" ? "text-gray-400" : "text-gray-500";
 
   const FeatureItem = ({
     icon,
@@ -96,14 +120,16 @@ export function InstagramAutomationHero() {
       >
         {icon}
       </motion.div>
-      <span className="text-gray-300 group-hover:text-white transition-colors duration-300 font-medium">
+      <span
+        className={`transition-colors duration-300 font-medium ${featureText}`}
+      >
         {text}
       </span>
     </motion.div>
   );
 
   return (
-    <section className="w-full bg-transparent text-white pb-20">
+    <section className="w-full bg-transparent text-foreground pb-20">
       <div className=" mx-auto md:px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
           {/* Left Column - Content */}
@@ -119,7 +145,7 @@ export function InstagramAutomationHero() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="inline-flex items-center bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-[#00F0FF]/30 rounded-full px-6 py-3"
+                className={`inline-flex items-center ${badgeBg} rounded-full px-6 py-3`}
               >
                 <Zap className="h-5 w-5 text-[#00F0FF] mr-2" />
                 <span className="text-xs md:text-sm font-medium text-nowrap uppercase tracking-widest text-[#00F0FF]">
@@ -131,7 +157,7 @@ export function InstagramAutomationHero() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="text-3xl md:text-4xl  font-semibold leading-tight"
+                className={`text-3xl md:text-4xl font-semibold leading-tight ${titleText}`}
               >
                 Turn Comments Into
                 <br />
@@ -149,7 +175,7 @@ export function InstagramAutomationHero() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="text-base md:text-lg lg:text-xl text-gray-300 leading-relaxed font-montserrat"
+                className={`text-base md:text-lg lg:text-xl leading-relaxed font-montserrat ${descriptionText}`}
               >
                 Automatically reply to Instagram comments with personalized DMs
                 that convert followers into subscribers and customers. No coding
@@ -202,7 +228,7 @@ export function InstagramAutomationHero() {
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => router.push("/insta/dashboard")}
-                className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
+                className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-white font-bold py-2 px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
               >
                 <Rocket className="h-5 w-5 mr-2" />
                 Start Free Trial
@@ -213,7 +239,7 @@ export function InstagramAutomationHero() {
                 whileHover={{ scale: 1.05 }}
                 onClick={() => router.push("/insta/pricing")}
                 whileTap={{ scale: 0.95 }}
-                className="border-2 border-[#00F0FF] text-[#00F0FF] font-semibold py-2 px-4 md:py-3 md:px-6 rounded-2xl hover:bg-[#00F0FF]/10 transition-all duration-300 flex items-center justify-center"
+                className={`border-2 font-semibold py-2 px-4 md:py-3 md:px-6 rounded-2xl transition-all duration-300 flex items-center justify-center ${outlineButtonBorder}`}
               >
                 <Calendar className="h-5 w-5 mr-2" />
                 View Pricing
@@ -225,7 +251,7 @@ export function InstagramAutomationHero() {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 1.1 }}
-              className="flex flex-wrap items-center gap-3 md:gap-6 text-sm text-gray-400"
+              className={`flex flex-wrap items-center gap-3 md:gap-6 text-sm ${trustBadgeText}`}
             >
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-green-400" />

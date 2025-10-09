@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTheme } from "next-themes";
 
 const testimonials = [
   {
@@ -28,6 +29,23 @@ const testimonials = [
 ];
 
 function InstaTestimonialsSection() {
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+  const badgeBorder =
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
+  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
+  const cardHoverBorder =
+    theme === "dark"
+      ? "hover:border-[#258b94]/40"
+      : "hover:border-[#258b94]/60";
+  const testimonialText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const companyText = theme === "dark" ? "text-gray-400" : "text-gray-500";
+
   // EXACT same animation variants as FAQ component
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -60,7 +78,10 @@ function InstaTestimonialsSection() {
     hover: {
       y: -8,
       scale: 1.02,
-      borderColor: "rgba(37, 139, 148, 0.4)",
+      borderColor:
+        theme === "dark"
+          ? "rgba(37, 139, 148, 0.4)"
+          : "rgba(37, 139, 148, 0.2)",
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -118,7 +139,7 @@ function InstaTestimonialsSection() {
   };
 
   return (
-    <section className="py-16 bg-transparent">
+    <section className={`py-16 bg-transparent ${containerBg}`}>
       <motion.div
         className="text-center mb-12"
         variants={containerVariants}
@@ -133,12 +154,14 @@ function InstaTestimonialsSection() {
           viewport={{ once: false }}
           initial="hidden"
         >
-          <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+          <span
+            className={`text-sm font-medium uppercase tracking-widest border ${badgeBorder} rounded-full px-4 py-1`}
+          >
             CLIENT REVIEW
           </span>
         </motion.div>
         <motion.h2
-          className="text-3xl font-bold text-white mb-4 gradient-text-main"
+          className={`text-3xl font-bold mb-4 gradient-text-main ${titleText}`}
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -147,7 +170,7 @@ function InstaTestimonialsSection() {
           What Our Customers Say
         </motion.h2>
         <motion.p
-          className="text-xl text-gray-300 font-montserrat"
+          className={`text-xl font-montserrat ${descriptionText}`}
           variants={textVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -159,7 +182,7 @@ function InstaTestimonialsSection() {
       </motion.div>
 
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 bg-[#0a0a0a]/10 backdrop-blur-sm"
+        className={`grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 ${containerBg} backdrop-blur-sm`}
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -174,7 +197,9 @@ function InstaTestimonialsSection() {
             viewport={{ once: false, margin: "-50px" }}
             initial="hidden"
           >
-            <Card className="bg-[#0a0a0a]/60 border border-white/10 hover:border-[#258b94]/40 transition-colors duration-300 backdrop-blur-sm h-full">
+            <Card
+              className={`${cardBg} border ${cardBorder} ${cardHoverBorder} transition-colors duration-300 backdrop-blur-sm h-full`}
+            >
               <CardContent className="p-3 md:p-6">
                 <motion.div
                   className="flex items-center gap-1 mb-4"
@@ -196,7 +221,7 @@ function InstaTestimonialsSection() {
                 </motion.div>
 
                 <motion.p
-                  className="text-gray-300 mb-4 font-montserrat"
+                  className={`mb-4 font-montserrat ${testimonialText}`}
                   variants={textVariants}
                   whileInView="visible"
                   viewport={{ once: false }}
@@ -211,8 +236,12 @@ function InstaTestimonialsSection() {
                   viewport={{ once: false }}
                   initial="hidden"
                 >
-                  <p className="font-semibold text-white">{testimonial.name}</p>
-                  <p className="text-sm text-gray-400">{testimonial.company}</p>
+                  <p className={`font-semibold ${titleText}`}>
+                    {testimonial.name}
+                  </p>
+                  <p className={`text-sm ${companyText}`}>
+                    {testimonial.company}
+                  </p>
                 </motion.div>
               </CardContent>
             </Card>

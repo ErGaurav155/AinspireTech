@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ArrowRight,
   Shield,
@@ -20,8 +22,35 @@ import {
 import Link from "next/link";
 import Faq from "@/components/shared/Faq";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
+import { useTheme } from "next-themes";
 
 export default function Home() {
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const containerBg = theme === "dark" ? "bg-transparent" : "bg-gray-50";
+  const cardBg = theme === "dark" ? "bg-transparent" : "bg-white/80";
+  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
+  const ctaCardBg =
+    theme === "dark"
+      ? "bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a]/90"
+      : "bg-gradient-to-br from-white to-gray-100/90";
+  const ctaCardBorder =
+    theme === "dark" ? "border-white/10" : "border-gray-300";
+  const iconBg =
+    theme === "dark"
+      ? "bg-gradient-to-br from-white/10 to-white/5"
+      : "bg-gradient-to-br from-gray-100 to-gray-200";
+  const outlineButtonBorder =
+    theme === "dark" ? "border-[#B026FF]/30" : "border-[#B026FF]/50";
+  const outlineButtonText =
+    theme === "dark" ? "text-[#B026FF]" : "text-[#B026FF]";
+  const outlineButtonHover =
+    theme === "dark" ? "hover:bg-[#B026FF]/10" : "hover:bg-[#B026FF]/10";
+
   const features = [
     {
       icon: MessageSquare,
@@ -90,8 +119,31 @@ export default function Home() {
     },
   ];
 
+  const colorClasses = {
+    cyan:
+      theme === "dark"
+        ? "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:border-[#00F0FF]/40"
+        : "from-[#00F0FF]/20 to-[#00F0FF]/10 border-[#00F0FF]/30 hover:border-[#00F0FF]/60",
+    purple:
+      theme === "dark"
+        ? "from-[#B026FF]/20 to-[#B026FF]/5 border-[#B026FF]/20 hover:border-[#B026FF]/40"
+        : "from-[#B026FF]/20 to-[#B026FF]/10 border-[#B026FF]/30 hover:border-[#B026FF]/60",
+    pink:
+      theme === "dark"
+        ? "from-[#FF2E9F]/20 to-[#FF2E9F]/5 border-[#FF2E9F]/20 hover:border-[#FF2E9F]/40"
+        : "from-[#FF2E9F]/20 to-[#FF2E9F]/10 border-[#FF2E9F]/30 hover:border-[#FF2E9F]/60",
+  };
+
+  const iconColors = {
+    cyan: "text-[#00F0FF]",
+    purple: "text-[#B026FF]",
+    pink: "text-[#FF2E9F]",
+  };
+
   return (
-    <div className="min-h-screen max-w-7xl m-auto  text-white">
+    <div
+      className={`min-h-screen max-w-7xl m-auto ${textPrimary} ${containerBg}`}
+    >
       <BreadcrumbsDefault />
 
       {/* Hero Section */}
@@ -100,28 +152,17 @@ export default function Home() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {features.map((feature, index) => {
             const Icon = feature.icon;
-            const colorClasses = {
-              cyan: "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:border-[#00F0FF]/40",
-              purple:
-                "from-[#B026FF]/20 to-[#B026FF]/5 border-[#B026FF]/20 hover:border-[#B026FF]/40",
-              pink: "from-[#FF2E9F]/20 to-[#FF2E9F]/5 border-[#FF2E9F]/20 hover:border-[#FF2E9F]/40",
-            };
-            const iconColors = {
-              cyan: "text-[#00F0FF]",
-              purple: "text-[#B026FF]",
-              pink: "text-[#FF2E9F]",
-            };
 
             return (
               <Card
                 key={index}
                 className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${
                   colorClasses[feature.color as keyof typeof colorClasses]
-                } bg-transparent border`}
+                } ${cardBg} border`}
               >
                 <CardHeader>
                   <div
-                    className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4  bg-gradient-to-br from-white/10 to-white/5 group-hover:scale-110 transition-transform`}
+                    className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 ${iconBg} group-hover:scale-110 transition-transform`}
                   >
                     <Icon
                       className={`h-6 w-6 ${
@@ -129,8 +170,10 @@ export default function Home() {
                       }`}
                     />
                   </div>
-                  <CardTitle className="text-white">{feature.title}</CardTitle>
-                  <CardDescription className="text-gray-300 font-montserrat">
+                  <CardTitle className={textPrimary}>{feature.title}</CardTitle>
+                  <CardDescription
+                    className={`${textSecondary} font-montserrat`}
+                  >
                     {feature.description}
                   </CardDescription>
                 </CardHeader>
@@ -141,12 +184,18 @@ export default function Home() {
 
         {/* CTA Section */}
         <div className="text-center">
-          <Card className="max-w-4xl mx-auto bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a]/90 border border-white/10 backdrop-blur-lg">
+          <Card
+            className={`max-w-4xl mx-auto ${ctaCardBg} border ${ctaCardBorder} backdrop-blur-lg`}
+          >
             <CardContent className="pt-12 pb-12">
-              <h2 className="text-4xl font-bold mb-4 gradient-text-main">
-                🚀 Ready to Convert Your Website Traffic Into Paying Clients?{" "}
+              <h2
+                className={`text-4xl font-bold mb-4 gradient-text-main ${textPrimary}`}
+              >
+                🚀 Ready to Convert Your Website Traffic Into Paying Clients?
               </h2>
-              <p className="text-gray-300 mb-8 text-lg font-montserrat max-w-2xl mx-auto">
+              <p
+                className={`${textSecondary} mb-8 text-lg font-montserrat max-w-2xl mx-auto`}
+              >
                 Thousands of local businesses are using AI-powered chatbots to
                 automate support, boost engagement, and increase sales.
               </p>
@@ -163,7 +212,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="text-lg px-8 border-[#B026FF]/30 bg-transparent text-[#B026FF] hover:bg-[#B026FF]/10"
+                  className={`text-lg px-8 ${outlineButtonBorder} ${cardBg} ${outlineButtonText} ${outlineButtonHover}`}
                 >
                   View Pricing
                 </Button>

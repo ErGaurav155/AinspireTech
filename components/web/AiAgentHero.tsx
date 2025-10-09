@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 
 import {
   CheckCircle,
@@ -110,8 +111,8 @@ const FinancialAnalysisResponse = ({
       <div className="bg-transparent border border-[#00F0FF]/30 rounded-lg p-2 mb-2 w-full h-[34rem] sm:h-[28rem]">
         {/* Initial Response  h-[82vh] */}
         {showUserMessage && (
-          <div className="bg-blue-800 rounded-lg p-2 mb-2 max-w-max w-full ml-auto">
-            <p className="text-white">
+          <div className="bg-blue-800 text-white rounded-lg p-2 mb-2 max-w-max w-full ml-auto">
+            <p className="">
               <TypingAnimation
                 text="Can you analyze our Q3 financial report?"
                 speed={40}
@@ -120,7 +121,7 @@ const FinancialAnalysisResponse = ({
           </div>
         )}
         {showResponse && (
-          <p className="text-white mb-2">
+          <p className=" mb-2">
             <TypingAnimation
               text="Revenue increased by 23% YoY with strong performance."
               speed={30}
@@ -133,19 +134,17 @@ const FinancialAnalysisResponse = ({
           <div className="border border-gray-700 p-2 rounded-md h-[25rem] sm:h-[22rem]">
             <div className="flex items-center bg-transparent rounded-lg p-3 mb-1">
               <FileText className="h-5 w-5 text-[#00F0FF] mr-2" />
-              <span className="text-sm text-gray-300">
-                Q3_Financial_Report.pdf
-              </span>
+              <span className="text-sm ">Q3_Financial_Report.pdf</span>
             </div>
 
             {/* Financial Summary */}
             {showSummary && (
               <div className="space-y-2">
                 <div>
-                  <h4 className="font-bold text-white text-lg mb-1">
+                  <h4 className="font-bold  text-lg mb-1">
                     QUARTERLY FINANCIAL SUMMARY
                   </h4>
-                  <p className="text-gray-300 text-sm">
+                  <p className=" text-sm">
                     <TypingAnimation
                       text="This report presents the financial performance for Q3 2024..."
                       speed={20}
@@ -156,10 +155,8 @@ const FinancialAnalysisResponse = ({
                 {/* Key Metrics */}
                 {showMetrics && (
                   <div>
-                    <h4 className="font-bold text-white mb-1">
-                      Key Performance Metrics:
-                    </h4>
-                    <ul className="text-gray-300 text-xs space-y-1">
+                    <h4 className="font-bold mb-1">Key Performance Metrics:</h4>
+                    <ul className=" text-xs space-y-1">
                       <li>
                         •{" "}
                         <TypingAnimation
@@ -201,7 +198,7 @@ const FinancialAnalysisResponse = ({
                         AI Insight
                       </span>
                     </div>
-                    <ul className="text-gray-300 text-xs space-y-1">
+                    <ul className=" text-xs space-y-1">
                       <li>
                         •{" "}
                         <TypingAnimation
@@ -262,8 +259,8 @@ const PricingQuestionResponse = ({
     <div className="space-y-2">
       {/* User Message */}
       {showUserMessage && (
-        <div className="bg-blue-800 rounded-lg p-2 mb-2 max-w-max w-full ml-auto">
-          <p className="text-white">
+        <div className="bg-blue-800 text-white rounded-lg p-2 mb-2 max-w-max w-full ml-auto">
+          <p className="">
             <TypingAnimation text="What are your pricing plans?" speed={40} />
           </p>
         </div>
@@ -272,7 +269,7 @@ const PricingQuestionResponse = ({
       {/* AI Response */}
       {showAIResponse && (
         <div className="bg-transparent border border-[#00F0FF]/30 rounded-lg p-2">
-          <p className="text-white mb-3">
+          <p className=" mb-3">
             <TypingAnimation
               text="We offer three main pricing tiers: Starter ($29/month), Standard ($119/month), and Business ($399/month). Each plan includes different features and usage limits."
               speed={20}
@@ -289,11 +286,11 @@ const PricingQuestionResponse = ({
 
               {showSourcesList && (
                 <div className="space-y-2">
-                  <div className="flex items-center text-sm text-gray-300">
+                  <div className="flex items-center text-sm ">
                     <div className="w-2 h-2 bg-[#00F0FF] rounded-full mr-2"></div>
                     <TypingAnimation text="Pricing Page" speed={30} />
                   </div>
-                  <div className="flex items-center text-sm text-gray-300">
+                  <div className="flex items-center text-sm ">
                     <div className="w-2 h-2 bg-[#00F0FF] rounded-full mr-2"></div>
                     <TypingAnimation text="Feature Comparison" speed={30} />
                   </div>
@@ -325,7 +322,6 @@ const PricingQuestionResponse = ({
   );
 };
 
-// Third AI Response Component - Technical Support
 // Third AI Response Component - Pricing Plans
 const PricingPlansResponse = ({ onComplete }: { onComplete: () => void }) => {
   const [showHeader, setShowHeader] = useState(false);
@@ -349,18 +345,18 @@ const PricingPlansResponse = ({ onComplete }: { onComplete: () => void }) => {
   return (
     <div className="bg-transparent border border-[#00F0FF]/30 rounded-lg p-3 space-y-4">
       {showUserMessage && (
-        <div className="bg-blue-800 rounded-lg p-2 mb-2 max-w-max w-full ml-auto">
-          <p className="text-white">
+        <div className="bg-blue-800 text-white rounded-lg p-2 mb-2 max-w-max w-full ml-auto">
+          <p className="">
             <TypingAnimation text="What are your pricing plans?" speed={40} />
           </p>
         </div>
       )}
       {showHeader && (
         <div>
-          <h3 className="text-xl font-bold text-white mb-2">
+          <h3 className="text-xl font-bold  mb-2">
             <TypingAnimation text="Denser Pricing Plans" speed={30} />
           </h3>
-          <p className="text-gray-300 text-sm">
+          <p className=" text-sm">
             <TypingAnimation
               text="Choose the right plan for your business needs."
               speed={20}
@@ -372,18 +368,14 @@ const PricingPlansResponse = ({ onComplete }: { onComplete: () => void }) => {
       {showPlans && (
         <div className="space-y-2 ">
           <div className="border border-[#00F0FF]/20 rounded-lg p-3 hover:border-[#00F0FF]/50 transition">
-            <h4 className="font-semibold text-white">
-              Starter Plan - $29/month
-            </h4>
+            <h4 className="font-semibold ">Starter Plan - $29/month</h4>
             <p className="text-xs text-gray-400">
               Perfect for small businesses getting started with AI chatbots.
             </p>
           </div>
 
           <div className="border border-[#00F0FF]/20 rounded-lg p-3 hover:border-[#00F0FF]/50 transition">
-            <h4 className="font-semibold text-white">
-              Standard Plan - $119/month
-            </h4>
+            <h4 className="font-semibold ">Standard Plan - $119/month</h4>
             <p className="text-xs text-gray-400">
               Includes unlimited chatbots, advanced AI features, priority
               support, and custom integrations.
@@ -391,9 +383,7 @@ const PricingPlansResponse = ({ onComplete }: { onComplete: () => void }) => {
           </div>
 
           <div className="border border-[#00F0FF]/20 rounded-lg p-3 hover:border-[#00F0FF]/50 transition">
-            <h4 className="font-semibold text-white">
-              Business Plan - $399/month
-            </h4>
+            <h4 className="font-semibold ">Business Plan - $399/month</h4>
             <p className="text-xs text-gray-400">
               Tailored solutions for large organizations with dedicated support.
             </p>
@@ -426,6 +416,16 @@ const ChatDemoCarousel = () => {
   const [activeDemo, setActiveDemo] = useState(0);
   const [showUserMessage, setShowUserMessage] = useState(false);
   const [showAIResponse, setShowAIResponse] = useState(false);
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-100/50";
+  const containerBorder =
+    theme === "dark" ? "border-gray-800" : "border-gray-300";
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-400" : "text-gray-600";
+  const textMuted = theme === "dark" ? "" : "text-gray-500";
+  const badgeBg = theme === "dark" ? "bg-gray-600" : "bg-gray-400";
 
   const demos = [
     {
@@ -440,7 +440,7 @@ const ChatDemoCarousel = () => {
     },
     {
       userMessage: "Show me your pricing tiers",
-      component: PricingPlansResponse, // 👈 new component
+      component: PricingPlansResponse,
       title: "Pricing Plans",
     },
   ];
@@ -492,22 +492,24 @@ const ChatDemoCarousel = () => {
             className={`w-2 h-2 rounded-full transition-all duration-300 ${
               index === activeDemo
                 ? "bg-[#00F0FF] w-6"
-                : "bg-gray-600 hover:bg-gray-400"
+                : `${badgeBg} hover:bg-gray-400`
             }`}
           />
         ))}
       </div>
 
       {/* Chat Container */}
-      <div className="container bg-[#0a0a0a]/10 backdrop-blur-sm border border-gray-800 rounded-2xl p-2 shadow-2xl w-full h-[40rem] sm:h-[33rem]">
-        {/* Chat Header  lg:w-[80%] h-[96vh] */}
+      <div
+        className={`container ${containerBg} backdrop-blur-sm border ${containerBorder} rounded-2xl p-2 shadow-2xl w-full h-[40rem] sm:h-[33rem]`}
+      >
+        {/* Chat Header */}
         <div className="flex items-center space-x-3 mb-3">
           <div className="w-12 h-12 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full flex items-center justify-center">
-            <MessageCircle className="h-6 w-6 text-white" />
+            <MessageCircle className="h-6 w-6 " />
           </div>
           <div>
-            <div className="font-bold text-white">Denser Agent</div>
-            <div className="text-sm text-gray-400">
+            <div className={`font-bold ${textPrimary}`}>Denser Agent</div>
+            <div className={`text-sm ${textSecondary}`}>
               {demos[activeDemo].title} • AI-powered assistant
             </div>
           </div>
@@ -528,6 +530,18 @@ const ChatDemoCarousel = () => {
 
 export function AIAgentHero() {
   const router = useRouter();
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-400" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const badgeBg =
+    theme === "dark"
+      ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10"
+      : "bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20";
+  const badgeBorder =
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
 
   const FeatureItem = ({
     icon,
@@ -551,13 +565,16 @@ export function AIAgentHero() {
       >
         {icon}
       </motion.div>
-      <span className="text-gray-300 group-hover:text-white transition-colors duration-300 font-medium">
+      <span
+        className={`${textSecondary} group-hover:${textPrimary} transition-colors duration-300 font-medium`}
+      >
         {text}
       </span>
     </motion.div>
   );
+
   return (
-    <section className="w-full bg-transparent text-white ">
+    <section className={`w-full bg-transparent ${textPrimary}`}>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center max-w-7xl mx-auto">
           {/* Left Column - Content */}
@@ -573,7 +590,7 @@ export function AIAgentHero() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="flex justify-center items-center bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-[#00F0FF]/30 rounded-full px-6 py-3 mb-4 max-w-min text-nowrap"
+                className={`flex justify-center items-center ${badgeBg} backdrop-blur-sm border ${badgeBorder} rounded-full px-6 py-3 mb-4 max-w-min text-nowrap`}
               >
                 <Sparkles className="h-5 w-5 text-[#00F0FF] mr-2" />
                 <span className="text-sm font-medium uppercase tracking-widest text-[#00F0FF]">
@@ -585,7 +602,7 @@ export function AIAgentHero() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="text-3xl md:text-4xl  font-semibold leading-tight"
+                className={`text-3xl md:text-4xl font-semibold leading-tight ${textPrimary}`}
               >
                 Chatbot that converts website visitor
                 <br />
@@ -603,7 +620,7 @@ export function AIAgentHero() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="text-lg lg:text-xl text-gray-300 leading-relaxed font-montserrat"
+                className={`text-lg lg:text-xl ${textSecondary} leading-relaxed font-montserrat`}
               >
                 Train AI on your documents, websites, and data. Get instant,
                 verified answers with full citations and context awareness.
@@ -678,7 +695,7 @@ export function AIAgentHero() {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 1.1 }}
-              className="flex items-center space-x-3 md:space-x-6 text-sm text-gray-400"
+              className={`flex items-center space-x-3 md:space-x-6 text-sm ${textMuted}`}
             >
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-green-400" />

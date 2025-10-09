@@ -17,6 +17,7 @@ import Rimg1 from "@/public/assets/img/chatbot.png";
 import Rimg2 from "@/public/assets/img/headingimg.png";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 
 export default function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -31,7 +32,7 @@ export default function HeroSection() {
   }, [slides.length]);
 
   return (
-    <section className="text-white px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section className="text-foreground px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto py-10">
         <div className="relative">
           {slides.map((slide, index) => (
@@ -55,8 +56,32 @@ export default function HeroSection() {
 // Instagram Section Component
 function InstagramSection() {
   const router = useRouter();
+  const { theme } = useTheme();
 
-  // Animation variants - EXACTLY like FAQ component
+  // Theme-based styles
+  const badgeBorder =
+    theme === "dark" ? "border-blue-400/30" : "border-blue-400/50";
+
+  const badgeText = theme === "dark" ? "text-blue-400" : "text-blue-600";
+
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const trustBadgeText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const featureText = theme === "dark" ? "text-gray-300" : "text-gray-700";
+
+  const secondaryText = theme === "dark" ? "text-gray-400" : "text-gray-500";
+
+  const outlineButtonBorder =
+    theme === "dark" ? "border-[#00F0FF]" : "border-[#00F0FF]";
+
+  const outlineButtonText =
+    theme === "dark" ? "text-[#00F0FF]" : "text-[#00F0FF]";
+
+  const outlineButtonHover =
+    theme === "dark" ? "hover:bg-[#00F0FF]/10" : "hover:bg-[#00F0FF]/5";
+
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -88,7 +113,10 @@ function InstagramSection() {
     hover: {
       y: -8,
       scale: 1.02,
-      boxShadow: "0 20px 40px -10px rgba(37, 139, 148, 0.2)",
+      boxShadow:
+        theme === "dark"
+          ? "0 20px 40px -10px rgba(37, 139, 148, 0.2)"
+          : "0 20px 40px -10px rgba(37, 139, 148, 0.1)",
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -188,7 +216,7 @@ function InstagramSection() {
   return (
     <div>
       {/* Hero Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-12 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-12 items-center">
         {/* Left Column - Text Content */}
         <motion.div
           variants={containerVariants}
@@ -197,7 +225,7 @@ function InstagramSection() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className="inline-flex items-center text-blue-400 border border-blue-400/30 rounded-full px-4 py-1 mb-4"
+            className={`inline-flex items-center ${badgeText} border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={badgeVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -222,7 +250,7 @@ function InstagramSection() {
           </motion.h1>
 
           <motion.p
-            className="text-xl text-gray-300 mb-8 max-w-2xl font-montserrat"
+            className={`text-xl ${descriptionText} mb-8 max-w-2xl font-montserrat`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -245,7 +273,7 @@ function InstagramSection() {
               variants={badgeVariants}
             >
               <BadgeCheck className="h-5 w-5 text-[#00F0FF]" />
-              <span className="text-sm text-gray-300">
+              <span className={`text-sm ${trustBadgeText}`}>
                 Meta Business Partner
               </span>
             </motion.div>
@@ -254,7 +282,7 @@ function InstagramSection() {
               variants={badgeVariants}
             >
               <BadgeCheck className="h-5 w-5 text-[#00F0FF]" />
-              <span className="text-sm text-gray-300">
+              <span className={`text-sm ${trustBadgeText}`}>
                 500+ creators, brands and agencies!
               </span>
             </motion.div>
@@ -281,7 +309,9 @@ function InstagramSection() {
                 variants={featureVariants}
               >
                 <Check className="h-5 w-5 text-[#FF2E9F] mr-3" />
-                <span className="text-gray-300 font-montserrat">{feature}</span>
+                <span className={`font-montserrat ${featureText}`}>
+                  {feature}
+                </span>
               </motion.div>
             ))}
           </motion.div>
@@ -296,7 +326,7 @@ function InstagramSection() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push("/web")}
-              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-2 md:px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-white font-bold py-2 px-2 md:px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
             >
               <Rocket className="h-5 w-5 mr-1 md:mr-2" />
               Start Automating - Free!
@@ -306,14 +336,14 @@ function InstagramSection() {
               whileHover={{ scale: 1.05 }}
               onClick={() => router.push("/web/pricing")}
               whileTap={{ scale: 0.95 }}
-              className="border-2 border-[#00F0FF] text-[#00F0FF] font-semibold py-2 px-4  rounded-2xl hover:bg-[#00F0FF]/10 transition-all duration-300 flex items-center justify-center"
+              className={`border-2 ${outlineButtonBorder} ${outlineButtonText} font-semibold py-2 px-4 rounded-2xl ${outlineButtonHover} transition-all duration-300 flex items-center justify-center`}
             >
               <Calendar className="h-5 w-5 mr-2" />
               View Pricing
             </motion.button>
           </motion.div>
           <motion.p
-            className="text-sm text-gray-400 font-montserrat"
+            className={`text-sm ${secondaryText} font-montserrat`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -329,14 +359,14 @@ function InstagramSection() {
           whileInView="visible"
           viewport={{ once: false, margin: "-50px" }}
           initial="hidden"
-          className="relative m-auto w-full h-[50vh] lg:h-[90%] xl:h-[100%]"
+          className="relative m-auto w-full aspect-square"
         >
           <Image
             src={Rimg2}
             alt="Instagram Automation"
             fill
             sizes="100%"
-            className="object-contain"
+            className="object-cover"
             loading="lazy"
           />
           {/* Decorative elements */}
@@ -351,8 +381,32 @@ function InstagramSection() {
 // Web Chatbot Section Component
 function WebChatbotSection() {
   const router = useRouter();
+  const { theme } = useTheme();
 
-  // EXACT SAME animation variants as FAQ component
+  // Theme-based styles
+  const badgeBorder =
+    theme === "dark" ? "border-blue-400/30" : "border-blue-400/50";
+
+  const badgeText = theme === "dark" ? "text-blue-400" : "text-blue-600";
+
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const trustBadgeText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const featureText = theme === "dark" ? "text-gray-300" : "text-gray-700";
+
+  const secondaryText = theme === "dark" ? "text-gray-400" : "text-gray-500";
+
+  const outlineButtonBorder =
+    theme === "dark" ? "border-[#00F0FF]" : "border-[#00F0FF]";
+
+  const outlineButtonText =
+    theme === "dark" ? "text-[#00F0FF]" : "text-[#00F0FF]";
+
+  const outlineButtonHover =
+    theme === "dark" ? "hover:bg-[#00F0FF]/10" : "hover:bg-[#00F0FF]/5";
+
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -384,7 +438,10 @@ function WebChatbotSection() {
     hover: {
       y: -8,
       scale: 1.02,
-      boxShadow: "0 20px 40px -10px rgba(37, 139, 148, 0.2)",
+      boxShadow:
+        theme === "dark"
+          ? "0 20px 40px -10px rgba(37, 139, 148, 0.2)"
+          : "0 20px 40px -10px rgba(37, 139, 148, 0.1)",
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -484,7 +541,7 @@ function WebChatbotSection() {
   return (
     <div>
       {/* Hero Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-12 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-12 items-center">
         {/* Left Column - Text Content */}
         <motion.div
           variants={containerVariants}
@@ -493,7 +550,7 @@ function WebChatbotSection() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className="inline-flex items-center text-blue-400 border border-blue-400/30 rounded-full px-4 py-1 mb-4"
+            className={`inline-flex items-center ${badgeText} border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={badgeVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -518,7 +575,7 @@ function WebChatbotSection() {
           </motion.h1>
 
           <motion.p
-            className="text-xl text-gray-300 mb-8 max-w-2xl font-montserrat"
+            className={`text-xl ${descriptionText} mb-8 max-w-2xl font-montserrat`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -541,16 +598,18 @@ function WebChatbotSection() {
               variants={badgeVariants}
             >
               <BadgeCheck className="h-5 w-5 text-[#00F0FF]" />
-              <span className="text-sm text-gray-300">
+              <span className={`text-sm ${trustBadgeText}`}>
                 AI-Powered Responses
               </span>
             </motion.div>
             <motion.div
-              className="flex items-center justify-center gap-1 text-sm text-gray-400"
+              className="flex items-center justify-center gap-1 text-sm"
               variants={badgeVariants}
             >
               <BadgeCheck className="h-5 w-5 text-[#00F0FF]" />
-              <p>Used by 500+ businesses worldwide!</p>
+              <p className={trustBadgeText}>
+                Used by 500+ businesses worldwide!
+              </p>
             </motion.div>
           </motion.div>
 
@@ -575,7 +634,9 @@ function WebChatbotSection() {
                 variants={featureVariants}
               >
                 <Check className="h-5 w-5 text-[#FF2E9F] mr-3" />
-                <span className="text-gray-300 font-montserrat">{feature}</span>
+                <span className={`font-montserrat ${featureText}`}>
+                  {feature}
+                </span>
               </motion.div>
             ))}
           </motion.div>
@@ -591,7 +652,7 @@ function WebChatbotSection() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push("/insta")}
-              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-2 md:px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-white font-bold py-2 px-2 md:px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
             >
               <Rocket className="h-5 w-5 mr-1 md:mr-2" />
               Start Automating - Free!
@@ -601,7 +662,7 @@ function WebChatbotSection() {
               whileHover={{ scale: 1.05 }}
               onClick={() => router.push("/insta/pricing")}
               whileTap={{ scale: 0.95 }}
-              className="border-2 border-[#00F0FF] text-[#00F0FF] font-semibold py-2 px-4  rounded-2xl hover:bg-[#00F0FF]/10 transition-all duration-300 flex items-center justify-center"
+              className={`border-2 ${outlineButtonBorder} ${outlineButtonText} font-semibold py-2 px-4 rounded-2xl ${outlineButtonHover} transition-all duration-300 flex items-center justify-center`}
             >
               <Calendar className="h-5 w-5 mr-2" />
               View Pricing
@@ -609,7 +670,7 @@ function WebChatbotSection() {
           </motion.div>
 
           <motion.p
-            className="text-sm text-gray-400 font-montserrat"
+            className={`text-sm ${secondaryText} font-montserrat`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -625,14 +686,14 @@ function WebChatbotSection() {
           whileInView="visible"
           viewport={{ once: false, margin: "-50px" }}
           initial="hidden"
-          className="relative m-auto w-full h-[50vh] lg:h-[90%] xl:h-[100%]"
+          className="relative m-auto  w-full aspect-square "
         >
           <Image
             src={Rimg1}
             alt="AI Chatbot"
             fill
             sizes="100%"
-            className="object-contain"
+            className="object-cover"
             loading="lazy"
           />
 

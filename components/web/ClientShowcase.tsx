@@ -10,9 +10,44 @@ import {
   Sparkles,
   CheckCircle,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export function ClientShowcase() {
   const [activeTab, setActiveTab] = useState("creators");
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const tabBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-gray-100";
+
+  const tabBorder = theme === "dark" ? "border-gray-800" : "border-gray-300";
+
+  const tabText =
+    theme === "dark"
+      ? "text-gray-300 hover:text-white"
+      : "text-gray-600 hover:text-gray-900";
+
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+
+  const cardBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-white";
+
+  const cardBorder = theme === "dark" ? "border-gray-800" : "border-gray-200";
+
+  const cardHoverBorder =
+    theme === "dark" ? "border-[#00F0FF]/50" : "border-[#00F0FF]/70";
+
+  const statsBg =
+    theme === "dark"
+      ? "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border-[#00F0FF]/30"
+      : "bg-gradient-to-r from-gray-50 to-gray-100 border-[#00F0FF]/50";
+
+  const statsText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const cardHoverEffect =
+    theme === "dark"
+      ? "borderColor: 'rgba(37, 139, 148, 0.4)', boxShadow: '0 20px 40px -10px rgba(37, 139, 148, 0.2)'"
+      : "borderColor: 'rgba(37, 139, 148, 0.2)', boxShadow: '0 20px 40px -10px rgba(37, 139, 148, 0.1)'";
 
   // EXACT same animation variants as testimonials component
   const containerVariants = {
@@ -46,8 +81,14 @@ export function ClientShowcase() {
     hover: {
       y: -8,
       scale: 1.02,
-      borderColor: "rgba(37, 139, 148, 0.4)",
-      boxShadow: "0 20px 40px -10px rgba(37, 139, 148, 0.2)",
+      borderColor:
+        theme === "dark"
+          ? "rgba(37, 139, 148, 0.4)"
+          : "rgba(37, 139, 148, 0.2)",
+      boxShadow:
+        theme === "dark"
+          ? "0 20px 40px -10px rgba(37, 139, 148, 0.2)"
+          : "0 20px 40px -10px rgba(37, 139, 148, 0.1)",
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -211,7 +252,7 @@ export function ClientShowcase() {
 
   return (
     <motion.section
-      className="w-full py-20 bg-transparent text-white "
+      className="w-full py-20 bg-transparent text-foreground"
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
@@ -239,7 +280,7 @@ export function ClientShowcase() {
           </motion.div>
 
           <motion.h2
-            className="text-3xl  font-bold mb-6 gradient-text-main"
+            className="text-3xl font-bold mb-6 gradient-text-main"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -253,7 +294,7 @@ export function ClientShowcase() {
           </motion.h2>
 
           <motion.p
-            className="text-xl text-gray-300 max-w-3xl mx-auto font-montserrat"
+            className={`text-xl max-w-3xl mx-auto font-montserrat ${descriptionText}`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -281,7 +322,9 @@ export function ClientShowcase() {
           whileInView="visible"
           viewport={{ once: false, margin: "-50px" }}
         >
-          <div className="bg-[#1a1a1a] border border-gray-800 rounded-full p-1 flex backdrop-blur-sm">
+          <div
+            className={`${tabBg} border ${tabBorder} rounded-full p-1 flex backdrop-blur-sm`}
+          >
             {[
               {
                 id: "creators",
@@ -304,8 +347,8 @@ export function ClientShowcase() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center px-2 py-1 md:px-6 md:py-3 rounded-full transition-all duration-300 ${
                   activeTab === tab.id
-                    ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black"
-                    : "text-gray-300 hover:text-white"
+                    ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white"
+                    : `${tabText}`
                 }`}
                 variants={itemVariants}
                 whileHover={{ scale: 1.05 }}
@@ -322,7 +365,7 @@ export function ClientShowcase() {
 
         {/* Content */}
         <motion.div
-          className="max-w-6xl mx-auto bg-[#0a0a0a]/10 backdrop-blur-sm"
+          className={`max-w-6xl mx-auto ${containerBg} backdrop-blur-sm`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -349,7 +392,7 @@ export function ClientShowcase() {
                   {row.items.map((creator: string, index: number) => (
                     <motion.div
                       key={index}
-                      className="bg-[#1a1a1a] border border-gray-800 rounded-3xl p-2 hover:border-[#00F0FF]/50 transition-all duration-300 group flex items-center justify-center flex-shrink-0 backdrop-blur-sm"
+                      className={`${cardBg} border ${cardBorder} rounded-3xl p-2 hover:${cardHoverBorder} transition-all duration-300 group flex items-center justify-center flex-shrink-0 backdrop-blur-sm`}
                       variants={cardVariants}
                       whileHover="hover"
                       whileInView="visible"
@@ -398,7 +441,7 @@ export function ClientShowcase() {
                   {row.items.map((brand: string, index: number) => (
                     <motion.div
                       key={index}
-                      className="bg-[#1a1a1a] border border-gray-800 rounded-3xl overflow-hidden p-2 hover:border-[#00F0FF]/50 transition-all duration-300 group flex items-center justify-center flex-shrink-0 backdrop-blur-sm"
+                      className={`${cardBg} border ${cardBorder} rounded-3xl overflow-hidden p-2 hover:${cardHoverBorder} transition-all duration-300 group flex items-center justify-center flex-shrink-0 backdrop-blur-sm`}
                       variants={cardVariants}
                       whileHover="hover"
                       whileInView="visible"
@@ -448,7 +491,7 @@ export function ClientShowcase() {
                     (niche: { name: string; count: string }, index: number) => (
                       <motion.div
                         key={index}
-                        className="bg-[#1a1a1a] border border-gray-800 rounded-3xl p-2 md:p-4 hover:border-[#00F0FF]/50 transition-all duration-300 group flex items-center justify-between flex-shrink-0 min-w-[200px] backdrop-blur-sm"
+                        className={`${cardBg} border ${cardBorder} rounded-3xl p-2 md:p-4 hover:${cardHoverBorder} transition-all duration-300 group flex items-center justify-between flex-shrink-0 min-w-[200px] backdrop-blur-sm`}
                         variants={cardVariants}
                         whileHover="hover"
                         whileInView="visible"
@@ -482,7 +525,7 @@ export function ClientShowcase() {
 
         {/* Stats Section */}
         <motion.div
-          className="mt-16 bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border border-[#00F0FF]/30 rounded-2xl p-3 md:p-6 max-w-4xl mx-auto backdrop-blur-sm"
+          className={`mt-16 ${statsBg} rounded-2xl p-3 md:p-6 max-w-4xl mx-auto backdrop-blur-sm`}
           variants={cardVariants}
           whileHover="hover"
           whileInView="visible"
@@ -524,7 +567,7 @@ export function ClientShowcase() {
                 >
                   {stat.number}
                 </div>
-                <div className="text-gray-300 mt-2">{stat.label}</div>
+                <div className={`mt-2 ${statsText}`}>{stat.label}</div>
               </motion.div>
             ))}
           </div>

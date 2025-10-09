@@ -12,6 +12,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
 
 import { PricingPlan } from "@/types/types";
 
@@ -33,6 +34,19 @@ export function AccountSelectionDialog({
   isLoading = false,
 }: AccountSelectionDialogProps) {
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const dialogBg = theme === "dark" ? "bg-[#0a0a0a]/95" : "bg-white/95";
+  const dialogBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const buttonOutlineBorder =
+    theme === "dark" ? "border-white/20" : "border-gray-300";
+  const buttonOutlineText =
+    theme === "dark" ? "text-gray-300" : "text-gray-700";
+
   const getAccountLimit = (plan: PricingPlan | null) => {
     if (!plan) return 1;
     switch (plan.id) {
@@ -68,12 +82,14 @@ export function AccountSelectionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl max-w-md">
+      <DialogContent
+        className={`${dialogBg} backdrop-blur-lg border ${dialogBorder} rounded-xl max-w-md`}
+      >
         <DialogHeader>
-          <DialogTitle className="text-white">
+          <DialogTitle className={textPrimary}>
             Account Limit Exceeded
           </DialogTitle>
-          <DialogDescription className="text-gray-400 font-montserrat">
+          <DialogDescription className={`${textSecondary} font-montserrat`}>
             The {newPlan?.name} plan allows only {accountLimit} Instagram
             account(s). Please select {accountsToDelete} account(s) to delete.
           </DialogDescription>
@@ -98,7 +114,7 @@ export function AccountSelectionDialog({
                 />
                 <Label
                   htmlFor={account.username}
-                  className="text-white cursor-pointer"
+                  className={`${textPrimary} cursor-pointer`}
                 >
                   {account.username}
                 </Label>
@@ -106,7 +122,7 @@ export function AccountSelectionDialog({
             ))}
           </div>
           {selectedAccounts.length < accountsToDelete && (
-            <p className="text-sm text-red-400 mt-3 font-montserrat">
+            <p className={`text-sm text-red-400 mt-3 font-montserrat`}>
               Please select {accountsToDelete - selectedAccounts.length} more
               account(s)
             </p>
@@ -117,7 +133,7 @@ export function AccountSelectionDialog({
             variant="outline"
             onClick={onClose}
             disabled={isLoading}
-            className="border-gray-600 text-white"
+            className={`${buttonOutlineBorder} ${buttonOutlineText}`}
           >
             Cancel
           </Button>

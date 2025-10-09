@@ -25,6 +25,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { useTheme } from "next-themes";
 
 // Mock data for charts
 // const dailyData = [
@@ -60,6 +61,22 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
   const { userId } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
+  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
+  const tabBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/60";
+  const tabBorder = theme === "dark" ? "border-gray-900" : "border-gray-300";
+  const chartGridColor = theme === "dark" ? "#374151" : "#E5E7EB";
+  const chartAxisColor = theme === "dark" ? "#9CA3AF" : "#6B7280";
+  const tooltipBg = theme === "dark" ? "#1F2937" : "#FFFFFF";
+  const tooltipBorder = theme === "dark" ? "#374151" : "#E5E7EB";
+  const tooltipText = theme === "dark" ? "#FFFFFF" : "#111827";
 
   const [templateData, setTemplateData] = useState<
     { name: string; value: number; color: string }[]
@@ -144,10 +161,12 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen text-white flex items-center justify-center">
+      <div
+        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
+      >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading accounts...</p>
+          <p className={textSecondary}>Loading accounts...</p>
         </div>
       </div>
     );
@@ -155,16 +174,18 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
   return (
     <div className="space-y-8 mb-10">
       <div>
-        <h2 className="text-3xl font-bold text-white mb-2">
+        <h2 className={`text-3xl font-bold mb-2 ${textPrimary}`}>
           Analytics Dashboard
         </h2>
-        <p className="text-gray-400 font-montserrat">
+        <p className={`${textSecondary} font-montserrat`}>
           Track your automation performance and engagement metrics
         </p>
       </div>
 
-      <Tabs defaultValue="templates" className="space-y-6 ">
-        <TabsList className=" bg-[#0a0a0a]/60 border min-h-max flex flex-wrap items-center justify-start max-w-max gap-1 md:gap-3 text-white  w-full grid-cols-4  border-gray-900">
+      <Tabs defaultValue="templates" className="space-y-6">
+        <TabsList
+          className={`${tabBg} ${tabBorder} border min-h-max flex flex-wrap items-center justify-start max-w-max gap-1 md:gap-3 w-full grid-cols-4`}
+        >
           {/* <TabsTrigger
             value="overview"
             className="data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
@@ -192,24 +213,25 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
         </TabsList>
 
         {/* <TabsContent value="overview" className="space-y-6">
-          <Card className="bg-transparent backdrop-blur-sm border-gray-900">
+          <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
             <CardHeader className="p-2">
-              <CardTitle className="text-white">Daily Activity</CardTitle>
-              <CardDescription className="text-gray-400">
+              <CardTitle className={textPrimary}>Daily Activity</CardTitle>
+              <CardDescription className={textSecondary}>
                 Comments and replies over time
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <ResponsiveContainer minWidth={1000} width="100%" height={300}>
                 <LineChart data={dailyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="date" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+                  <XAxis dataKey="date" stroke={chartAxisColor} />
+                  <YAxis stroke={chartAxisColor} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1F2937",
-                      border: "1px solid #374151",
+                      backgroundColor: tooltipBg,
+                      border: `1px solid ${tooltipBorder}`,
                       borderRadius: "6px",
+                      color: tooltipText,
                     }}
                   />
                   <Line
@@ -231,26 +253,27 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
         </TabsContent> */}
 
         {/* <TabsContent value="engagement" className="space-y-6">
-          <Card className=" bg-transparent backdrop-blur-sm border-gray-900">
+          <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
             <CardHeader className="p-2">
-              <CardTitle className="text-white">
+              <CardTitle className={textPrimary}>
                 Engagement Rate Trend
               </CardTitle>
-              <CardDescription className="text-gray-400">
+              <CardDescription className={textSecondary}>
                 How well your automated replies are performing
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <ResponsiveContainer minWidth={1000} width="100%" height={300}>
                 <LineChart data={dailyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="date" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" domain={[95, 100]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+                  <XAxis dataKey="date" stroke={chartAxisColor} />
+                  <YAxis stroke={chartAxisColor} domain={[95, 100]} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1F2937",
-                      border: "1px solid #374151",
+                      backgroundColor: tooltipBg,
+                      border: `1px solid ${tooltipBorder}`,
                       borderRadius: "6px",
+                      color: tooltipText,
                     }}
                   />
                   <Line
@@ -266,10 +289,10 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
         </TabsContent> */}
 
         <TabsContent value="templates" className="space-y-6">
-          <Card className=" bg-transparent backdrop-blur-sm border-gray-900">
+          <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
             <CardHeader>
-              <CardTitle className="text-white">Template Usage</CardTitle>
-              <CardDescription className="text-gray-400 font-montserrat">
+              <CardTitle className={textPrimary}>Template Usage</CardTitle>
+              <CardDescription className={`${textSecondary} font-montserrat`}>
                 Which templates are used most frequently
               </CardDescription>
             </CardHeader>
@@ -296,7 +319,14 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
                         />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: tooltipBg,
+                        border: `1px solid ${tooltipBorder}`,
+                        borderRadius: "6px",
+                        color: tooltipText,
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
 
@@ -304,7 +334,13 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
                   {templateData.map((item, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-[#0a0a0a]/60 border border-[#208d7d] rounded-lg"
+                      className={`flex items-center justify-between p-4 ${
+                        theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-gray-100"
+                      } border ${
+                        theme === "dark"
+                          ? "border-[#208d7d]"
+                          : "border-gray-300"
+                      } rounded-lg`}
                     >
                       <div className="flex items-center space-x-3">
                         <div
@@ -313,11 +349,11 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
                             backgroundColor: item.color, // Use the color from the item
                           }}
                         />
-                        <span className="text-white font-medium">
+                        <span className={`${textPrimary} font-medium`}>
                           {item.name}
                         </span>
                       </div>
-                      <span className="text-gray-300">
+                      <span className={textSecondary}>
                         {item.value} uses{" "}
                         {/* Use item.value instead of item.usageCount */}
                       </span>
@@ -330,12 +366,12 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
         </TabsContent>
 
         <TabsContent value="sentiment" className="space-y-6">
-          <Card className=" bg-transparent backdrop-blur-sm border-gray-900">
+          <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
             <CardHeader>
-              <CardTitle className="text-white">
+              <CardTitle className={textPrimary}>
                 Comment Sentiment Analysis
               </CardTitle>
-              <CardDescription className="text-gray-400">
+              <CardDescription className={textSecondary}>
                 Understanding the tone of incoming comments
               </CardDescription>
             </CardHeader>
@@ -359,14 +395,27 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: tooltipBg,
+                        border: `1px solid ${tooltipBorder}`,
+                        borderRadius: "6px",
+                        color: tooltipText,
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-4">
                   {sentimentData.map((item, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-[#0a0a0a]/60 border boder-[#208d7d] rounded-lg"
+                      className={`flex items-center justify-between p-4 ${
+                        theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-gray-100"
+                      } border ${
+                        theme === "dark"
+                          ? "border-[#208d7d]"
+                          : "border-gray-300"
+                      } rounded-lg`}
                     >
                       <div className="flex items-center space-x-3">
                         <div
@@ -380,11 +429,11 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
                               ],
                           }}
                         />
-                        <span className="text-white font-medium">
+                        <span className={`${textPrimary} font-medium`}>
                           {item.category}
                         </span>
                       </div>
-                      <span className="text-gray-300">{item.value}%</span>
+                      <span className={textSecondary}>{item.value}%</span>
                     </div>
                   ))}
                 </div>

@@ -27,10 +27,55 @@ import {
   InstagramIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 
 export function FeatureShowcase() {
   const [activeCategory, setActiveCategory] = useState("all");
   const router = useRouter();
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+
+  const badgeBorder =
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+
+  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const cardBg = theme === "dark" ? "border-white/10" : "border-gray-200";
+
+  const cardHoverBorder =
+    theme === "dark" ? "border-[#258b94]/40" : "border-[#258b94]/60";
+
+  const gradientBg =
+    theme === "dark"
+      ? "from-[#00F0FF]/5 to-[#B026FF]/5"
+      : "from-[#00F0FF]/10 to-[#B026FF]/10";
+
+  const filterButtonBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/80";
+
+  const filterButtonBorder =
+    theme === "dark"
+      ? "border-[#00F0FF]/30 text-gray-300 hover:border-[#00F0FF] hover:text-white"
+      : "border-[#00F0FF]/50 text-gray-600 hover:border-[#00F0FF] hover:text-gray-900";
+
+  const categoryBadgeBg =
+    theme === "dark"
+      ? "bg-gray-800 text-gray-300"
+      : "bg-gray-200 text-gray-700";
+
+  const ctaText =
+    theme === "dark"
+      ? "text-[#00F0FF] hover:text-[#B026FF]"
+      : "text-[#00F0FF] hover:text-[#B026FF]";
+
+  const cardHoverEffect =
+    theme === "dark"
+      ? "borderColor: 'rgba(37, 139, 148, 0.4)'"
+      : "borderColor: 'rgba(37, 139, 148, 0.2)'";
+
   // EXACT same animation variants as FeatureSection component
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -63,7 +108,10 @@ export function FeatureShowcase() {
     hover: {
       y: -8,
       scale: 1.02,
-      borderColor: "rgba(37, 139, 148, 0.4)",
+      borderColor:
+        theme === "dark"
+          ? "rgba(37, 139, 148, 0.4)"
+          : "rgba(37, 139, 148, 0.2)",
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -241,7 +289,7 @@ export function FeatureShowcase() {
       : features.filter((feature) => feature.category === activeCategory);
 
   return (
-    <section className="w-full bg-transparent text-white py-20 ">
+    <section className={`w-full bg-transparent text-foreground py-20`}>
       <motion.div
         className=" mx-auto md:px-4"
         variants={containerVariants}
@@ -258,7 +306,7 @@ export function FeatureShowcase() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className="inline-flex items-center text-[#00F0FF] border border-[#00F0FF]/30 rounded-full px-4 py-1 mb-4"
+            className={`inline-flex items-center text-[#00F0FF] border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -278,7 +326,7 @@ export function FeatureShowcase() {
             Unlock The Full Potential
           </motion.h2>
           <motion.p
-            className="text-lg p-2 text-gray-300 max-w-3xl mx-auto font-montserrat"
+            className={`text-lg p-2 max-w-3xl mx-auto font-montserrat ${descriptionText}`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -301,7 +349,7 @@ export function FeatureShowcase() {
 
         {/* Category Filters */}
         <motion.div
-          className="flex flex-wrap justify-center gap-1 md:gap-4 mb-4 md:mb-12 bg-[#0a0a0a]/10 backdrop-blur-sm"
+          className={`flex flex-wrap justify-center gap-1 md:gap-4 mb-4 md:mb-12 ${containerBg} backdrop-blur-sm`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -311,10 +359,10 @@ export function FeatureShowcase() {
             <motion.button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`px-2 py-1 md:px-6 md:py-3 rounded-full border transition-all bg-[#0a0a0a]/10 backdrop-blur-sm duration-300 ${
+              className={`px-2 py-1 md:px-6 md:py-3 rounded-full border transition-all ${filterButtonBg} backdrop-blur-sm duration-300 ${
                 activeCategory === category.id
-                  ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black border-transparent"
-                  : "border-[#00F0FF]/30 text-gray-300 hover:border-[#00F0FF] hover:text-white"
+                  ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white border-transparent"
+                  : `${filterButtonBorder}`
               }`}
               variants={cardVariants}
               whileInView="visible"
@@ -335,7 +383,7 @@ export function FeatureShowcase() {
 
         {/* Features Grid */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto bg-[#0a0a0a]/10 backdrop-blur-sm"
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto ${containerBg} backdrop-blur-sm`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -344,7 +392,7 @@ export function FeatureShowcase() {
           {filteredFeatures.map((feature, index) => (
             <motion.div
               key={index}
-              className=" border border-white/10 rounded-2xl p-3 group relative overflow-hidden flex flex-col items-start justify-center gap-2 hover:border-[#258b94]/40 transition-colors duration-300 "
+              className={`border ${cardBg} rounded-2xl p-3 group relative overflow-hidden flex flex-col items-start justify-center gap-2 hover:${cardHoverBorder} transition-colors duration-300`}
               variants={cardVariants}
               whileHover="hover"
               whileInView="visible"
@@ -352,7 +400,9 @@ export function FeatureShowcase() {
               initial="hidden"
             >
               {/* Background Gradient Effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00F0FF]/5 to-[#B026FF]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${gradientBg} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+              ></div>
 
               <div className="flex items-start justify-center gap-2 relative z-10">
                 {/* Icon */}
@@ -370,7 +420,7 @@ export function FeatureShowcase() {
                 <div className="flex-1">
                   {/* Title */}
                   <motion.h3
-                    className="text-lg font-medium text-white group-hover:text-[#00F0FF] transition-colors duration-300 mb-2"
+                    className={`text-lg font-medium group-hover:text-[#00F0FF] transition-colors duration-300 mb-2 ${titleText}`}
                     variants={titleVariants}
                     whileInView="visible"
                     viewport={{ once: false }}
@@ -381,7 +431,7 @@ export function FeatureShowcase() {
 
                   {/* Description */}
                   <motion.p
-                    className="text-gray-300 text-sm font-montserrat"
+                    className={`text-sm font-montserrat ${descriptionText}`}
                     variants={textVariants}
                     whileInView="visible"
                     viewport={{ once: false }}
@@ -397,7 +447,7 @@ export function FeatureShowcase() {
                   onClick={() => {
                     router.push("/insta/dashboard");
                   }}
-                  className="inline-flex items-center text-[#00F0FF] hover:text-[#B026FF] transition-colors duration-300"
+                  className={`inline-flex items-center transition-colors duration-300 ${ctaText}`}
                   variants={textVariants}
                   whileInView="visible"
                   viewport={{ once: false }}
@@ -428,7 +478,9 @@ export function FeatureShowcase() {
                   viewport={{ once: false }}
                   initial="hidden"
                 >
-                  <span className="text-xs px-2 py-1 rounded-full bg-gray-800 text-gray-300 capitalize">
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${categoryBadgeBg} capitalize`}
+                  >
                     {feature.category}
                   </span>
                 </motion.div>

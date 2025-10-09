@@ -5,8 +5,37 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 
 export function WebCTASection() {
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const cardBg = theme === "dark" ? "bg-transparent" : "bg-white/80";
+  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-300";
+  const outlineButtonBorder =
+    theme === "dark" ? "border-[#B026FF]/30" : "border-[#B026FF]/50";
+  const outlineButtonText =
+    theme === "dark" ? "text-[#B026FF]" : "text-[#B026FF]";
+  const outlineButtonHover =
+    theme === "dark" ? "hover:bg-[#B026FF]/10" : "hover:bg-[#B026FF]/10";
+  const badgeBg =
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+  const gradientBg =
+    theme === "dark"
+      ? [
+          "linear-gradient(to bottom right, #0a0a0a, #1a1a1a/90)",
+          "linear-gradient(to bottom right, #0a0a0a, #1a1a1a/90, rgba(0, 240, 255, 0.05))",
+          "linear-gradient(to bottom right, #0a0a0a, #1a1a1a/90)",
+        ]
+      : [
+          "linear-gradient(to bottom right, #ffffff, #f8fafc/90)",
+          "linear-gradient(to bottom right, #ffffff, #f8fafc/90, rgba(0, 240, 255, 0.05))",
+          "linear-gradient(to bottom right, #ffffff, #f8fafc/90)",
+        ];
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -90,11 +119,7 @@ export function WebCTASection() {
 
   const gradientPulseVariants = {
     visible: {
-      background: [
-        "linear-gradient(to bottom right, #0a0a0a, #1a1a1a/90)",
-        "linear-gradient(to bottom right, #0a0a0a, #1a1a1a/90, rgba(0, 240, 255, 0.05))",
-        "linear-gradient(to bottom right, #0a0a0a, #1a1a1a/90)",
-      ],
+      background: gradientBg,
       transition: {
         duration: 4,
         repeat: Infinity,
@@ -102,6 +127,7 @@ export function WebCTASection() {
       },
     },
   };
+
   const titleVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: {
@@ -113,6 +139,7 @@ export function WebCTASection() {
       },
     },
   };
+
   return (
     <motion.div
       className="text-center"
@@ -123,7 +150,9 @@ export function WebCTASection() {
     >
       <motion.div variants={cardVariants} whileHover="hover">
         <motion.div variants={gradientPulseVariants} animate="visible">
-          <Card className="max-w-4xl mx-auto bg-transparent border border-white/10 backdrop-blur-lg overflow-hidden">
+          <Card
+            className={`max-w-4xl mx-auto ${cardBg} border ${cardBorder} backdrop-blur-lg overflow-hidden`}
+          >
             <CardContent className="p-3 pt-12 pb-12 relative">
               {/* Animated background elements */}
               <motion.div
@@ -133,8 +162,10 @@ export function WebCTASection() {
                 viewport={{ once: false }}
                 initial="hidden"
               >
-                <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
-                  CTA SECTION{" "}
+                <span
+                  className={`text-sm font-medium uppercase tracking-widest border ${badgeBg} rounded-full px-4 py-1`}
+                >
+                  CTA SECTION
                 </span>
               </motion.div>
               <motion.div
@@ -146,13 +177,17 @@ export function WebCTASection() {
               />
 
               <motion.div variants={itemVariants} className="mb-4">
-                <h2 className="text-3xl font-bold mb-4 gradient-text-main">
-                  🚀 Ready to Convert Your Website Traffic Into Paying Clients?{" "}
+                <h2
+                  className={`text-3xl font-bold mb-4 gradient-text-main ${textPrimary}`}
+                >
+                  🚀 Ready to Convert Your Website Traffic Into Paying Clients?
                 </h2>
               </motion.div>
 
               <motion.div variants={itemVariants} className="mb-8">
-                <p className="text-gray-300 mb-8 text-lg font-montserrat max-w-2xl mx-auto">
+                <p
+                  className={`${textSecondary} mb-8 text-lg font-montserrat max-w-2xl mx-auto`}
+                >
                   Thousands of local businesses are using AI-powered chatbots to
                   automate support, boost engagement, and increase sales.
                 </p>
@@ -178,7 +213,7 @@ export function WebCTASection() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="text-lg px-8 border-[#B026FF]/30 bg-transparent text-[#B026FF] hover:bg-[#B026FF]/10"
+                    className={`text-lg px-8 ${outlineButtonBorder} ${cardBg} ${outlineButtonText} ${outlineButtonHover}`}
                   >
                     <Link href="/web/pricing">View Pricing</Link>
                   </Button>

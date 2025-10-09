@@ -63,6 +63,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 interface accountDataType {
   instagramId: string;
@@ -106,6 +107,25 @@ export default function TemplatesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { userId } = useAuth();
   const router = useRouter();
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
+  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
+  const badgeBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
+  const alertBg = theme === "dark" ? "bg-[#6d1717]/5" : "bg-red-50/80";
+  const buttonOutlineBorder =
+    theme === "dark" ? "border-white/20" : "border-gray-300";
+  const buttonOutlineText =
+    theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const dialogBg = theme === "dark" ? "bg-[#0a0a0a]/95" : "bg-white/95";
+  const inputBg = theme === "dark" ? "bg-white/5" : "bg-white";
+  const inputBorder = theme === "dark" ? "border-white/20" : "border-gray-300";
+  const inputText = theme === "dark" ? "text-white" : "text-gray-900";
 
   // Updated template form state - content is now array of objects
   const [newTemplate, setNewTemplate] = useState({
@@ -201,6 +221,7 @@ export default function TemplatesPage() {
       fetchTemplates();
     }
   }, [filterAccount, fetchTemplates, userId]);
+
   // Load more templates
   const loadMoreTemplates = async () => {
     setIsLoadingMore(true);
@@ -251,13 +272,6 @@ export default function TemplatesPage() {
       setIsLoadingMore(false);
     }
   };
-
-  // Fetch templates when loadMoreCount changes
-  // useEffect(() => {
-  //   if (loadMoreCount > 0 && userId) {
-  //     fetchTemplates(false);
-  //   }
-  // }, [loadMoreCount, fetchTemplates, userId]);
 
   const fetchAccountMedia = async (accountId: string, username: string) => {
     setIsLoadingMedia(true);
@@ -530,32 +544,45 @@ export default function TemplatesPage() {
 
     return matchesSearch;
   });
+
   if (isLoading) {
     return (
-      <div className="min-h-screen text-white flex items-center justify-center">
+      <div
+        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
+      >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading templates...</p>
+          <p className={textSecondary}>Loading templates...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen text-white">
+    <div className={`min-h-screen ${textPrimary} ${containerBg}`}>
       <div className="container mx-auto p-2 md:px-4 py-8">
         <BreadcrumbsDefault />
         {/* Header */}
         <div className="flex flex-wrap justify-between items-center gap-3 lg:gap-0 mb-8">
           <div>
-            <div className="inline-flex items-center bg-blue-100/10 text-blue-400 border border-blue-400/30 rounded-full px-4 py-1 mb-4">
+            <div
+              className={`inline-flex items-center ${
+                theme === "dark"
+                  ? "bg-blue-100/10 text-blue-400 border-blue-400/30"
+                  : "bg-blue-100 text-blue-600 border-blue-300"
+              } border rounded-full px-4 py-1 mb-4`}
+            >
               <MessageSquare className="h-4 w-4 mr-1" />
               <span className="text-sm font-medium">Template Management</span>
             </div>
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            <h1
+              className={`text-4xl font-bold mb-2 gradient-text-main ${textPrimary}`}
+            >
               Reply Templates
             </h1>
-            <p className="text-gray-300 text-lg font-light font-montserrat">
+            <p
+              className={`${textSecondary} text-lg font-light font-montserrat`}
+            >
               Create and manage automated reply templates for your Instagram
               posts and reels
             </p>
@@ -577,12 +604,16 @@ export default function TemplatesPage() {
                 Create Template
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] bg-transparent bg-gradient-to-br border-[#B026FF]/20 hover:border-[#B026FF]/40 backdrop-blur-md border max-h-[95vh] overflow-y-auto">
+            <DialogContent
+              className={`sm:max-w-[800px] bg-transparent bg-gradient-to-br border-[#B026FF]/20 hover:border-[#B026FF]/40 backdrop-blur-md border max-h-[95vh] overflow-y-auto ${dialogBg}`}
+            >
               <DialogHeader>
-                <DialogTitle className="text-white">
+                <DialogTitle className={textPrimary}>
                   {editingTemplate ? "Edit Template" : "Create New Template"}
                 </DialogTitle>
-                <DialogDescription className="text-gray-400 text-lg font-montserrat">
+                <DialogDescription
+                  className={`${textMuted} text-lg font-montserrat`}
+                >
                   {editingTemplate
                     ? "Update your automated replies and triggers"
                     : "Set up automated replies for specific Instagram posts or reels"}
@@ -592,11 +623,13 @@ export default function TemplatesPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-gray-300">
+                    <Label htmlFor="name" className={textSecondary}>
                       Template Name
                     </Label>
                     {editingTemplate ? (
-                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600 font-montserrat">
+                      <div
+                        className={`px-3 py-2 ${inputBg} ${inputBorder} rounded-md ${textMuted} font-montserrat`}
+                      >
                         {editingTemplate.name}
                       </div>
                     ) : (
@@ -610,16 +643,18 @@ export default function TemplatesPage() {
                           })
                         }
                         placeholder="e.g., Welcome Message"
-                        className="bg-white/5 border-white/20 text-white font-montserrat"
+                        className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
                       />
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="account" className="text-gray-300">
+                    <Label htmlFor="account" className={textSecondary}>
                       Account
                     </Label>
                     {editingTemplate ? (
-                      <div className="px-3 py-2 bg-white/5 border border-white/20 rounded-md text-gray-600 font-montserrat">
+                      <div
+                        className={`px-3 py-2 ${inputBg} ${inputBorder} rounded-md ${textMuted} font-montserrat`}
+                      >
                         {accounts.find(
                           (a) => a.username === editingTemplate.accountUsername
                         )?.username || editingTemplate.accountUsername}
@@ -629,13 +664,17 @@ export default function TemplatesPage() {
                         value={newTemplate.accountUsername}
                         onValueChange={handleAccountChange}
                       >
-                        <SelectTrigger className="bg-white/5 border-white/20 text-white font-montserrat">
+                        <SelectTrigger
+                          className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                        >
                           <SelectValue
-                            className="text-white block font-montserrat"
+                            className={`${inputText} block font-montserrat`}
                             placeholder="Choose account"
                           />
                         </SelectTrigger>
-                        <SelectContent className="block font-montserrat">
+                        <SelectContent
+                          className={`block font-montserrat ${dialogBg}`}
+                        >
                           {accounts.map((account) => (
                             <SelectItem
                               key={account.instagramId}
@@ -656,7 +695,7 @@ export default function TemplatesPage() {
                 {newTemplate.accountUsername && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label className="text-gray-300">
+                      <Label className={textSecondary}>
                         Select Post or Reel
                       </Label>
                       <Button
@@ -674,7 +713,7 @@ export default function TemplatesPage() {
                             );
                           }
                         }}
-                        className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10"
+                        className={`${buttonOutlineBorder} ${buttonOutlineText} hover:bg-cyan-300/10`}
                       >
                         <RefreshCw className="h-3 w-3 mr-1" />
                         Refresh
@@ -692,7 +731,7 @@ export default function TemplatesPage() {
                             className={`relative cursor-pointer rounded-md overflow-hidden border-2 ${
                               selectedMedia === media.id
                                 ? "border-[#00F0FF]"
-                                : "border-white/20"
+                                : inputBorder
                             } transition-all`}
                             onClick={() => {
                               setSelectedMedia(media.id);
@@ -724,7 +763,9 @@ export default function TemplatesPage() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-gray-400 font-montserrat">
+                      <div
+                        className={`text-center py-8 ${textMuted} font-montserrat`}
+                      >
                         <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
                         <p>No posts or reels found for this account</p>
                         <p className="text-sm mt-2">
@@ -735,10 +776,11 @@ export default function TemplatesPage() {
                     )}
                   </div>
                 )}
-                {/*Multi-Comment Reply Section*/}
+
+                {/* Multi-Comment Reply Section */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <Label className="text-gray-300">
+                    <Label className={textSecondary}>
                       reply to their comments under the post
                     </Label>
                     {(!editingTemplate ||
@@ -761,7 +803,7 @@ export default function TemplatesPage() {
                             });
                           }
                         }}
-                        className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10"
+                        className={`${buttonOutlineBorder} ${buttonOutlineText} hover:bg-cyan-300/10`}
                       >
                         <Plus className="mr-1 h-3 w-3" /> Add Reply
                       </Button>
@@ -776,7 +818,7 @@ export default function TemplatesPage() {
                       <div className="flex justify-between">
                         <Label
                           htmlFor={`Dm reply-${index}`}
-                          className="text-gray-300"
+                          className={textSecondary}
                         >
                           Reply {index + 1}
                         </Label>
@@ -836,15 +878,16 @@ export default function TemplatesPage() {
                           }
                         }}
                         placeholder="Eg.Nice! Check your DMs!"
-                        className="min-h-[80px] bg-white/5 border-white/20 text-white font-montserrat"
+                        className={`min-h-[80px] ${inputBg} ${inputBorder} ${inputText} font-montserrat`}
                       />
                     </div>
                   ))}
                 </div>
+
                 {/* Multi-DmReply Section */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <Label className="text-gray-300">
+                    <Label className={textSecondary}>
                       Get reply in Direct Dm{" "}
                     </Label>
                     {(!editingTemplate ||
@@ -854,17 +897,6 @@ export default function TemplatesPage() {
                         type="button"
                         size="sm"
                         variant="outline"
-                        // disabled={
-                        //   (editingTemplate
-                        //     ? editingTemplate.content.length >= 3
-                        //     : newTemplate.content.length >= 3) ||
-                        //   (editingTemplate
-                        //     ? !editingTemplate.accountUsername
-                        //     : !newTemplate.accountUsername) ||
-                        //   (editingTemplate
-                        //     ? !editingTemplate.mediaId
-                        //     : !newTemplate.mediaId)
-                        // }
                         onClick={() => {
                           if (editingTemplate) {
                             setEditingTemplate({
@@ -872,7 +904,7 @@ export default function TemplatesPage() {
                               content: [
                                 ...(editingTemplate.content || []),
                                 { text: "", link: "" },
-                              ], // Changed from "" to {text: "", link: ""}
+                              ],
                             });
                           } else {
                             setNewTemplate({
@@ -880,11 +912,11 @@ export default function TemplatesPage() {
                               content: [
                                 ...(newTemplate.content || []),
                                 { text: "", link: "" },
-                              ], // Changed from "" to {text: "", link: ""}
+                              ],
                             });
                           }
                         }}
-                        className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10 font-montserrat"
+                        className={`${buttonOutlineBorder} ${buttonOutlineText} hover:bg-cyan-300/10 font-montserrat`}
                       >
                         <Plus className="mr-1 h-3 w-3" /> Add Reply
                       </Button>
@@ -899,7 +931,7 @@ export default function TemplatesPage() {
                       <div className="flex justify-between">
                         <Label
                           htmlFor={`content-${index}`}
-                          className="text-gray-300"
+                          className={textSecondary}
                         >
                           Sent Dm {index + 1}
                         </Label>
@@ -962,8 +994,8 @@ export default function TemplatesPage() {
                             });
                           }
                         }}
-                        placeholder="Eg.Hey there! I’m so happy you’re here, thanks so much for your interest 😊Click below and I’ll send you the link in just a sec ✨"
-                        className="min-h-[80px] bg-white/5 border-white/20 text-white font-montserrat"
+                        placeholder="Eg.Hey there! I'm so happy you're here, thanks so much for your interest 😊Click below and I'll send you the link in just a sec ✨"
+                        className={`min-h-[80px] ${inputBg} ${inputBorder} ${inputText} font-montserrat`}
                       />
 
                       {/* Link input for the content link */}
@@ -995,7 +1027,7 @@ export default function TemplatesPage() {
                             }
                           }}
                           placeholder="Eg.www.yourlink.com"
-                          className="bg-white/5 border-white/20 text-white font-montserrat"
+                          className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
                         />
                       </div>
                     </div>
@@ -1005,7 +1037,7 @@ export default function TemplatesPage() {
                 {/* Triggers Section */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <Label htmlFor="triggers" className="text-gray-300">
+                    <Label htmlFor="triggers" className={textSecondary}>
                       Set triggers (up to 3)
                     </Label>
                     {(!editingTemplate ||
@@ -1031,7 +1063,7 @@ export default function TemplatesPage() {
                             });
                           }
                         }}
-                        className="text-cyan-300 border-cyan-300 hover:bg-cyan-300/10"
+                        className={`${buttonOutlineBorder} ${buttonOutlineText} hover:bg-cyan-300/10`}
                       >
                         <Plus className="mr-1 h-3 w-3" /> Add Trigger
                       </Button>
@@ -1046,7 +1078,7 @@ export default function TemplatesPage() {
                       <div className="flex justify-between">
                         <Label
                           htmlFor={`trigger-${index}`}
-                          className="text-gray-300"
+                          className={textSecondary}
                         >
                           Trigger {index + 1}
                         </Label>
@@ -1106,14 +1138,14 @@ export default function TemplatesPage() {
                           }
                         }}
                         placeholder="Enter trigger keyword Like Link,Product,etc"
-                        className="bg-white/5 border-white/20 text-white font-montserrat"
+                        className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
                       />
                     </div>
                   ))}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="priority" className="text-gray-300">
+                  <Label htmlFor="priority" className={textSecondary}>
                     Priority (1-10)
                   </Label>
                   <Input
@@ -1144,7 +1176,7 @@ export default function TemplatesPage() {
                         });
                       }
                     }}
-                    className="bg-white/5 border-white/20 text-white font-montserrat"
+                    className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
                   />
                 </div>
               </div>
@@ -1158,7 +1190,7 @@ export default function TemplatesPage() {
                     setSelectedAccountMedia([]);
                     setSelectedMedia(null);
                   }}
-                  className="border-white/20 text-gray-300"
+                  className={`${buttonOutlineBorder} ${buttonOutlineText}`}
                 >
                   Cancel
                 </Button>
@@ -1213,19 +1245,23 @@ export default function TemplatesPage() {
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${textMuted}`}
+            />
             <Input
               placeholder="Search templates, content, or keywords..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white/5 border-white/20 text-white text-base  font-light font-montserrat"
+              className={`pl-10 ${inputBg} ${inputBorder} ${inputText} text-base font-light font-montserrat`}
             />
           </div>
           <Select value={filterAccount} onValueChange={setFilterAccount}>
-            <SelectTrigger className="w-48 bg-white/5 border-white/20 text-white">
+            <SelectTrigger
+              className={`w-48 ${inputBg} ${inputBorder} ${inputText}`}
+            >
               <SelectValue placeholder="Filter by account" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className={dialogBg}>
               <SelectItem value="all">All Accounts</SelectItem>
               {accounts.map((account) => (
                 <SelectItem key={account.instagramId} value={account.username}>
@@ -1238,7 +1274,7 @@ export default function TemplatesPage() {
 
         {/* Templates Count */}
         <div className="mb-6">
-          <p className="text-gray-400">
+          <p className={textMuted}>
             Showing {templates.length} of {totalTemplates} templates
           </p>
         </div>
@@ -1252,13 +1288,15 @@ export default function TemplatesPage() {
                 template.isActive
                   ? "from-[#B026FF]/20 to-[#B026FF]/5 border-[#B026FF]/20 hover:border-[#B026FF]/40"
                   : "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:border-[#00F0FF]/40"
-              } bg-transparent backdrop-blur-sm border`}
+              } ${cardBg} backdrop-blur-sm ${cardBorder}`}
             >
               <CardHeader className="pb-3 p-2">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <CardTitle className=" text-base  font-normal text-white">
+                      <CardTitle
+                        className={`text-base font-normal ${textPrimary}`}
+                      >
                         {template.name}
                       </CardTitle>
                       {template.mediaType && (
@@ -1268,12 +1306,12 @@ export default function TemplatesPage() {
                       )}
                       <Badge
                         variant="outline"
-                        className="text-xs border-white/20 text-gray-300"
+                        className={`text-xs ${inputBorder} ${textMuted}`}
                       >
                         Priority {template.priority}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-400">
+                    <p className={`text-sm ${textMuted}`}>
                       @{template.accountUsername}
                     </p>
                   </div>
@@ -1288,7 +1326,7 @@ export default function TemplatesPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-gray-300 hover:text-white"
+                      className={`${textMuted} hover:${textPrimary}`}
                       onClick={() => handleEditClick(template)}
                     >
                       <Edit2 className="h-4 w-4" />
@@ -1303,18 +1341,22 @@ export default function TemplatesPage() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-[#0a0a0a]/95 border-white/20">
+                      <AlertDialogContent
+                        className={`${dialogBg} ${cardBorder}`}
+                      >
                         <AlertDialogHeader>
-                          <AlertDialogTitle className="text-white">
+                          <AlertDialogTitle className={textPrimary}>
                             Delete Template
                           </AlertDialogTitle>
-                          <AlertDialogDescription className="text-gray-400">
+                          <AlertDialogDescription className={textMuted}>
                             Are you sure you want to delete {template.name}?
                             This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel className="border-white/20 text-gray-300">
+                          <AlertDialogCancel
+                            className={`${buttonOutlineBorder} ${buttonOutlineText}`}
+                          >
                             Cancel
                           </AlertDialogCancel>
                           <AlertDialogAction
@@ -1330,14 +1372,16 @@ export default function TemplatesPage() {
                 </div>
               </CardHeader>
 
-              <CardContent className="flex flex-col items-start  p-2 w-full">
-                <div className="flex flex-col md:flex-row-reverse items-start justify-between gap-3  w-full">
+              <CardContent className="flex flex-col items-start p-2 w-full">
+                <div className="flex flex-col md:flex-row-reverse items-start justify-between gap-3 w-full">
                   {template.mediaUrl && (
                     <div className="w-full flex-1">
-                      <p className="text-sm text-gray-400 mb-2">
+                      <p className={`text-sm ${textMuted} mb-2`}>
                         Linked Media:
                       </p>
-                      <div className="relative w-40 h-40 rounded-md overflow-hidden border border-white/20 mb-2">
+                      <div
+                        className={`relative w-40 h-40 rounded-md overflow-hidden border ${inputBorder} mb-2`}
+                      >
                         <Image
                           src={template.mediaUrl}
                           alt="Linked media"
@@ -1354,7 +1398,7 @@ export default function TemplatesPage() {
                     </div>
                   )}
                   <div className="flex-1">
-                    <p className="text-sm text-gray-400 mb-2">
+                    <p className={`text-sm ${textMuted} mb-2`}>
                       reply to their comments:
                     </p>
                     <div className="flex flex-wrap items-center justify-start w-full gap-2">
@@ -1362,16 +1406,16 @@ export default function TemplatesPage() {
                         <Badge
                           key={index}
                           variant="outline"
-                          className=" bg-white/5 p-3 rounded-md text-gray-300 text-wrap text-base  font-light font-montserrat"
+                          className={`${inputBg} p-3 rounded-md ${textMuted} text-wrap text-base font-light font-montserrat`}
                         >
                           {reply}
                         </Badge>
                       ))}
                     </div>
                   </div>
-                  <div className="space-y-4  flex-1">
+                  <div className="space-y-4 flex-1">
                     <div>
-                      <p className="text-sm text-gray-400 mb-2">
+                      <p className={`text-sm ${textMuted} mb-2`}>
                         Reply send in Dm:
                       </p>
                       <div className="flex flex-col gap-2">
@@ -1380,9 +1424,9 @@ export default function TemplatesPage() {
                             <Badge
                               key={index}
                               variant="outline"
-                              className="flex flex-col items-start  bg-white/5 p-3 rounded-md text-gray-300"
+                              className={`flex flex-col items-start ${inputBg} p-3 rounded-md ${textMuted}`}
                             >
-                              <p className="text-base  font-light font-montserrat">
+                              <p className="text-base font-light font-montserrat">
                                 {content.text}
                               </p>
                               {content.link && (
@@ -1399,7 +1443,7 @@ export default function TemplatesPage() {
                       </div>
                     </div>
                     <div className="pb-2 w-full">
-                      <p className="text-sm text-gray-400 mb-2">
+                      <p className={`text-sm ${textMuted} mb-2`}>
                         Trigger Keywords:
                       </p>
                       <div className="flex flex-wrap gap-1">
@@ -1408,7 +1452,7 @@ export default function TemplatesPage() {
                             <Badge
                               key={index}
                               variant="outline"
-                              className="text-base  font-light font-montserrat border-white/20 text-gray-300"
+                              className={`text-base font-light font-montserrat ${inputBorder} ${textMuted}`}
                             >
                               {trigger}
                             </Badge>
@@ -1419,7 +1463,9 @@ export default function TemplatesPage() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-white/10 w-full">
-                  <div className="flex items-center gap-6 text-sm text-gray-400">
+                  <div
+                    className={`flex items-center gap-6 text-sm ${textMuted}`}
+                  >
                     <div className="flex items-center gap-1">
                       <BarChart3 className="h-3 w-3" />
                       {template?.usageCount || 0} uses
@@ -1458,15 +1504,19 @@ export default function TemplatesPage() {
 
           {/* No templates states */}
           {accounts.length === 0 && (
-            <Card className="card-hover">
+            <Card className={`card-hover ${cardBg} ${cardBorder}`}>
               <CardContent className="text-center py-12">
-                <div className="mx-auto w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                <div
+                  className={`mx-auto w-24 h-24 ${
+                    theme === "dark" ? "bg-white/5" : "bg-gray-100"
+                  } rounded-full flex items-center justify-center mb-4`}
+                >
                   <Instagram className="h-8 w-8 text-gray-500" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2 text-white">
+                <h3 className={`text-lg font-semibold mb-2 ${textPrimary}`}>
                   No accounts connected
                 </h3>
-                <p className="text-gray-400 mb-4 font-mono">
+                <p className={`${textMuted} mb-4 font-mono`}>
                   Connect your first Instagram account to start automating
                   replies
                 </p>
@@ -1480,17 +1530,21 @@ export default function TemplatesPage() {
             </Card>
           )}
           {accounts.length > 0 && templates.length === 0 && (
-            <Card className="card-hover">
+            <Card className={`card-hover ${cardBg} ${cardBorder}`}>
               <CardContent className="text-center py-12">
-                <div className="mx-auto w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                <div
+                  className={`mx-auto w-24 h-24 ${
+                    theme === "dark" ? "bg-white/5" : "bg-gray-100"
+                  } rounded-full flex items-center justify-center mb-4`}
+                >
                   <MessageSquare className="h-8 w-8 text-gray-500" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2 text-white">
+                <h3 className={`text-lg font-semibold mb-2 ${textPrimary}`}>
                   {searchTerm || filterAccount !== "all"
                     ? "No templates match your filters"
                     : "No templates yet"}
                 </h3>
-                <p className="text-gray-400 mb-4 font-mono">
+                <p className={`${textMuted} mb-4 font-mono`}>
                   {searchTerm || filterAccount !== "all"
                     ? "Try adjusting your search or filter criteria"
                     : "Create your first reply template to start automating responses"}

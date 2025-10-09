@@ -8,6 +8,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { useTheme } from "next-themes";
 
 const features = [
   {
@@ -54,6 +55,18 @@ const features = [
 ];
 
 function WebFeaturesGrid() {
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-100/50";
+  const cardBg = theme === "dark" ? "bg-transparent" : "bg-white/80";
+  const iconBg = theme === "dark" ? "bg-black/20" : "bg-white/80";
+  const badgeBg =
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+
   // Enhanced animation variants matching FAQ section
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -145,10 +158,18 @@ function WebFeaturesGrid() {
   };
 
   const colorClasses = {
-    cyan: "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:border-[#00F0FF]/40",
+    cyan:
+      theme === "dark"
+        ? "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:border-[#00F0FF]/40"
+        : "from-[#00F0FF]/20 to-[#00F0FF]/10 border-[#00F0FF]/30 hover:border-[#00F0FF]/60",
     purple:
-      "from-[#B026FF]/20 to-[#B026FF]/5 border-[#B026FF]/20 hover:border-[#B026FF]/40",
-    pink: "from-[#FF2E9F]/20 to-[#FF2E9F]/5 border-[#FF2E9F]/20 hover:border-[#FF2E9F]/40",
+      theme === "dark"
+        ? "from-[#B026FF]/20 to-[#B026FF]/5 border-[#B026FF]/20 hover:border-[#B026FF]/40"
+        : "from-[#B026FF]/20 to-[#B026FF]/10 border-[#B026FF]/30 hover:border-[#B026FF]/60",
+    pink:
+      theme === "dark"
+        ? "from-[#FF2E9F]/20 to-[#FF2E9F]/5 border-[#FF2E9F]/20 hover:border-[#FF2E9F]/40"
+        : "from-[#FF2E9F]/20 to-[#FF2E9F]/10 border-[#FF2E9F]/30 hover:border-[#FF2E9F]/60",
   };
 
   const iconColors = {
@@ -166,13 +187,15 @@ function WebFeaturesGrid() {
         viewport={{ once: false }}
         initial="hidden"
       >
-        <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+        <span
+          className={`text-sm font-medium uppercase tracking-widest border ${badgeBg} rounded-full px-4 py-1`}
+        >
           CHATBOT FEATURE
         </span>
       </motion.div>
       <div className="text-center mb-12">
         <motion.h2
-          className="text-3xl font-bold text-white mb-4 gradient-text-main"
+          className={`text-3xl font-bold mb-4 gradient-text-main ${textPrimary}`}
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -181,7 +204,7 @@ function WebFeaturesGrid() {
           Why Choose AinspireTech AI Chatbot for Website
         </motion.h2>
         <motion.p
-          className="text-xl text-gray-300 font-montserrat"
+          className={`text-xl ${textSecondary} font-montserrat`}
           variants={containerVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -192,7 +215,7 @@ function WebFeaturesGrid() {
         </motion.p>
       </div>
       <motion.div
-        className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 bg-[#0a0a0a]/10 backdrop-blur-sm"
+        className={`grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 ${containerBg} backdrop-blur-sm`}
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -213,14 +236,16 @@ function WebFeaturesGrid() {
               className="h-full min-h-max"
             >
               <Card
-                className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br  ${
+                className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${
                   colorClasses[feature.color as keyof typeof colorClasses]
-                } bg-transparent border h-full`}
+                } ${cardBg} border h-full`}
               >
                 <CardHeader className="relative overflow-hidden p-6">
                   {/* Animated background effect */}
                   <motion.div
-                    className="absolute inset-0 opacity-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                    className={`absolute inset-0 opacity-0 bg-gradient-to-r from-transparent ${
+                      theme === "dark" ? "via-white/5" : "via-gray-200/20"
+                    } to-transparent`}
                     initial={{ x: -100 }}
                     whileHover={{
                       opacity: 1,
@@ -231,7 +256,7 @@ function WebFeaturesGrid() {
 
                   {/* Icon */}
                   <motion.div
-                    className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 relative z-10 bg-black/20 backdrop-blur-sm`}
+                    className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 relative z-10 ${iconBg} backdrop-blur-sm`}
                     variants={iconVariants}
                     whileInView="visible"
                     viewport={{ once: false }}
@@ -248,7 +273,7 @@ function WebFeaturesGrid() {
                     viewport={{ once: false }}
                     initial="hidden"
                   >
-                    <CardTitle className="text-white mb-2 text-lg">
+                    <CardTitle className={`${textPrimary} mb-2 text-lg`}>
                       {feature.title}
                     </CardTitle>
                   </motion.div>
@@ -260,7 +285,9 @@ function WebFeaturesGrid() {
                     viewport={{ once: false }}
                     initial="hidden"
                   >
-                    <CardDescription className="text-gray-300 leading-relaxed font-montserrat">
+                    <CardDescription
+                      className={`${textSecondary} leading-relaxed font-montserrat`}
+                    >
                       {feature.description}
                     </CardDescription>
                   </motion.div>

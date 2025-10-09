@@ -31,7 +31,7 @@ import { InstagramAutomationHero } from "@/components/insta/InstaHeroSection";
 
 export default function Home() {
   return (
-    <div className="min-h-screen max-w-7xl m-auto text-white">
+    <div className="min-h-screen max-w-7xl m-auto ">
       <BreadcrumbsDefault />
       {/* Hero Section */}
       <div className="container mx-auto px-4 pb-20">

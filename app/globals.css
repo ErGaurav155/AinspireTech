@@ -35,35 +35,91 @@
 
     --radius: 0.5rem;
   }
+  /* Light theme specific styles */
+  .light {
+    /* Background adjustments */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
 
+    /* Card backgrounds */
+    .card-hover {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    /* Button text colors for light mode */
+    .btn-gradient-cyan,
+    .btn-gradient-purple,
+    .btn-gradient-pink {
+      color: white;
+    }
+
+    /* Table styles */
+    .shad-table-row {
+      @apply border-b text-gray-900 border-gray-200 !important;
+    }
+
+    .shad-table-row-header {
+      @apply border-b border-gray-200 hover:bg-gray-50 !important;
+    }
+
+    /* Component backgrounds */
+    .sidebar {
+      @apply bg-white border-gray-200;
+    }
+
+    .search {
+      @apply bg-white border-gray-200;
+    }
+
+    .credits-item,
+    .profile-balance,
+    .profile-image-manipulation {
+      @apply bg-white border-gray-200;
+    }
+  }
+
+  /* Ensure proper transitions */
+  * {
+    transition: background-color 0.3s ease, border-color 0.3s ease,
+      color 0.3s ease;
+  }
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Deep dark background with slight purple undertone */
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    /* Card backgrounds - dark but not blueish */
+    --card: 240 6% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 6% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Primary colors - your brand colors */
+    --primary: 270 100% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary colors */
+    --secondary: 240 5% 12%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Muted colors */
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent colors */
+    --accent: 270 100% 65%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* Border and input */
+    --border: 240 5% 20%;
+    --input: 240 5% 20%;
+    --ring: 270 100% 65%;
   }
 }
 

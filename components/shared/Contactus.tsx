@@ -19,9 +19,47 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { formSchema } from "@/lib/validator";
 import { toast } from "../ui/use-toast";
 import { createAppointment } from "@/lib/action/appointment.actions";
+import { useTheme } from "next-themes";
 
 const ContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const contentBg =
+    theme === "dark"
+      ? "bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a]"
+      : "bg-gradient-to-br from-gray-50 to-gray-100";
+
+  const formBg = theme === "dark" ? "bg-gray-900/50" : "bg-white/80";
+
+  const borderColor =
+    theme === "dark" ? "border-[#B026FF]/30" : "border-purple-400/50";
+
+  const lightBorderColor =
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-400/50";
+
+  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const ownerTitleText = theme === "dark" ? "text-white" : "text-gray-900";
+
+  const ownerDetailText = theme === "dark" ? "text-gray-300" : "text-gray-700";
+
+  const inputBg = theme === "dark" ? "bg-gray-800/50" : "bg-white";
+
+  const inputBorder = theme === "dark" ? "border-gray-700" : "border-gray-300";
+
+  const inputText = theme === "dark" ? "text-white" : "text-gray-900";
+
+  const inputPlaceholder =
+    theme === "dark" ? "placeholder-gray-400" : "placeholder-gray-500";
+
+  const focusBorder =
+    theme === "dark"
+      ? "focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]"
+      : "focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF]";
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -83,14 +121,18 @@ const ContactForm = () => {
       <div className="container mx-auto p-2 md:px-4">
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Content Section */}
-          <div className="bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] p-2 md:p-8 rounded-2xl border border-[#B026FF]/30">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+          <div
+            className={`${contentBg} p-2 md:p-8 rounded-2xl border ${borderColor}`}
+          >
+            <h1
+              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold ${titleText} leading-tight`}
+            >
               THE FUTURE, <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#55edab]">
                 AWAITS.
               </span>
             </h1>
-            <p className="text-gray-300 mt-6 text-lg font-montserrat">
+            <p className={`${descriptionText} mt-6 text-lg font-montserrat`}>
               Got a burning AI idea, question, or just want to chat about what
               we do? We are all ears! Reach out, and our friendly team at
               AinspireTech AI will be right there to guide, assist, or simply
@@ -99,22 +141,24 @@ const ContactForm = () => {
             </p>
 
             {/* Owner Details */}
-            <div className="mt-10 border-t border-[#00F0FF]/30 pt-6">
-              <h1 className="text-white text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#55edab]">
+            <div className={`mt-10 border-t ${lightBorderColor} pt-6`}>
+              <h1
+                className={`${ownerTitleText} text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#55edab]`}
+              >
                 Owner Details:
               </h1>
               <div className="space-y-3">
-                <p className="text-gray-300 flex">
+                <p className={`${ownerDetailText} flex`}>
                   <span className="text-[#00F0FF] min-w-[100px]">Owner: </span>{" "}
                   Mr. GAURAV KHIARE
                 </p>
-                <p className="text-gray-300 flex">
+                <p className={`${ownerDetailText} flex`}>
                   <span className="text-[#00F0FF] min-w-[100px]">
                     Business:
                   </span>
                   GK Services
                 </p>
-                <p className="text-gray-300 flex">
+                <p className={`${ownerDetailText} flex`}>
                   <span className="text-[#00F0FF] min-w-[100px]">Email:</span>
                   <a
                     href="mailto:gauravgkhaire@gmail.com"
@@ -123,7 +167,7 @@ const ContactForm = () => {
                     gauravgkhaire@gmail.com
                   </a>
                 </p>
-                <p className="text-gray-300 flex">
+                <p className={`${ownerDetailText} flex`}>
                   <span className="text-[#00F0FF] min-w-[100px]">Address:</span>
                   Chandwad, Nashik, Maharashtra - 423104
                 </p>
@@ -132,7 +176,9 @@ const ContactForm = () => {
           </div>
 
           {/* Contact Form */}
-          <div className="bg-gray-900/50 backdrop-blur-md border border-[#B026FF]/30 rounded-2xl p-2 md:p-8">
+          <div
+            className={`${formBg} backdrop-blur-md border ${borderColor} rounded-2xl p-2 md:p-8`}
+          >
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -148,7 +194,7 @@ const ContactForm = () => {
                         <FormControl>
                           <Input
                             type="text"
-                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
+                            className={`${inputBg} border ${inputBorder} ${inputText} rounded-lg py-6 px-4 ${focusBorder} font-montserrat ${inputPlaceholder}`}
                             placeholder="Full Name"
                             {...field}
                           />
@@ -165,7 +211,7 @@ const ContactForm = () => {
                         <FormControl>
                           <Input
                             type="number"
-                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
+                            className={`${inputBg} border ${inputBorder} ${inputText} rounded-lg py-6 px-4 ${focusBorder} font-montserrat ${inputPlaceholder}`}
                             placeholder="Phone Number"
                             {...field}
                           />
@@ -186,7 +232,7 @@ const ContactForm = () => {
                         <FormControl>
                           <Input
                             type="text"
-                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
+                            className={`${inputBg} border ${inputBorder} ${inputText} rounded-lg py-6 px-4 ${focusBorder} font-montserrat ${inputPlaceholder}`}
                             placeholder="Subject"
                             {...field}
                           />
@@ -203,7 +249,7 @@ const ContactForm = () => {
                         <FormControl>
                           <Input
                             type="email"
-                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
+                            className={`${inputBg} border ${inputBorder} ${inputText} rounded-lg py-6 px-4 ${focusBorder} font-montserrat ${inputPlaceholder}`}
                             placeholder="Enter email"
                             {...field}
                           />
@@ -224,7 +270,7 @@ const ContactForm = () => {
                         <FormControl>
                           <Input
                             type="text"
-                            className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-6 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
+                            className={`${inputBg} border ${inputBorder} ${inputText} rounded-lg py-6 px-4 ${focusBorder} font-montserrat ${inputPlaceholder}`}
                             placeholder="Enter address"
                             {...field}
                           />
@@ -244,7 +290,7 @@ const ContactForm = () => {
                       <FormControl>
                         <Textarea
                           rows={6}
-                          className="bg-gray-800/50 border border-gray-700 text-white rounded-lg py-4 px-4 focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] font-montserrat"
+                          className={`${inputBg} border ${inputBorder} ${inputText} rounded-lg py-4 px-4 ${focusBorder} font-montserrat ${inputPlaceholder}`}
                           placeholder="Your Message"
                           {...field}
                         />
@@ -260,14 +306,14 @@ const ContactForm = () => {
                     <Button
                       type="submit"
                       disabled
-                      className="w-full py-6 bg-gradient-to-r from-[#00F0FF] to-[#55edab] text-black font-bold text-lg rounded-lg opacity-70 cursor-not-allowed"
+                      className="w-full py-6 bg-gradient-to-r from-[#00F0FF] to-[#55edab] text-white font-bold text-lg rounded-lg opacity-70 cursor-not-allowed"
                     >
                       Submitting...
                     </Button>
                   ) : (
                     <Button
                       type="submit"
-                      className="w-full py-6 bg-gradient-to-r from-[#00F0FF] to-[#55edab] text-black font-bold text-lg rounded-lg hover:from-[#00F0FF]/90 hover:to-[#55edab]/90 transition-all duration-300 shadow-lg shadow-[#00F0FF]/20"
+                      className="w-full py-6 bg-gradient-to-r from-[#00F0FF] to-[#55edab] text-white font-bold text-lg rounded-lg hover:from-[#00F0FF]/90 hover:to-[#55edab]/90 transition-all duration-300 shadow-lg shadow-[#00F0FF]/20"
                     >
                       Send Message
                     </Button>

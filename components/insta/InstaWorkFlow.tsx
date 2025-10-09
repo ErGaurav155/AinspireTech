@@ -5,8 +5,25 @@ import instadash from "@/public/assets/Feature/instadash.png";
 import instatemp from "@/public/assets/Feature/instatemp.png";
 import instalogin from "@/public/assets/Feature/lnstalogin.png";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 function InstaHowItWorksSection() {
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+
+  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const stepText = theme === "dark" ? "text-cyan-400" : "text-cyan-600";
+
+  const cardHoverBorder =
+    theme === "dark"
+      ? "borderColor: 'rgba(37, 139, 148, 0.4)'"
+      : "borderColor: 'rgba(37, 139, 148, 0.2)'";
+
   // EXACT same animation variants as testimonials component
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -39,7 +56,10 @@ function InstaHowItWorksSection() {
     hover: {
       y: -8,
       scale: 1.02,
-      borderColor: "rgba(37, 139, 148, 0.4)",
+      borderColor:
+        theme === "dark"
+          ? "rgba(37, 139, 148, 0.4)"
+          : "rgba(37, 139, 148, 0.2)",
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -117,7 +137,7 @@ function InstaHowItWorksSection() {
         viewport={{ once: false, margin: "-100px" }}
       >
         <motion.h2
-          className="text-3xl  font-bold mb-4 gradient-text-main"
+          className="text-3xl font-bold mb-4 gradient-text-main"
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -126,7 +146,7 @@ function InstaHowItWorksSection() {
           How CommentFlow Works
         </motion.h2>
         <motion.p
-          className="text-lg text-gray-300 max-w-2xl mx-auto font-montserrat"
+          className={`text-lg max-w-2xl mx-auto font-montserrat ${descriptionText}`}
           variants={textVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -137,7 +157,7 @@ function InstaHowItWorksSection() {
       </motion.div>
 
       <motion.div
-        className="max-w-5xl w-full mx-auto bg-[#0a0a0a]/10 backdrop-blur-sm"
+        className={`max-w-5xl w-full mx-auto ${containerBg} backdrop-blur-sm`}
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -154,7 +174,7 @@ function InstaHowItWorksSection() {
         >
           <div className="md:w-2/3">
             <motion.div
-              className="text-cyan-400 font-bold text-lg mb-2"
+              className={`font-bold text-lg mb-2 ${stepText}`}
               variants={stepVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -163,7 +183,7 @@ function InstaHowItWorksSection() {
               Step 1
             </motion.div>
             <motion.h3
-              className="text-2xl font-semibold mb-4 text-white"
+              className={`text-2xl font-semibold mb-4 ${titleText}`}
               variants={titleVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -172,7 +192,7 @@ function InstaHowItWorksSection() {
               Connect Your Instagram Account
             </motion.h3>
             <motion.p
-              className="text-gray-300 font-montserrat"
+              className={`font-montserrat ${descriptionText}`}
               variants={textVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -184,7 +204,7 @@ function InstaHowItWorksSection() {
             </motion.p>
           </div>
           <motion.div
-            className="md:w-1/3    aspect-square md:aspect-auto flex items-center justify-center  "
+            className="md:w-1/3 aspect-square md:aspect-auto flex items-center justify-center"
             variants={cardVariants}
             whileHover="hover"
             whileInView="visible"
@@ -198,36 +218,18 @@ function InstaHowItWorksSection() {
               whileInView="visible"
               viewport={{ once: false, margin: "-50px" }}
             >
-              {/* <motion.div
-                className="text-5xl mb-4 w-full "
-                variants={iconVariants}
-                whileInView="visible"
-                viewport={{ once: false }}
-                initial="hidden"
-              >
-                📱
-              </motion.div>
               <motion.div
-                className="text-gray-400"
-                variants={textVariants}
-                whileInView="visible"
-                viewport={{ once: false }}
-                initial="hidden"
-              >
-                Instagram Connection Interface
-              </motion.div> */}
-              <motion.div
-                className="flex-1 relative m-auto w-full  min-h-[40vh] sm:h-[50vh] lg:h-[70vh]  overflow-hidden"
+                className="flex-1 relative m-auto w-full min-h-[40vh] sm:h-[50vh] lg:h-[70vh] overflow-hidden"
                 whileInView="visible"
                 viewport={{ once: false }}
                 initial="hidden"
               >
                 <Image
                   src={instalogin}
-                  alt="Curtain Collection"
+                  alt="Instagram Login Interface"
                   fill
                   sizes="100%"
-                  className="object-fill  "
+                  className="object-fill"
                   loading="lazy"
                 />
               </motion.div>
@@ -244,9 +246,9 @@ function InstaHowItWorksSection() {
           viewport={{ once: false, margin: "-50px" }}
           initial="hidden"
         >
-          <div className="md:w-2/3 ">
+          <div className="md:w-2/3">
             <motion.div
-              className="text-cyan-400 font-bold text-lg mb-2"
+              className={`font-bold text-lg mb-2 ${stepText}`}
               variants={stepVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -255,7 +257,7 @@ function InstaHowItWorksSection() {
               Step 2
             </motion.div>
             <motion.h3
-              className="text-2xl font-semibold mb-4 text-white"
+              className={`text-2xl font-semibold mb-4 ${titleText}`}
               variants={titleVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -264,7 +266,7 @@ function InstaHowItWorksSection() {
               Set Up Response Rules
             </motion.h3>
             <motion.p
-              className="text-gray-300 font-montserrat"
+              className={`font-montserrat ${descriptionText}`}
               variants={textVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -276,7 +278,7 @@ function InstaHowItWorksSection() {
             </motion.p>
           </div>
           <motion.div
-            className="md:w-1/3   aspect-square md:aspect-auto flex items-center justify-center "
+            className="md:w-1/3 aspect-square md:aspect-auto flex items-center justify-center"
             variants={cardVariants}
             whileHover="hover"
             whileInView="visible"
@@ -290,36 +292,18 @@ function InstaHowItWorksSection() {
               whileInView="visible"
               viewport={{ once: false, margin: "-50px" }}
             >
-              {/* <motion.div
-                className="text-5xl mb-4 w-full"
-                variants={iconVariants}
-                whileInView="visible"
-                viewport={{ once: false }}
-                initial="hidden"
-              >
-                ⚙️
-              </motion.div>
               <motion.div
-                className="text-gray-400"
-                variants={textVariants}
-                whileInView="visible"
-                viewport={{ once: false }}
-                initial="hidden"
-              >
-                Response Rules Configuration
-              </motion.div> */}
-              <motion.div
-                className="flex-1 relative m-auto w-full  min-h-[40vh] sm:h-[50vh] lg:h-[70vh]  overflow-hidden"
+                className="flex-1 relative m-auto w-full min-h-[40vh] sm:h-[50vh] lg:h-[70vh] overflow-hidden"
                 whileInView="visible"
                 viewport={{ once: false }}
                 initial="hidden"
               >
                 <Image
                   src={instatemp}
-                  alt="Curtain Collection"
+                  alt="Response Templates Interface"
                   fill
                   sizes="100%"
-                  className="object-fill  "
+                  className="object-fill"
                   loading="lazy"
                 />
               </motion.div>
@@ -338,7 +322,7 @@ function InstaHowItWorksSection() {
         >
           <div className="md:w-2/3">
             <motion.div
-              className="text-cyan-400 font-bold text-lg mb-2"
+              className={`font-bold text-lg mb-2 ${stepText}`}
               variants={stepVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -347,7 +331,7 @@ function InstaHowItWorksSection() {
               Step 3
             </motion.div>
             <motion.h3
-              className="text-2xl font-semibold mb-4 text-white"
+              className={`text-2xl font-semibold mb-4 ${titleText}`}
               variants={titleVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -356,7 +340,7 @@ function InstaHowItWorksSection() {
               Monitor & Improve
             </motion.h3>
             <motion.p
-              className="text-gray-300 font-montserrat"
+              className={`font-montserrat ${descriptionText}`}
               variants={textVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -367,7 +351,7 @@ function InstaHowItWorksSection() {
             </motion.p>
           </div>
           <motion.div
-            className="md:w-1/3  aspect-square md:aspect-auto flex items-center justify-center  "
+            className="md:w-1/3 aspect-square md:aspect-auto flex items-center justify-center"
             variants={cardVariants}
             whileHover="hover"
             whileInView="visible"
@@ -375,42 +359,24 @@ function InstaHowItWorksSection() {
             initial="hidden"
           >
             <motion.div
-              className="text-center w-full "
+              className="text-center w-full"
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: false, margin: "-50px" }}
             >
-              {/* <motion.div
-                className="text-5xl mb-4 w-full"
-                variants={iconVariants}
-                whileInView="visible"
-                viewport={{ once: false }}
-                initial="hidden"
-              >
-                📊
-              </motion.div>
               <motion.div
-                className="text-gray-400"
-                variants={textVariants}
-                whileInView="visible"
-                viewport={{ once: false }}
-                initial="hidden"
-              >
-                User Analytics Dashboard
-              </motion.div> */}
-              <motion.div
-                className="flex-1 relative m-auto w-full  min-h-[40vh]  sm:h-[50vh] lg:h-[70vh]   overflow-hidden"
+                className="flex-1 relative m-auto w-full min-h-[40vh] sm:h-[50vh] lg:h-[70vh] overflow-hidden"
                 whileInView="visible"
                 viewport={{ once: false }}
                 initial="hidden"
               >
                 <Image
                   src={instadash}
-                  alt="Curtain Collection"
+                  alt="Analytics Dashboard"
                   fill
                   sizes="100%"
-                  className="object-fill md:object-contain  "
+                  className="object-fill md:object-contain"
                   loading="lazy"
                 />
               </motion.div>

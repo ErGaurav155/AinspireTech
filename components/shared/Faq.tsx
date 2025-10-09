@@ -2,8 +2,29 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTheme } from "next-themes";
 
 const Faq = () => {
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+  const badgeBorder =
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
+  const cardBorder = theme === "dark" ? "border-[#333]" : "border-gray-200";
+  const cardHoverBorder =
+    theme === "dark"
+      ? "hover:border-[#258b94]/40"
+      : "hover:border-[#258b94]/60";
+  const questionText = theme === "dark" ? "text-[#258b94]" : "text-[#1a6b72]";
+  const answerText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const cardShadow =
+    theme === "dark"
+      ? "0 20px 40px -10px rgba(37, 139, 148, 0.2)"
+      : "0 20px 40px -10px rgba(37, 139, 148, 0.1)";
+
   // Animation variants - remove 'once: true' to replay on every scroll
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -46,8 +67,11 @@ const Faq = () => {
     hover: {
       y: -8,
       scale: 1.02,
-      borderColor: "rgba(37, 139, 148, 0.4)",
-      boxShadow: "0 20px 40px -10px rgba(37, 139, 148, 0.2)",
+      borderColor:
+        theme === "dark"
+          ? "rgba(37, 139, 148, 0.4)"
+          : "rgba(37, 139, 148, 0.2)",
+      boxShadow: cardShadow,
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -123,7 +147,7 @@ const Faq = () => {
   return (
     <div>
       {/* FAQ Section */}
-      <section className="py-16  ">
+      <section className={`py-16 ${containerBg}`}>
         <motion.div
           className="max-w-4xl mx-auto"
           variants={containerVariants}
@@ -138,17 +162,23 @@ const Faq = () => {
             viewport={{ once: false }}
             initial="hidden"
           >
-            <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+            <span
+              className={`text-sm font-medium uppercase tracking-widest border ${badgeBorder} rounded-full px-4 py-1`}
+            >
               FAQ SECTION
             </span>
           </motion.div>
           <motion.div variants={itemVariants} className="mb-4">
-            <h2 className="text-3xl font-bold mb-4 gradient-text-main text-center">
+            <h2
+              className={`text-3xl font-bold mb-4 gradient-text-main text-center ${titleText}`}
+            >
               Frequently Asked Questions
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-[#0a0a0a]/10 backdrop-blur-sm">
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${containerBg} backdrop-blur-sm`}
+          >
             {faqData.map((faq, index) => (
               <motion.div
                 key={index}
@@ -158,10 +188,12 @@ const Faq = () => {
                 viewport={{ once: false, margin: "-50px" }}
                 initial="hidden"
               >
-                <Card className="bg-[#0a0a0a]/60 border border-[#333] hover:border-[#258b94]/40 transition-colors duration-300">
+                <Card
+                  className={`${cardBg} border ${cardBorder} ${cardHoverBorder} transition-colors duration-300`}
+                >
                   <CardContent className="p-3 md:p-6">
                     <motion.h3
-                      className="font-semibold text-[#258b94] mb-2"
+                      className={`font-semibold mb-2 ${questionText}`}
                       variants={questionVariants}
                       whileInView="visible"
                       viewport={{ once: false }}
@@ -170,7 +202,7 @@ const Faq = () => {
                       {faq.question}
                     </motion.h3>
                     <motion.p
-                      className="text-gray-300 font-montserrat"
+                      className={`font-montserrat ${answerText}`}
                       variants={answerVariants}
                       whileInView="visible"
                       viewport={{ once: false }}

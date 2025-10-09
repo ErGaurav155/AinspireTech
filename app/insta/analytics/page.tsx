@@ -41,6 +41,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getUserById } from "@/lib/action/user.actions";
 import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
+import { useTheme } from "next-themes";
 
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 const ANALYTICS_CACHE_KEY = "analyticsData";
@@ -57,6 +58,22 @@ export default function AnalyticsPage() {
   const [selectedAccount, setSelectedAccount] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
+  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
+  const badgeBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
+  const selectBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white";
+  const selectBorder = theme === "dark" ? "border-white/20" : "border-gray-300";
+  const buttonOutlineBorder =
+    theme === "dark" ? "border-white/20" : "border-gray-300";
+  const buttonOutlineText =
+    theme === "dark" ? "text-gray-300" : "text-gray-700";
 
   const getFilteredData = useCallback(() => {
     if (!analyticsData) return null;
@@ -425,10 +442,12 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen text-white flex items-center justify-center">
+      <div
+        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
+      >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading analytics...</p>
+          <p className={textSecondary}>Loading analytics...</p>
         </div>
       </div>
     );
@@ -436,10 +455,12 @@ export default function AnalyticsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen text-white flex items-center justify-center">
+      <div
+        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
+      >
         <div className="text-center p-6 bg-red-900/20 rounded-lg max-w-md">
           <h2 className="text-xl font-bold mb-4">Error Loading Accounts</h2>
-          <p className="text-gray-300 mb-6">{error}</p>
+          <p className={`${textSecondary} mb-6`}>{error}</p>
           <Button onClick={fetchAccounts} className="btn-gradient-cyan">
             <RefreshCw className="mr-2 h-4 w-4" />
             Try Again
@@ -450,20 +471,30 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen text-white">
+    <div className={`min-h-screen ${textPrimary} ${containerBg}`}>
       <div className="container mx-auto px-4 py-8">
         <BreadcrumbsDefault />
         {/* Header */}
         <div className="flex flex-wrap justify-between items-center gap-3 md:gap-0 mb-8">
           <div>
-            <div className="inline-flex items-center bg-blue-100/10 text-blue-400 border border-blue-400/30 rounded-full px-4 py-1 mb-4">
+            <div
+              className={`inline-flex items-center ${
+                theme === "dark"
+                  ? "bg-blue-100/10 text-blue-400 border-blue-400/30"
+                  : "bg-blue-100 text-blue-600 border-blue-300"
+              } border rounded-full px-4 py-1 mb-4`}
+            >
               <BarChart3 className="h-4 w-4 mr-1" />
               <span className="text-sm font-medium">Performance Analytics</span>
             </div>
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            <h1
+              className={`text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent ${textPrimary}`}
+            >
               Analytics Dashboard
             </h1>
-            <p className="text-muted-foreground text-xl font-medium font-montserrat">
+            <p
+              className={`${textSecondary} text-xl font-medium font-montserrat`}
+            >
               {selectedAccount === "all"
                 ? "Track performance across all accounts"
                 : `Tracking performance for @${selectedAccount}`}
@@ -473,17 +504,17 @@ export default function AnalyticsPage() {
             <Button
               onClick={() => refresh()}
               variant="outline"
-              className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10"
+              className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#0fcd6e]/80 hover:bg-white/10`}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
 
             <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-              <SelectTrigger className="w-48 bg-[#0a0a0a]/60 border-white/20">
+              <SelectTrigger className={`w-48 ${selectBg} ${selectBorder}`}>
                 <SelectValue placeholder="Select account" />
               </SelectTrigger>
-              <SelectContent className="card-hover group">
+              <SelectContent className={`${cardBg} ${cardBorder}`}>
                 <SelectItem value="all">All Accounts</SelectItem>
                 {analyticsData?.accounts?.map((account: any) => (
                   <SelectItem key={account.accountId} value={account.username}>
@@ -497,9 +528,11 @@ export default function AnalyticsPage() {
 
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="card-hover group hover:shadow-lg transition-all duration-300">
+          <Card
+            className={`card-hover group hover:shadow-lg transition-all duration-300 ${cardBg} ${cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
                 Total Replies
               </CardTitle>
               <MessageSquare className="h-4 w-4 text-[#00F0FF]" />
@@ -511,16 +544,20 @@ export default function AnalyticsPage() {
                   ? userInfo?.replyLimit
                   : 500}
               </div>
-              <p className="text-xs text-muted-foreground flex items-center font-montserrat">
+              <p
+                className={`text-xs ${textMuted} flex items-center font-montserrat`}
+              >
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
                 +12% from last period
               </p>
             </CardContent>
           </Card>
 
-          <Card className="card-hover group hover:shadow-lg transition-all duration-300">
+          <Card
+            className={`card-hover group hover:shadow-lg transition-all duration-300 ${cardBg} ${cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
                 Success Rate
               </CardTitle>
               <Target className="h-4 w-4 text-[#B026FF]" />
@@ -529,16 +566,20 @@ export default function AnalyticsPage() {
               <div className="text-2xl font-bold text-[#FF2E9F]">
                 {filteredData?.successRate || 0}%
               </div>
-              <p className="text-xs text-muted-foreground flex items-center font-montserrat">
+              <p
+                className={`text-xs ${textMuted} flex items-center font-montserrat`}
+              >
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
                 +2.1% from last period
               </p>
             </CardContent>
           </Card>
 
-          <Card className="card-hover group hover:shadow-lg transition-all duration-300">
+          <Card
+            className={`card-hover group hover:shadow-lg transition-all duration-300 ${cardBg} ${cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">
+              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
                 Avg Response Time
               </CardTitle>
               <Clock className="h-4 w-4 text-[#FF2E9F]" />
@@ -551,16 +592,20 @@ export default function AnalyticsPage() {
                     )
                   : "0s"}
               </div>
-              <p className="text-xs text-gray-400 flex items-center font-montserrat">
+              <p
+                className={`text-xs ${textMuted} flex items-center font-montserrat`}
+              >
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
                 -0.5s improvement
               </p>
             </CardContent>
           </Card>
 
-          <Card className="card-hover group hover:shadow-lg transition-all duration-300">
+          <Card
+            className={`card-hover group hover:shadow-lg transition-all duration-300 ${cardBg} ${cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">
+              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
                 Engagement Boost
               </CardTitle>
               <BarChart3 className="h-4 w-4 text-[#00F0FF]" />
@@ -569,7 +614,7 @@ export default function AnalyticsPage() {
               <div className="text-2xl font-bold text-[#00F0FF]">
                 +{filteredData?.engagementRate || 0}%
               </div>
-              <p className="text-xs text-gray-400 font-montserrat">
+              <p className={`text-xs ${textMuted} font-montserrat`}>
                 Since auto-replies enabled
               </p>
             </CardContent>
@@ -578,15 +623,15 @@ export default function AnalyticsPage() {
 
         {/* Account Performance */}
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
-          <Card className="card-hover group">
+          <Card className={`card-hover group ${cardBg} ${cardBorder}`}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
+              <CardTitle className={`flex items-center gap-2 ${textPrimary}`}>
                 <Users className="h-5 w-5 text-[#00F0FF]" />
                 {selectedAccount === "all"
                   ? "Account Performance"
                   : "Account Details"}
               </CardTitle>
-              <CardDescription className="text-gray-400 font-montserrat">
+              <CardDescription className={`${textSecondary} font-montserrat`}>
                 {selectedAccount === "all"
                   ? "Compare performance across your Instagram accounts"
                   : `Performance details for @${selectedAccount}`}
@@ -596,7 +641,7 @@ export default function AnalyticsPage() {
               {filteredData?.accounts?.map((account: any) => (
                 <div
                   key={account.id}
-                  className="flex flex-col w-full items-center justify-between p-4 gap-3 border rounded-lg"
+                  className={`flex flex-col w-full items-center justify-between p-4 gap-3 border ${cardBorder} rounded-lg`}
                 >
                   <div className="flex items-center space-x-2 lg:space-x-4">
                     <Image
@@ -612,10 +657,12 @@ export default function AnalyticsPage() {
                       className="h-10 w-10 rounded-full object-cover"
                     />
                     <div>
-                      <h4 className="text-base lg:text-lg font-medium lg:font-semibold font-montserrat">
+                      <h4
+                        className={`text-base lg:text-lg font-medium lg:font-semibold font-montserrat ${textPrimary}`}
+                      >
                         @{account.username}
                       </h4>
-                      <p className="text-sm text-muted-foreground font-montserrat">
+                      <p className={`text-sm ${textMuted} font-montserrat`}>
                         {account.accountReply} replies
                       </p>
                     </div>
@@ -627,17 +674,17 @@ export default function AnalyticsPage() {
                         onClick={() => refreshInstagramToken(userId)}
                         variant="outline"
                         size="sm"
-                        className="border-white/20 p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10 "
+                        className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
                       >
                         <RefreshCw className="mr-2 h-4 w-4" />
                         Refresh Token
                       </Button>
                     )}
                   <div className="flex items-center justify-between w-full font-montserrat">
-                    <div className="text-xs  text-white">
+                    <div className={`text-xs ${textPrimary}`}>
                       {account.engagementRate}% engagement
                     </div>
-                    <div className="text-xs text-gray-400 ">
+                    <div className={`text-xs ${textMuted}`}>
                       {account?.avgResponseTime
                         ? formatResponseTimeSmart(account.avgResponseTime)
                         : "0s"}{" "}
@@ -651,7 +698,7 @@ export default function AnalyticsPage() {
                 filteredData?.accounts.length === 0) && (
                 <div className="text-center py-8">
                   <Instagram className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                  <p className="text-gray-400 mb-4 font-montserrat">
+                  <p className={`${textSecondary} mb-4 font-montserrat`}>
                     No accounts connected yet
                   </p>
                   <Button className="btn-gradient-cyan" asChild>
@@ -665,13 +712,13 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="card-hover group">
+          <Card className={`card-hover group ${cardBg} ${cardBorder}`}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
+              <CardTitle className={`flex items-center gap-2 ${textPrimary}`}>
                 <Clock className="h-5 w-5 text-[#FF2E9F]" />
                 Recent Activity
               </CardTitle>
-              <CardDescription className="text-gray-400 font-montserrat">
+              <CardDescription className={`${textSecondary} font-montserrat`}>
                 {selectedAccount === "all"
                   ? "Latest auto-reply activities across all accounts"
                   : `Recent activities for @${selectedAccount}`}
@@ -682,23 +729,25 @@ export default function AnalyticsPage() {
                 {filteredData?.recentActivity?.map((activity: any) => (
                   <div
                     key={activity.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
+                    className={`flex items-center justify-between p-3 border ${cardBorder} rounded-lg`}
                   >
                     <div className="flex items-center space-x-3">
                       <div
                         className={`h-2 w-2 rounded-full ${"bg-[#00F0FF]"}`}
                       />
                       <div>
-                        <p className="text-sm font-medium text-white font-montserrat">
+                        <p
+                          className={`text-sm font-medium ${textPrimary} font-montserrat`}
+                        >
                           {activity.type === "reply_sent"
                             ? "Reply sent"
                             : "Reply failed"}
-                          <span className="text-gray-400">
+                          <span className={textSecondary}>
                             {" "}
                             to @{activity.account}
                           </span>
                         </p>
-                        <p className="text-xs text-gray-400 font-montserrat">
+                        <p className={`text-xs ${textMuted} font-montserrat`}>
                           Template: {activity.template}
                         </p>
                       </div>
@@ -712,7 +761,7 @@ export default function AnalyticsPage() {
                       >
                         Success
                       </Badge>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className={`text-xs ${textMuted} mt-1`}>
                         {formatTimestamp(activity.timestamp)}
                       </p>
                     </div>
@@ -720,7 +769,7 @@ export default function AnalyticsPage() {
                 ))}
                 {(!filteredData?.recentActivity ||
                   filteredData?.recentActivity.length === 0) && (
-                  <p className="text-gray-400 text-center">
+                  <p className={`${textMuted} text-center`}>
                     No recent activity available.
                   </p>
                 )}

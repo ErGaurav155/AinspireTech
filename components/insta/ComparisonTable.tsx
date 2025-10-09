@@ -6,6 +6,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import cup from "@/public/assets/img/pricecup.png";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 
 const Check = ({ className }: { className?: string }) => (
   <svg
@@ -25,8 +26,28 @@ const Check = ({ className }: { className?: string }) => (
 );
 
 const ComparisonTable: React.FC = () => {
-  // EXACT same animation variants as FeatureSection component
   const router = useRouter();
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+  const badgeBorder =
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const tableHeaderBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/80";
+  const tableRowHover =
+    theme === "dark" ? "hover:bg-[#1a1a1a]/50" : "hover:bg-gray-100/50";
+  const tableBorder = theme === "dark" ? "border-[#333]" : "border-gray-200";
+  const tableDivide = theme === "dark" ? "divide-[#333]" : "divide-gray-200";
+  const featureText = theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const disabledText = theme === "dark" ? "text-gray-500" : "text-gray-400";
+  const comingSoonBg =
+    theme === "dark"
+      ? "bg-blue-900 text-blue-300"
+      : "bg-blue-100 text-blue-700";
+
+  // EXACT same animation variants as FeatureSection component
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -58,7 +79,8 @@ const ComparisonTable: React.FC = () => {
     hover: {
       y: -4,
       scale: 1.01,
-      backgroundColor: "rgba(26, 26, 26, 0.6)",
+      backgroundColor:
+        theme === "dark" ? "rgba(26, 26, 26, 0.6)" : "rgba(255, 255, 255, 0.6)",
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -145,7 +167,7 @@ const ComparisonTable: React.FC = () => {
         </motion.div>
       ) : (
         <motion.span
-          className="text-gray-500"
+          className={disabledText}
           variants={textVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -159,7 +181,7 @@ const ComparisonTable: React.FC = () => {
     if (value === "Coming soon") {
       return (
         <motion.span
-          className="bg-blue-900 text-blue-300 px-2 py-1 rounded-md text-xs"
+          className={`${comingSoonBg} px-2 py-1 rounded-md text-xs`}
           variants={textVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -172,7 +194,7 @@ const ComparisonTable: React.FC = () => {
 
     return (
       <motion.span
-        className="text-gray-300"
+        className={featureText}
         variants={textVariants}
         whileInView="visible"
         viewport={{ once: false }}
@@ -184,7 +206,7 @@ const ComparisonTable: React.FC = () => {
   };
 
   return (
-    <section className="py-16  bg-transparent ">
+    <section className={`py-16 bg-transparent ${containerBg}`}>
       <motion.div
         className="max-w-7xl mx-auto"
         variants={containerVariants}
@@ -201,7 +223,7 @@ const ComparisonTable: React.FC = () => {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className="inline-flex items-center text-[#00F0FF] border border-[#00F0FF]/30 rounded-full px-4 py-1 mb-4"
+            className={`inline-flex items-center text-[#00F0FF] border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -213,7 +235,7 @@ const ComparisonTable: React.FC = () => {
           </motion.div>
 
           <motion.h1
-            className="text-3xl font-bold text-white mb-4 gradient-text-main"
+            className={`text-3xl font-bold mb-4 gradient-text-main ${titleText}`}
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -223,7 +245,7 @@ const ComparisonTable: React.FC = () => {
           </motion.h1>
 
           <motion.p
-            className="text-xl text-gray-300 mb-6 font-montserrat"
+            className={`text-xl mb-6 font-montserrat ${descriptionText}`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -249,7 +271,7 @@ const ComparisonTable: React.FC = () => {
               <div className="w-6 h-6 rounded-full bg-blue-800 flex items-center justify-center mr-3">
                 <div className="w-2 h-2 rounded-full bg-blue-400"></div>
               </div>
-              <span className="text-lg font-medium text-white">
+              <span className={`text-lg font-medium ${titleText}`}>
                 Cheap & Best
               </span>
             </motion.div>
@@ -263,7 +285,7 @@ const ComparisonTable: React.FC = () => {
               <div className="w-6 h-6 rounded-full bg-blue-800 flex items-center justify-center mr-3">
                 <div className="w-2 h-2 rounded-full bg-blue-400"></div>
               </div>
-              <span className="text-lg font-medium text-white">
+              <span className={`text-lg font-medium ${titleText}`}>
                 299INR ($3.3) Per month
               </span>
             </motion.div>
@@ -287,7 +309,7 @@ const ComparisonTable: React.FC = () => {
 
         {/* Comparison Table */}
         <motion.div
-          className="overflow-x-auto bg-[#0a0a0a]/10 backdrop-blur-sm"
+          className={`overflow-x-auto ${tableHeaderBg} backdrop-blur-sm`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -296,14 +318,15 @@ const ComparisonTable: React.FC = () => {
           <table className="w-full border-collapse">
             <thead>
               <motion.tr
-                className="border-b-2 border-[#333]"
+                className={`border-b-2 ${tableBorder}`}
                 variants={cardVariants}
                 whileInView="visible"
                 viewport={{ once: false }}
                 initial="hidden"
               >
-                <th className="text-left py-4 px-6 font-semibold text-white">
+                <th className="text-left py-4 px-6 font-semibold">
                   <motion.span
+                    className={titleText}
                     variants={titleVariants}
                     whileInView="visible"
                     viewport={{ once: false }}
@@ -389,11 +412,11 @@ const ComparisonTable: React.FC = () => {
                 </th>
               </motion.tr>
             </thead>
-            <tbody className="divide-y divide-[#333]">
+            <tbody className={`divide-y ${tableDivide}`}>
               {features.map((feature, index) => (
                 <motion.tr
                   key={index}
-                  className="hover:bg-[#1a1a1a]/50"
+                  className={tableRowHover}
                   variants={rowVariants}
                   whileInView="visible"
                   viewport={{ once: false, margin: "-20px" }}
@@ -401,8 +424,9 @@ const ComparisonTable: React.FC = () => {
                   whileHover="hover"
                   transition={{ delay: index * 0.1 }}
                 >
-                  <td className="py-4 px-6 font-medium text-gray-300 font-montserrat">
+                  <td className="py-4 px-6 font-medium font-montserrat">
                     <motion.span
+                      className={featureText}
                       variants={textVariants}
                       whileInView="visible"
                       viewport={{ once: false }}

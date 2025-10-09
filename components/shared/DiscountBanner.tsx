@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RocketIcon, SparklesIcon } from "lucide-react";
 import Link from "next/link";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+import { useTheme } from "next-themes";
 
 const DiscountBanner = () => {
   const [days, setDays] = useState("00");
@@ -13,6 +14,7 @@ const DiscountBanner = () => {
   const [seconds, setSeconds] = useState("00");
   const [isVisible, setIsVisible] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
+  const { theme } = useTheme();
 
   const initialCountdownDate = new Date("2024-07-13T13:00:00").getTime();
 
@@ -77,20 +79,61 @@ const DiscountBanner = () => {
     return null;
   }
 
+  // Theme-based styles
+  const containerBg =
+    theme === "dark"
+      ? "bg-gradient-to-r from-[#0a0a0a]/90 to-[#1a1a1a]/90"
+      : "bg-gradient-to-r from-white/95 to-gray-50/95";
+
+  const borderColor =
+    theme === "dark" ? "border-[#11df78]/30" : "border-green-200";
+
+  const scrollBannerBg =
+    theme === "dark"
+      ? "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a]"
+      : "bg-gradient-to-r from-white to-gray-50";
+
+  const scrollBannerBorder =
+    theme === "dark" ? "border-[#00F0FF]/20" : "border-blue-200";
+
+  const countdownBg =
+    theme === "dark"
+      ? "bg-[#0a0a0a] border-[#00F0FF]/30"
+      : "bg-white border-blue-200";
+
+  const countdownText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+
+  const closeButtonBg =
+    theme === "dark"
+      ? "bg-[#1a1a1a]/80 border-[#333] hover:bg-[#FF2E9F]/20 hover:border-[#FF2E9F]/50"
+      : "bg-gray-100 border-gray-300 hover:bg-[#FF2E9F]/20 hover:border-[#FF2E9F]/50";
+
+  const saleBadgeBg =
+    theme === "dark"
+      ? "bg-transparent border text-[#FF2E9F]"
+      : "bg-transparent border border-[#FF2E9F] text-[#FF2E9F]";
+
+  const gradientOverlay =
+    theme === "dark"
+      ? "bg-gradient-to-r from-transparent via-[#00F0FF]/10 to-transparent group-hover:via-[#B026FF]/20"
+      : "bg-gradient-to-r from-transparent via-blue-100 to-transparent group-hover:via-purple-100";
+
   return (
     <div className="p-2 relative z-50 backdrop-blur-lg mt-5 top-0 left-0 w-full">
       <div className="absolute inset-0 overflow-hidden rounded-xl">
         <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full opacity-10 blur-xl animate-pulse"></div>
         <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-r from-[#FF2E9F] to-[#B026FF] rounded-full opacity-10 blur-xl animate-pulse delay-1000"></div>
       </div>
-      <div className="rounded-xl  flex flex-col gap-1 justify-center items-center  border border-[#11df78]/30 bg-gradient-to-r from-[#0a0a0a]/90 to-[#1a1a1a]/90 text-white font-sans p-2 md:py-5 md:px-6 shadow-2xl shadow-[#00F0FF]/10">
-        {/* Animated Background Elements */}
-
+      <div
+        className={`rounded-xl flex flex-col gap-1 justify-center items-center border ${borderColor} ${containerBg} text-foreground font-sans p-2 md:py-5 md:px-6 shadow-2xl ${
+          theme === "dark" ? "shadow-[#00F0FF]/10" : "shadow-blue-200/20"
+        }`}
+      >
         {/* Close Button */}
-        <div className="flex flex-row-reverse items-center justify-between w-full ">
+        <div className="flex flex-row-reverse items-center justify-between w-full">
           <button
             onClick={handleClose}
-            className="relative p-1.5 rounded-full bg-[#1a1a1a]/80 border border-[#333] hover:bg-[#FF2E9F]/20 hover:border-[#FF2E9F]/50 transition-all duration-300 group z-40"
+            className={`relative p-1.5 rounded-full ${closeButtonBg} transition-all duration-300 group z-40`}
           >
             <XMarkIcon
               height={18}
@@ -98,20 +141,20 @@ const DiscountBanner = () => {
               className="text-[#FF2E9F] group-hover:scale-110 transition-transform"
             />
           </button>
-          <div className="relative  bg-transparent border text-[#FF2E9F]  p-1 px-2 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
+          <div
+            className={`relative ${saleBadgeBg} p-1 px-2 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300`}
+          >
             <div className="absolute -top-2 -right-2">
               <SparklesIcon className="h-5 w-5 text-yellow-300 animate-pulse" />
             </div>
-            <div className=" text-sm  font-normal tracking-wide">
+            <div className="text-sm font-normal tracking-wide">
               !!! 75% Off !!!
             </div>
           </div>
         </div>
-        <div className="flex flex-col md:flex-row items-center justify-between w-full ">
+        <div className="flex flex-col md:flex-row items-center justify-between w-full">
           {/* Main Content */}
           <div className="flex flex-row gap-2 md:gap-6 justify-center items-center w-full relative z-10">
-            {/* Sale Badge */}
-
             {/* Countdown Timer */}
             <div className="flex gap-1 md:gap-2">
               {[
@@ -121,10 +164,14 @@ const DiscountBanner = () => {
                 { value: seconds, label: "SEC" },
               ].map((item, index) => (
                 <div key={index} className="flex flex-col items-center">
-                  <div className="bg-[#0a0a0a] border border-[#00F0FF]/30 text-xs font-light p-1 md:py-2 md:px-4 rounded-lg shadow-inner">
+                  <div
+                    className={`${countdownBg} text-xs font-light p-1 md:py-2 md:px-4 rounded-lg shadow-inner border ${scrollBannerBorder}`}
+                  >
                     {item.value}
                   </div>
-                  <div className="text-xs font-thin text-gray-300 mt-1.5 tracking-wide">
+                  <div
+                    className={`text-xs font-thin ${countdownText} mt-1.5 tracking-wide`}
+                  >
                     {item.label}
                   </div>
                 </div>
@@ -139,7 +186,7 @@ const DiscountBanner = () => {
               onMouseLeave={() => setIsHovered(false)}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-lg group-hover:from-[#B026FF] group-hover:to-[#FF2E9F] transition-all duration-500"></div>
-              <div className="relative bg-gradient-to-r from-[#00F0FF] to-[#B026FF] group-hover:from-[#B026FF] group-hover:to-[#FF2E9F] text-black font-semibold py-2 px-1 md:py-3 md:px-6 rounded-lg transform group-hover:scale-105 transition-all duration-300 uppercase tracking-wide text-xs md:text-sm text-nowrap">
+              <div className="relative bg-gradient-to-r from-[#00F0FF] to-[#B026FF] group-hover:from-[#B026FF] group-hover:to-[#FF2E9F] text-white font-semibold py-2 px-1 md:py-3 md:px-6 rounded-lg transform group-hover:scale-105 transition-all duration-300 uppercase tracking-wide text-xs md:text-sm text-nowrap">
                 Buy Now
               </div>
               {isHovered && (
@@ -153,12 +200,16 @@ const DiscountBanner = () => {
           {/* Scrolling Banner */}
           <Link
             href={"/insta/pricing"}
-            className="md:mt-3 w-full overflow-hidden bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border border-[#00F0FF]/20 rounded-lg relative group p-0"
+            className={`md:mt-3 w-full overflow-hidden rounded-lg relative group p-0 ${scrollBannerBg}`}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#00F0FF]/10 to-transparent group-hover:via-[#B026FF]/20 transition-all duration-1000"></div>
-            <div className="flex animate-scroll-left whitespace-nowrap py-1 md:py-3 relative z-10 text-sm">
-              <span className="font-light">
-                🚀 Get <span className="text-[#00F0FF] ">One Month Free</span>{" "}
+            <div
+              className={`absolute inset-0 ${gradientOverlay} transition-all duration-1000 text-sm border ${scrollBannerBorder} rounded-lg `}
+            ></div>
+            <div
+              className={`flex animate-scroll-left whitespace-nowrap py-1 md:py-3 relative z-10 font-light text-sm`}
+            >
+              <span className="font-light text-sm">
+                🚀 Get <span className="text-[#00F0FF]">One Month Free</span>{" "}
                 For Yearly Subscription
               </span>
               <span className="mx-3 text-[#B026FF]">•</span>

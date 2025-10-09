@@ -19,6 +19,7 @@ import { Checkout } from "@/components/shared/Checkout";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { Switch } from "@/components/ui/switch";
 import { apiClient } from "@/lib/utils";
+import { useTheme } from "next-themes";
 
 const iconMapping: Record<string, any> = {
   HeadsetIcon: HeadsetIcon,
@@ -45,6 +46,30 @@ const Pricing = () => {
   const { userId } = useAuth();
   const searchParams = useSearchParams();
   const activeProductId = searchParams.get("id");
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const containerBg = theme === "dark" ? "bg-transparent" : "bg-gray-50";
+  const loadingBg = theme === "dark" ? "bg-black" : "bg-white";
+  const badgeBg =
+    theme === "dark"
+      ? "bg-blue-100/10 text-blue-400 border-blue-400/30"
+      : "bg-blue-100 text-blue-600 border-blue-300";
+  const tableHeaderBg =
+    theme === "dark"
+      ? "bg-gradient-to-r from-[#1a1a1a] to-[#2a0b45]"
+      : "bg-gradient-to-r from-gray-100 to-gray-200";
+  const tableBorder =
+    theme === "dark" ? "border-[#B026FF]/30" : "border-gray-300";
+  const tableRowHover =
+    theme === "dark" ? "hover:bg-[#1a1a1a]/50" : "hover:bg-gray-100/50";
+  const saveBadgeBg =
+    theme === "dark"
+      ? "bg-green-900/20 text-green-400 border-green-400/30"
+      : "bg-green-100 text-green-600 border-green-300";
 
   const [billingMode, setBillingMode] = useState<"monthly" | "yearly">(
     "monthly"
@@ -80,21 +105,27 @@ const Pricing = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-white font-bold text-xl relative z-10">
+      <div
+        className={`flex items-center justify-center min-h-screen ${textPrimary} font-bold text-xl ${loadingBg} relative z-10`}
+      >
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen relative z-10 max-w-7xl m-auto">
+    <div
+      className={`flex flex-col justify-center items-center min-h-screen relative z-10 max-w-7xl m-auto ${containerBg}`}
+    >
       <BreadcrumbsDefault />
 
-      <div className="w-full  px-4 py-8 relative z-10">
+      <div className="w-full px-4 py-8 relative z-10">
         {/* Updated Header Section */}
         <section className="py-16 px-4 sm:px-6 lg:px-8 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center bg-blue-100/10 text-blue-400 border border-blue-400/30 rounded-full px-4 py-1 mb-4">
+            <div
+              className={`inline-flex items-center ${badgeBg} border rounded-full px-4 py-1 mb-4`}
+            >
               <Zap className="h-4 w-4 mr-1" />
               <span className="text-sm font-medium">
                 AI-Powered Automation Solutions
@@ -103,7 +134,9 @@ const Pricing = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
               Transform Your Business with AI
             </h1>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto font-montserrat">
+            <p
+              className={`text-xl ${textSecondary} mb-8 max-w-2xl mx-auto font-montserrat`}
+            >
               Advanced AI solutions tailored to optimize operations, enhance
               customer experiences, and drive growth for businesses of all
               sizes.
@@ -113,7 +146,7 @@ const Pricing = () => {
             <div className="flex items-center justify-center gap-4 mb-12">
               <span
                 className={`text-sm font-medium ${
-                  billingMode === "monthly" ? "text-white" : "text-gray-500"
+                  billingMode === "monthly" ? textPrimary : textMuted
                 }`}
               >
                 Monthly
@@ -127,12 +160,14 @@ const Pricing = () => {
               />
               <span
                 className={`text-sm font-medium ${
-                  billingMode === "yearly" ? "text-white" : "text-gray-500"
+                  billingMode === "yearly" ? textPrimary : textMuted
                 }`}
               >
                 Yearly
               </span>
-              <div className="bg-green-900/20 text-green-400 border border-green-400/30 rounded-full px-3 py-1 ml-2">
+              <div
+                className={`${saveBadgeBg} text-xs border rounded-full px-3 py-1 ml-2`}
+              >
                 Save 16%
               </div>
             </div>
@@ -162,12 +197,15 @@ const Pricing = () => {
             return (
               <div
                 key={product.productId}
-                className={`relative group h-full flex flex-col items-center justify-between rounded-lg backdrop-blur-sm border transition-all duration-300 p-5
-                  ${
-                    product.productId === activeProductId
-                      ? "scale-105 z-10 border-[#2d8246]/30 hover:border-[#2d8246] bg-[#34e468]/5"
-                      : "border-[#FF2E9F]/20 hover:border-[#FF2E9F]"
-                  }`}
+                className={`relative group h-full flex flex-col items-center justify-between rounded-lg backdrop-blur-sm border transition-all duration-300 p-5 ${
+                  theme === "dark" ? "bg-transparent" : "bg-white/80"
+                } ${
+                  product.productId === activeProductId
+                    ? "scale-105 z-10 border-[#2d8246]/30 hover:border-[#2d8246] bg-[#34e468]/5"
+                    : theme === "dark"
+                    ? "border-[#FF2E9F]/20 hover:border-[#FF2E9F]"
+                    : "border-gray-300 hover:border-[#FF2E9F]"
+                }`}
               >
                 {/* Popular Badge */}
                 {product.productId === "chatbot-lead-generation" && (
@@ -182,10 +220,16 @@ const Pricing = () => {
                 <div
                   className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity ${
                     product.productId === "chatbot-lead-generation"
-                      ? "from-[#B026FF]/10"
+                      ? theme === "dark"
+                        ? "from-[#B026FF]/10"
+                        : "from-[#B026FF]/5"
                       : product.productId === "chatbot-education"
-                      ? "from-[#00F0FF]/10"
-                      : "from-[#FF2E9F]/10"
+                      ? theme === "dark"
+                        ? "from-[#00F0FF]/10"
+                        : "from-[#00F0FF]/5"
+                      : theme === "dark"
+                      ? "from-[#FF2E9F]/10"
+                      : "from-[#FF2E9F]/5"
                   } to-transparent`}
                 ></div>
                 <div className=" flex flex-col items-center gap-3 w-full">
@@ -196,7 +240,9 @@ const Pricing = () => {
                   )}
 
                   <div className="w-full flex justify-center relative">
-                    <h3 className="text-2xl font-bold text-white text-start">
+                    <h3
+                      className={`text-2xl font-bold ${textPrimary} text-start`}
+                    >
                       {product.name}
                     </h3>
                   </div>
@@ -204,12 +250,14 @@ const Pricing = () => {
 
                 <div className=" w-full text-center">
                   <div className="flex items-center py-5 justify-center gap-3">
-                    <p className="text-xl font-bold text-gray-400 line-through">
+                    <p
+                      className={`text-xl font-bold ${textMuted} line-through`}
+                    >
                       ${originalPrice.toFixed(0)}
                     </p>
                     <p className="text-3xl font-bold text-[#B026FF]">
                       ${displayedPrice.toFixed(0)}
-                      <span className="text-lg font-medium text-gray-400">
+                      <span className={`text-lg font-medium ${textMuted}`}>
                         /{billingMode === "monthly" ? "mo" : "yr"}
                       </span>
                     </p>
@@ -223,24 +271,30 @@ const Pricing = () => {
                   )}
                 </div>
 
-                <ul className=" w-full text-left text-gray-300 space-y-4">
+                <ul className=" w-full text-left space-y-4">
                   {product.inclusions.map((inclusion, index) => (
                     <li
                       key={index}
                       className={`flex items-start gap-3 ${
-                        inclusion.isIncluded ? "text-white" : "text-gray-500"
+                        inclusion.isIncluded ? textPrimary : textMuted
                       }`}
                     >
                       <span
                         className={`flex-shrink-0 w-5 h-5 mt-1 ${
                           inclusion.isIncluded
                             ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black"
-                            : "bg-gray-700"
+                            : theme === "dark"
+                            ? "bg-gray-700"
+                            : "bg-gray-400"
                         } rounded-full flex items-center justify-center`}
                       >
                         {inclusion.isIncluded && <Check className="w-3 h-3" />}
                       </span>
-                      <span className="flex-1 font-montserrat">
+                      <span
+                        className={`flex-1 font-montserrat ${
+                          inclusion.isIncluded ? textPrimary : textMuted
+                        }`}
+                      >
                         {inclusion.label}
                       </span>
                     </li>
@@ -283,26 +337,28 @@ const Pricing = () => {
         <section className="py-16 px-4 sm:px-6 lg:px-8">
           <div className=" mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-white mb-4">
+              <h2 className={`text-3xl font-bold ${textPrimary} mb-4`}>
                 Feature Comparison
               </h2>
-              <p className="text-xl text-gray-300 font-montserrat">
+              <p className={`text-xl ${textSecondary} font-montserrat`}>
                 See how our solutions compare
               </p>
             </div>
 
-            <div className="overflow-x-auto ">
+            <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-gradient-to-r from-[#1a1a1a] to-[#2a0b45]">
-                    <th className="text-left py-4 px-6 font-semibold text-white border-b border-[#B026FF]/30">
+                  <tr className={tableHeaderBg}>
+                    <th
+                      className={`text-left py-4 px-6 font-semibold ${textPrimary} border-b ${tableBorder}`}
+                    >
                       Features
                     </th>
                     {Object.values(productSubscriptionDetails).map(
                       (product) => (
                         <th
                           key={product.productId}
-                          className="text-center py-4 px-6 font-semibold text-white border-b border-[#B026FF]/30"
+                          className={`text-center py-4 px-6 font-semibold ${textPrimary} border-b ${tableBorder}`}
                         >
                           {product.name}
                         </th>
@@ -310,7 +366,11 @@ const Pricing = () => {
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#333] font-montserrat">
+                <tbody
+                  className={`divide-y ${
+                    theme === "dark" ? "divide-[#333]" : "divide-gray-300"
+                  } font-montserrat`}
+                >
                   {[
                     "24/7 Availability",
                     "Live Chat Interface",
@@ -327,8 +387,8 @@ const Pricing = () => {
                     "Personalized learning",
                     "Interactive quizzes",
                   ].map((feature, index) => (
-                    <tr key={index} className="hover:bg-[#1a1a1a]/50">
-                      <td className="py-4 px-6 font-medium text-gray-300">
+                    <tr key={index} className={tableRowHover}>
+                      <td className={`py-4 px-6 font-medium ${textSecondary}`}>
                         {feature}
                       </td>
                       {Object.values(productSubscriptionDetails).map(
@@ -346,7 +406,7 @@ const Pricing = () => {
                               {hasFeature ? (
                                 <Check className="h-5 w-5 text-[#00F0FF] mx-auto" />
                               ) : (
-                                <span className="text-gray-500">—</span>
+                                <span className={textMuted}>—</span>
                               )}
                             </td>
                           );
