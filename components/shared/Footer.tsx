@@ -5,10 +5,23 @@ import Image from "next/image";
 import Link from "next/link";
 import Logo from "/public/assets/img/logo.png";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function Footer() {
   const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <button className="p-2 rounded-md bg-gray-200 dark:bg-gray-800">
+        <div className="w-5 h-5" />
+      </button>
+    );
+  }
   // Theme-based styles
   const footerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/80";
 

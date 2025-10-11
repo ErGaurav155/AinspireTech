@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Instagram, Menu, X, Zap } from "lucide-react";
+import { Menu, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Image from "next/image";
@@ -13,31 +13,37 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  // Theme-based styles
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <button className="p-2 rounded-md bg-gray-200 dark:bg-gray-800">
+        <div className="w-5 h-5" />
+      </button>
+    );
+  }
+  // Theme-based styles (only after mounted)
   const navBg = theme === "dark" ? "bg-[#0a0a0a]/80" : "bg-white/80";
-
   const borderColor = theme === "dark" ? "border-white/10" : "border-gray-200";
-
   const logoBg = theme === "dark" ? "bg-[#0A0A0A]" : "bg-white";
-
   const linkText =
     theme === "dark"
       ? "text-gray-300 hover:text-[#00F0FF]"
       : "text-gray-600 hover:text-[#00F0FF]";
-
   const outlineButton =
     theme === "dark"
       ? "border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/10"
       : "border-[#00F0FF]/50 text-[#00F0FF] hover:bg-[#00F0FF]/5";
-
   const mobileMenuBg = theme === "dark" ? "border-white/10" : "border-gray-200";
-
   const mobileButton = theme === "dark" ? "text-white" : "text-gray-700";
 
   return (
     <nav
-      className={`${navBg} backdrop-blur-md border-b ${borderColor} sticky top-0 z-50`}
+      className={`${navBg} backdrop-blur-md border-b ${borderColor} sticky top-0 z-50 transition-colors duration-300`}
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
@@ -46,7 +52,7 @@ export default function Navbar() {
             <div className="relative h-7 w-7 md:w-10 md:h-10 mr-1 md:mr-3">
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
               <div
-                className={`absolute inset-1 rounded-full ${logoBg} flex items-center justify-center`}
+                className={`absolute inset-1 rounded-full ${logoBg} flex items-center justify-center transition-colors duration-300`}
               >
                 <Image
                   alt="Logo"
@@ -110,18 +116,15 @@ export default function Navbar() {
                 Get Pricing
               </Link>
             </Button>
-            {/* <div className="flex justify-center p-1 gap-1 md:gap-2 rounded-md bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"> */}
             <ThemeToggle />
             <SignedIn>
               <UserButton afterSignOutUrl="/" />
             </SignedIn>
-            {/* </div> */}
           </div>
 
           {/* Mobile menu button */}
           <div className="flex md:hidden items-center justify-center gap-2">
             <ThemeToggle />
-
             <SignedIn>
               <UserButton afterSignOutUrl="/" />
             </SignedIn>

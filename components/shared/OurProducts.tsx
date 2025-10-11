@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import FeaImg1 from "@/public/assets/img/headingimg.png";
 import FeaImg2 from "@/public/assets/img/featureImg2.png";
 import FeaImg3 from "@/public/assets/img/FeatureImg3.png";
@@ -17,192 +17,55 @@ import InstaFea3 from "@/public/assets/Feature/InstaFeature3.png";
 import InstaFea4 from "@/public/assets/Feature/InstaFeature4.png";
 
 import {
-  Play,
   MessageCircle,
   Instagram,
   Users,
   BookOpen,
-  ShoppingCart,
   Video,
   Zap,
   Phone,
   Mic,
-  Volume2,
-  ArrowDown,
   ImagePlus,
-  Heart,
-  Send,
-  User,
-  Clock,
-  BarChart3,
+  ChevronDown,
 } from "lucide-react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 
 export function AIVoiceAgentShowcase() {
-  const [activePlatform, setActivePlatform] = useState<"webchat" | "instagram">(
-    "webchat"
+  const [activePlatform, setActivePlatform] = useState<"web" | "instagram">(
+    "web"
   );
-  const [activeWebChatTab, setActiveWebChatTab] = useState<
-    "support" | "education" | "leadgen"
-  >("support");
-  const [activeInstaTab, setActiveInstaTab] = useState<
-    "reels" | "posts" | "stories" | "dms"
-  >("reels");
+  const [openWebDropdown, setOpenWebDropdown] = useState<string | null>(
+    "support"
+  );
+  const [openInstaDropdown, setOpenInstaDropdown] = useState<string | null>(
+    "reels"
+  );
+  const [agent, setImage] = useState(FeaBot3);
+  const [instaImage, setInstaImage] = useState(InstaFea2);
+  const [instaImage1, setInstaImage1] = useState(FeaImg4);
   const { theme } = useTheme();
 
   // Theme-based styles
   const sectionBg = theme === "dark" ? "bg-transparent" : "bg-transparent";
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
-  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
   const tabBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-gray-100";
   const tabBorder = theme === "dark" ? "border-gray-800" : "border-gray-300";
   const tabText = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const tabHover =
-    theme === "dark" ? "hover:text-white" : "hover:text-gray-900";
-  const inactiveTabBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-transparent";
+  const activeTabBg = "bg-gradient-to-r from-cyan-600 to-blue-600 text-white";
+  const activeInstaTabBg =
+    "bg-gradient-to-r from-pink-600 to-purple-600 text-white";
 
-  const analyticsBg = theme === "dark" ? "bg-black/30" : "bg-gray-100/80";
-  const analyticsBorder =
-    theme === "dark" ? "border-cyan-500/30" : "border-cyan-400/50";
-  const instaAnalyticsBorder =
-    theme === "dark" ? "border-pink-500/30" : "border-pink-400/50";
-
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const featureText = theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const dropdownBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
+  const dropdownBorder =
+    theme === "dark" ? "border-white/10" : "border-gray-200";
   const titleText = theme === "dark" ? "text-white" : "text-gray-900";
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.8,
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  const cardVariants = {
-    hidden: {
-      opacity: 0,
-      y: 60,
-      scale: 0.9,
-      rotateX: -10,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      rotateX: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-      },
-    },
-    hover: {
-      y: -8,
-      scale: 1.02,
-      borderColor:
-        theme === "dark"
-          ? "rgba(37, 139, 148, 0.4)"
-          : "rgba(37, 139, 148, 0.2)",
-      transition: {
-        duration: 0.3,
-        ease: "easeOut",
-      },
-    },
-  };
-
-  const imageVariants = {
-    hidden: {
-      opacity: 0,
-      scale: 1.1,
-      filter: "blur(10px)",
-    },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      filter: "blur(0px)",
-      transition: {
-        duration: 0.8,
-        ease: "easeOut",
-      },
-    },
-    hover: {
-      scale: 1.05,
-      transition: {
-        duration: 0.4,
-        ease: "easeOut",
-      },
-    },
-  };
-
-  const titleVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-      },
-    },
-  };
-
-  const textVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-        delay: 0.2,
-      },
-    },
-  };
-
-  const iconVariants = {
-    hidden: { opacity: 0, scale: 0 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.4,
-        ease: "easeOut",
-      },
-    },
-  };
-
-  const buttonVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.4,
-        ease: "easeOut",
-      },
-    },
-    hover: {
-      scale: 1.05,
-      transition: {
-        duration: 0.2,
-        ease: "easeOut",
-      },
-    },
-    tap: {
-      scale: 0.95,
-    },
-  };
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
 
   const webChatTypes = {
     support: {
       title: "AI Support Agent",
       description: "Streamline support with Human like conversations",
-      icon: <Phone className="h-6 w-6" />,
+      icon: <Phone className="h-5 w-5" />,
       features: [
         "24/7 voice-based customer support",
         "Natural language processing",
@@ -210,33 +73,23 @@ export function AIVoiceAgentShowcase() {
         "Seamless handoff to human agents",
       ],
       image: FeaBot3,
-      example: {
-        question: "How to change the nominee on the web portal?",
-        answer:
-          "To change your nominee, please visit My Policy portal and select Nominee change. Attach the proof to initiate request.",
-      },
     },
     education: {
       title: "AI Education Agent",
       description: "Automate education learning",
-      icon: <Calendar className="h-6 w-6" />,
+      icon: <BookOpen className="h-5 w-5" />,
       features: [
         "Learn what you want",
         "Clarify your doubts",
         "Solve mcq test",
       ],
       image: FeaBot1,
-      example: {
-        question: "Can you explain machine learning concepts?",
-        answer:
-          "Machine learning is a subset of AI that enables systems to learn and improve from experience without explicit programming.",
-      },
     },
     leadgen: {
       title: "AI Lead Qualification Agent",
       description:
         "Qualify leads through intelligent human like chat conversations",
-      icon: <Users className="h-6 w-6" />,
+      icon: <Users className="h-5 w-5" />,
       features: [
         "chat-based lead scoring",
         "Automated qualification questions",
@@ -244,11 +97,6 @@ export function AIVoiceAgentShowcase() {
         "Conversation analytics",
       ],
       image: FeaBot2,
-      example: {
-        question: "What's your company size and budget?",
-        answer:
-          "We're a team of 50 with a monthly budget of $5K for marketing tools.",
-      },
     },
   };
 
@@ -256,7 +104,7 @@ export function AIVoiceAgentShowcase() {
     reels: {
       title: "Reels Automation",
       description: "Auto-engage with Instagram Reel comments",
-      icon: <Video className="h-6 w-6" />,
+      icon: <Video className="h-5 w-5" />,
       features: [
         "Auto-reply to Reel comments with DMs",
         "Keyword-based triggering",
@@ -269,7 +117,7 @@ export function AIVoiceAgentShowcase() {
     posts: {
       title: "Posts Automation",
       description: "Automate engagement with Instagram posts",
-      icon: <ImagePlus className="h-6 w-6" />,
+      icon: <ImagePlus className="h-5 w-5" />,
       features: [
         "Comment response automation",
         "@mention handling",
@@ -282,7 +130,7 @@ export function AIVoiceAgentShowcase() {
     stories: {
       title: "Stories Automation",
       description: "Auto-respond to story interactions",
-      icon: <Zap className="h-6 w-6" />,
+      icon: <Zap className="h-5 w-5" />,
       features: [
         "Story reply automation",
         "Poll and question responses",
@@ -295,7 +143,7 @@ export function AIVoiceAgentShowcase() {
     dms: {
       title: "DM Automation",
       description: "Automate direct message responses",
-      icon: <MessageCircle className="h-6 w-6" />,
+      icon: <MessageCircle className="h-5 w-5" />,
       features: [
         "Instant DM response system",
         "FAQ automation",
@@ -307,534 +155,344 @@ export function AIVoiceAgentShowcase() {
     },
   };
 
-  const currentWebChat = webChatTypes[activeWebChatTab];
-  const currentInsta = instaAutomationTypes[activeInstaTab];
+  const toggleWebDropdown = (key: string) => {
+    setOpenWebDropdown(openWebDropdown === key ? null : key);
+  };
 
-  const VoiceAnalytics = () => (
-    <div
-      className={`bg-gradient-to-br from-cyan-900/20 to-blue-900/20 rounded-lg p-2 lg:p-4 border ${analyticsBorder}`}
-    >
-      <h4 className={`font-normal text-base ${titleText} mb-3`}>
-        Voice Analytics
-      </h4>
-      <div className="grid grid-cols-2 gap-3">
-        <div
-          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
-        >
-          <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-cyan-400">
-            98%
-          </div>
-          <div className="text-xs text-cyan-300">Accuracy</div>
-        </div>
-        <div
-          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
-        >
-          <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-blue-400">
-            2.1s
-          </div>
-          <div className="text-xs text-blue-300">Avg Response</div>
-        </div>
-        <div
-          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
-        >
-          <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-green-400">
-            24/7
-          </div>
-          <div className="text-xs text-green-300">Availability</div>
-        </div>
-        <div
-          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
-        >
-          <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-purple-400">
-            5
-          </div>
-          <div className="text-xs text-purple-300">Languages</div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const InstagramAnalytics = () => (
-    <div
-      className={`bg-gradient-to-br from-pink-900/20 to-purple-900/20 rounded-lg p-2 border ${instaAnalyticsBorder}`}
-    >
-      <h4 className={`font-normal text-base ${titleText} mb-3`}>
-        Automation Performance
-      </h4>
-      <div className="grid grid-cols-2 gap-1 md:gap-3">
-        <div
-          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
-        >
-          <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-pink-400">
-            98%
-          </div>
-          <div className="text-xs text-pink-300">Response Rate</div>
-        </div>
-        <div
-          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
-        >
-          <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-purple-400">
-            2.3s
-          </div>
-          <div className="text-xs text-purple-300">Avg Response Time</div>
-        </div>
-        <div
-          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
-        >
-          <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-cyan-400">
-            1.4K
-          </div>
-          <div className="text-xs text-cyan-300">Engagements Today</div>
-        </div>
-        <div
-          className={`${analyticsBg} rounded-lg p-3 text-center overflow-hidden`}
-        >
-          <div className="text-lg md:text-xl lg:text-2xl font-semibold lg:font-bold text-green-400">
-            47%
-          </div>
-          <div className="text-xs text-green-300">Conversion Rate</div>
-        </div>
-      </div>
-    </div>
-  );
+  const toggleInstaDropdown = (key: string) => {
+    setOpenInstaDropdown(openInstaDropdown === key ? null : key);
+  };
 
   return (
-    <motion.section
-      className={`w-full py-20 ${sectionBg} text-foreground max-w-7xl`}
-      variants={containerVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: false, margin: "-100px" }}
+    <section
+      className={`w-full py-20 ${sectionBg} text-foreground max-w-7xl mx-auto`}
     >
-      <div className=" mx-auto ">
+      <div className="container mx-auto px-4">
         {/* Header */}
-        <motion.div
-          className="text-center mb-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: false, margin: "-100px" }}
-        >
-          {/* <motion.div
-            className="flex items-center justify-center text-[#00F0FF] mb-4"
-            variants={titleVariants}
-            whileInView="visible"
-            viewport={{ once: false }}
-            initial="hidden"
+        <div className="text-center mb-12">
+          <div
+            className={`inline-flex items-center ${
+              theme === "dark"
+                ? "text-blue-400 border-blue-400/50"
+                : "text-blue-600 border-blue-600/50"
+            } border rounded-full px-4 py-1 mb-4`}
           >
-            <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
-              PRODUCT SHOWCASE
-            </span>
-          </motion.div> */}
-          <motion.div
-            className={`inline-flex items-center text-blue-600 border border-blue-400/50} rounded-full px-4 py-1 mb-4`}
-            variants={titleVariants}
-            whileInView="visible"
-            viewport={{ once: false }}
-            initial="hidden"
-          >
-            <span className="text-sm font-medium"> PRODUCT SHOWCASE</span>
-          </motion.div>
-          <motion.div
-            className="flex items-center justify-center gap-3 mb-4"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, margin: "-50px" }}
-          >
-            <motion.h2
-              className="text-3xl font-bold gradient-text-main"
-              variants={titleVariants}
-              whileInView="visible"
-              viewport={{ once: false }}
-              initial="hidden"
-            >
-              OUR PRODUCTS
-            </motion.h2>
-          </motion.div>
-
-          <motion.p
-            className={`text-xl ${descriptionText} max-w-2xl mx-auto font-montserrat`}
-            variants={textVariants}
-            whileInView="visible"
-            viewport={{ once: false }}
-            initial="hidden"
-          >
+            <span className="text-sm font-medium">PRODUCT SHOWCASE</span>
+          </div>
+          <h2 className="text-3xl font-bold gradient-text-main mb-4">
+            OUR PRODUCTS
+          </h2>
+          <p className={`text-xl ${descriptionText} max-w-2xl mx-auto`}>
             Elevate customer experience with natural voice conversations across
             all platforms
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
 
-        {/* Platform Selection Tabs */}
-        <motion.div
-          className="flex justify-center mb-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: false, margin: "-50px" }}
-        >
+        {/* Platform Tabs */}
+        <div className="flex justify-center mb-8">
           <div
             className={`${tabBg} border ${tabBorder} rounded-full p-1 flex backdrop-blur-sm`}
           >
             {[
               {
-                id: "webchat",
-                label: "Web",
+                id: "web",
+                label: "Web Platform",
                 icon: <Mic className="h-5 w-5" />,
-                gradient: "from-cyan-600 to-blue-600",
               },
               {
                 id: "instagram",
-                label: "Insta",
+                label: "Instagram",
                 icon: <Instagram className="h-5 w-5" />,
-                gradient: "from-pink-600 to-purple-600",
               },
             ].map((tab) => (
-              <motion.button
+              <button
                 key={tab.id}
                 onClick={() => setActivePlatform(tab.id as any)}
                 className={`flex items-center px-6 py-3 rounded-full transition-all duration-300 ${
                   activePlatform === tab.id
-                    ? `bg-gradient-to-r ${tab.gradient} text-white`
-                    : `${tabText} ${tabHover}`
+                    ? tab.id === "web"
+                      ? activeTabBg
+                      : activeInstaTabBg
+                    : `${tabText} hover:text-white`
                 }`}
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
               >
                 {tab.icon}
-                <span className="ml-2 text-sm md:text-base font-light md:font-medium">
-                  {tab.label}
-                </span>
-              </motion.button>
+                <span className="ml-2 text-sm font-medium">{tab.label}</span>
+              </button>
             ))}
           </div>
-        </motion.div>
+        </div>
 
-        {/* Voice Agent Types */}
-        {activePlatform === "webchat" && (
-          <motion.div
-            className="flex justify-center mb-4 p-2"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, margin: "-50px" }}
-          >
-            <div
-              className={`${tabBg} border ${tabBorder} rounded-xl p-1 flex flex-row items-center sm:w-auto  justify-between sm:gap-3 sm:justify-center w-full icbackdrop-blur-sm`}
-            >
-              {[
-                {
-                  id: "support",
-                  label: "Support",
-                  icon: <Phone className="h-5 w-5" />,
-                },
-                {
-                  id: "education",
-                  label: "Education",
-                  icon: <Calendar className="h-5 w-5" />,
-                },
-                {
-                  id: "leadgen",
-                  label: "Lead",
-                  icon: <Users className="h-5 w-5" />,
-                },
-              ].map((tab) => (
-                <motion.button
-                  key={tab.id}
-                  onClick={() => setActiveWebChatTab(tab.id as any)}
-                  className={`flex items-center px-0 md:px-4 py-2 rounded-lg transition-all duration-300 ${
-                    activeWebChatTab === tab.id
-                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
-                      : `${inactiveTabBg} ${tabText} ${tabHover}`
-                  }`}
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  {tab.icon}
-                  <span className="ml-2 text-sm font-medium">{tab.label}</span>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Instagram Automation Tabs */}
-        {activePlatform === "instagram" && (
-          <motion.div
-            className="flex justify-center mb-4 px-2"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, margin: "-50px" }}
-          >
-            <div
-              className={`${tabBg} border ${tabBorder} rounded-xl p-1 flex flex-row backdrop-blur-sm w-full sm:w-auto items-center justify-between sm:gap-3 sm:justify-center`}
-            >
-              {[
-                {
-                  id: "reels",
-                  label: "Reels",
-                  icon: <Video className="h-4 w-4" />,
-                },
-                {
-                  id: "posts",
-                  label: "Posts",
-                  icon: <ImagePlus className="h-4 w-4" />,
-                },
-                {
-                  id: "stories",
-                  label: "Stories",
-                  icon: <Zap className="h-4 w-4" />,
-                },
-                {
-                  id: "dms",
-                  label: "DM",
-                  icon: <MessageCircle className="h-4 w-4" />,
-                },
-              ].map((tab) => (
-                <motion.button
-                  key={tab.id}
-                  onClick={() => setActiveInstaTab(tab.id as any)}
-                  className={`flex items-center px-0 md:px-4 py-2 rounded-lg transition-all duration-300 ${
-                    activeInstaTab === tab.id
-                      ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white"
-                      : `${tabText} ${tabHover}`
-                  }`}
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  {tab.icon}
-                  <span className="ml-2 text-sm font-medium">{tab.label}</span>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Main Content */}
-        <motion.div
-          className="w-full mx-auto p-4 md:p-8"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: false, margin: "-50px" }}
-        >
-          {activePlatform === "webchat" ? (
-            <motion.div
-              className="flex flex-col md:flex-row-reverse items-start justify-between w-full gap-4 "
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: false, margin: "-50px" }}
-            >
-              {/* Voice Agent UI Preview */}
-              <motion.div
-                className="md:flex-1 w-full   rounded-2xl p-0 bg-transparent"
-                variants={cardVariants}
-                whileHover="hover"
-              >
+        {/* Content Area */}
+        <div className="max-w-6xl mx-auto">
+          {/* Web Platform Content */}
+          <AnimatePresence mode="wait">
+            {activePlatform === "web" && (
+              <div className="flex items-center justify-between gap-6 w-full ">
                 <motion.div
-                  className="relative  h-[28rem] min-h-max  rounded-lg overflow-hidden  mx-auto  w-full"
-                  variants={imageVariants}
-                  whileHover="hover"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-4"
                 >
-                  <Image
-                    src={currentWebChat.image}
-                    alt={currentWebChat.title}
-                    fill
-                    className="object-contain rounded-lg"
-                    loading="lazy"
-                  />
-                </motion.div>
-              </motion.div>
-
-              {/* Voice Agent Details */}
-              <motion.div
-                className={`md:flex-1 self-center ${cardBg} border ${cardBorder} rounded-2xl p-1 md:p-3 backdrop-blur-sm`}
-                variants={cardVariants}
-                whileHover="hover"
-              >
-                <motion.div
-                  className="flex items-center gap-1 md:gap-3 mb-6"
-                  variants={containerVariants}
-                >
-                  <div className="w-8 h-8 lg:w-12 lg:h-12 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl flex items-center justify-center p-2 ">
-                    {currentWebChat.icon}
-                  </div>
-                  <div>
-                    <motion.h3
-                      className={`text-base lg:text-lg font-semibold ${titleText}`}
-                      variants={titleVariants}
-                    >
-                      {currentWebChat.title}
-                    </motion.h3>
-                    <motion.p
-                      className={`text-xs md:text-sm ${descriptionText}`}
-                      variants={textVariants}
-                    >
-                      {currentWebChat.description}
-                    </motion.p>
-                  </div>
-                </motion.div>
-
-                {/* Features */}
-                <motion.div className="mb-6" variants={containerVariants}>
-                  <h4
-                    className={`text-base lg:text-lg font-semibold ${titleText} mb-1 lg:mb-3`}
-                  >
-                    Features
-                  </h4>
-                  {currentWebChat.features.map((feature, index) => (
+                  {Object.entries(webChatTypes).map(([key, agent]) => (
                     <motion.div
-                      key={index}
-                      className="flex items-center gap-3 mb-2"
-                      variants={textVariants}
+                      key={key}
+                      className={`${dropdownBg} border ${dropdownBorder} rounded-xl overflow-hidden backdrop-blur-sm`}
                     >
-                      <div className="w-2 h-2 bg-cyan-500 rounded-full" />
-                      <span
-                        className={`text-xs lg:text-sm font-light lg:font-normal ${featureText}`}
+                      {/* Dropdown Button */}
+                      <button
+                        onClick={() => {
+                          toggleWebDropdown(key);
+                          setImage(agent.image);
+                        }}
+                        className="w-full flex items-center justify-between p-6 text-left"
                       >
-                        {feature}
-                      </span>
+                        <div className="flex items-center gap-4">
+                          <div
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                              openWebDropdown === key
+                                ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
+                                : "bg-gray-500/20 text-gray-600"
+                            }`}
+                          >
+                            {agent.icon}
+                          </div>
+                          <div>
+                            <h3
+                              className={`text-lg font-semibold ${titleText}`}
+                            >
+                              {agent.title}
+                            </h3>
+                            <p className={`text-sm ${descriptionText}`}>
+                              {agent.description}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronDown
+                          className={`h-5 w-5 transition-transform ${
+                            openWebDropdown === key ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+
+                      {/* Dropdown Content */}
+                      <AnimatePresence>
+                        {openWebDropdown === key && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-6 pb-6 border-t border-gray-700/50 pt-4">
+                              <div className="flex flex-col lg:flex-row gap-6">
+                                {/* Features - Always shown */}
+                                <div className="flex-1">
+                                  <h4
+                                    className={`font-semibold ${titleText} mb-3`}
+                                  >
+                                    Features
+                                  </h4>
+                                  <div className="space-y-2">
+                                    {agent.features.map((feature, index) => (
+                                      <div
+                                        key={index}
+                                        className="flex items-center gap-3"
+                                      >
+                                        <div className="w-2 h-2 bg-cyan-500 rounded-full flex-shrink-0" />
+                                        <span
+                                          className={`text-sm ${descriptionText}`}
+                                        >
+                                          {feature}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Mobile Image - Only shown in dropdown on mobile */}
+                                <div className="lg:hidden">
+                                  <div className="relative aspect-[9/16] rounded-lg overflow-hidden">
+                                    <Image
+                                      src={agent.image}
+                                      alt={agent.title}
+                                      fill
+                                      className="object-contain"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </motion.div>
                   ))}
                 </motion.div>
-
-                {/* Analytics */}
-                <motion.div variants={cardVariants}>
-                  <VoiceAnalytics />
-                </motion.div>
-              </motion.div>
-            </motion.div>
-          ) : (
-            <motion.div
-              className="flex flex-col lg:flex-row-reverse  items-start justify-between gap-4 w-full"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: false, margin: "-50px" }}
-            >
-              {/* Instagram UI Preview */}
-              <motion.div
-                className="md:flex-[65%] h-full  rounded-2xl p-1 md:p-3 bg-transparent w-full"
-                variants={cardVariants}
-                whileHover="hover"
-              >
-                <motion.div
-                  className="relative flex flex-col sm:flex-row gap-6 sm:gap-3 lg:gap-6 items-center justify-between h-[28rem] min-h-max  overflow-hidden  mx-auto  w-full"
-                  variants={imageVariants}
-                  whileHover="hover"
-                >
-                  <motion.div
-                    className="relative  h-[28rem] min-h-max  rounded-lg overflow-hidden  mx-auto  w-full"
-                    variants={imageVariants}
-                    whileHover="hover"
-                  >
+                <div className="hidden lg:block flex-1">
+                  <div className="relative  aspect-square rounded-lg overflow-hidden">
                     <Image
-                      src={currentInsta.image1}
-                      alt={currentInsta.title}
+                      src={agent}
+                      alt="mainImage"
                       fill
                       className="object-contain"
-                      loading="lazy"
                     />
-                  </motion.div>{" "}
-                  <motion.div
-                    className="relative  h-[28rem] min-h-max  rounded-lg  overflow-hidden  mx-auto  w-full"
-                    variants={imageVariants}
-                    whileHover="hover"
-                  >
-                    <Image
-                      src={currentInsta.image}
-                      alt={currentInsta.title}
-                      fill
-                      className="object-contain"
-                      loading="lazy"
-                    />
-                  </motion.div>
-                </motion.div>
-              </motion.div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </AnimatePresence>
 
-              {/* Automation Details */}
-              <motion.div
-                className={`md:flex-[35%] w-full h-full ${cardBg} border ${cardBorder} rounded-2xl p-2 md:p-3 backdrop-blur-sm`}
-                variants={cardVariants}
-                whileHover="hover"
-              >
+          {/* Instagram Platform Content */}
+          <AnimatePresence mode="wait">
+            {activePlatform === "instagram" && (
+              <div className="flex items-center justify-between gap-6 w-full ">
                 <motion.div
-                  className="flex items-center gap-3 mb-6"
-                  variants={containerVariants}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-4 flex-1 lg:flex-[35%]"
                 >
-                  <div className="w-8 h-8 lg:w-12 lg:h-12 p-2 lg:p-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl flex items-center justify-center">
-                    {currentInsta.icon}
-                  </div>
-                  <div>
-                    <motion.h3
-                      className={`text-base lg:text-xl font-semibold ${titleText}`}
-                      variants={titleVariants}
-                    >
-                      {currentInsta.title}
-                    </motion.h3>
-                    <motion.p
-                      className={`text-xs md:text-sm ${descriptionText}`}
-                      variants={textVariants}
-                    >
-                      {currentInsta.description}
-                    </motion.p>
-                  </div>
-                </motion.div>
-
-                {/* Features */}
-                <motion.div className="mb-6" variants={containerVariants}>
-                  <h4
-                    className={`text-base lg:text-lg font-semibold ${titleText} mb-1 md:mb-3`}
-                  >
-                    Features
-                  </h4>
-                  {currentInsta.features.map((feature, index) => (
-                    <motion.div
-                      key={index}
-                      className="flex items-center gap-3 mb-2"
-                      variants={textVariants}
-                    >
-                      <div className="w-2 h-2 bg-pink-500 rounded-full" />
-                      <span
-                        className={`text-xs font-light lg:font-normal lg:text-sm ${featureText}`}
+                  {Object.entries(instaAutomationTypes).map(
+                    ([key, automation]) => (
+                      <motion.div
+                        key={key}
+                        className={`${dropdownBg} border ${dropdownBorder} rounded-xl overflow-hidden backdrop-blur-sm`}
                       >
-                        {feature}
-                      </span>
-                    </motion.div>
-                  ))}
-                </motion.div>
+                        {/* Dropdown Button */}
+                        <button
+                          onClick={() => {
+                            toggleInstaDropdown(key);
+                            setInstaImage(automation.image);
+                            setInstaImage1(automation.image1);
+                          }}
+                          className="w-full flex items-center justify-between p-6 text-left"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                openInstaDropdown === key
+                                  ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white"
+                                  : "bg-gray-500/20 text-gray-600"
+                              }`}
+                            >
+                              {automation.icon}
+                            </div>
+                            <div>
+                              <h3
+                                className={`text-lg font-semibold ${titleText}`}
+                              >
+                                {automation.title}
+                              </h3>
+                              <p className={`text-sm ${descriptionText}`}>
+                                {automation.description}
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronDown
+                            className={`h-5 w-5 transition-transform ${
+                              openInstaDropdown === key ? "rotate-180" : ""
+                            }`}
+                          />
+                        </button>
 
-                {/* Analytics */}
-                <motion.div variants={cardVariants}>
-                  <InstagramAnalytics />
+                        {/* Dropdown Content */}
+                        <AnimatePresence>
+                          {openInstaDropdown === key && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-6 pb-6 border-t border-gray-700/50 pt-4">
+                                <div className="flex flex-col lg:flex-row gap-6">
+                                  {/* Features - Always shown */}
+                                  <div className="flex-1">
+                                    <h4
+                                      className={`font-semibold ${titleText} mb-3`}
+                                    >
+                                      Features
+                                    </h4>
+                                    <div className="space-y-2">
+                                      {automation.features.map(
+                                        (feature, index) => (
+                                          <div
+                                            key={index}
+                                            className="flex items-center gap-3"
+                                          >
+                                            <div className="w-2 h-2 bg-pink-500 rounded-full flex-shrink-0" />
+                                            <span
+                                              className={`text-sm ${descriptionText}`}
+                                            >
+                                              {feature}
+                                            </span>
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Mobile Images - Only shown in dropdown on mobile */}
+                                  <div className="lg:hidden">
+                                    <div className="grid md:grid-cols-2 gap-2">
+                                      <div className="relative  aspect-[9/16] rounded-lg overflow-hidden">
+                                        <Image
+                                          src={automation.image1}
+                                          alt={automation.title}
+                                          fill
+                                          className="object-contain"
+                                        />
+                                      </div>
+                                      <div className="relative aspect-[9/16] rounded-lg overflow-hidden">
+                                        <Image
+                                          src={automation.image}
+                                          alt={automation.title}
+                                          fill
+                                          className="object-contain"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    )
+                  )}
                 </motion.div>
-              </motion.div>
-            </motion.div>
-          )}
-        </motion.div>
+                <div className="hidden lg:block flex-1 lg:flex-[65%] w-full">
+                  <div className="grid grid-cols-2 gap-2 w-full">
+                    <div className="relative w-full h-full aspect-[9/16] rounded-lg overflow-hidden">
+                      <Image
+                        src={instaImage1}
+                        alt="Instagram Feature"
+                        fill
+                        className="object-contain "
+                      />
+                    </div>
+                    <div className="relative w-full h-full aspect-[9/16]  rounded-lg overflow-hidden">
+                      <Image
+                        src={instaImage}
+                        alt="Instagram Feature"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
-    </motion.section>
+    </section>
   );
 }
-
-// Calendar icon component
-const Calendar = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-    />
-  </svg>
-);

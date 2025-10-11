@@ -1,22 +1,6 @@
-import {
-  ArrowRight,
-  Shield,
-  Zap,
-  Users,
-  BarChart3,
-  MessageSquare,
-  Instagram,
-  Check,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import Link from "next/link";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import Faq from "@/components/shared/Faq";
 import ComparisonTable from "@/components/insta/ComparisonTable";
@@ -30,6 +14,19 @@ import InstaCTASection from "@/components/insta/InstaCta";
 import { InstagramAutomationHero } from "@/components/insta/InstaHeroSection";
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="p-2 rounded-md bg-transparent w-full">
+        <div className="w-full" />
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen max-w-7xl m-auto ">
       <BreadcrumbsDefault />

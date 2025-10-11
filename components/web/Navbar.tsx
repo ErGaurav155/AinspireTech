@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Logo from "/public/assets/img/logo.png";
 import { useTheme } from "next-themes";
@@ -14,7 +14,19 @@ import { ThemeToggle } from "../theme-toggle";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <button className="p-2 rounded-md bg-gray-200 dark:bg-gray-800">
+        <div className="w-5 h-5" />
+      </button>
+    );
+  }
   // Theme-based styles
   const navBg = theme === "dark" ? "bg-[#0a0a0a]/80" : "bg-white/80";
   const navBorder = theme === "dark" ? "border-white/10" : "border-gray-200";

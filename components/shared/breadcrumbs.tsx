@@ -9,7 +9,6 @@ export function BreadcrumbsDefault() {
   const pathname = usePathname();
   const pathSegments = pathname.split("/").filter((segment) => segment);
   const { theme } = useTheme();
-
   // Theme-based styles
   const containerBg = theme === "dark" ? "bg-gray-900/50" : "bg-gray-100/80";
   const containerBorder =

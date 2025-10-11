@@ -6,7 +6,6 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import StarsBackground from "@/components/insta/StarsBackground";
 
-// Define your fonts
 const orbitron = Orbitron({
   subsets: ["latin"],
   variable: "--font-orbitron",
@@ -42,12 +41,7 @@ export default async function RootLayout({
             "font-orbitron min-h-screen bg-background text-foreground transition-colors duration-300"
           )}
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
+          <ThemeProvider>
             <StarsBackground />
             <div className="relative z-10">{children}</div>
           </ThemeProvider>
