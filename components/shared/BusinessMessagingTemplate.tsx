@@ -7,8 +7,14 @@ import {
   Play,
   ShoppingBag,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export function BusinessMessagingTemplate() {
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const featureText = theme === "dark" ? "text-white" : "text-n-5";
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -56,7 +62,7 @@ export function BusinessMessagingTemplate() {
   };
 
   return (
-    <section className="w-full bg-transparent text-white py-20">
+    <section className="w-full bg-transparent  py-20">
       <div className="flex flex-col gap-6 items-center max-w-7xl mx-auto px-4 ">
         {/* Left Column - Content */}
         <motion.div
@@ -76,7 +82,7 @@ export function BusinessMessagingTemplate() {
             <span className="text-sm font-medium"> CUSTOMER GAIN</span>
           </motion.div>
           <motion.h2
-            className="text-3xl md:text-4xl font-bold text-white mb-4 gradient-text-main"
+            className="text-3xl md:text-4xl font-bold  mb-4 gradient-text-main"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -85,14 +91,17 @@ export function BusinessMessagingTemplate() {
             Be where your customers are
           </motion.h2>
           <motion.p
-            className="text-xl text-gray-500 font-montserrat"
+            className={`text-xl ${featureText}  font-montserrat text-center `}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
             initial="hidden"
           >
-            Currently providing instagram,messenger automations and website
-            chatbots.For other platforms will come soon.
+            <p className="block">
+              We are currently providing instagram,messenger automations and
+              website chatbots.
+            </p>
+            <span className="">For other platforms will come soon.</span>
           </motion.p>
         </motion.div>
 

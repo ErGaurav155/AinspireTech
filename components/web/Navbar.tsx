@@ -30,7 +30,7 @@ export default function Navbar() {
   // Theme-based styles
   const navBg = theme === "dark" ? "bg-[#0a0a0a]/80" : "bg-white/80";
   const navBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const textPrimary = theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const textPrimary = theme === "dark" ? "text-gray-300" : "text-n-5";
   const textHover =
     theme === "dark" ? "hover:text-[#00F0FF]" : "hover:text-[#00F0FF]";
   const mobileBg = theme === "dark" ? "bg-[#0a0a0a]/80" : "bg-white/80";
@@ -74,7 +74,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-2 lg:space-x-8 text-sm lg:text-lg">
             <Link
               href="/web/UserDashboard"
-              className={`${textPrimary} ${textHover} transition-colors font-normal`}
+              className={`${textPrimary} ${textHover} transition-colors font-medium`}
             >
               Dashboard
             </Link>
@@ -93,14 +93,15 @@ export default function Navbar() {
           </div>
 
           {/* Right side */}
-          <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
+          <div className="hidden md:flex items-center space-x-2 lg:space-x-4 ">
             <SignedOut>
               <Button variant="outline" className={buttonOutline} asChild>
                 <Link href="/sign-in">Sign In</Link>
               </Button>
             </SignedOut>
+
             <Button
-              className="btn-gradient-cyan hover:opacity-90 transition-opacity"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
               asChild
             >
               <Link href="/web/pricing">
@@ -172,7 +173,7 @@ export default function Navbar() {
                 </SignedOut>
 
                 <Button
-                  className="btn-gradient-cyan hover:opacity-90 transition-opacity"
+                  className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
                   asChild
                 >
                   <Link href="/web/pricing">

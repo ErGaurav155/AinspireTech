@@ -36,18 +36,18 @@ export function Footer() {
   const linkText =
     theme === "dark"
       ? "text-gray-300 hover:text-[#00F0FF]"
-      : "text-gray-600 hover:text-[#00F0FF]";
+      : "text-n-5 hover:text-[#00F0FF]";
 
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+  const titleText = theme === "dark" ? "text-white" : "text-n-5";
 
-  const subtitleText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const subtitleText = theme === "dark" ? "text-gray-300" : "text-n-5";
 
   const inputBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
 
   const inputBorder =
     theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-300";
 
-  const inputText = theme === "dark" ? "text-white" : "text-gray-900";
+  const inputText = theme === "dark" ? "text-white" : "text-n-5";
 
   const inputPlaceholder =
     theme === "dark" ? "placeholder-gray-500" : "placeholder-gray-400";
@@ -57,7 +57,7 @@ export function Footer() {
       ? "bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20"
       : "bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10";
 
-  const copyrightText = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const copyrightText = theme === "dark" ? "text-gray-400" : "text-n-4";
 
   return (
     <footer className={`w-full border-t ${borderColor}`}>

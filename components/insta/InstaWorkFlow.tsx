@@ -13,9 +13,9 @@ function InstaHowItWorksSection() {
   // Theme-based styles
   const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
 
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+  const titleText = theme === "dark" ? "text-white" : "text-n-7";
 
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
 
   const stepText = theme === "dark" ? "text-cyan-400" : "text-cyan-600";
 
@@ -119,13 +119,13 @@ function InstaHowItWorksSection() {
   return (
     <section className=" mx-auto md:px-4 py-16 md:py-24 bg-transparent">
       <motion.div
-        className="flex items-center justify-center text-[#00F0FF] mb-4"
+        className="flex items-center justify-center text-blue-700 mb-4"
         variants={titleVariants}
         whileInView="visible"
         viewport={{ once: false }}
         initial="hidden"
       >
-        <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+        <span className="text-sm font-medium uppercase tracking-widest border border-blue-800/30 rounded-full px-4 py-1">
           WORKING FLOW
         </span>
       </motion.div>
@@ -219,7 +219,7 @@ function InstaHowItWorksSection() {
               viewport={{ once: false, margin: "-50px" }}
             >
               <motion.div
-                className="flex-1 relative m-auto w-full min-h-[40vh] sm:h-[50vh] lg:h-[70vh] overflow-hidden"
+                className="flex-1 relative m-auto  h-[16rem] md:h-full w-full aspect-[4/5] rounded-lg overflow-hidden"
                 whileInView="visible"
                 viewport={{ once: false }}
                 initial="hidden"
@@ -293,7 +293,7 @@ function InstaHowItWorksSection() {
               viewport={{ once: false, margin: "-50px" }}
             >
               <motion.div
-                className="flex-1 relative m-auto w-full min-h-[40vh] sm:h-[50vh] lg:h-[70vh] overflow-hidden"
+                className="flex-1 relative m-auto   h-[16rem] md:h-full w-full aspect-[4/5] rounded-lg overflow-hidden"
                 whileInView="visible"
                 viewport={{ once: false }}
                 initial="hidden"
@@ -366,7 +366,7 @@ function InstaHowItWorksSection() {
               viewport={{ once: false, margin: "-50px" }}
             >
               <motion.div
-                className="flex-1 relative m-auto w-full min-h-[40vh] sm:h-[50vh] lg:h-[70vh] overflow-hidden"
+                className="flex-1 relative m-auto w-full  h-[16rem] md:h-full aspect-[1/1] rounded-lg overflow-hidden"
                 whileInView="visible"
                 viewport={{ once: false }}
                 initial="hidden"
@@ -376,7 +376,7 @@ function InstaHowItWorksSection() {
                   alt="Analytics Dashboard"
                   fill
                   sizes="100%"
-                  className="object-fill md:object-contain"
+                  className="object-fill "
                   loading="lazy"
                 />
               </motion.div>

@@ -61,11 +61,11 @@ export function InstaFeaturesGrid() {
   // Theme-based styles
   const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
 
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/80";
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-pink/80";
 
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+  const titleText = theme === "dark" ? "text-white" : "text-n-7";
 
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
 
   const iconBg =
     theme === "dark"
@@ -185,13 +185,13 @@ export function InstaFeaturesGrid() {
   return (
     <>
       <motion.div
-        className="flex items-center justify-center text-[#00F0FF] mb-4"
+        className="flex items-center justify-center text-blue-700 mb-4"
         variants={titleVariants}
         whileInView="visible"
         viewport={{ once: false }}
         initial="hidden"
       >
-        <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+        <span className="text-sm font-medium uppercase tracking-widest border border-blue-700/30 rounded-full px-4 py-1">
           WHY WE
         </span>
       </motion.div>

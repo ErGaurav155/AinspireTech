@@ -18,9 +18,9 @@ export function SetupProcess() {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
   const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-100/50";
   const containerBorder =
     theme === "dark" ? "border-gray-800" : "border-gray-300";
@@ -157,13 +157,13 @@ export function SetupProcess() {
     >
       <div className="container mx-auto px-4 w-full">
         <motion.div
-          className="flex items-center justify-center text-[#00F0FF] mb-4"
+          className="flex items-center justify-center text-blue-700 mb-4"
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}
           initial="hidden"
         >
-          <span className="text-sm font-medium uppercase tracking-widest border border-[#00F0FF]/30 rounded-full px-4 py-1">
+          <span className="text-sm font-medium uppercase tracking-widest border border-blue-700/30 rounded-full px-4 py-1">
             SETUP PROCEDURE
           </span>
         </motion.div>
@@ -380,7 +380,7 @@ export function SetupProcess() {
                               </motion.div>
 
                               <motion.button
-                                className="w-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity duration-300"
+                                className="w-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity duration-300"
                                 variants={buttonHoverVariants}
                                 whileHover="hover"
                                 whileTap="tap"
@@ -490,7 +490,7 @@ export function SetupProcess() {
                                 </motion.div>
                                 <div>
                                   <div className={`font-bold ${textPrimary}`}>
-                                    DenserAI
+                                    Ainspiretech
                                   </div>
                                   <div className={`text-xs ${textMuted}`}>
                                     Online

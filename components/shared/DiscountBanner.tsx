@@ -101,7 +101,7 @@ const DiscountBanner = () => {
       ? "bg-[#0a0a0a] border-[#00F0FF]/30"
       : "bg-white border-blue-200";
 
-  const countdownText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const countdownText = theme === "dark" ? "text-gray-300" : "text-gray-800";
 
   const closeButtonBg =
     theme === "dark"
@@ -165,12 +165,12 @@ const DiscountBanner = () => {
               ].map((item, index) => (
                 <div key={index} className="flex flex-col items-center">
                   <div
-                    className={`${countdownBg} text-xs font-light p-1 md:py-2 md:px-4 rounded-lg shadow-inner border ${scrollBannerBorder}`}
+                    className={`${countdownBg} text-xs font-light md:text-sm md:font-normal p-1 md:py-2 md:px-4 rounded-lg shadow-inner border ${scrollBannerBorder}`}
                   >
                     {item.value}
                   </div>
                   <div
-                    className={`text-xs font-thin ${countdownText} mt-1.5 tracking-wide`}
+                    className={`text-xs font-thin  md:text-sm md:font-light  ${countdownText} mt-1.5 tracking-wide`}
                   >
                     {item.label}
                   </div>
@@ -186,7 +186,7 @@ const DiscountBanner = () => {
               onMouseLeave={() => setIsHovered(false)}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-lg group-hover:from-[#B026FF] group-hover:to-[#FF2E9F] transition-all duration-500"></div>
-              <div className="relative bg-gradient-to-r from-[#00F0FF] to-[#B026FF] group-hover:from-[#B026FF] group-hover:to-[#FF2E9F] text-white font-semibold py-2 px-1 md:py-3 md:px-6 rounded-lg transform group-hover:scale-105 transition-all duration-300 uppercase tracking-wide text-xs md:text-sm text-nowrap">
+              <div className="relative bg-gradient-to-r from-[#00F0FF] to-[#B026FF] group-hover:from-[#B026FF] group-hover:to-[#FF2E9F]  text-black font-semibold py-2 px-1 md:py-3 md:px-6 rounded-lg hover:rounded-lg transform group-hover:scale-105  transition-all duration-300 uppercase tracking-wide text-xs md:text-sm text-nowrap">
                 Buy Now
               </div>
               {isHovered && (

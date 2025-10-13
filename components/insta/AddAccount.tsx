@@ -67,7 +67,7 @@ const AddAccount = ({
           </div>
         </div>
         <h1 className="text-3xl font-bold mb-2">Connect Instagram Account</h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground font-montserrat">
           Add your Instagram account to start automating comment replies
         </p>
       </div>
@@ -75,7 +75,7 @@ const AddAccount = ({
       {/* Important Notice */}
       <Alert className="mb-6 card-hover group">
         <Shield className="h-4 w-4" />
-        <AlertDescription className="">
+        <AlertDescription className="font-montserrat">
           <strong>Important:</strong> For security and compliance with Instagram
           Terms of Service, we are using Instagram official Business API.So Dont
           Worry about Password,We did not get your Instagram provide us only
@@ -86,7 +86,7 @@ const AddAccount = ({
       <Card className="card-hover group">
         <CardHeader>
           <CardTitle>Account Information</CardTitle>
-          <CardDescription>
+          <CardDescription className="font-montserrat">
             Enter your Instagram account details. We use secure encryption to
             protect your Access key.
           </CardDescription>
@@ -99,7 +99,7 @@ const AddAccount = ({
                   Connect Instagram
                 </DialogTitle>
               </DialogHeader>
-              <DialogDescription>
+              <DialogDescription className="font-montserrat">
                 Make an instant payment to activate your subscription and
                 elevate your Instagram engagement!
               </DialogDescription>
@@ -141,7 +141,7 @@ const AddAccount = ({
             Security & Privacy
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground p-2">
+        <CardContent className="space-y-3 text-sm text-muted-foreground p-2 font-montserrat">
           <p>
             🔒 All account credentials are encrypted using industry-standard
             AES-256 encryption

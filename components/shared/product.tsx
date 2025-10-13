@@ -20,14 +20,14 @@ const ProductShowcase = () => {
       ? "bg-gradient-to-r from-[#00F0FF]/5 via-[#B026FF]/5 to-[#FF2E9F]/5"
       : "bg-gradient-to-r from-[#00F0FF]/10 via-[#B026FF]/10 to-[#FF2E9F]/10";
 
-  const titleColor = theme === "dark" ? "text-white" : "text-gray-900";
+  const titleColor = theme === "dark" ? "text-white" : "text-n-8";
 
-  const descriptionColor = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const descriptionColor = theme === "dark" ? "text-gray-300" : "text-n-5";
 
   const outlineButtonBg =
     theme === "dark"
       ? "border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
-      : "border-gray-300 text-gray-700 hover:bg-gray-100 backdrop-blur-sm";
+      : "border-gray-300 text-n-5 hover:bg-gray-100 backdrop-blur-sm";
 
   return (
     <div
@@ -59,7 +59,7 @@ const ProductShowcase = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/web"
-                  className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] hover:shadow-xl text-white font-semibold px-8 py-6 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105"
+                  className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] hover:shadow-xl text-black font-semibold px-8 py-6 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105"
                 >
                   <Sparkles className="mr-2 h-5 w-5" />
                   Start Free Trial

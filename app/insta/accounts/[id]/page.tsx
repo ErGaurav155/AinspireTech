@@ -122,10 +122,10 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const containerBg = theme === "dark" ? "bg-transperant" : "bg-gray-50";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
   const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
   const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
   const cardHoverBorder =
@@ -135,11 +135,11 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const badgeBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
   const inputBg = theme === "dark" ? "bg-white/5" : "bg-white";
   const inputBorder = theme === "dark" ? "border-white/20" : "border-gray-300";
-  const inputText = theme === "dark" ? "text-white" : "text-gray-900";
+  const inputText = theme === "dark" ? "text-white" : "text-n-5";
+  const textCount = theme === "dark" ? "text-white" : "text-n-5";
   const buttonOutlineBorder =
     theme === "dark" ? "border-white/20" : "border-gray-300";
-  const buttonOutlineText =
-    theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const buttonOutlineText = theme === "dark" ? "text-gray-300" : "text-n-5";
   const alertBg = theme === "dark" ? "bg-[#6d1717]/5" : "bg-red-50/80";
   const dialogBg = theme === "dark" ? "bg-[#0a0a0a]/95" : "bg-white/95";
 
@@ -854,7 +854,9 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   <p className={`text-xl ${textSecondary} mb-2`}>
                     {account.displayName || "Instagram User"}
                   </p>
-                  <div className="flex items-center gap-2 md:gap-6 text-gray-400">
+                  <div
+                    className={`flex items-center gap-2 md:gap-6 text-n-5 ${textCount}`}
+                  >
                     <span>{account.followersCount || 0} followers</span>
                     <span>{account.postsCount || 0} posts</span>
                     <span>{account.engagementRate || 0}% engagement</span>

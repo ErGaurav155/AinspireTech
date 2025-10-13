@@ -10,8 +10,8 @@ const Faq = () => {
   // Theme-based styles
   const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
   const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
+  const titleText = theme === "dark" ? "text-white" : "text-n-7";
   const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
   const cardBorder = theme === "dark" ? "border-[#333]" : "border-gray-200";
   const cardHoverBorder =
@@ -19,7 +19,7 @@ const Faq = () => {
       ? "hover:border-[#258b94]/40"
       : "hover:border-[#258b94]/60";
   const questionText = theme === "dark" ? "text-[#258b94]" : "text-[#1a6b72]";
-  const answerText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const answerText = theme === "dark" ? "text-gray-300" : "text-n-5";
   const cardShadow =
     theme === "dark"
       ? "0 20px 40px -10px rgba(37, 139, 148, 0.2)"
@@ -156,7 +156,7 @@ const Faq = () => {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className="flex items-center justify-center text-[#00F0FF] mb-4"
+            className="flex items-center justify-center text-blue-700 mb-4"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}

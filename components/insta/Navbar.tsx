@@ -33,7 +33,7 @@ export default function Navbar() {
   const linkText =
     theme === "dark"
       ? "text-gray-300 hover:text-[#00F0FF]"
-      : "text-gray-600 hover:text-[#00F0FF]";
+      : "text-n-5 hover:text-[#00F0FF]";
   const outlineButton =
     theme === "dark"
       ? "border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/10"
@@ -72,7 +72,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-2 lg:space-x-8 text-sm lg:text-lg">
             <Link
               href="/insta/dashboard"
-              className={`transition-colors font-normal ${linkText}`}
+              className={`transition-colors font-medium ${linkText}`}
             >
               Dashboard
             </Link>
@@ -108,7 +108,7 @@ export default function Navbar() {
               </Button>
             </SignedOut>
             <Button
-              className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white hover:opacity-90 transition-opacity"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
               asChild
             >
               <Link href="/insta/pricing">
@@ -186,7 +186,7 @@ export default function Navbar() {
                 </SignedOut>
 
                 <Button
-                  className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white hover:opacity-90 transition-opacity"
+                  className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
                   asChild
                 >
                   <Link href="/insta/pricing">

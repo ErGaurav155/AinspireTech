@@ -20,13 +20,13 @@ export function TestimonialSection() {
       ? "border-[#00F0FF]/30 hover:border-[#B026FF]"
       : "border-blue-200 hover:border-purple-400";
 
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+  const titleText = theme === "dark" ? "text-white" : "text-n-5";
 
-  const subtitleText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const subtitleText = theme === "dark" ? "text-gray-300" : "text-n-5";
 
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
 
-  const sectionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const sectionText = theme === "dark" ? "text-gray-300" : "text-n-5";
 
   const avatarBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
 

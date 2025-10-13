@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { instagramFeatures, webChatFeatures } from "@/constant";
 import { useTheme } from "next-themes";
+import { Instagram, Network } from "lucide-react";
 
 function StickyFeaturesSection() {
   const [activeTab, setActiveTab] = useState<"webchat" | "instagram">(
@@ -12,7 +13,7 @@ function StickyFeaturesSection() {
   );
   const { theme } = useTheme();
   const tabBorder = theme === "dark" ? "border-gray-800" : "border-gray-300";
-
+  const featureText = theme === "dark" ? "text-white" : "text-n-5";
   // EXACT same animation variants as testimonials component
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -153,7 +154,7 @@ function StickyFeaturesSection() {
           Why Choose AinspireTech{" "}
         </motion.h2>
         <motion.p
-          className="text-lg text-gray-500 max-w-2xl mx-auto font-montserrat"
+          className={`text-lg ${featureText} max-w-2xl mx-auto font-montserrat `}
           variants={textVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -180,27 +181,27 @@ function StickyFeaturesSection() {
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
-              className={`px-3 md:px-6 py-1 md:py-3 rounded-full text-sm font-semibold transition-all duration-300 text-nowrap ${
+              className={` flex items-center justify-center gap-2 px-3 md:px-6 py-1 md:py-3 rounded-full text-sm font-semibold transition-all duration-300 text-nowrap ${
                 activeTab === "webchat"
                   ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                  : "text-n-4 hover:text-white hover:bg-gray-700/50"
               }`}
               onClick={() => setActiveTab("webchat")}
             >
-              💬 Web
+              <Network className="h-5 w-5" /> Web
             </motion.button>
             <motion.button
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
-              className={` px-3 py-1 md:px-6 md:py-3 rounded-full font-semibold transition-all duration-300 text-nowrap text-sm ${
+              className={`flex items-center justify-center gap-2 px-3 py-1 md:px-6 md:py-3 rounded-full font-semibold transition-all duration-300 text-nowrap text-sm ${
                 activeTab === "instagram"
                   ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                  : "text-n-4 hover:text-white hover:bg-gray-700/50"
               }`}
               onClick={() => setActiveTab("instagram")}
             >
-              📸 Insta
+              <Instagram className="h-5 w-5" /> Insta
             </motion.button>
           </div>
         </div>

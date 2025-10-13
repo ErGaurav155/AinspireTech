@@ -64,19 +64,18 @@ function InstagramSection() {
 
   const badgeText = theme === "dark" ? "text-blue-400" : "text-blue-600";
 
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-800";
 
-  const trustBadgeText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const trustBadgeText = theme === "dark" ? "text-gray-300" : "text-n-800";
 
-  const featureText = theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const featureText = theme === "dark" ? "text-gray-300" : "text-n-800";
 
-  const secondaryText = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const secondaryText = theme === "dark" ? "text-gray-400" : "text-n-800";
 
   const outlineButtonBorder =
     theme === "dark" ? "border-[#00F0FF]" : "border-[#00F0FF]";
 
-  const outlineButtonText =
-    theme === "dark" ? "text-[#00F0FF]" : "text-[#00F0FF]";
+  const outlineButtonText = theme === "dark" ? "text-[#00F0FF]" : "text-n-800";
 
   const outlineButtonHover =
     theme === "dark" ? "hover:bg-[#00F0FF]/10" : "hover:bg-[#00F0FF]/5";
@@ -262,7 +261,7 @@ function InstagramSection() {
 
           {/* Trust Badges */}
           <motion.div
-            className="flex flex-col lg:flex-row items-start lg:items-center mb-8 gap-4"
+            className="flex flex-col lg:flex-row items-start lg:items-center mb-8 gap-4 font-montserrat"
             variants={containerVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -326,7 +325,7 @@ function InstagramSection() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push("/web")}
-              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-white font-bold py-2 px-2 md:px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-2 md:px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
             >
               <Rocket className="h-5 w-5 mr-1 md:mr-2" />
               Start Automating - Free!
@@ -389,19 +388,18 @@ function WebChatbotSection() {
 
   const badgeText = theme === "dark" ? "text-blue-400" : "text-blue-600";
 
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-800";
 
-  const trustBadgeText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const trustBadgeText = theme === "dark" ? "text-gray-300" : "text-n-800";
 
-  const featureText = theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const featureText = theme === "dark" ? "text-gray-300" : "text-n-800";
 
-  const secondaryText = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const secondaryText = theme === "dark" ? "text-gray-400" : "text-n-800";
 
   const outlineButtonBorder =
     theme === "dark" ? "border-[#00F0FF]" : "border-[#00F0FF]";
 
-  const outlineButtonText =
-    theme === "dark" ? "text-[#00F0FF]" : "text-[#00F0FF]";
+  const outlineButtonText = theme === "dark" ? "text-[#00F0FF]" : "text-n-800";
 
   const outlineButtonHover =
     theme === "dark" ? "hover:bg-[#00F0FF]/10" : "hover:bg-[#00F0FF]/5";
@@ -587,14 +585,14 @@ function WebChatbotSection() {
 
           {/* Trust Badges */}
           <motion.div
-            className="flex flex-col lg:flex-row items-start lg:items-center mb-8 gap-4"
+            className="flex flex-col lg:flex-row items-start lg:items-center mb-8 gap-4 font-montserrat"
             variants={containerVariants}
             whileInView="visible"
             viewport={{ once: false }}
             initial="hidden"
           >
             <motion.div
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 "
               variants={badgeVariants}
             >
               <BadgeCheck className="h-5 w-5 text-[#00F0FF]" />
@@ -652,7 +650,7 @@ function WebChatbotSection() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push("/insta")}
-              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-white font-bold py-2 px-2 md:px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-2 md:px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
             >
               <Rocket className="h-5 w-5 mr-1 md:mr-2" />
               Start Automating - Free!

@@ -34,17 +34,17 @@ function InstaTestimonialsSection() {
   // Theme-based styles
   const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
   const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
+  const titleText = theme === "dark" ? "text-white" : "text-n-7";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
   const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
   const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
   const cardHoverBorder =
     theme === "dark"
       ? "hover:border-[#258b94]/40"
       : "hover:border-[#258b94]/60";
-  const testimonialText = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const companyText = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const testimonialText = theme === "dark" ? "text-gray-300" : "text-n-4";
+  const companyText = theme === "dark" ? "text-gray-400" : "text-n-5";
 
   // EXACT same animation variants as FAQ component
   const containerVariants = {
@@ -148,7 +148,7 @@ function InstaTestimonialsSection() {
         viewport={{ once: false, margin: "-100px" }}
       >
         <motion.div
-          className="flex items-center justify-center text-[#00F0FF] mb-4"
+          className="flex items-center justify-center text-blue-700 mb-4"
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}

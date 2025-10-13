@@ -11,8 +11,8 @@ export function WebCTASection() {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
   const cardBg = theme === "dark" ? "bg-transparent" : "bg-white/80";
   const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-300";
   const outlineButtonBorder =
@@ -22,7 +22,7 @@ export function WebCTASection() {
   const outlineButtonHover =
     theme === "dark" ? "hover:bg-[#B026FF]/10" : "hover:bg-[#B026FF]/10";
   const badgeBg =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
   const gradientBg =
     theme === "dark"
       ? [
@@ -156,7 +156,7 @@ export function WebCTASection() {
             <CardContent className="p-3 pt-12 pb-12 relative">
               {/* Animated background elements */}
               <motion.div
-                className="flex items-center justify-center text-[#00F0FF] mb-4"
+                className="flex items-center justify-center text-blue-700 mb-4"
                 variants={titleVariants}
                 whileInView="visible"
                 viewport={{ once: false }}

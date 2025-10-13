@@ -14,9 +14,9 @@ function InstaCTASection() {
 
   // Theme-based styles
   const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
+  const titleText = theme === "dark" ? "text-white" : "text-n-7";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
   const cardGradientFrom = theme === "dark" ? "from-[#0a0a0a]" : "from-gray-50";
   const cardGradientTo =
     theme === "dark" ? "to-[#1a1a1a]/90" : "to-gray-100/90";
@@ -136,7 +136,7 @@ function InstaCTASection() {
         >
           <CardContent className="py-12 px-3">
             <motion.div
-              className="flex items-center justify-center text-[#00F0FF] mb-4"
+              className="flex items-center justify-center text-blue-700 mb-4"
               variants={titleVariants}
               whileInView="visible"
               viewport={{ once: false }}

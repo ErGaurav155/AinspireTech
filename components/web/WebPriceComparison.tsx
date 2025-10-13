@@ -372,9 +372,9 @@ const FeatureComparisonTable = () => {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
   const containerBg = theme === "dark" ? "bg-gray-900/30" : "bg-gray-100/50";
   const containerBorder =
     theme === "dark" ? "border-gray-800" : "border-gray-300";
@@ -383,7 +383,7 @@ const FeatureComparisonTable = () => {
   const tableRowHover =
     theme === "dark" ? "hover:bg-gray-800/30" : "hover:bg-gray-100/50";
   const badgeBg =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
   const featureCardBg =
     theme === "dark"
       ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#00F0FF]/5"
@@ -521,7 +521,7 @@ const FeatureComparisonTable = () => {
           className="text-center mb-12"
         >
           <motion.div
-            className="flex items-center justify-center text-[#00F0FF] mb-4"
+            className="flex items-center justify-center text-blue-700 mb-4"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}

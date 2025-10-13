@@ -95,7 +95,7 @@ export function NavBar() {
             <Link
               key={item.id}
               href={item.href}
-              className={`nav-link relative group cursor-pointer ${
+              className={`nav-link relative group font-normal cursor-pointer ${
                 activeNavItem === item.id ? "text-[#00F0FF]" : "text-foreground"
               }`}
               onClick={() => handleNavClick(item.id)}
@@ -122,7 +122,7 @@ export function NavBar() {
             {isOwn ? (
               <button
                 onClick={() => router.push("/admin")}
-                className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
               >
                 <span className="mr-2">Dashboard</span>
                 <ArrowRight className="hidden lg:flex" size={16} />
@@ -131,14 +131,14 @@ export function NavBar() {
               <>
                 <button
                   onClick={() => router.push("/web/UserDashboard")}
-                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                 >
                   <span className="mr-2">WebBot</span>
                   <ArrowRight className="hidden lg:flex" size={16} />
                 </button>
                 <button
                   onClick={() => router.push("/insta/dashboard")}
-                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                 >
                   <span className="mr-2">InstaBot</span>
                   <ArrowRight className="hidden lg:flex" size={16} />
@@ -154,13 +154,13 @@ export function NavBar() {
           <SignedOut>
             <button
               onClick={() => router.push("/contactUs")}
-              className="hidden md:flex px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+              className="hidden md:flex px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
             >
               Contact Us
             </button>
             <button
               onClick={() => router.push("/sign-in")}
-              className="hidden md:flex px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+              className="hidden md:flex px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
             >
               Login
             </button>
@@ -189,7 +189,7 @@ export function NavBar() {
             <Link
               key={item.id}
               href={item.href}
-              className={`text-foreground hover:text-[#00F0FF] transition-colors cursor-pointer ${
+              className={`text-foreground font-medium md:font-semibold hover:text-[#00F0FF] transition-colors cursor-pointer ${
                 activeNavItem === item.id ? "text-[#00F0FF]" : ""
               }`}
               onClick={() => handleNavClick(item.id)}
@@ -206,7 +206,7 @@ export function NavBar() {
                     router.push("/admin");
                     setIsMenuOpen(false);
                   }}
-                  className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                  className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                 >
                   Admin Dashboard
                 </button>
@@ -217,7 +217,7 @@ export function NavBar() {
                       router.push("/web/UserDashboard");
                       setIsMenuOpen(false);
                     }}
-                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                   >
                     WebBot
                   </button>
@@ -226,7 +226,7 @@ export function NavBar() {
                       router.push("/insta/dashboard");
                       setIsMenuOpen(false);
                     }}
-                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                   >
                     InstaBot
                   </button>
@@ -241,7 +241,7 @@ export function NavBar() {
                 router.push("/contactUs");
                 setIsMenuOpen(false);
               }}
-              className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+              className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
             >
               Contact Us
             </button>
@@ -250,7 +250,7 @@ export function NavBar() {
                 router.push("/sign-in");
                 setIsMenuOpen(false);
               }}
-              className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white font-medium hover:opacity-90 w-full transition-opacity whitespace-nowrap cursor-pointer"
+              className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 w-full transition-opacity whitespace-nowrap cursor-pointer"
             >
               Login
             </button>

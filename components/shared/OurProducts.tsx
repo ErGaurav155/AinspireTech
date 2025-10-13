@@ -27,14 +27,13 @@ import {
   Mic,
   ImagePlus,
   ChevronDown,
+  Network,
 } from "lucide-react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 
 export function AIVoiceAgentShowcase() {
-  const [activePlatform, setActivePlatform] = useState<"web" | "instagram">(
-    "web"
-  );
+  const [activePlatform, setActivePlatform] = useState<"web" | "insta">("web");
   const [openWebDropdown, setOpenWebDropdown] = useState<string | null>(
     "support"
   );
@@ -50,7 +49,7 @@ export function AIVoiceAgentShowcase() {
   const sectionBg = theme === "dark" ? "bg-transparent" : "bg-transparent";
   const tabBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-gray-100";
   const tabBorder = theme === "dark" ? "border-gray-800" : "border-gray-300";
-  const tabText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const tabText = theme === "dark" ? "text-gray-300" : "text-n-5";
   const activeTabBg = "bg-gradient-to-r from-cyan-600 to-blue-600 text-white";
   const activeInstaTabBg =
     "bg-gradient-to-r from-pink-600 to-purple-600 text-white";
@@ -59,7 +58,7 @@ export function AIVoiceAgentShowcase() {
   const dropdownBorder =
     theme === "dark" ? "border-white/10" : "border-gray-200";
   const titleText = theme === "dark" ? "text-white" : "text-gray-900";
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const descriptionText = theme === "dark" ? "text-white" : "text-n-5";
 
   const webChatTypes = {
     support: {
@@ -167,7 +166,7 @@ export function AIVoiceAgentShowcase() {
     <section
       className={`w-full py-20 ${sectionBg} text-foreground max-w-7xl mx-auto`}
     >
-      <div className="container mx-auto px-4">
+      <div className=" mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
           <div
@@ -182,7 +181,9 @@ export function AIVoiceAgentShowcase() {
           <h2 className="text-3xl font-bold gradient-text-main mb-4">
             OUR PRODUCTS
           </h2>
-          <p className={`text-xl ${descriptionText} max-w-2xl mx-auto`}>
+          <p
+            className={`text-xl ${descriptionText} max-w-2xl mx-auto font-montserrat`}
+          >
             Elevate customer experience with natural voice conversations across
             all platforms
           </p>
@@ -196,12 +197,12 @@ export function AIVoiceAgentShowcase() {
             {[
               {
                 id: "web",
-                label: "Web Platform",
-                icon: <Mic className="h-5 w-5" />,
+                label: "Web",
+                icon: <Network className="h-5 w-5" />,
               },
               {
-                id: "instagram",
-                label: "Instagram",
+                id: "insta",
+                label: "insta",
                 icon: <Instagram className="h-5 w-5" />,
               },
             ].map((tab) => (
@@ -213,7 +214,7 @@ export function AIVoiceAgentShowcase() {
                     ? tab.id === "web"
                       ? activeTabBg
                       : activeInstaTabBg
-                    : `${tabText} hover:text-white`
+                    : `${tabText} hover:text-white hover:bg-gray-700/50`
                 }`}
               >
                 {tab.icon}
@@ -228,13 +229,13 @@ export function AIVoiceAgentShowcase() {
           {/* Web Platform Content */}
           <AnimatePresence mode="wait">
             {activePlatform === "web" && (
-              <div className="flex items-center justify-between gap-6 w-full ">
+              <div className="flex items-center justify-between gap-6 w-full h-auto">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="space-y-4"
+                  className="space-y-4 flex-1"
                 >
                   {Object.entries(webChatTypes).map(([key, agent]) => (
                     <motion.div
@@ -265,7 +266,9 @@ export function AIVoiceAgentShowcase() {
                             >
                               {agent.title}
                             </h3>
-                            <p className={`text-sm ${descriptionText}`}>
+                            <p
+                              className={`text-sm ${descriptionText} font-montserrat`}
+                            >
                               {agent.description}
                             </p>
                           </div>
@@ -290,7 +293,7 @@ export function AIVoiceAgentShowcase() {
                             <div className="px-6 pb-6 border-t border-gray-700/50 pt-4">
                               <div className="flex flex-col lg:flex-row gap-6">
                                 {/* Features - Always shown */}
-                                <div className="flex-1">
+                                <div className="flex-auto">
                                   <h4
                                     className={`font-semibold ${titleText} mb-3`}
                                   >
@@ -304,7 +307,7 @@ export function AIVoiceAgentShowcase() {
                                       >
                                         <div className="w-2 h-2 bg-cyan-500 rounded-full flex-shrink-0" />
                                         <span
-                                          className={`text-sm ${descriptionText}`}
+                                          className={`text-sm ${descriptionText} font-montserrat`}
                                         >
                                           {feature}
                                         </span>
@@ -314,13 +317,14 @@ export function AIVoiceAgentShowcase() {
                                 </div>
 
                                 {/* Mobile Image - Only shown in dropdown on mobile */}
-                                <div className="lg:hidden">
-                                  <div className="relative aspect-[9/16] rounded-lg overflow-hidden">
+
+                                <div className="flex flex-1 md:hidden  items-center justify-center">
+                                  <div className="relative h-[24rem]  w-auto aspect-[4/6]  rounded-lg overflow-hidden">
                                     <Image
                                       src={agent.image}
                                       alt={agent.title}
                                       fill
-                                      className="object-contain"
+                                      className="object-contain  "
                                     />
                                   </div>
                                 </div>
@@ -332,13 +336,13 @@ export function AIVoiceAgentShowcase() {
                     </motion.div>
                   ))}
                 </motion.div>
-                <div className="hidden lg:block flex-1">
-                  <div className="relative  aspect-square rounded-lg overflow-hidden">
+                <div className="hidden md:flex flex-1  items-center justify-center">
+                  <div className="relative h-[32rem]  w-auto aspect-[4/6]  rounded-lg overflow-hidden">
                     <Image
                       src={agent}
                       alt="mainImage"
                       fill
-                      className="object-contain"
+                      className="object-contain  "
                     />
                   </div>
                 </div>
@@ -348,7 +352,7 @@ export function AIVoiceAgentShowcase() {
 
           {/* Instagram Platform Content */}
           <AnimatePresence mode="wait">
-            {activePlatform === "instagram" && (
+            {activePlatform === "insta" && (
               <div className="flex items-center justify-between gap-6 w-full ">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -388,7 +392,9 @@ export function AIVoiceAgentShowcase() {
                               >
                                 {automation.title}
                               </h3>
-                              <p className={`text-sm ${descriptionText}`}>
+                              <p
+                                className={`text-sm ${descriptionText} font-montserrat`}
+                              >
                                 {automation.description}
                               </p>
                             </div>
@@ -428,7 +434,7 @@ export function AIVoiceAgentShowcase() {
                                           >
                                             <div className="w-2 h-2 bg-pink-500 rounded-full flex-shrink-0" />
                                             <span
-                                              className={`text-sm ${descriptionText}`}
+                                              className={`text-sm ${descriptionText} font-montserrat`}
                                             >
                                               {feature}
                                             </span>
@@ -439,23 +445,43 @@ export function AIVoiceAgentShowcase() {
                                   </div>
 
                                   {/* Mobile Images - Only shown in dropdown on mobile */}
-                                  <div className="lg:hidden">
-                                    <div className="grid md:grid-cols-2 gap-2">
-                                      <div className="relative  aspect-[9/16] rounded-lg overflow-hidden">
+                                  <div className="md:hidden">
+                                    <div className="grid sm:grid-cols-2 md:gap-2">
+                                      {/* <div className="relative  h-auto aspect-[4/6] rounded-lg overflow-hidden">
                                         <Image
                                           src={automation.image1}
                                           alt={automation.title}
                                           fill
                                           className="object-contain"
                                         />
-                                      </div>
-                                      <div className="relative aspect-[9/16] rounded-lg overflow-hidden">
+                                      </div> */}
+                                      {/* <div className="relative h-auto aspect-[4/6] rounded-lg overflow-hidden">
                                         <Image
                                           src={automation.image}
                                           alt={automation.title}
                                           fill
                                           className="object-contain"
                                         />
+                                      </div> */}
+                                      <div className="flex flex-1 md:hidden  items-center justify-center">
+                                        <div className="relative h-[24rem]  w-auto aspect-[4/6]  rounded-lg overflow-hidden">
+                                          <Image
+                                            src={automation.image1}
+                                            alt={automation.title}
+                                            fill
+                                            className="object-contain  "
+                                          />
+                                        </div>
+                                      </div>
+                                      <div className="flex flex-1 md:hidden  items-center justify-center">
+                                        <div className="relative h-[24rem]  w-auto aspect-[4/6]  rounded-lg overflow-hidden">
+                                          <Image
+                                            src={automation.image}
+                                            alt={automation.title}
+                                            fill
+                                            className="object-contain  "
+                                          />
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
@@ -468,9 +494,9 @@ export function AIVoiceAgentShowcase() {
                     )
                   )}
                 </motion.div>
-                <div className="hidden lg:block flex-1 lg:flex-[65%] w-full">
-                  <div className="grid grid-cols-2 gap-2 w-full">
-                    <div className="relative w-full h-full aspect-[9/16] rounded-lg overflow-hidden">
+                <div className="hidden md:block flex-1 lg:flex-[65%] w-full">
+                  <div className="flex flex-col lg:flex-row items-center justify-center gap-2 w-full">
+                    <div className="relative  h-[20rem] lg:h-auto  w-auto lg:w-full aspect-[4/6] rounded-lg overflow-hidden">
                       <Image
                         src={instaImage1}
                         alt="Instagram Feature"
@@ -478,12 +504,12 @@ export function AIVoiceAgentShowcase() {
                         className="object-contain "
                       />
                     </div>
-                    <div className="relative w-full h-full aspect-[9/16]  rounded-lg overflow-hidden">
+                    <div className="relative h-[20rem] lg:h-auto  w-auto lg:w-full aspect-[4/6]  rounded-lg overflow-hidden">
                       <Image
                         src={instaImage}
                         alt="Instagram Feature"
                         fill
-                        className="object-contain"
+                        className="object-contain "
                       />
                     </div>
                   </div>

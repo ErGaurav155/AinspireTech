@@ -215,9 +215,9 @@ export default function DashboardPage() {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
   const containerBg = theme === "dark" ? "bg-transparent" : "bg-gray-50";
   const loadingBg = theme === "dark" ? "bg-black" : "bg-white";
   const cardBg = theme === "dark" ? "bg-gray-900/30" : "bg-white";
@@ -1093,7 +1093,7 @@ export default function DashboardPage() {
                                   </Button>
                                 </DialogTrigger>
                                 <DialogContent
-                                  className={`${dialogBg} border-gray-800  max-w-2xl p-2`}
+                                  className={`${dialogBg} border-gray-800  max-w-2xl p-2 font-montserrat`}
                                 >
                                   <DialogHeader>
                                     <DialogTitle>
@@ -1370,7 +1370,9 @@ export default function DashboardPage() {
                               <h4 className="text-sm font-medium text-blue-400">
                                 Universal Integration
                               </h4>
-                              <p className={`text-sm ${textSecondary} mt-1`}>
+                              <p
+                                className={`text-sm ${textSecondary} mt-1 font-montserrat`}
+                              >
                                 This code works on any website platform. Simply
                                 copy and paste it before the closing
                                 &lt;/body&gt; tag.
@@ -1465,7 +1467,9 @@ export default function DashboardPage() {
                               <h4 className="text-sm font-medium text-purple-400">
                                 WordPress Integration
                               </h4>
-                              <p className={`text-sm ${textSecondary} mt-1`}>
+                              <p
+                                className={`text-sm ${textSecondary} mt-1 font-montserrat`}
+                              >
                                 For WordPress, you can use a plugin like Header
                                 and Footer Scripts or add the code to your
                                 themes functions.php file.
@@ -1567,7 +1571,9 @@ add_action('wp_footer', 'add_chatbot_widget');`;
                               <h4 className="text-sm font-medium text-blue-400">
                                 React Integration
                               </h4>
-                              <p className={`text-sm ${textSecondary} mt-1`}>
+                              <p
+                                className={`text-sm ${textSecondary} mt-1 font-montserrat`}
+                              >
                                 For React applications, add this code to your
                                 main App component or layout component.
                               </p>
@@ -1687,7 +1693,9 @@ function App() {
                               <h4 className="text-sm font-medium text-red-400">
                                 Angular Integration
                               </h4>
-                              <p className={`text-sm ${textSecondary} mt-1`}>
+                              <p
+                                className={`text-sm ${textSecondary} mt-1 font-montserrat`}
+                              >
                                 For Angular applications, add this code to your
                                 main component or in the index.html file.
                               </p>
@@ -1851,7 +1859,9 @@ export class AppComponent implements OnInit {
                               <h4 className="text-sm font-medium text-green-400">
                                 HTML/JS Integration
                               </h4>
-                              <p className={`text-sm ${textSecondary} mt-1`}>
+                              <p
+                                className={`text-sm ${textSecondary} mt-1 font-montserrat`}
+                              >
                                 For plain HTML websites, add this code before
                                 the closing &lt;/body&gt; tag on every page.
                               </p>
@@ -1947,7 +1957,7 @@ export class AppComponent implements OnInit {
                             Important Notes
                           </h4>
                           <ul
-                            className={`text-sm ${textSecondary} mt-1 list-disc list-inside space-y-1`}
+                            className={`text-sm ${textSecondary} mt-1 list-disc list-inside space-y-1 font-montserrat`}
                           >
                             <li>
                               The widget will only work if your subscription is

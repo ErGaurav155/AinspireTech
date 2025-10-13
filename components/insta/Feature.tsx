@@ -25,11 +25,11 @@ export function FeatureSection() {
   const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
 
   const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
 
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+  const titleText = theme === "dark" ? "text-white" : "text-n-7";
 
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
 
   const dividerBg =
     theme === "dark"
@@ -222,7 +222,7 @@ export function FeatureSection() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className={`inline-flex items-center text-[#00F0FF] border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
+            className={`inline-flex items-center text-blue-700 border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}

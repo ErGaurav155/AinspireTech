@@ -49,9 +49,9 @@ const Pricing = () => {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
   const containerBg = theme === "dark" ? "bg-transparent" : "bg-gray-50";
   const loadingBg = theme === "dark" ? "bg-black" : "bg-white";
   const badgeBg =

@@ -21,7 +21,7 @@ export default function AddAccountPage() {
 
   // Theme-based styles
   const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
 
   useEffect(() => {
     async function fetchSubscriptions() {

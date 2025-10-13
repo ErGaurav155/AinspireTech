@@ -79,24 +79,24 @@ export function InstagramAutomationHero() {
   // Theme-based styles
   const badgeBg =
     theme === "dark"
-      ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-[#00F0FF]/30"
-      : "bg-gradient-to-r from-[#00F0FF]/5 to-[#B026FF]/5 backdrop-blur-sm border border-[#00F0FF]/20";
+      ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-blue-600"
+      : "bg-gradient-to-r from-[#00F0FF]/5 to-[#B026FF]/5 backdrop-blur-sm border border-blue-800";
 
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
+  const titleText = theme === "dark" ? "text-white" : "text-n-8";
 
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
 
   const featureText =
     theme === "dark"
       ? "text-gray-300 group-hover:text-white"
-      : "text-gray-600 group-hover:text-gray-900";
+      : "text-n-5 group-hover:text-gray-900";
 
   const outlineButtonBorder =
     theme === "dark"
       ? "border-[#00F0FF] text-[#00F0FF] hover:bg-[#00F0FF]/10"
-      : "border-[#00F0FF] text-[#00F0FF] hover:bg-[#00F0FF]/5";
+      : "border-[#00F0FF] text-n-8 hover:bg-[#00F0FF]/5";
 
-  const trustBadgeText = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const trustBadgeText = theme === "dark" ? "text-gray-400" : "text-n-4";
 
   const FeatureItem = ({
     icon,
@@ -147,8 +147,8 @@ export function InstagramAutomationHero() {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className={`inline-flex items-center ${badgeBg} rounded-full px-6 py-3`}
               >
-                <Zap className="h-5 w-5 text-[#00F0FF] mr-2" />
-                <span className="text-xs md:text-sm font-medium text-nowrap uppercase tracking-widest text-[#00F0FF]">
+                <Zap className="h-5 w-5 text-blue-800 mr-2" />
+                <span className="text-xs md:text-sm font-medium text-nowrap uppercase tracking-widest text-blue-800">
                   INSTAGRAM AUTOMATION
                 </span>
               </motion.div>
@@ -228,7 +228,7 @@ export function InstagramAutomationHero() {
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => router.push("/insta/dashboard")}
-                className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-white font-bold py-2 px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
+                className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] text-black font-bold py-2 px-4 rounded-2xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center"
               >
                 <Rocket className="h-5 w-5 mr-2" />
                 Start Free Trial

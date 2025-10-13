@@ -354,7 +354,7 @@ const PricingPlansResponse = ({ onComplete }: { onComplete: () => void }) => {
       {showHeader && (
         <div>
           <h3 className="text-xl font-bold  mb-2">
-            <TypingAnimation text="Denser Pricing Plans" speed={30} />
+            <TypingAnimation text="ainspiretech Pricing Plans" speed={30} />
           </h3>
           <p className=" text-sm">
             <TypingAnimation
@@ -424,7 +424,6 @@ const ChatDemoCarousel = () => {
     theme === "dark" ? "border-gray-800" : "border-gray-300";
   const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
   const textSecondary = theme === "dark" ? "text-gray-400" : "text-gray-600";
-  const textMuted = theme === "dark" ? "" : "text-gray-500";
   const badgeBg = theme === "dark" ? "bg-gray-600" : "bg-gray-400";
 
   const demos = [
@@ -508,7 +507,7 @@ const ChatDemoCarousel = () => {
             <MessageCircle className="h-6 w-6 " />
           </div>
           <div>
-            <div className={`font-bold ${textPrimary}`}>Denser Agent</div>
+            <div className={`font-bold ${textPrimary}`}>Ainspiretech Agent</div>
             <div className={`text-sm ${textSecondary}`}>
               {demos[activeDemo].title} • AI-powered assistant
             </div>
@@ -533,15 +532,16 @@ export function AIAgentHero() {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-400" : "text-gray-600";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+  const textSecondary = theme === "dark" ? "text-gray-400" : "text-n-5";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
   const badgeBg =
     theme === "dark"
       ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10"
       : "bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20";
   const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
+  const textpricing = theme === "dark" ? "text-[#00F0FF]" : "text-black";
 
   const FeatureItem = ({
     icon,
@@ -592,8 +592,8 @@ export function AIAgentHero() {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className={`flex justify-center items-center ${badgeBg} backdrop-blur-sm border ${badgeBorder} rounded-full px-6 py-3 mb-4 max-w-min text-nowrap`}
               >
-                <Sparkles className="h-5 w-5 text-[#00F0FF] mr-2" />
-                <span className="text-sm font-medium uppercase tracking-widest text-[#00F0FF]">
+                <Sparkles className="h-5 w-5 text-blue-700 mr-2" />
+                <span className="text-sm font-medium uppercase tracking-widest text-blue-700">
                   WEB CHATBOTS
                 </span>
               </motion.div>
@@ -683,7 +683,7 @@ export function AIAgentHero() {
                 whileHover={{ scale: 1.05 }}
                 onClick={() => router.push("/web/pricing")}
                 whileTap={{ scale: 0.95 }}
-                className="border-2 border-[#00F0FF] text-[#00F0FF] font-semibold py-2 px-4 md:py-3 md:px-6 rounded-2xl hover:bg-[#00F0FF]/10 transition-all duration-300 flex items-center justify-center"
+                className={`border-2 border-[#00F0FF] ${textpricing} font-semibold py-2 px-4 md:py-3 md:px-6 rounded-2xl hover:bg-[#00F0FF]/10 transition-all duration-300 flex items-center justify-center`}
               >
                 <Calendar className="h-5 w-5 mr-2" />
                 View Pricing

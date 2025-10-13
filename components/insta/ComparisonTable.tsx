@@ -32,20 +32,20 @@ const ComparisonTable: React.FC = () => {
   // Theme-based styles
   const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
   const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-[#00F0FF]/50";
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
+  const titleText = theme === "dark" ? "text-white" : "text-n-7";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
   const tableHeaderBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/80";
   const tableRowHover =
     theme === "dark" ? "hover:bg-[#1a1a1a]/50" : "hover:bg-gray-100/50";
   const tableBorder = theme === "dark" ? "border-[#333]" : "border-gray-200";
   const tableDivide = theme === "dark" ? "divide-[#333]" : "divide-gray-200";
-  const featureText = theme === "dark" ? "text-gray-300" : "text-gray-700";
-  const disabledText = theme === "dark" ? "text-gray-500" : "text-gray-400";
+  const featureText = theme === "dark" ? "text-gray-300" : "text-n-7";
+  const disabledText = theme === "dark" ? "text-gray-500" : "text-n-5";
   const comingSoonBg =
     theme === "dark"
       ? "bg-blue-900 text-blue-300"
-      : "bg-blue-100 text-blue-700";
+      : "bg-blue-100 text-blue-900";
 
   // EXACT same animation variants as FeatureSection component
   const containerVariants = {
@@ -223,7 +223,7 @@ const ComparisonTable: React.FC = () => {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className={`inline-flex items-center text-[#00F0FF] border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
+            className={`inline-flex items-center text-blue-700 border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}

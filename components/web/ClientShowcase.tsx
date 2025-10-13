@@ -24,7 +24,7 @@ export function ClientShowcase() {
   const tabText =
     theme === "dark"
       ? "text-gray-300 hover:text-white"
-      : "text-gray-600 hover:text-gray-900";
+      : "text-n-5 hover:text-gray-900";
 
   const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
 
@@ -40,9 +40,9 @@ export function ClientShowcase() {
       ? "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border-[#00F0FF]/30"
       : "bg-gradient-to-r from-gray-50 to-gray-100 border-[#00F0FF]/50";
 
-  const statsText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const statsText = theme === "dark" ? "text-gray-300" : "text-n-6";
 
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
+  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
 
   const cardHoverEffect =
     theme === "dark"
@@ -268,7 +268,7 @@ export function ClientShowcase() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className="inline-flex items-center text-[#00F0FF] border border-[#00F0FF]/30 rounded-full px-4 py-1 mb-4"
+            className="inline-flex items-center text-blue-700 border border-blue-700/30 rounded-full px-4 py-1 mb-4"
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}

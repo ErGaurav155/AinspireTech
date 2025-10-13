@@ -61,10 +61,10 @@ export default function AnalyticsPage() {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
+  const containerBg = theme === "dark" ? "bg-transperant" : "bg-gray-50";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
+  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
   const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
   const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
   const badgeBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
@@ -72,8 +72,7 @@ export default function AnalyticsPage() {
   const selectBorder = theme === "dark" ? "border-white/20" : "border-gray-300";
   const buttonOutlineBorder =
     theme === "dark" ? "border-white/20" : "border-gray-300";
-  const buttonOutlineText =
-    theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const buttonOutlineText = theme === "dark" ? "text-gray-300" : "text-n-6";
 
   const getFilteredData = useCallback(() => {
     if (!analyticsData) return null;
