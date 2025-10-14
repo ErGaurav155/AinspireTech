@@ -1151,11 +1151,13 @@ export default function DashboardPage() {
                                         )}
                                       </div>
                                     </div>
-                                    {/* <div className="bg-[#b71b86]/10 p-4 rounded space-y-2">
+                                    <div
+                                      className={`bg-[#b71b86]/10 p-4 rounded ${textMuted} space-y-2 `}
+                                    >
                                       <h4 className="font-medium mb-2">
                                         Form Data
                                       </h4>
-                                      {conversation?.formData[0]?.map(
+                                      {conversation?.formData?.map(
                                         (field: any) => {
                                           // Map field.question to specific UI components
                                           if (
@@ -1169,7 +1171,7 @@ export default function DashboardPage() {
                                                 className="flex items-center space-x-2"
                                               >
                                                 <User className="h-4 w-4 text-[#00F0FF]" />
-                                                <span className="text-gray-300">
+                                                <span className="">
                                                   Name: {field.answer}
                                                 </span>
                                               </div>
@@ -1182,7 +1184,7 @@ export default function DashboardPage() {
                                                 className="flex items-center space-x-2"
                                               >
                                                 <Mail className="h-4 w-4 text-[#FF2E9F]" />
-                                                <span className="text-gray-300">
+                                                <span className="">
                                                   Email:{" "}
                                                   <a
                                                     href={`mailto:${field.answer}`}
@@ -1205,7 +1207,7 @@ export default function DashboardPage() {
                                                 className="flex items-center space-x-2"
                                               >
                                                 <Phone className="h-4 w-4 text-[#B026FF]" />
-                                                <span className="text-gray-300">
+                                                <span className="">
                                                   Phone:{" "}
                                                   <a
                                                     href={`tel:${field.answer}`}
@@ -1228,7 +1230,7 @@ export default function DashboardPage() {
                                                 className="flex items-center space-x-2"
                                               >
                                                 <Settings className="h-4 w-4 text-green-400" />
-                                                <span className="text-gray-300">
+                                                <span className="">
                                                   Service: {field.answer}
                                                 </span>
                                               </div>
@@ -1245,7 +1247,7 @@ export default function DashboardPage() {
                                                 className="flex items-center space-x-2"
                                               >
                                                 <Calendar className="h-4 w-4 text-yellow-400" />
-                                                <span className="text-gray-300">
+                                                <span className="">
                                                   Date:{" "}
                                                   {new Date(
                                                     field.answer
@@ -1258,16 +1260,16 @@ export default function DashboardPage() {
                                         }
                                       )}
                                     </div>
-                                    {conversation?.formData[0]?.find((f: any) =>
+                                    {conversation?.formData?.find((f: any) =>
                                       /message|additional comments/i.test(
                                         f.question
                                       )
                                     ) && (
                                       <div className="mt-3">
-                                        <p className="text-sm text-gray-400 mb-1">
+                                        <p className="text-sm  mb-1">
                                           Additional Message:
                                         </p>
-                                        <p className="text-gray-300">
+                                        <p className="">
                                           {
                                             conversation.formData.find(
                                               (f: any) =>
@@ -1278,7 +1280,7 @@ export default function DashboardPage() {
                                           }
                                         </p>
                                       </div>
-                                    )} */}
+                                    )}
                                   </div>
                                 </DialogContent>
                               </Dialog>

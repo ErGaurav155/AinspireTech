@@ -968,7 +968,6 @@
             body: JSON.stringify(conversationData),
           }
         );
-
         if (response.ok) {
           const result = await response.json();
           this.conversationId = result.conversationId;

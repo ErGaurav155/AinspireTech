@@ -79,7 +79,6 @@ export async function POST(request: NextRequest) {
       },
       status: "active",
     });
-
     if (!subscriptions || subscriptions.length === 0) {
       return NextResponse.json([], {
         status: 200,
