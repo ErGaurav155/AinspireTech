@@ -42,6 +42,7 @@
           }),
         });
         const data = await response.json();
+        console.log("FAQ data:", data);
         this.faqQuestions = data.faq?.questions || [];
       } catch (error) {
         console.error("Failed to load FAQ:", error);

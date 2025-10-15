@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/web/Navbar";
-import AIChatBot from "@/components/shared/ChatBot";
 import { Footer } from "@/components/shared/Footer";
 
 export const metadata: Metadata = {
@@ -19,7 +18,6 @@ export default function RootLayout({
     <main className="">
       <Navbar />
       {children}
-      {/* <AIChatBot /> */}
       <Footer />
       <Toaster />
     </main>

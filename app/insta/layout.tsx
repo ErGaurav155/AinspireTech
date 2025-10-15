@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/insta/Navbar";
-import AIChatBot from "@/components/shared/ChatBot";
 import { Footer } from "@/components/shared/Footer";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -20,7 +19,6 @@ export default function RootLayout({
       <Navbar />
       <main>{children}</main>
 
-      <AIChatBot />
       <Footer />
       <Toaster />
     </main>
