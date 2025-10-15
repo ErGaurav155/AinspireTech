@@ -46,37 +46,7 @@
         this.faqQuestions = data.faq?.questions || [];
       } catch (error) {
         console.error("Failed to load FAQ:", error);
-        this.faqQuestions = [
-          {
-            question: "Connections in MongoDB Atlas Clusters",
-            answer: "MongoDB Atlas provides various connection options...",
-          },
-          {
-            question: "Atlas Developer Support Plan",
-            answer: "Our developer support plan includes...",
-          },
-          {
-            question: "Auto-Indexing for M0 to M5 Clusters",
-            answer: "Auto-indexing helps optimize query performance...",
-          },
-          {
-            question: "Migrating Data to an Atlas Cluster",
-            answer:
-              "You can migrate data using MongoDB Atlas Live Migration...",
-          },
-          {
-            question: "Connecting to an Atlas Cluster",
-            answer: "To connect to your Atlas cluster...",
-          },
-          {
-            question: "Closing Connections in MongoDB Atlas Clusters",
-            answer: "Proper connection management is essential...",
-          },
-          {
-            question: "Atlas Frequently Asked Questions",
-            answer: "Here are the most common questions about MongoDB Atlas...",
-          },
-        ];
+        this.faqQuestions = [];
       }
     }
 
@@ -732,136 +702,159 @@
       const widget = document.createElement("div");
       widget.className = "chatbot-widget";
       widget.innerHTML = `
-        <div class="chatbot-toggle-container">
-          <div class="welcome-bubble">Welcome! How can we help?</div>
-          <button class="chatbot-toggle" id="chatbot-toggle">
+    <div class="chatbot-toggle-container">
+      <div class="welcome-bubble">Welcome! How can we help?</div>
+      <button class="chatbot-toggle" id="chatbot-toggle">
+        <svg viewBox="0 0 24 24">
+          <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="chatbot-window" id="chatbot-window">
+      <div class="chatbot-header">
+        <h3>
+          <span class="icon-container">
             <svg viewBox="0 0 24 24">
-              <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </span>
+          ${this.config.chatbotName}
+        </h3>
+        <div class="chatbot-header-controls">
+          <button id="chatbot-restart" title="Restart Conversation">
+            <svg viewBox="0 0 24 24">
+              <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+            </svg>
+          </button>
+          <button id="chatbot-close" title="Close Chat">
+            <svg viewBox="0 0 24 24">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
             </svg>
           </button>
         </div>
-        
-        <div class="chatbot-window" id="chatbot-window">
-          <div class="chatbot-header">
-            <h3>
-              <span class="icon-container">
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </span>
-              ${this.config.chatbotName}
-            </h3>
-            <div class="chatbot-header-controls">
-              <button id="chatbot-restart" title="Restart Conversation">
-                <svg viewBox="0 0 24 24">
-                  <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                </svg>
-              </button>
-              <button id="chatbot-close" title="Close Chat">
-                <svg viewBox="0 0 24 24">
-                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                </svg>
-              </button>
-            </div>
+      </div>
+      
+      ${
+        this.config.isAuthorized
+          ? `
+        <div class="chatbot-body">
+          <div class="chatbot-tabs">
+            <button class="chatbot-tab active" data-tab="help">Help</button>
+            <button class="chatbot-tab" data-tab="chat">Chat</button>
           </div>
           
-          ${
-            this.config.isAuthorized
-              ? `
-            <div class="chatbot-body">
-              <div class="chatbot-tabs">
-                <button class="chatbot-tab active" data-tab="help">Help</button>
-                <button class="chatbot-tab" data-tab="chat">Chat</button>
+          <div class="chatbot-content">
+            <!-- Help Section -->
+            <div class="chatbot-section help-section active" id="help-section">
+              <div class="help-search">
+                <input type="text" class="help-search-input" placeholder="Search for help">
+              </div>
+              <div class="help-content">
+                <div class="help-category">
+                  <div class="help-category-title">Frequently Asked Questions</div>
+                  <div class="help-category-subtitle" id="faq-count">Loading FAQ articles...</div>
+                  <div class="help-articles" id="help-articles">
+                    <div class="help-article-placeholder">Loading questions...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Chat Section -->
+            <div class="chatbot-section chat-section" id="chat-section">
+              <div class="chatbot-messages" id="chatbot-messages">
+                <div class="chatbot-message bot">
+                  <div class="chatbot-message-content">${this.config.welcomeMessage}</div>
+                </div>
               </div>
               
-              <div class="chatbot-content">
-                <!-- Help Section -->
-                <div class="chatbot-section help-section active" id="help-section">
-                  <div class="help-search">
-                    <input type="text" class="help-search-input" placeholder="Search for help">
-                  </div>
-                  <div class="help-content">
-                    <div class="help-category">
-                      <div class="help-category-title">Atlas Frequently Asked Questions</div>
-                      <div class="help-category-subtitle">${this.faqQuestions.length} articles By Joao and 2 others</div>
-                      <div class="help-articles" id="help-articles">
-                        <!-- FAQ articles will be loaded here -->
-                      </div>
-                    </div>
-                  </div>
+              <div class="chatbot-typing" id="chatbot-typing" style="display: none;">
+                <div class="chatbot-typing-dots">
+                  <div class="chatbot-typing-dot"></div>
+                  <div class="chatbot-typing-dot"></div>
+                  <div class="chatbot-typing-dot"></div>
                 </div>
-                
-                <!-- Chat Section -->
-                <div class="chatbot-section chat-section" id="chat-section">
-                  <div class="chatbot-messages" id="chatbot-messages">
-                    <div class="chatbot-message bot">
-                      <div class="chatbot-message-content">${this.config.welcomeMessage}</div>
-                    </div>
-                  </div>
-                  
-                  <div class="chatbot-typing" id="chatbot-typing" style="display: none;">
-                    <div class="chatbot-typing-dots">
-                      <div class="chatbot-typing-dot"></div>
-                      <div class="chatbot-typing-dot"></div>
-                      <div class="chatbot-typing-dot"></div>
-                    </div>
-                    <span>AI is typing</span>
-                  </div>
-                  
-                  <div class="chatbot-input-area">
-                    <div class="chatbot-input-container">
-                      <textarea class="chatbot-input" id="chatbot-input" placeholder="Type your message..." rows="1"></textarea>
-                      <button class="chatbot-send" id="chatbot-send">
-                        <svg viewBox="0 0 24 24">
-                          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                        </svg>
-                      </button>
-                    </div>
-                    <div class="chatbot-footer">
-                      <a href="https://ainspiretech.com/" target="_blank" class="powered-by">
-                        Powered by AinspireTech
-                      </a>
-                    </div>
-                  </div>
+                <span>AI is typing</span>
+              </div>
+              
+              <div class="chatbot-input-area">
+                <div class="chatbot-input-container">
+                  <textarea class="chatbot-input" id="chatbot-input" placeholder="Type your message..." rows="1"></textarea>
+                  <button class="chatbot-send" id="chatbot-send">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="chatbot-footer">
+                  <a href="https://ainspiretech.com/" target="_blank" class="powered-by">
+                    Powered by AinspireTech
+                  </a>
                 </div>
               </div>
             </div>
-          `
-              : `
-            <div class="chatbot-unauthorized">
-              <div class="unauthorized-message">
-                <p>Unauthorized access. Please check your monthly subscription. If you are a user, please notify the owner.</p>
-                <a href="https://ainspiretech.com/UserDashboard" class="subscription-link">
-                  Check Subscription
-                </a>
-              </div>
-              <div class="chatbot-footer">
-                <a href="https://ainspiretech.com/" target="_blank" class="powered-by">
-                  Powered by AinspireTech
-                </a>
-              </div>
-            </div>
-          `
-          }
+          </div>
         </div>
-      `;
+      `
+          : `
+        <div class="chatbot-unauthorized">
+          <div class="unauthorized-message">
+            <p>Unauthorized access. Please check your monthly subscription. If you are a user, please notify the owner.</p>
+            <a href="https://ainspiretech.com/UserDashboard" class="subscription-link">
+              Check Subscription
+            </a>
+          </div>
+          <div class="chatbot-footer">
+            <a href="https://ainspiretech.com/" target="_blank" class="powered-by">
+              Powered by AinspireTech
+            </a>
+          </div>
+        </div>
+      `
+      }
+    </div>
+  `;
 
       document.body.appendChild(widget);
       this.widget = widget;
 
-      // Populate FAQ after widget is created
-      this.populateFAQ();
+      // Populate FAQ after widget is created and data is loaded
+      setTimeout(() => {
+        this.populateFAQ();
+      }, 100);
     }
 
     populateFAQ() {
       const helpArticles = document.getElementById("help-articles");
-      if (helpArticles && this.faqQuestions.length > 0) {
-        helpArticles.innerHTML = this.faqQuestions
-          .map(
-            (faq) =>
-              `<div class="help-article" data-question="${faq.question}">${faq.question}</div>`
-          )
-          .join("");
+      const faqCount = document.getElementById("faq-count");
+
+      if (faqCount) {
+        if (this.faqQuestions.length > 0) {
+          faqCount.textContent = `${this.faqQuestions.length} articles available`;
+        } else {
+          faqCount.textContent = "No FAQ articles available";
+        }
+      }
+
+      if (helpArticles) {
+        if (this.faqQuestions.length > 0) {
+          helpArticles.innerHTML = this.faqQuestions
+            .map(
+              (faq) => `
+            <div class="help-article" data-question="${faq.question}" data-answer="${faq.answer}">
+              ${faq.question}
+            </div>
+          `
+            )
+            .join("");
+        } else {
+          helpArticles.innerHTML = `
+        <div class="help-article-placeholder">
+          No FAQ questions available at the moment.
+        </div>
+      `;
+        }
       }
     }
 
@@ -902,26 +895,24 @@
         });
       }
 
-      // Help article clicks
+      // Help article clicks - bind after FAQ is populated
       setTimeout(() => {
         const helpArticles = document.querySelectorAll(".help-article");
         helpArticles.forEach((article) => {
           article.addEventListener("click", () => {
             const question = article.getAttribute("data-question");
+            const answer = article.getAttribute("data-answer");
+
             this.switchTab("chat");
             this.addMessage(question, "user");
 
-            // Find and show the answer
-            const faq = this.faqQuestions.find((f) => f.question === question);
+            // Show the answer after a short delay
             setTimeout(() => {
-              this.addMessage(
-                faq ? faq.answer : "I'll help you with that question.",
-                "bot"
-              );
+              this.addMessage(answer, "bot");
             }, 1000);
           });
         });
-      }, 100);
+      }, 200);
 
       // Help search functionality
       const searchInput = document.querySelector(".help-search-input");
@@ -934,16 +925,28 @@
 
     filterFAQ(searchTerm) {
       const helpArticles = document.querySelectorAll(".help-article");
+      let visibleCount = 0;
+
       helpArticles.forEach((article) => {
         const text = article.textContent.toLowerCase();
         if (text.includes(searchTerm.toLowerCase())) {
           article.style.display = "flex";
+          visibleCount++;
         } else {
           article.style.display = "none";
         }
       });
-    }
 
+      // Update the count display
+      const faqCount = document.getElementById("faq-count");
+      if (faqCount) {
+        if (searchTerm) {
+          faqCount.textContent = `${visibleCount} of ${this.faqQuestions.length} articles match your search`;
+        } else {
+          faqCount.textContent = `${this.faqQuestions.length} articles available`;
+        }
+      }
+    }
     switchTab(tabName) {
       this.currentTab = tabName;
 
