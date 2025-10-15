@@ -24,12 +24,22 @@
       this.messages = [];
       this.currentTab = "help";
       this.faqQuestions = [];
+      this.isDarkTheme = true;
+      this.conversationSaved = false;
+      this.formData = null;
+      this.appointmentQuestions = [];
 
       this.init();
     }
 
     async loadFAQ() {
       try {
+        console.log("Loading FAQ for:", {
+          userId: this.config.userId,
+          chatbotType: this.config.chatbotType,
+          apiUrl: this.config.apiUrl,
+        });
+
         const response = await fetch(`${this.config.apiUrl}/api/embed/faq`, {
           method: "POST",
           headers: {
@@ -37,16 +47,27 @@
             "X-API-KEY": "your_32byte_encryption_key_here_12345",
           },
           body: JSON.stringify({
-            userId: `${this.config.userId}`,
-            chatbotType: `${this.config.chatbotType}`,
+            userId: this.config.userId,
+            chatbotType: this.config.chatbotType,
           }),
         });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
-        console.log("FAQ data:", data);
+        console.log("FAQ API Response:", data);
+
         this.faqQuestions = data.faq?.questions || [];
+        console.log("FAQ questions loaded:", this.faqQuestions);
+
+        // Update FAQ display after loading
+        this.populateFAQ();
       } catch (error) {
         console.error("Failed to load FAQ:", error);
         this.faqQuestions = [];
+        this.populateFAQ();
       }
     }
 
@@ -57,6 +78,7 @@
       if (this.config.chatbotType === "chatbot-lead-generation") {
         this.loadAppointmentQuestions();
       }
+      // Load FAQ will call populateFAQ when done
       this.loadFAQ();
     }
 
@@ -173,6 +195,65 @@
           animation: slideUp 0.3s ease-out;
         }
 
+        /* Light Theme */
+        .chatbot-window.light-theme {
+          background: rgba(255, 255, 255, 0.95);
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .light-theme .chatbot-header {
+          background: linear-gradient(to right, ${
+            this.config.primaryColor
+          }, #B026FF);
+          color: white;
+        }
+
+        .light-theme .chatbot-tabs {
+          background: rgba(248, 248, 248, 0.9);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .light-theme .chatbot-tab {
+          color: #666;
+        }
+
+        .light-theme .chatbot-tab.active {
+          color: ${this.config.primaryColor};
+          background: rgba(0, 240, 255, 0.1);
+        }
+
+        .light-theme .help-content,
+        .light-theme .chatbot-messages {
+          background: #f8f9fa;
+        }
+
+        .light-theme .help-article {
+          background: rgba(0, 240, 255, 0.08);
+          border: 1px solid rgba(0, 240, 255, 0.2);
+          color: #333;
+        }
+
+        .light-theme .chatbot-input {
+          background: rgba(255, 255, 255, 0.9);
+          color: #333;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .light-theme .powered-by {
+          color: #666;
+        }
+
+        .light-theme .chatbot-message.bot .chatbot-message-content {
+          background: rgba(0, 240, 255, 0.1);
+          color: #007bff;
+        }
+
+        .light-theme .chatbot-message.user .chatbot-message-content {
+          background: rgba(176, 38, 255, 0.1);
+          color: #6f42c1;
+        }
+
         @keyframes slideUp {
           from {
             opacity: 0;
@@ -223,6 +304,7 @@
         .chatbot-header-controls {
           display: flex;
           gap: 10px;
+          align-items: center;
         }
 
         .chatbot-header-controls button {
@@ -240,6 +322,18 @@
 
         .chatbot-header-controls button:hover {
           color: white;
+        }
+
+        .theme-toggle {
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: black;
+          width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .chatbot-body {
@@ -321,8 +415,7 @@
           flex: 1;
           overflow-y: auto;
           padding: 16px;
-          background-image: url('https://readdy.ai/api/search-image?query=deep%20space%20starfield%20with%20distant%20stars%20and%20subtle%20nebula%2C%20dark%20cosmic%20background%20with%20tiny%20stars%2C%20perfect%20for%20chat%20background&width=320&height=300&seq=chatbg&orientation=squarish');
-          background-size: cover;
+          background: rgba(10, 10, 10, 0.8);
         }
 
         .help-category {
@@ -331,16 +424,16 @@
 
         .help-category-title {
           color: #00F0FF;
-          font-size: 14px;
+          font-size: 16px;
           font-weight: 600;
           margin-bottom: 8px;
-          font-family: monospace;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         .help-category-subtitle {
           color: #888;
           font-size: 12px;
-          margin-bottom: 12px;
+          margin-bottom: 16px;
           font-family: monospace;
         }
 
@@ -358,7 +451,7 @@
           color: #00F0FF;
           cursor: pointer;
           font-size: 14px;
-          font-family: monospace;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           transition: all 0.2s;
           display: flex;
           align-items: center;
@@ -371,9 +464,10 @@
         }
 
         .help-article::after {
-          content: '>';
+          content: '›';
           margin-left: auto;
           opacity: 0.7;
+          font-size: 16px;
         }
 
         /* Chat Section Styles */
@@ -381,8 +475,7 @@
           flex: 1;
           overflow-y: auto;
           padding: 16px;
-          background-image: url('https://readdy.ai/api/search-image?query=deep%20space%20starfield%20with%20distant%20stars%20and%20subtle%20nebula%2C%20dark%20cosmic%20background%20with%20tiny%20stars%2C%20perfect%20for%20chat%20background&width=320&height=300&seq=chatbg&orientation=squarish');
-          background-size: cover;
+          background: rgba(10, 10, 10, 0.8);
           scrollbar-width: none;
         }
 
@@ -401,12 +494,12 @@
         }
 
         .chatbot-message-content {
-          max-width: 95%;
-          padding: 12px;
-          border-radius: 8px;
+          max-width: 85%;
+          padding: 12px 16px;
+          border-radius: 12px;
           font-size: 14px;
           line-height: 1.4;
-          font-family: monospace;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           backdrop-filter: blur(5px);
         }
 
@@ -445,7 +538,7 @@
           padding: 12px 16px;
           color: #e0e0e0;
           font-size: 14px;
-          font-family: monospace;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           resize: none;
           max-height: 100px;
           min-height: 40px;
@@ -542,8 +635,7 @@
           min-height: 50vh;
           overflow-y: auto;
           color: #d1d5db;
-          background-image: url('https://readdy.ai/api/search-image?query=deep%20space%20starfield%20with%20distant%20stars%20and%20subtle%20nebula%2C%20dark%20cosmic%20background%20with%20tiny%20stars%2C%20perfect%20for%20chat%20background&width=320&height=300&seq=chatbg&orientation=squarish');
-          background-size: cover;
+          background: rgba(10, 10, 10, 0.8);
         }
 
         .unauthorized-message {
@@ -702,132 +794,134 @@
       const widget = document.createElement("div");
       widget.className = "chatbot-widget";
       widget.innerHTML = `
-    <div class="chatbot-toggle-container">
-      <div class="welcome-bubble">Welcome! How can we help?</div>
-      <button class="chatbot-toggle" id="chatbot-toggle">
-        <svg viewBox="0 0 24 24">
-          <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-        </svg>
-      </button>
-    </div>
-    
-    <div class="chatbot-window" id="chatbot-window">
-      <div class="chatbot-header">
-        <h3>
-          <span class="icon-container">
+        <div class="chatbot-toggle-container">
+          <div class="welcome-bubble">Welcome! How can we help?</div>
+          <button class="chatbot-toggle" id="chatbot-toggle">
             <svg viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-          </span>
-          ${this.config.chatbotName}
-        </h3>
-        <div class="chatbot-header-controls">
-          <button id="chatbot-restart" title="Restart Conversation">
-            <svg viewBox="0 0 24 24">
-              <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-            </svg>
-          </button>
-          <button id="chatbot-close" title="Close Chat">
-            <svg viewBox="0 0 24 24">
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+              <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
             </svg>
           </button>
         </div>
-      </div>
-      
-      ${
-        this.config.isAuthorized
-          ? `
-        <div class="chatbot-body">
-          <div class="chatbot-tabs">
-            <button class="chatbot-tab active" data-tab="help">Help</button>
-            <button class="chatbot-tab" data-tab="chat">Chat</button>
+        
+        <div class="chatbot-window" id="chatbot-window">
+          <div class="chatbot-header">
+            <h3>
+              <span class="icon-container">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </span>
+              ${this.config.chatbotName}
+            </h3>
+            <div class="chatbot-header-controls">
+              <button class="theme-toggle" id="theme-toggle" title="Toggle Theme">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+                </svg>
+              </button>
+              <button id="chatbot-restart" title="Restart Conversation">
+                <svg viewBox="0 0 24 24">
+                  <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                </svg>
+              </button>
+              <button id="chatbot-close" title="Close Chat">
+                <svg viewBox="0 0 24 24">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+              </button>
+            </div>
           </div>
           
-          <div class="chatbot-content">
-            <!-- Help Section -->
-            <div class="chatbot-section help-section active" id="help-section">
-              <div class="help-search">
-                <input type="text" class="help-search-input" placeholder="Search for help">
+          ${
+            this.config.isAuthorized
+              ? `
+            <div class="chatbot-body">
+              <div class="chatbot-tabs">
+                <button class="chatbot-tab active" data-tab="help">Help</button>
+                <button class="chatbot-tab" data-tab="chat">Chat</button>
               </div>
-              <div class="help-content">
-                <div class="help-category">
-                  <div class="help-category-title">Frequently Asked Questions</div>
-                  <div class="help-category-subtitle" id="faq-count">Loading FAQ articles...</div>
-                  <div class="help-articles" id="help-articles">
-                    <div class="help-article-placeholder">Loading questions...</div>
+              
+              <div class="chatbot-content">
+                <!-- Help Section -->
+                <div class="chatbot-section help-section active" id="help-section">
+                  <div class="help-search">
+                    <input type="text" class="help-search-input" placeholder="Search for help">
+                  </div>
+                  <div class="help-content">
+                    <div class="help-category">
+                      <div class="help-category-title">${this.config.chatbotName}</div>
+                      <div class="help-category-subtitle" id="faq-count">Loading FAQ articles...</div>
+                      <div class="help-articles" id="help-articles">
+                        <div class="help-article-placeholder">Loading questions...</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Chat Section -->
+                <div class="chatbot-section chat-section" id="chat-section">
+                  <div class="chatbot-messages" id="chatbot-messages">
+                    <div class="chatbot-message bot">
+                      <div class="chatbot-message-content">${this.config.welcomeMessage}</div>
+                    </div>
+                  </div>
+                  
+                  <div class="chatbot-typing" id="chatbot-typing" style="display: none;">
+                    <div class="chatbot-typing-dots">
+                      <div class="chatbot-typing-dot"></div>
+                      <div class="chatbot-typing-dot"></div>
+                      <div class="chatbot-typing-dot"></div>
+                    </div>
+                    <span>AI is typing</span>
+                  </div>
+                  
+                  <div class="chatbot-input-area">
+                    <div class="chatbot-input-container">
+                      <textarea class="chatbot-input" id="chatbot-input" placeholder="Type your message..." rows="1"></textarea>
+                      <button class="chatbot-send" id="chatbot-send">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="chatbot-footer">
+                      <a href="https://ainspiretech.com/" target="_blank" class="powered-by">
+                        Powered by AinspireTech
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <!-- Chat Section -->
-            <div class="chatbot-section chat-section" id="chat-section">
-              <div class="chatbot-messages" id="chatbot-messages">
-                <div class="chatbot-message bot">
-                  <div class="chatbot-message-content">${this.config.welcomeMessage}</div>
-                </div>
+          `
+              : `
+            <div class="chatbot-unauthorized">
+              <div class="unauthorized-message">
+                <p>Unauthorized access. Please check your monthly subscription. If you are a user, please notify the owner.</p>
+                <a href="https://ainspiretech.com/UserDashboard" class="subscription-link">
+                  Check Subscription
+                </a>
               </div>
-              
-              <div class="chatbot-typing" id="chatbot-typing" style="display: none;">
-                <div class="chatbot-typing-dots">
-                  <div class="chatbot-typing-dot"></div>
-                  <div class="chatbot-typing-dot"></div>
-                  <div class="chatbot-typing-dot"></div>
-                </div>
-                <span>AI is typing</span>
-              </div>
-              
-              <div class="chatbot-input-area">
-                <div class="chatbot-input-container">
-                  <textarea class="chatbot-input" id="chatbot-input" placeholder="Type your message..." rows="1"></textarea>
-                  <button class="chatbot-send" id="chatbot-send">
-                    <svg viewBox="0 0 24 24">
-                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                    </svg>
-                  </button>
-                </div>
-                <div class="chatbot-footer">
-                  <a href="https://ainspiretech.com/" target="_blank" class="powered-by">
-                    Powered by AinspireTech
-                  </a>
-                </div>
+              <div class="chatbot-footer">
+                <a href="https://ainspiretech.com/" target="_blank" class="powered-by">
+                  Powered by AinspireTech
+                </a>
               </div>
             </div>
-          </div>
+          `
+          }
         </div>
-      `
-          : `
-        <div class="chatbot-unauthorized">
-          <div class="unauthorized-message">
-            <p>Unauthorized access. Please check your monthly subscription. If you are a user, please notify the owner.</p>
-            <a href="https://ainspiretech.com/UserDashboard" class="subscription-link">
-              Check Subscription
-            </a>
-          </div>
-          <div class="chatbot-footer">
-            <a href="https://ainspiretech.com/" target="_blank" class="powered-by">
-              Powered by AinspireTech
-            </a>
-          </div>
-        </div>
-      `
-      }
-    </div>
-  `;
+      `;
 
       document.body.appendChild(widget);
       this.widget = widget;
-
-      // Populate FAQ after widget is created and data is loaded
-      setTimeout(() => {
-        this.populateFAQ();
-      }, 100);
     }
 
     populateFAQ() {
       const helpArticles = document.getElementById("help-articles");
       const faqCount = document.getElementById("faq-count");
+
+      console.log("Populating FAQ with:", this.faqQuestions);
 
       if (faqCount) {
         if (this.faqQuestions.length > 0) {
@@ -842,19 +936,49 @@
           helpArticles.innerHTML = this.faqQuestions
             .map(
               (faq) => `
-            <div class="help-article" data-question="${faq.question}" data-answer="${faq.answer}">
-              ${faq.question}
-            </div>
-          `
+                <div class="help-article" data-question="${faq.question}" data-answer="${faq.answer}">
+                  ${faq.question}
+                </div>
+              `
             )
             .join("");
+
+          // Re-bind FAQ events
+          this.bindFAQEvents();
         } else {
           helpArticles.innerHTML = `
-        <div class="help-article-placeholder">
-          No FAQ questions available at the moment.
-        </div>
-      `;
+            <div class="help-article-placeholder">
+              No FAQ questions available at the moment.
+            </div>
+          `;
         }
+      }
+    }
+
+    bindFAQEvents() {
+      // Help article clicks
+      const helpArticles = document.querySelectorAll(".help-article");
+      helpArticles.forEach((article) => {
+        article.addEventListener("click", () => {
+          const question = article.getAttribute("data-question");
+          const answer = article.getAttribute("data-answer");
+
+          this.switchTab("chat");
+          this.addMessage(question, "user");
+
+          // Show the answer after a short delay
+          setTimeout(() => {
+            this.addMessage(answer, "bot");
+          }, 1000);
+        });
+      });
+
+      // Help search functionality
+      const searchInput = document.querySelector(".help-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          this.filterFAQ(e.target.value);
+        });
       }
     }
 
@@ -865,11 +989,14 @@
       const send = document.getElementById("chatbot-send");
       const restart = document.getElementById("chatbot-restart");
       const tabs = document.querySelectorAll(".chatbot-tab");
+      const themeToggle = document.getElementById("theme-toggle");
 
       if (toggle) toggle.addEventListener("click", () => this.toggleWidget());
       if (close) close.addEventListener("click", () => this.closeWidget());
       if (send) send.addEventListener("click", () => this.sendMessage());
       if (restart) restart.addEventListener("click", () => this.restartChat());
+      if (themeToggle)
+        themeToggle.addEventListener("click", () => this.toggleTheme());
 
       // Tab switching
       if (tabs) {
@@ -895,31 +1022,31 @@
         });
       }
 
-      // Help article clicks - bind after FAQ is populated
+      // Bind FAQ events after a short delay to ensure DOM is ready
       setTimeout(() => {
-        const helpArticles = document.querySelectorAll(".help-article");
-        helpArticles.forEach((article) => {
-          article.addEventListener("click", () => {
-            const question = article.getAttribute("data-question");
-            const answer = article.getAttribute("data-answer");
+        this.bindFAQEvents();
+      }, 100);
+    }
 
-            this.switchTab("chat");
-            this.addMessage(question, "user");
+    toggleTheme() {
+      this.isDarkTheme = !this.isDarkTheme;
+      const window = document.getElementById("chatbot-window");
+      const themeToggle = document.getElementById("theme-toggle");
 
-            // Show the answer after a short delay
-            setTimeout(() => {
-              this.addMessage(answer, "bot");
-            }, 1000);
-          });
-        });
-      }, 200);
-
-      // Help search functionality
-      const searchInput = document.querySelector(".help-search-input");
-      if (searchInput) {
-        searchInput.addEventListener("input", (e) => {
-          this.filterFAQ(e.target.value);
-        });
+      if (this.isDarkTheme) {
+        window.classList.remove("light-theme");
+        themeToggle.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+          </svg>
+        `;
+      } else {
+        window.classList.add("light-theme");
+        themeToggle.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z"/>
+          </svg>
+        `;
       }
     }
 
@@ -947,10 +1074,10 @@
         }
       }
     }
+
     switchTab(tabName) {
       this.currentTab = tabName;
 
-      // Update tabs
       document.querySelectorAll(".chatbot-tab").forEach((tab) => {
         tab.classList.toggle(
           "active",
@@ -958,7 +1085,6 @@
         );
       });
 
-      // Update sections
       document.querySelectorAll(".chatbot-section").forEach((section) => {
         section.classList.toggle("active", section.id === `${tabName}-section`);
       });
@@ -970,7 +1096,6 @@
 
       if (this.isOpen) {
         window.classList.add("open");
-        // Switch to help tab by default when opening
         this.switchTab("help");
       } else {
         window.classList.remove("open");
@@ -1005,15 +1130,12 @@
 
       this.messageCount++;
 
-      // Show typing indicator
       this.showTyping();
 
-      // Get bot response
       const response = await this.getBotResponse(message);
       this.hideTyping();
       this.addMessage(response, "bot");
 
-      // Show appointment form after 2 messages for lead generation
       if (this.config.chatbotType === "chatbot-lead-generation") {
         if (this.messageCount >= 2 && !this.showAppointmentForm) {
           this.showAppointmentForm = true;
@@ -1022,7 +1144,6 @@
           }, 1000);
         }
 
-        // Save conversation after 3 messages
         if (this.messageCount >= 3) {
           this.saveConversation();
         }
@@ -1041,7 +1162,6 @@
       messagesContainer.appendChild(messageDiv);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-      // Store message
       this.messages.push({
         id: Date.now().toString(),
         type,
@@ -1073,10 +1193,10 @@
               "X-API-KEY": "your_32byte_encryption_key_here_12345",
             },
             body: JSON.stringify({
-              userId: `${this.config.userId}`,
-              agentId: `${this.config.chatbotType}`,
+              userId: this.config.userId,
+              agentId: this.config.chatbotType,
               userInput: message,
-              fileData: `${this.config.filename}`,
+              fileData: this.config.filename,
             }),
           }
         );
@@ -1085,7 +1205,6 @@
         }
 
         const data = await response.json();
-
         return data.response || "I couldn't process your request.";
       } catch (error) {
         console.error("Chatbot error:", error);
@@ -1104,8 +1223,8 @@
               "X-API-KEY": "your_32byte_encryption_key_here_12345",
             },
             body: JSON.stringify({
-              userId: `${this.config.userId}`,
-              chatbotType: `${this.config.chatbotType}`,
+              userId: this.config.userId,
+              chatbotType: this.config.chatbotType,
             }),
           }
         );
@@ -1297,7 +1416,7 @@
       try {
         const conversationData = {
           chatbotType: this.config.chatbotType,
-          userId: `${this.config.userId}`,
+          userId: this.config.userId,
           messages: this.messages,
           formData: this.formData || null,
           customerName:
@@ -1352,7 +1471,6 @@
     }
   }
 
-  // Initialize when DOM is ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initChatbot);
   } else {
