@@ -173,6 +173,24 @@ class ApiClient {
       body: JSON.stringify({ chatbotType, questions }),
     });
   }
+  async saveFAQ(clerkId: string, chatbotType: string, questions: any[]) {
+    return this.request("/web/faq", {
+      method: "POST",
+      body: JSON.stringify({ clerkId, chatbotType, questions }),
+    });
+  }
+
+  async getFAQ(clerkId: string, chatbotType: string) {
+    return this.request(
+      `/web/faq?chatbotType=${chatbotType}&clerkId=${clerkId}`
+    );
+  }
+  async getEmbedFAQ(userId: string, chatbotType: string) {
+    return this.request("/web/faq", {
+      method: "POST",
+      body: JSON.stringify({ userId, chatbotType }),
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

@@ -88,7 +88,7 @@ export function Footer() {
                 </h1>
               </Link>
             </div>
-            <ul className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6">
+            <ul className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6 font-montserrat">
               {[
                 { href: "/contactUs", label: "Contact Us" },
                 { href: "/privacy-policy", label: "Privacy Policy" },
@@ -114,7 +114,7 @@ export function Footer() {
               </div>
               <div>
                 <h3 className={`font-bold ${titleText}`}>Address</h3>
-                <p className={subtitleText}>Nashik, IND</p>
+                <p className={`${subtitleText} font-montserrat`}>Nashik, IND</p>
               </div>
             </div>
 
@@ -126,7 +126,7 @@ export function Footer() {
                 <h3 className={`font-bold ${titleText}`}>Contact</h3>
                 <a
                   href="mailto:gauravgkhaire@gmail.com"
-                  className={`${subtitleText} hover:text-[#00F0FF] transition-colors duration-300 text-sm md:text-base`}
+                  className={`${subtitleText} hover:text-[#00F0FF] transition-colors duration-300 text-sm md:text-base font-montserrat`}
                 >
                   gauravgkhaire@gmail.com
                 </a>
@@ -143,20 +143,22 @@ export function Footer() {
               <input
                 type="email"
                 placeholder="Your email address"
-                className={`w-full p-3 rounded-lg ${inputBg} backdrop-blur-sm border ${inputBorder} ${inputText} ${inputPlaceholder} focus:outline-none focus:ring-2 focus:ring-[#00F0FF]`}
+                className={`w-full p-3 rounded-lg ${inputBg} backdrop-blur-sm border ${inputBorder} ${inputText} ${inputPlaceholder} focus:outline-none focus:ring-2 focus:ring-[#00F0FF] font-montserrat`}
               />
               <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white px-4 py-1.5 rounded-md hover:opacity-90 transition-opacity">
                 Subscribe
               </button>
             </div>
-            <p className={`${subtitleText} text-sm mt-3`}>
+            <p className={`${subtitleText} text-sm mt-3 font-montserrat`}>
               Get the latest updates and offers
             </p>
           </div>
         </div>
 
         {/* Copyright */}
-        <div className={`mt-10 pt-6 border-t ${lightBorderColor} text-center`}>
+        <div
+          className={`mt-10 pt-6 border-t ${lightBorderColor} text-center font-montserrat`}
+        >
           <p className={copyrightText}>
             © {new Date().getFullYear()} AInspireTech. All rights reserved.
           </p>

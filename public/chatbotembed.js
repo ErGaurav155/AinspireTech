@@ -25,6 +25,90 @@
 
       this.init();
     }
+    async loadFAQ() {
+      try {
+        const response = await fetch(`${this.config.apiUrl}/api/embed/faq`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": "your_32byte_encryption_key_here_12345",
+          },
+          body: JSON.stringify({
+            userId: `${this.config.userId}`,
+            chatbotType: `${this.config.chatbotType}`,
+          }),
+        });
+        const data = await response.json();
+        this.faqQuestions = data.faq?.questions || [];
+      } catch (error) {
+        console.error("Failed to load FAQ:", error);
+        this.faqQuestions = [];
+      }
+    }
+
+    // Add this method to show FAQ
+    showFAQ() {
+      const messagesContainer = document.getElementById("chatbot-messages");
+
+      if (this.faqQuestions.length === 0) {
+        this.addMessage("No FAQ questions are currently available.", "bot");
+        return;
+      }
+
+      // Add FAQ introduction message
+      this.addMessage(
+        "Here are some frequently asked questions that might help you:",
+        "bot"
+      );
+
+      // Create FAQ buttons
+      const faqDiv = document.createElement("div");
+      faqDiv.className = "chatbot-message bot";
+
+      let faqButtons =
+        '<div class="faq-buttons" style="display: flex; flex-direction: column; gap: 8px;">';
+
+      this.faqQuestions.forEach((faq, index) => {
+        faqButtons += `
+      <button class="faq-button" data-index="${index}" style="
+        background: rgba(0, 240, 255, 0.1);
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        border-radius: 8px;
+        padding: 12px;
+        color: #00F0FF;
+        cursor: pointer;
+        text-align: left;
+        font-size: 14px;
+        font-family: monospace;
+        transition: all 0.2s;
+      ">
+        ${faq.question}
+      </button>
+    `;
+      });
+
+      faqButtons += "</div>";
+
+      faqDiv.innerHTML = `
+    <div class="chatbot-message-content">
+      ${faqButtons}
+    </div>
+  `;
+
+      messagesContainer.appendChild(faqDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      // Add event listeners to FAQ buttons
+      setTimeout(() => {
+        document.querySelectorAll(".faq-button").forEach((button) => {
+          button.addEventListener("click", (e) => {
+            const index = parseInt(e.target.getAttribute("data-index"));
+            const faq = this.faqQuestions[index];
+            this.addMessage(faq.answer, "bot");
+          });
+        });
+      }, 100);
+    }
 
     init() {
       this.createStyles();
@@ -33,6 +117,7 @@
       if (this.config.chatbotType === "chatbot-lead-generation") {
         this.loadAppointmentQuestions();
       }
+      this.loadFAQ(); // Load FAQ on init
     }
 
     createStyles() {
