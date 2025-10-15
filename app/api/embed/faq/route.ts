@@ -42,7 +42,6 @@ export async function POST(request: NextRequest) {
           status: 400,
           headers: {
             "Access-Control-Allow-Origin": "*",
-            "Content-Type": "application/json",
           },
         }
       );
@@ -63,7 +62,6 @@ export async function POST(request: NextRequest) {
           status: 200,
           headers: {
             "Access-Control-Allow-Origin": "*",
-            "Content-Type": "application/json",
           },
         }
       );
@@ -78,13 +76,11 @@ export async function POST(request: NextRequest) {
         status: 200,
         headers: {
           "Access-Control-Allow-Origin": "*",
-          "Content-Type": "application/json",
         },
       }
     );
   } catch (error: any) {
     console.error("FAQ fetch error:", error);
-    const origin = request.headers.get("origin") || "*";
 
     return NextResponse.json(
       { error: "Failed to fetch FAQ: " + error.message },
@@ -92,7 +88,6 @@ export async function POST(request: NextRequest) {
         status: 500,
         headers: {
           "Access-Control-Allow-Origin": "*",
-          "Content-Type": "application/json",
         },
       }
     );
