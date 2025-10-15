@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import StarsBackground from "@/components/insta/StarsBackground";
+import Script from "next/script";
 
 const orbitron = Orbitron({
   subsets: ["latin"],
@@ -45,6 +46,11 @@ export default async function RootLayout({
             <StarsBackground />
             <div className="relative z-10">{children}</div>
           </ThemeProvider>
+
+          <Script
+            src="https://ainspiretech.com/chatbotembed.js"
+            data-chatbot-config='{"userId":"user_33b7hzsvMiYlCeTynG0TeD5LxM9","isAuthorized":true,"filename":"criconai.com.json","chatbotType":"chatbot-lead-generation","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi! How can I help you today?","chatbotName":"AinspireTech Assistant"}'
+          ></Script>
         </body>
       </html>
     </ClerkProvider>
