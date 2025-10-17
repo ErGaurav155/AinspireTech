@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 import User from "@/lib/database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
@@ -12,7 +12,6 @@ import InstaSubscription from "../database/models/insta/InstaSubscription.model"
 import InstagramAccount from "../database/models/insta/InstagramAccount.model";
 import WebsiteData from "../database/models/web/WebsiteData.model";
 import WebConversation from "../database/models/web/Conversation.model";
-import WebAppointment from "../database/models/web/Appointment.model";
 import WebAppointmentQuestions from "../database/models/web/AppointmentQuestions.model";
 import InstaReplyTemplate from "../database/models/insta/ReplyTemplate.model";
 import File from "../database/models/web/scrappeddata.model";
@@ -186,7 +185,6 @@ export async function cleanupUserData(clerkId: string) {
       WebSubscription?.deleteMany({ clerkId }),
       WebsiteData?.deleteMany({ clerkId }),
       WebConversation?.deleteMany({ clerkId }),
-      WebAppointment?.deleteMany({ clerkId }),
       WebAppointmentQuestions?.deleteMany({ clerkId }),
       File?.deleteMany({ userId: clerkId }),
 

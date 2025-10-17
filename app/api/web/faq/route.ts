@@ -1,5 +1,5 @@
 // app/api/faq/route.ts
-import FAQ from "@/lib/database/models/web/webFaq.model";
+import webFaq from "@/lib/database/models/web/webFaq.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find existing FAQ or create new one
-    let faq = await FAQ.findOne({ clerkId, chatbotType });
+    let faq = await webFaq.findOne({ clerkId, chatbotType });
 
     if (faq) {
       // Update existing FAQ
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       await faq.save();
     } else {
       // Create new FAQ
-      faq = await FAQ.create({
+      faq = await webFaq.create({
         clerkId,
         chatbotType,
         questions,
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const faq = await FAQ.findOne({ clerkId, chatbotType });
+    const faq = await webFaq.findOne({ clerkId, chatbotType });
 
     if (!faq) {
       return NextResponse.json({

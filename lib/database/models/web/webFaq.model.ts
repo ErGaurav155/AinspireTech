@@ -66,6 +66,7 @@ const FAQSchema = new Schema<IFAQ>(
 // Indexes for optimized queries
 FAQSchema.index({ clerkId: 1, chatbotType: 1 }, { unique: true });
 
-const FAQ = mongoose.models?.FAQ || mongoose.model<IFAQ>("FAQ", FAQSchema);
+const webFaq =
+  mongoose.models?.webFaq || mongoose.model<IFAQ>("webFaq", FAQSchema);
 
-export default FAQ;
+export default webFaq;

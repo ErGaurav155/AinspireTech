@@ -1,5 +1,5 @@
 // app/api/embed/faq/route.ts
-import FAQ from "@/lib/database/models/web/webFaq.model";
+import webFaq from "@/lib/database/models/web/webFaq.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
     await connectToDatabase();
 
-    const faq = await FAQ.findOne({ clerkId: userId, chatbotType });
+    const faq = await webFaq.findOne({ clerkId: userId, chatbotType });
 
     if (!faq) {
       return NextResponse.json(
