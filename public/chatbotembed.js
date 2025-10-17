@@ -28,6 +28,7 @@
       this.conversationSaved = false;
       this.formData = null;
       this.appointmentQuestions = [];
+      this.activeFAQ = null;
 
       this.init();
     }
@@ -138,19 +139,20 @@
         .welcome-bubble {
           position: absolute;
           bottom: 70px;
-          background: rgba(10, 10, 10, 0.9);
+          background: rgba(10, 10, 10, 0.95);
           color: #00F0FF;
-          padding: 8px 12px;
-          border-radius: 8px;
-          font-size: 12px;
-          font-family: monospace;
+          padding: 12px 16px;
+          border-radius: 12px;
+          font-size: 14px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           border: 1px solid rgba(0, 240, 255, 0.3);
           backdrop-filter: blur(10px);
           white-space: nowrap;
-          opacity: 0;
-          transform: translateY(10px);
-          transition: all 0.3s ease;
+          opacity: 1;
+          transform: translateY(0);
           pointer-events: none;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          z-index: 10001;
         }
 
         .welcome-bubble::after {
@@ -161,11 +163,6 @@
           transform: translateX(-50%);
           border: 6px solid transparent;
           border-top-color: rgba(0, 240, 255, 0.3);
-        }
-
-        .chatbot-toggle-container:hover .welcome-bubble {
-          opacity: 1;
-          transform: translateY(0);
         }
 
         @keyframes pulse {
@@ -211,7 +208,7 @@
 
         .light-theme .chatbot-tabs {
           background: rgba(248, 248, 248, 0.9);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+          border-top: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .light-theme .chatbot-tab {
@@ -228,10 +225,26 @@
           background: #f8f9fa;
         }
 
+        .light-theme .help-search {
+          background: rgba(255, 255, 255, 0.9);
+        }
+
+        .light-theme .help-search-input {
+          background: rgba(255, 255, 255, 0.9);
+          color: #333;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
         .light-theme .help-article {
           background: rgba(0, 240, 255, 0.08);
           border: 1px solid rgba(0, 240, 255, 0.2);
           color: #333;
+        }
+
+        .light-theme .faq-answer {
+          background: rgba(0, 240, 255, 0.05);
+          color: #333;
+          border-top: 1px solid rgba(0, 240, 255, 0.1);
         }
 
         .light-theme .chatbot-input {
@@ -343,34 +356,6 @@
           overflow: hidden;
         }
 
-        .chatbot-tabs {
-          display: flex;
-          background: rgba(26, 26, 26, 0.8);
-          border-bottom: 1px solid rgba(0, 240, 255, 0.2);
-        }
-
-        .chatbot-tab {
-          flex: 1;
-          padding: 12px;
-          background: none;
-          border: none;
-          color: #888;
-          cursor: pointer;
-          font-size: 14px;
-          font-family: monospace;
-          transition: all 0.2s;
-        }
-
-        .chatbot-tab.active {
-          color: #00F0FF;
-          background: rgba(0, 240, 255, 0.1);
-          border-bottom: 2px solid #00F0FF;
-        }
-
-        .chatbot-tab:hover {
-          background: rgba(0, 240, 255, 0.05);
-        }
-
         .chatbot-content {
           flex: 1;
           display: flex;
@@ -389,9 +374,38 @@
           display: flex;
         }
 
+        .chatbot-tabs {
+          display: flex;
+          background: rgba(26, 26, 26, 0.8);
+          border-top: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        .chatbot-tab {
+          flex: 1;
+          padding: 12px;
+          background: none;
+          border: none;
+          color: #888;
+          cursor: pointer;
+          font-size: 14px;
+          font-family: monospace;
+          transition: all 0.2s;
+        }
+
+        .chatbot-tab.active {
+          color: #00F0FF;
+          background: rgba(0, 240, 255, 0.1);
+          border-top: 2px solid #00F0FF;
+        }
+
+        .chatbot-tab:hover {
+          background: rgba(0, 240, 255, 0.05);
+        }
+
         /* Help Section Styles */
         .help-search {
           padding: 16px;
+          background: rgba(26, 26, 26, 0.8);
           border-bottom: 1px solid rgba(0, 240, 255, 0.2);
         }
 
@@ -455,19 +469,48 @@
           transition: all 0.2s;
           display: flex;
           align-items: center;
-          gap: 8px;
+          justify-content: space-between;
         }
 
         .help-article:hover {
           background: rgba(0, 240, 255, 0.2);
-          transform: translateX(4px);
+        }
+
+        .help-article.active {
+          background: rgba(0, 240, 255, 0.2);
+          border-bottom-left-radius: 0;
+          border-bottom-right-radius: 0;
         }
 
         .help-article::after {
-          content: '›';
-          margin-left: auto;
+          content: '▼';
+          margin-left: 8px;
           opacity: 0.7;
-          font-size: 16px;
+          font-size: 12px;
+          transition: transform 0.2s;
+        }
+
+        .help-article.active::after {
+          transform: rotate(180deg);
+        }
+
+        .faq-answer {
+          background: rgba(0, 240, 255, 0.05);
+          color: #00F0FF;
+          padding: 12px 16px;
+          border: 1px solid rgba(0, 240, 255, 0.2);
+          border-top: none;
+          border-bottom-left-radius: 8px;
+          border-bottom-right-radius: 8px;
+          font-size: 14px;
+          line-height: 1.5;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         /* Chat Section Styles */
@@ -782,6 +825,11 @@
             width: 50px;
             height: 50px;
           }
+          
+          .welcome-bubble {
+            font-size: 12px;
+            padding: 10px 14px;
+          }
         }
       `;
 
@@ -836,11 +884,6 @@
             this.config.isAuthorized
               ? `
             <div class="chatbot-body">
-              <div class="chatbot-tabs">
-                <button class="chatbot-tab active" data-tab="help">Help</button>
-                <button class="chatbot-tab" data-tab="chat">Chat</button>
-              </div>
-              
               <div class="chatbot-content">
                 <!-- Help Section -->
                 <div class="chatbot-section help-section active" id="help-section">
@@ -892,6 +935,11 @@
                   </div>
                 </div>
               </div>
+              
+              <div class="chatbot-tabs">
+                <button class="chatbot-tab active" data-tab="help">Help</button>
+                <button class="chatbot-tab" data-tab="chat">Chat</button>
+              </div>
             </div>
           `
               : `
@@ -935,9 +983,11 @@
         if (this.faqQuestions.length > 0) {
           helpArticles.innerHTML = this.faqQuestions
             .map(
-              (faq) => `
-                <div class="help-article" data-question="${faq.question}" data-answer="${faq.answer}">
-                  ${faq.question}
+              (faq, index) => `
+                <div class="faq-item">
+                  <div class="help-article" data-index="${index}">
+                    ${faq.question}
+                  </div>
                 </div>
               `
             )
@@ -959,17 +1009,10 @@
       // Help article clicks
       const helpArticles = document.querySelectorAll(".help-article");
       helpArticles.forEach((article) => {
-        article.addEventListener("click", () => {
-          const question = article.getAttribute("data-question");
-          const answer = article.getAttribute("data-answer");
-
-          this.switchTab("chat");
-          this.addMessage(question, "user");
-
-          // Show the answer after a short delay
-          setTimeout(() => {
-            this.addMessage(answer, "bot");
-          }, 1000);
+        article.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const index = parseInt(article.getAttribute("data-index"));
+          this.toggleFAQ(index, article);
         });
       });
 
@@ -979,6 +1022,53 @@
         searchInput.addEventListener("input", (e) => {
           this.filterFAQ(e.target.value);
         });
+      }
+    }
+
+    toggleFAQ(index, clickedArticle) {
+      const faqItem = clickedArticle.closest(".faq-item");
+      const faq = this.faqQuestions[index];
+
+      // Close currently active FAQ if different from clicked one
+      if (this.activeFAQ !== null && this.activeFAQ !== index) {
+        const currentActive = document.querySelector(
+          `.help-article[data-index="${this.activeFAQ}"]`
+        );
+        if (currentActive) {
+          currentActive.classList.remove("active");
+          const currentAnswer =
+            currentActive.parentNode.querySelector(".faq-answer");
+          if (currentAnswer) {
+            currentAnswer.remove();
+          }
+        }
+      }
+
+      // Toggle clicked FAQ
+      if (clickedArticle.classList.contains("active")) {
+        // Close the FAQ
+        clickedArticle.classList.remove("active");
+        const answerDiv = faqItem.querySelector(".faq-answer");
+        if (answerDiv) {
+          answerDiv.remove();
+        }
+        this.activeFAQ = null;
+      } else {
+        // Open the FAQ
+        clickedArticle.classList.add("active");
+
+        // Remove any existing answer
+        const existingAnswer = faqItem.querySelector(".faq-answer");
+        if (existingAnswer) {
+          existingAnswer.remove();
+        }
+
+        // Create and insert answer
+        const answerDiv = document.createElement("div");
+        answerDiv.className = "faq-answer";
+        answerDiv.innerHTML = faq.answer;
+        faqItem.appendChild(answerDiv);
+        this.activeFAQ = index;
       }
     }
 
@@ -1051,16 +1141,17 @@
     }
 
     filterFAQ(searchTerm) {
-      const helpArticles = document.querySelectorAll(".help-article");
+      const helpArticles = document.querySelectorAll(".faq-item");
       let visibleCount = 0;
 
-      helpArticles.forEach((article) => {
+      helpArticles.forEach((item) => {
+        const article = item.querySelector(".help-article");
         const text = article.textContent.toLowerCase();
         if (text.includes(searchTerm.toLowerCase())) {
-          article.style.display = "flex";
+          item.style.display = "block";
           visibleCount++;
         } else {
-          article.style.display = "none";
+          item.style.display = "none";
         }
       });
 
