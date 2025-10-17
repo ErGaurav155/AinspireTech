@@ -137,10 +137,6 @@ async function handleInstaAccountCleanup(userId: string) {
         _id: { $in: accountsToDelete },
         userId,
       });
-
-      console.log(
-        `Deleted ${deleteResult.deletedCount} Instagram accounts for user ${userId}, kept account: ${accountToKeep.username}`
-      );
     }
 
     // Update user's account limit to 1 (free plan limit)
@@ -155,8 +151,6 @@ async function handleInstaAccountCleanup(userId: string) {
         },
       }
     );
-
-    console.log(`Updated account limit to 1 for user ${userId}`);
   } catch (error) {
     console.error(
       `Error cleaning up Instagram accounts for user ${userId}:`,

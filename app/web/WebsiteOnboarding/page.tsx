@@ -16,9 +16,6 @@ const WebsiteOnboard = () => {
     const userId = searchParams.get("userId");
     const agentId = searchParams.get("agentId");
     const subscriptionId = searchParams.get("subscriptionId");
-    console.log("userId:", userId);
-    console.log("agentId:", agentId);
-    console.log("subscriptionId:", subscriptionId);
 
     if (!userId || !agentId || !subscriptionId) {
       router.push("/");

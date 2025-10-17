@@ -12,7 +12,6 @@ export async function GET(request: NextRequest) {
 
   try {
     const resetCount = await resetFreeCouponsForAllUsers();
-    console.log(" resetCount:", resetCount);
     return NextResponse.json({
       success: true,
       message: `Coupons reset for ${resetCount} users`,

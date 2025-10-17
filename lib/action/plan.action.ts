@@ -121,11 +121,7 @@ export async function createAllProducts() {
         );
         continue; // Skip to the next product
       }
-
-      console.log(`Product created successfully: ${data.id}`);
     }
-
-    console.log("All products processed successfully.");
   } catch (error: any) {
     console.error("Error creating products:", error.message);
   }
@@ -178,7 +174,6 @@ export const getRazerpayPlanInfo = async (productId: string) => {
 
     const plan = await Plan.findOne({ productId });
     if (!plan) {
-      console.log("plan not found");
       throw new Error(`Plan with productId ${productId} not found.`);
     }
     return JSON.parse(JSON.stringify(plan));
@@ -269,7 +264,6 @@ export const getPaypalPlanInfo = async (productId: string) => {
 
     const plan = await Plan.findOne({ productId });
     if (!plan) {
-      console.log("plan not found");
       throw new Error(`Plan with productId ${productId} not found.`);
     }
 

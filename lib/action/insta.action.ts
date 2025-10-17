@@ -83,10 +83,6 @@ export const refreshExpiringTokens = async (): Promise<void> => {
       isActive: true,
     });
 
-    console.log(
-      `Found ${accountsNeedingRefresh.length} accounts needing token refresh`
-    );
-
     for (const account of accountsNeedingRefresh) {
       try {
         await refreshAccountToken(account);
@@ -147,12 +143,6 @@ const refreshAccountToken = async (account: any): Promise<void> => {
     lastTokenRefresh: new Date(),
   });
 
-  console.log(
-    `Successfully refreshed token for ${username}, expires in ${Math.round(
-      expiresInMs / (24 * 60 * 60 * 1000)
-    )} days`
-  );
-
   // Send success notification
   await sendTokenRefreshSuccessDM(account, newExpiresAt);
 };
@@ -172,7 +162,6 @@ No action needed from your side. Your auto-replies will continue working seamles
 
   try {
     await sendInstagramDM(account.instagramId, message);
-    console.log(`Success DM sent to ${account.username}`);
   } catch (dmError) {
     console.error(`Failed to send success DM to ${account.username}:`, dmError);
   }
@@ -192,7 +181,6 @@ Go to: [Your Dashboard Link]`;
 
   try {
     await sendInstagramDM(account.instagramId, message);
-    console.log(`Failure DM sent to ${account.username}`);
   } catch (dmError) {
     console.error(`Failed to send failure DM to ${account.username}:`, dmError);
   }

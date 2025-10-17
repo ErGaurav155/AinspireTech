@@ -35,12 +35,6 @@
 
     async loadFAQ() {
       try {
-        console.log("Loading FAQ for:", {
-          userId: this.config.userId,
-          chatbotType: this.config.chatbotType,
-          apiUrl: this.config.apiUrl,
-        });
-
         const response = await fetch(`${this.config.apiUrl}/api/embed/faq`, {
           method: "POST",
           headers: {
@@ -58,10 +52,8 @@
         }
 
         const data = await response.json();
-        console.log("FAQ API Response:", data);
 
         this.faqQuestions = data.faq?.questions || [];
-        console.log("FAQ questions loaded:", this.faqQuestions);
 
         // Update FAQ display after loading
         this.populateFAQ();
@@ -972,8 +964,6 @@
     populateFAQ() {
       const helpArticles = document.getElementById("help-articles");
       const faqCount = document.getElementById("faq-count");
-
-      console.log("Populating FAQ with:", this.faqQuestions);
 
       if (faqCount) {
         if (this.faqQuestions.length > 0) {
