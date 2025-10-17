@@ -446,7 +446,7 @@ export function AIVoiceAgentShowcase() {
 
                                   {/* Mobile Images - Only shown in dropdown on mobile */}
                                   <div className="md:hidden">
-                                    <div className="grid sm:grid-cols-2 md:gap-2">
+                                    <div className="grid sm:grid-cols-2 gap-2">
                                       {/* <div className="relative  h-auto aspect-[4/6] rounded-lg overflow-hidden">
                                         <Image
                                           src={automation.image1}
