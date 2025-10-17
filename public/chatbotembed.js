@@ -104,13 +104,14 @@
         .chatbot-toggle-container {
           position: relative;
           display: flex;
-          flex-direction: column;
+          gap: 10px;
+          flex-direction: row;
           align-items: center;
         }
 
         .chatbot-toggle {
-          width: 60px;
-          height: 60px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
           background: linear-gradient(135deg, ${
             this.config.primaryColor
@@ -137,15 +138,12 @@
         }
 
         .welcome-bubble {
-          position: absolute;
-          bottom: 70px;
-          background: rgba(10, 10, 10, 0.95);
+          background: transparent;
           color: #00F0FF;
-          padding: 12px 16px;
+          padding: 8px 10px;
           border-radius: 12px;
           font-size: 14px;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          border: 1px solid rgba(0, 240, 255, 0.3);
           backdrop-filter: blur(10px);
           white-space: nowrap;
           opacity: 1;
@@ -153,17 +151,24 @@
           pointer-events: none;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
           z-index: 10001;
-        }
+          display: block;
+          transition: opacity 0.3s ease, transform 0.3s ease;
 
-        .welcome-bubble::after {
-          content: '';
-          position: absolute;
-          top: 100%;
-          left: 50%;
-          transform: translateX(-50%);
-          border: 6px solid transparent;
-          border-top-color: rgba(0, 240, 255, 0.3);
         }
+.welcome-bubble.hidden {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+        .welcome-bubble::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%; /* Position at right edge */
+  transform: translateY(-50%); /* No horizontal translation needed */
+  border: 6px solid transparent;
+  border-left-color: rgba(0, 240, 255, 0.3); /* Color the LEFT border */
+}
 
         @keyframes pulse {
           0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); }
@@ -559,7 +564,7 @@
         }
 
         .chatbot-input-area {
-          padding: 16px;
+          padding: 8px;
           border-top: 1px solid rgba(0, 240, 255, 0.2);
           display: flex;
           flex-direction: column;
@@ -568,7 +573,7 @@
 
         .chatbot-input-container {
           display: flex;
-          gap: 8px;
+          gap: 4px;
           align-items: center;
           width: 100%;
         }
@@ -578,13 +583,13 @@
           background: rgba(26, 26, 26, 0.8);
           border: none;
           border-radius: 8px;
-          padding: 12px 16px;
+          padding: 6px 8px;
           color: #e0e0e0;
           font-size: 14px;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           resize: none;
           max-height: 100px;
-          min-height: 40px;
+          min-height: 30px;
           outline: none;
         }
 
@@ -598,8 +603,8 @@
           }, #B026FF);
           border: none;
           border-radius: 50%;
-          width: 40px;
-          height: 40px;
+          width: 30px;
+          height: 30px;
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -620,7 +625,6 @@
         }
 
         .chatbot-footer {
-          margin-top: 12px;
           text-align: center;
           width: 100%;
         }
@@ -843,7 +847,7 @@
       widget.className = "chatbot-widget";
       widget.innerHTML = `
         <div class="chatbot-toggle-container">
-          <div class="welcome-bubble">Welcome! How can we help?</div>
+          <div class="welcome-bubble" id="welcome-bubble">Welcome! How can we help?</div>
           <button class="chatbot-toggle" id="chatbot-toggle">
             <svg viewBox="0 0 24 24">
               <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
@@ -1183,20 +1187,29 @@
 
     toggleWidget() {
       const window = document.getElementById("chatbot-window");
+      const welcomeBubble = document.getElementById("welcome-bubble");
+
       this.isOpen = !this.isOpen;
 
       if (this.isOpen) {
         window.classList.add("open");
+        // Hide welcome bubble when window opens
+        welcomeBubble.style.display = "none";
         this.switchTab("help");
       } else {
         window.classList.remove("open");
+        // Show welcome bubble when window closes
+        welcomeBubble.style.display = "block";
       }
     }
-
     closeWidget() {
       const window = document.getElementById("chatbot-window");
+      const welcomeBubble = document.getElementById("welcome-bubble");
+
       window.classList.remove("open");
       this.isOpen = false;
+      // Show welcome bubble when window closes
+      welcomeBubble.style.display = "block";
     }
 
     restartChat() {
