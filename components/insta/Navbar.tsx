@@ -98,6 +98,7 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
+            <ThemeToggle />
             <SignedOut>
               <Button
                 variant="outline"
@@ -116,7 +117,6 @@ export default function Navbar() {
                 Get Pricing
               </Link>
             </Button>
-            <ThemeToggle />
             <SignedIn>
               <UserButton afterSignOutUrl="/" />
             </SignedIn>

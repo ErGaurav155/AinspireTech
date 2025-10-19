@@ -94,6 +94,7 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="hidden md:flex items-center space-x-2 lg:space-x-4 ">
+            <ThemeToggle />
             <SignedOut>
               <Button variant="outline" className={buttonOutline} asChild>
                 <Link href="/sign-in">Sign In</Link>
@@ -110,7 +111,6 @@ export default function Navbar() {
               </Link>
             </Button>
             {/* <div className="flex justify-center p-1 gap-1 md:gap-2 rounded-md bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"> */}
-            <ThemeToggle />
             <SignedIn>
               <UserButton afterSignOutUrl="/" />
             </SignedIn>
