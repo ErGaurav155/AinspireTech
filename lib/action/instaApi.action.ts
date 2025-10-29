@@ -30,6 +30,11 @@ interface InstagramProfile {
   profile_picture_url: string;
 }
 
+interface FollowRelationship {
+  follows: boolean;
+  followed_by: boolean;
+}
+
 // Rate Limiter
 const rateLimiterRequests = new Map<string, number[]>();
 const RATE_LIMIT_MAX_REQUESTS = 180;
@@ -83,6 +88,82 @@ export async function getInstagramProfile(
   }
 
   return response.json();
+}
+
+// Check if user follows the account
+async function checkFollowRelationship(
+  accessToken: string,
+  targetUserId: string,
+  commenterUserId: string
+): Promise<FollowRelationship> {
+  try {
+    // First, get the business account ID (our account)
+    const businessAccountResponse = await fetch(
+      `https://graph.instagram.com/v19.0/me?fields=id,username&access_token=${accessToken}`
+    );
+
+    if (!businessAccountResponse.ok) {
+      throw new Error("Failed to fetch business account info");
+    }
+
+    const businessAccount = await businessAccountResponse.json();
+    const businessAccountId = businessAccount.id;
+
+    // Check if commenter follows our business account
+    const followCheckResponse = await fetch(
+      `https://graph.instagram.com/v19.0/${commenterUserId}?fields=follows&access_token=${accessToken}`
+    );
+
+    let follows = false;
+    if (followCheckResponse.ok) {
+      const followData = await followCheckResponse.json();
+      follows =
+        followData.follows?.data?.some(
+          (follow: any) => follow.id === businessAccountId
+        ) || false;
+    }
+
+    return {
+      follows,
+      followed_by: false,
+    };
+  } catch (error) {
+    console.error("Error checking follow relationship:", error);
+    return { follows: false, followed_by: false };
+  }
+}
+
+// Follow user automatically
+async function followUserAutomatically(
+  accessToken: string,
+  targetUserId: string
+): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `https://graph.instagram.com/v19.0/me/follows`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          target_user_id: targetUserId,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Instagram Follow Error:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Failed to follow user:", error);
+    return false;
+  }
 }
 
 async function replyToComment(
@@ -144,16 +225,14 @@ async function replyToComment(
   }
 }
 
-export async function sendDirectMessage(
+// Send initial DM with follow button
+async function sendFollowRequestDM(
   accountId: string,
   accessToken: string,
   recipientId: string,
-  content: { text: string; link: string }[]
+  targetUsername: string
 ): Promise<boolean> {
   try {
-    const randomNumber = Math.floor(Math.random() * content.length);
-    const { text, link: buttonUrl } = content[randomNumber];
-
     const response = await fetch(
       `https://graph.instagram.com/v23.0/${accountId}/messages`,
       {
@@ -169,12 +248,12 @@ export async function sendDirectMessage(
               type: "template",
               payload: {
                 template_type: "button",
-                text,
+                text: `Seems like you don't follow @${targetUsername} yet! Please follow to get your special link. Click the button below to follow automatically.`,
                 buttons: [
                   {
-                    type: "web_url",
-                    url: buttonUrl,
-                    title: "Visit Link",
+                    type: "postback",
+                    title: "Follow & Get Link",
+                    payload: `FOLLOW_${targetUsername}`,
                   },
                 ],
               },
@@ -192,7 +271,65 @@ export async function sendDirectMessage(
 
     return true;
   } catch (error) {
-    console.error("Failed to send Instagram DM:", error);
+    console.error("Failed to send follow request DM:", error);
+    return false;
+  }
+}
+
+// Send link DM after follow
+async function sendLinkDM(
+  accountId: string,
+  accessToken: string,
+  recipientId: string,
+  content: { text: string; link: string; buttonTitle?: string }[]
+): Promise<boolean> {
+  try {
+    const randomNumber = Math.floor(Math.random() * content.length);
+    const {
+      text,
+      link: buttonUrl,
+      buttonTitle = "Get Your Link",
+    } = content[randomNumber];
+
+    const response = await fetch(
+      `https://graph.instagram.com/v23.0/${accountId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          recipient: { comment_id: recipientId },
+          message: {
+            attachment: {
+              type: "template",
+              payload: {
+                template_type: "button",
+                text: `Thank you for following! ${text}`,
+                buttons: [
+                  {
+                    type: "web_url",
+                    url: buttonUrl,
+                    title: buttonTitle,
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      }
+    );
+
+    const result = await response.json();
+    if (!response.ok) {
+      console.error("Instagram DM Error:", result);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Failed to send link DM:", error);
     return false;
   }
 }
@@ -230,6 +367,72 @@ async function findMatchingTemplate(
   return null;
 }
 
+// Handle postback (follow button click)
+export async function handlePostback(
+  accountId: string,
+  userId: string,
+  recipientId: string,
+  payload: string
+): Promise<void> {
+  try {
+    await connectToDatabase();
+
+    if (payload.startsWith("FOLLOW_")) {
+      const targetUsername = payload.replace("FOLLOW_", "");
+
+      const account = await InstagramAccount.findOne({
+        instagramId: accountId,
+      });
+      if (!account) return;
+
+      // Follow the user automatically
+      const followSuccess = await followUserAutomatically(
+        account.accessToken,
+        recipientId
+      );
+
+      if (followSuccess) {
+        // Wait a moment for follow to process
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // Get templates to send the link
+        const templates = await InstaReplyTemplate.find({
+          userId,
+          accountId,
+          isActive: true,
+        }).sort({ priority: 1 });
+
+        if (templates.length > 0) {
+          // Send the link DM
+          await sendLinkDM(
+            account.instagramId,
+            account.accessToken,
+            recipientId,
+            templates[0].content
+          );
+        }
+
+        // Log the follow action
+        await InstaReplyLog.create({
+          userId,
+          accountId,
+          commentId: `postback_${Date.now()}`,
+          commentText: `Follow postback: ${payload}`,
+          replyText: "Followed and link sent",
+          success: true,
+          responseTime: 0,
+          mediaId: "postback",
+          commenterUsername: recipientId,
+          followStatus: "followed_via_button",
+          dmSent: true,
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error handling postback:", error);
+  }
+}
+
 // Core Comment Processing
 export async function processComment(
   accountId: string,
@@ -240,6 +443,7 @@ export async function processComment(
   let dmMessage = false;
   let responseTime = 0;
   let matchingTemplate: IReplyTemplate | null = null;
+  let followStatus: FollowRelationship | null = null;
 
   try {
     await connectToDatabase();
@@ -273,6 +477,18 @@ export async function processComment(
       return;
     }
 
+    // Check follow relationship
+    try {
+      followStatus = await checkFollowRelationship(
+        account.accessToken,
+        accountId,
+        comment.user_id
+      );
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+      followStatus = { follows: false, followed_by: false };
+    }
+
     // Find matching template
     const templates = await InstaReplyTemplate.find({
       userId,
@@ -286,23 +502,46 @@ export async function processComment(
 
     const startTime = Date.now();
 
-    // Process based on template type
+    // Process based on follow status
     try {
-      dmMessage = await sendDirectMessage(
-        account.instagramId,
-        account.accessToken,
-        comment.id,
-        matchingTemplate.content
-      );
+      if (followStatus?.follows) {
+        // User follows - send link directly
+        dmMessage = await sendLinkDM(
+          account.instagramId,
+          account.accessToken,
+          comment.id,
+          matchingTemplate.content
+        );
+      } else {
+        // User doesn't follow - send follow request first
+        dmMessage = await sendFollowRequestDM(
+          account.instagramId,
+          account.accessToken,
+          comment.id,
+          account.username
+        );
+      }
 
+      // Always reply to comment
       if (dmMessage) {
+        let replyMessages = matchingTemplate.reply;
+
+        if (!followStatus?.follows) {
+          // Custom reply for non-followers
+          replyMessages = [
+            "Thanks for your comment! I've sent you a DM with instructions to get your link. Please check your messages! 📩",
+            "Awesome comment! Check your DMs - I've sent you the next steps to get your special link. 💌",
+            "Thank you for engaging! Please check your direct messages for instructions. 🔗",
+          ];
+        }
+
         success = await replyToComment(
           account.username,
           account.instagramId,
           account.accessToken,
           comment.id,
           comment.media_id,
-          matchingTemplate.reply
+          replyMessages
         );
       }
     } catch (error) {
@@ -323,19 +562,21 @@ export async function processComment(
       responseTime,
       mediaId: comment.media_id,
       commenterUsername: comment.username,
+      followStatus: followStatus?.follows ? "following" : "not_following",
+      dmSent: dmMessage,
     });
 
     // Update template usage
-    await InstaReplyTemplate.findByIdAndUpdate(matchingTemplate._id, {
-      $inc: { usageCount: 1 },
-      $set: { lastUsed: new Date() },
-    });
+    if (matchingTemplate._id) {
+      await InstaReplyTemplate.findByIdAndUpdate(matchingTemplate._id, {
+        $inc: { usageCount: 1 },
+        $set: { lastUsed: new Date() },
+      });
+    }
 
-    // Update user reply count using findByIdAndUpdate
-    await User.findByIdAndUpdate(
-      userInfo._id, // Use MongoDB _id
-      { $inc: { totalReplies: 1 } }
-    );
+    // Update user reply count
+    await User.findByIdAndUpdate(userInfo._id, { $inc: { totalReplies: 1 } });
+
     // Update account activity
     account.lastActivity = new Date();
     account.accountReply = (account.accountReply || 0) + 1;
@@ -345,12 +586,13 @@ export async function processComment(
   }
 }
 
-// Webhook Handler
+// Enhanced Webhook Handler to handle postbacks
 export async function handleInstagramWebhook(
   payload: any
 ): Promise<{ success: boolean; message: string }> {
   try {
     await connectToDatabase();
+
     // Validate payload structure
     if (
       !payload.object ||
@@ -364,39 +606,60 @@ export async function handleInstagramWebhook(
       if (!entry.changes?.length) continue;
 
       for (const change of entry.changes) {
-        if (change.field !== "comments") continue;
+        // Handle comment changes
+        if (change.field === "comments") {
+          const commentData = change.value;
 
-        const commentData = change.value;
+          if (!commentData?.id || !commentData.text) continue;
 
-        if (!commentData?.id || !commentData.text) continue;
+          const comment: InstagramComment = {
+            id: commentData.id,
+            text: commentData.text,
+            username: commentData.from?.username || "unknown",
+            timestamp: commentData.timestamp,
+            media_id: commentData.media?.id || "",
+            user_id: commentData.from?.id || "",
+          };
 
-        const comment: InstagramComment = {
-          id: commentData.id,
-          text: commentData.text,
-          username: commentData.from?.username || "unknown",
-          timestamp: commentData.timestamp,
-          media_id: commentData.media?.id || "",
-          user_id: commentData.from?.id || "",
-        };
+          // Skip non-meaningful comments
+          if (!isMeaningfulComment(comment.text)) {
+            continue;
+          }
 
-        // Skip non-meaningful comments
-        if (!isMeaningfulComment(comment.text)) {
-          continue;
+          const account = await InstagramAccount.findOne({
+            instagramId: entry.id,
+          });
+
+          if (!account) {
+            console.warn(`Account not found: ${entry.id}`);
+            continue;
+          }
+          if (account.instagramId === comment.user_id) {
+            continue;
+          }
+
+          await processComment(account.instagramId, account.userId, comment);
         }
 
-        const account = await InstagramAccount.findOne({
-          instagramId: entry.id,
-        });
+        // Handle message postbacks (follow button clicks)
+        else if (change.field === "messages") {
+          const messageData = change.value;
 
-        if (!account) {
-          console.warn(`Account not found: ${entry.id}`);
-          continue;
-        }
-        if (account.instagramId === comment.user_id) {
-          continue;
-        }
+          if (messageData?.postback?.payload) {
+            const account = await InstagramAccount.findOne({
+              instagramId: entry.id,
+            });
 
-        await processComment(account.instagramId, account.userId, comment);
+            if (account) {
+              await handlePostback(
+                account.instagramId,
+                account.userId,
+                messageData.from?.id,
+                messageData.postback.payload
+              );
+            }
+          }
+        }
       }
     }
 
