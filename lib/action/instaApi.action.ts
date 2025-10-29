@@ -606,6 +606,8 @@ export async function handleInstagramWebhook(
     for (const entry of payload.entry) {
       if (entry.messaging) {
         console.log("Processing :", entry.messaging);
+        console.log("messages", entry.messaging[0].message);
+        console.log("message", entry.messaging[0].message.attachment);
       }
       console.log("Processing entry:", entry.changes);
 
