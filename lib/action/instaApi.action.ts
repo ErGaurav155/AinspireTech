@@ -604,8 +604,13 @@ export async function handleInstagramWebhook(
     }
 
     for (const entry of payload.entry) {
+      if (entry.messaging) {
+        console.log("Processing :", entry.messaging);
+      }
+      console.log("Processing entry:", entry.changes);
+
       if (!entry.changes?.length && !entry.messaging?.length) continue;
-      if (entry.changes.length > 0) {
+      if (entry?.changes?.length > 0) {
         for (const change of entry.changes) {
           // Handle comment changes
           if (change.field === "comments") {
@@ -643,7 +648,7 @@ export async function handleInstagramWebhook(
           }
         }
       }
-      if (entry.messaging.length > 0) {
+      if (entry?.messaging?.length > 0) {
         for (const messageEvent of entry.messaging) {
           if (messageEvent.postback && messageEvent.postback.payload) {
             const account = await InstagramAccount.findOne({
