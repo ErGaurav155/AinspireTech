@@ -78,7 +78,7 @@ export async function getInstagramProfile(
   accessToken: string
 ): Promise<InstagramProfile> {
   const response = await fetch(
-    `https://graph.instagram.com/v19.0/me?fields=id,username,account_type,media_count,followers_count,follows_count,profile_picture_url&access_token=${accessToken}`
+    `https://graph.instagram.com/v23.0/me?fields=id,username,account_type,media_count,followers_count,follows_count,profile_picture_url&access_token=${accessToken}`
   );
 
   if (!response.ok) {
@@ -99,7 +99,7 @@ async function checkFollowRelationship(
   try {
     // First, get the business account ID (our account)
     const businessAccountResponse = await fetch(
-      `https://graph.instagram.com/v19.0/me?fields=id,username&access_token=${accessToken}`
+      `https://graph.instagram.com/v23.0/me?fields=id,username&access_token=${accessToken}`
     );
 
     if (!businessAccountResponse.ok) {
@@ -111,7 +111,7 @@ async function checkFollowRelationship(
 
     // Check if commenter follows our business account
     const followCheckResponse = await fetch(
-      `https://graph.instagram.com/v19.0/${commenterUserId}?fields=follows&access_token=${accessToken}`
+      `https://graph.instagram.com/v23.0/${commenterUserId}?fields=follows&access_token=${accessToken}`
     );
 
     let follows = false;
@@ -139,8 +139,9 @@ async function followUserAutomatically(
   targetUserId: string
 ): Promise<boolean> {
   try {
+    console.log(`Attempting to follow user ID: ${targetUserId}`);
     const response = await fetch(
-      `https://graph.instagram.com/v19.0/me/follows`,
+      `https://graph.instagram.com/v23.0/me/follows`,
       {
         method: "POST",
         headers: {
@@ -152,7 +153,7 @@ async function followUserAutomatically(
         }),
       }
     );
-
+    console.log(`Follow response status: ${response.status}`);
     if (!response.ok) {
       const error = await response.json();
       console.error("Instagram Follow Error:", error);
@@ -337,7 +338,7 @@ async function sendLinkDM(
 async function validateAccessToken(accessToken: string): Promise<boolean> {
   try {
     const response = await fetch(
-      `https://graph.instagram.com/v19.0/me?fields=id&access_token=${accessToken}`
+      `https://graph.instagram.com/v23.0/me?fields=id&access_token=${accessToken}`
     );
     return response.ok;
   } catch (error) {
@@ -649,7 +650,10 @@ export async function handleInstagramWebhook(
             const account = await InstagramAccount.findOne({
               instagramId: entry.id,
             });
-
+            console.log(
+              "Received postback payload:",
+              messageData.postback.payload
+            );
             if (account) {
               await handlePostback(
                 account.instagramId,
