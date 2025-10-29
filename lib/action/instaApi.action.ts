@@ -611,65 +611,57 @@ export async function handleInstagramWebhook(
       }
       console.log("Processing entry:", entry.changes);
 
-      if (!entry.changes?.length) continue;
+      if (!entry.changes?.length || !entry.messaging?.length) continue;
+      if (entry.changes.length > 0) {
+        for (const change of entry.changes) {
+          // Handle comment changes
+          if (change.field === "comments") {
+            const commentData = change.value;
 
-      for (const change of entry.changes) {
-        // Handle comment changes
-        if (change.field === "comments") {
-          const commentData = change.value;
+            if (!commentData?.id || !commentData.text) continue;
 
-          if (!commentData?.id || !commentData.text) continue;
+            const comment: InstagramComment = {
+              id: commentData.id,
+              text: commentData.text,
+              username: commentData.from?.username || "unknown",
+              timestamp: commentData.timestamp,
+              media_id: commentData.media?.id || "",
+              user_id: commentData.from?.id || "",
+            };
 
-          const comment: InstagramComment = {
-            id: commentData.id,
-            text: commentData.text,
-            username: commentData.from?.username || "unknown",
-            timestamp: commentData.timestamp,
-            media_id: commentData.media?.id || "",
-            user_id: commentData.from?.id || "",
-          };
+            // Skip non-meaningful comments
+            if (!isMeaningfulComment(comment.text)) {
+              continue;
+            }
 
-          // Skip non-meaningful comments
-          if (!isMeaningfulComment(comment.text)) {
-            continue;
-          }
-
-          const account = await InstagramAccount.findOne({
-            instagramId: entry.id,
-          });
-
-          if (!account) {
-            console.warn(`Account not found: ${entry.id}`);
-            continue;
-          }
-          if (account.instagramId === comment.user_id) {
-            continue;
-          }
-
-          await processComment(account.instagramId, account.userId, comment);
-        }
-
-        // Handle message postbacks (follow button clicks)
-        else if (
-          change.field === "messages" ||
-          change.field === "messaging_postbacks"
-        ) {
-          const messageData = change.value;
-
-          if (messageData?.postback?.payload) {
             const account = await InstagramAccount.findOne({
               instagramId: entry.id,
             });
-            console.log(
-              "Received postback payload:",
-              messageData.postback.payload
-            );
+
+            if (!account) {
+              console.warn(`Account not found: ${entry.id}`);
+              continue;
+            }
+            if (account.instagramId === comment.user_id) {
+              continue;
+            }
+
+            await processComment(account.instagramId, account.userId, comment);
+          }
+        }
+      }
+      if (entry.messaging.length > 0) {
+        for (const messageEvent of entry.messaging) {
+          if (messageEvent.postback && messageEvent.postback.payload) {
+            const account = await InstagramAccount.findOne({
+              instagramId: entry.id,
+            });
             if (account) {
               await handlePostback(
                 account.instagramId,
                 account.userId,
-                messageData.from?.id,
-                messageData.postback.payload
+                messageEvent.sender.id,
+                messageEvent.postback.payload
               );
             }
           }
