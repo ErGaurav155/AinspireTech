@@ -605,6 +605,10 @@ export async function handleInstagramWebhook(
 
     for (const entry of payload.entry) {
       if (!entry.changes?.length) continue;
+      if (entry.messaging) {
+        console.log("Processing entry:", entry.messaging);
+      }
+      console.log("Processing entry:", entry.changes);
 
       for (const change of entry.changes) {
         // Handle comment changes
