@@ -643,7 +643,10 @@ export async function handleInstagramWebhook(
         }
 
         // Handle message postbacks (follow button clicks)
-        else if (change.field === "messages") {
+        else if (
+          change.field === "messages" ||
+          change.field === "messaging_postbacks"
+        ) {
           const messageData = change.value;
 
           if (messageData?.postback?.payload) {

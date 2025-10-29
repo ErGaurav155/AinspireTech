@@ -54,6 +54,14 @@ const UserSchema = new Schema(
       type: [String],
       default: [],
     },
+    referredBy: {
+      type: Schema.Types.ObjectId,
+      ref: "Affiliate",
+    },
+    hasUsedReferral: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

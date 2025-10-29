@@ -8,13 +8,25 @@ import { SignedIn, SignedOut, useAuth, UserButton } from "@clerk/nextjs";
 import { ArrowRight } from "lucide-react";
 import { getUserById } from "@/lib/action/user.actions";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+type Checked = DropdownMenuCheckboxItemProps["checked"];
 
 export function NavBar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOwn, setIsOwn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeNavItem, setActiveNavItem] = useState("home");
-
+  const [showInstaBar, setShowInstaBar] = useState<Checked>(false);
+  const [showWebBar, setShowWebBar] = useState<Checked>(false);
   const router = useRouter();
   const { userId } = useAuth();
 
@@ -129,18 +141,37 @@ export function NavBar() {
               </button>
             ) : (
               <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer">
+                      Dashboards
+                      <ArrowRight className="hidden lg:flex" size={16} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    <DropdownMenuCheckboxItem
+                      checked={showInstaBar}
+                      onClick={() => router.push("/insta/dashboard")}
+                      onCheckedChange={setShowInstaBar}
+                    >
+                      Insta Automation
+                      <ArrowRight className="hidden lg:flex" size={16} />
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={showWebBar}
+                      onCheckedChange={setShowWebBar}
+                      onClick={() => router.push("/web/UserDashboard")}
+                    >
+                      Web Chatbots
+                      <ArrowRight className="hidden lg:flex" size={16} />
+                    </DropdownMenuCheckboxItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <button
-                  onClick={() => router.push("/web/UserDashboard")}
+                  onClick={() => router.push("/referrals")}
                   className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                 >
-                  <span className="mr-2">WebBot</span>
-                  <ArrowRight className="hidden lg:flex" size={16} />
-                </button>
-                <button
-                  onClick={() => router.push("/insta/dashboard")}
-                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-                >
-                  <span className="mr-2">InstaBot</span>
+                  <span className="mr-2">Affiliate</span>
                   <ArrowRight className="hidden lg:flex" size={16} />
                 </button>
               </>
@@ -221,7 +252,7 @@ export function NavBar() {
                     }}
                     className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                   >
-                    WebBot
+                    Web Chatbots
                   </button>
                   <button
                     onClick={() => {
@@ -230,7 +261,13 @@ export function NavBar() {
                     }}
                     className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                   >
-                    InstaBot
+                    Insta Automation
+                  </button>
+                  <button
+                    onClick={() => router.push("/referrals")}
+                    className=" items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                  >
+                    <span className="mr-2">Affiliate</span>
                   </button>
                 </>
               )}

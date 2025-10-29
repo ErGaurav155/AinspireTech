@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: Request) {
   const payload = await req.json();
+  console.log("Received Instagram webhook payload:", payload);
   const result = await handleInstagramWebhook(payload);
   return Response.json(result);
 }
