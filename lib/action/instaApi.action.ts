@@ -106,8 +106,8 @@ async function checkFollowRelationship(
       throw new Error("Failed to fetch business account info");
     }
 
-    const businessAccount = await businessAccountResponse.json();
-    const businessAccountId = businessAccount.id;
+    // const businessAccount = await businessAccountResponse.json();
+    // const businessAccountId = businessAccount.id;
 
     // Check if commenter follows our business account
     const followCheckResponse = await fetch(
@@ -119,7 +119,7 @@ async function checkFollowRelationship(
       const followData = await followCheckResponse.json();
       follows =
         followData.follows?.data?.some(
-          (follow: any) => follow.id === businessAccountId
+          (follow: any) => follow.id === targetUserId
         ) || false;
     }
 
