@@ -101,7 +101,7 @@ async function checkFollowRelationship(
     const businessAccountResponse = await fetch(
       `https://graph.instagram.com/v23.0/me?fields=id,username&access_token=${accessToken}`
     );
-
+    console.log("Business account response status:", businessAccountResponse);
     if (!businessAccountResponse.ok) {
       throw new Error("Failed to fetch business account info");
     }
@@ -113,7 +113,7 @@ async function checkFollowRelationship(
     const followCheckResponse = await fetch(
       `https://graph.instagram.com/v23.0/${commenterUserId}?fields=follows&access_token=${accessToken}`
     );
-
+    console.log("Follow check response status:", followCheckResponse);
     let follows = false;
     if (followCheckResponse.ok) {
       const followData = await followCheckResponse.json();
@@ -227,7 +227,7 @@ async function sendFollowReminderDM(
         }),
       }
     );
-
+    console.log("Follow reminder DM response status:", response);
     const result = await response.json();
     if (!response.ok) {
       console.error("Instagram DM Error:", result);
@@ -430,7 +430,7 @@ export async function handlePostback(
         accountId,
         recipientId
       );
-
+      console.log("Follow status:", followStatus);
       if (followStatus.follows) {
         // User follows - send link directly
         await sendFinalLinkDM(
@@ -638,20 +638,13 @@ export async function processComment(
 
       // Always reply to comment
       if (dmMessage) {
-        const replyMessages = [
-          "Thanks for your comment! I've sent you a DM with instructions to get your access. Please check your messages! 📩",
-          "Awesome comment! Check your DMs - I've sent you the next steps to get your special access. 💌",
-          "Thank you for engaging! Please check your direct messages for instructions to get your access. 🔗",
-          "Great comment! I've sent you a DM with your access instructions. Don't forget to check your messages! 🎯",
-        ];
-
         success = await replyToComment(
           account.username,
           account.instagramId,
           account.accessToken,
           comment.id,
           comment.media_id,
-          replyMessages
+          matchingTemplate.reply
         );
       }
     } catch (error) {
@@ -725,6 +718,9 @@ export async function handleInstagramWebhook(
             });
 
             if (account) {
+              console.log(
+                `Handling postback for account ${account.instagramId}`
+              );
               await handlePostback(
                 account.instagramId,
                 account.userId,
