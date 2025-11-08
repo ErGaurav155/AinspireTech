@@ -1,4 +1,3 @@
-// lib/action/instaApi.action.ts
 "use server";
 
 import { connectToDatabase } from "../database/mongoose";
@@ -9,6 +8,7 @@ import InstaReplyTemplate, {
 } from "../database/models/insta/ReplyTemplate.model";
 import { getUserById } from "./user.actions";
 import User from "../database/models/user.model";
+import Follower from "../database/models/insta/Follower.model";
 
 // Interfaces
 interface InstagramComment {
@@ -73,7 +73,91 @@ function isMeaningfulComment(text: string): boolean {
   return cleanedText.length > 0 && !emojiOnly && !isGifComment;
 }
 
-// Instagram API Functions
+// ----------------- FOLLOWER HELPERS (NEW) -----------------
+
+/**
+ * Upsert follower document when a follow webhook is received.
+ * ownerIgId = the IG BUSINESS account that was followed
+ * igUserId = the follower's IG ID
+ */
+async function markFollowerAdded(ownerIgId: string, igUserId: string) {
+  try {
+    await Follower.updateOne(
+      { ownerIgId, igUserId },
+      {
+        $set: { isFollowing: true, updatedAt: new Date() },
+      },
+      { upsert: true }
+    );
+  } catch (err) {
+    console.error("markFollowerAdded error:", err);
+  }
+}
+
+/** Mark follower as unfollowed (set flag) */
+async function markFollowerRemoved(ownerIgId: string, igUserId: string) {
+  try {
+    await Follower.updateOne(
+      { ownerIgId, igUserId },
+      { $set: { isFollowing: false, updatedAt: new Date() } }
+    );
+  } catch (err) {
+    console.error("markFollowerRemoved error:", err);
+  }
+}
+
+/**
+ * Touch follower on comment/interaction:
+ * - If record exists, update updatedAt (and optionally keep isFollowing unchanged).
+ * - If not exists, create a minimal record with isFollowing:false so we can track engagement,
+ *   and let a future follow webhook flip it to true.
+ */
+async function touchFollowerOnInteraction(ownerIgId: string, igUserId: string) {
+  try {
+    await Follower.updateOne(
+      { ownerIgId, igUserId, isFollowing: { $exists: true } },
+      {
+        $set: { updatedAt: new Date() },
+      },
+      { upsert: false }
+    );
+  } catch (err) {
+    console.error("touchFollowerOnInteraction error:", err);
+  }
+}
+
+/**
+ * Local DB-first follower check. If DB says they're following => return true.
+ * Otherwise fallback to remote API check (and update DB if remote confirms).
+ */
+async function checkFollowRelationshipDBFirst(
+  ownerIgId: string,
+  accessToken: string,
+  commenterUserId: string
+): Promise<FollowRelationship> {
+  try {
+    // Ensure DB connected
+    await connectToDatabase();
+
+    // Check local DB
+    const local = await Follower.findOne({
+      ownerIgId,
+      igUserId: commenterUserId,
+      isFollowing: true,
+    }).lean();
+    if (local) {
+      return { follows: true, followed_by: false };
+    }
+
+    return { follows: false, followed_by: false };
+  } catch (err) {
+    console.error("checkFollowRelationshipDBFirst error:", err);
+    return { follows: false, followed_by: false };
+  }
+}
+
+// ----------------- Instagram API Functions -----------------
+
 export async function getInstagramProfile(
   accessToken: string
 ): Promise<InstagramProfile> {
@@ -90,48 +174,49 @@ export async function getInstagramProfile(
   return response.json();
 }
 
-// Check if user follows the account
-async function checkFollowRelationship(
-  accessToken: string,
-  targetUserId: string,
-  commenterUserId: string
-): Promise<FollowRelationship> {
-  try {
-    // First, get the business account ID (our account)
-    const businessAccountResponse = await fetch(
-      `https://graph.instagram.com/v23.0/me?fields=id,username&access_token=${accessToken}`
-    );
-    console.log("Business account response status:", businessAccountResponse);
-    if (!businessAccountResponse.ok) {
-      throw new Error("Failed to fetch business account info");
-    }
+// // Check if user follows the account - original Graph API fallback (kept for compatibility)
+// async function checkFollowRelationship(
+//   accessToken: string,
+//   targetUserId: string,
+//   commenterUserId: string
+// ): Promise<FollowRelationship> {
+//   try {
+//     // Graph API fallback logic.
+//     // NOTE: this endpoint and fields are not guaranteed to return follower lists for arbitrary users.
+//     // Keep as a fallback only.
+//     const businessAccountResponse = await fetch(
+//       `https://graph.instagram.com/v23.0/me?fields=id,username&access_token=${accessToken}`
+//     );
+//     if (!businessAccountResponse.ok) {
+//       throw new Error("Failed to fetch business account info");
+//     }
 
-    // const businessAccount = await businessAccountResponse.json();
-    // const businessAccountId = businessAccount.id;
+//     // Attempt to fetch commenter user data and their "follows" list (best-effort)
+//     const followCheckResponse = await fetch(
+//       `https://graph.instagram.com/v23.0/${commenterUserId}?fields=follows&access_token=${accessToken}`
+//     );
 
-    // Check if commenter follows our business account
-    const followCheckResponse = await fetch(
-      `https://graph.instagram.com/v23.0/${commenterUserId}?fields=follows&access_token=${accessToken}`
-    );
-    console.log("Follow check response status:", followCheckResponse);
-    let follows = false;
-    if (followCheckResponse.ok) {
-      const followData = await followCheckResponse.json();
-      follows =
-        followData.follows?.data?.some(
-          (follow: any) => follow.id === targetUserId
-        ) || false;
-    }
+//     let follows = false;
+//     if (followCheckResponse.ok) {
+//       const followData = await followCheckResponse.json();
+//       follows =
+//         followData.follows?.data?.some(
+//           (follow: any) => follow.id === targetUserId
+//         ) || false;
+//     }
 
-    return {
-      follows,
-      followed_by: false,
-    };
-  } catch (error) {
-    console.error("Error checking follow relationship:", error);
-    return { follows: false, followed_by: false };
-  }
-}
+//     return {
+//       follows,
+//       followed_by: false,
+//     };
+//   } catch (error) {
+//     console.error(
+//       "Error checking follow relationship (Graph fallback):",
+//       error
+//     );
+//     return { follows: false, followed_by: false };
+//   }
+// }
 
 // Send initial DM with access button
 async function sendInitialAccessDM(
@@ -227,7 +312,7 @@ async function sendFollowReminderDM(
         }),
       }
     );
-    console.log("Follow reminder DM response status:", response);
+    // logging a bit of response
     const result = await response.json();
     if (!response.ok) {
       console.error("Instagram DM Error:", result);
@@ -249,6 +334,7 @@ async function sendFinalLinkDM(
   content: { text: string; link: string; buttonTitle?: string }[]
 ): Promise<boolean> {
   try {
+    // choose a random content item
     const randomNumber = Math.floor(Math.random() * content.length);
     const {
       text,
@@ -424,10 +510,10 @@ export async function handlePostback(
     if (payload.startsWith("CHECK_FOLLOW_")) {
       const targetUsername = payload.replace("CHECK_FOLLOW_", "");
 
-      // Check if user follows
-      const followStatus = await checkFollowRelationship(
+      // Check if user follows - DB-first method
+      const followStatus = await checkFollowRelationshipDBFirst(
+        account.instagramId,
         account.accessToken,
-        accountId,
         recipientId
       );
       console.log("Follow status:", followStatus);
@@ -486,10 +572,10 @@ export async function handlePostback(
     else if (payload.startsWith("VERIFY_FOLLOW_")) {
       const targetUsername = payload.replace("VERIFY_FOLLOW_", "");
 
-      // Verify if user actually followed
-      const followStatus = await checkFollowRelationship(
+      // Verify if user actually followed (DB-first)
+      const followStatus = await checkFollowRelationshipDBFirst(
+        account.instagramId,
         account.accessToken,
-        accountId,
         recipientId
       );
 
@@ -626,6 +712,16 @@ export async function processComment(
 
     const startTime = Date.now();
 
+    // TOUCH or UPsert follower interaction record (so we track engaged users)
+    // If user is not following yet, we create a record with isFollowing:false so future follow webhook can flip it.
+    try {
+      if (comment.user_id) {
+        await touchFollowerOnInteraction(account.instagramId, comment.user_id);
+      }
+    } catch (err) {
+      console.error("Error touching follower interaction:", err);
+    }
+
     // Process comment - send initial DM to everyone
     try {
       // Send initial DM with access button to everyone
@@ -707,6 +803,9 @@ export async function handleInstagramWebhook(
     }
 
     for (const entry of payload.entry) {
+      // Each entry.id is the owner Instagram Business Account ID (ownerIgId)
+      const ownerIgId = entry.id;
+
       // Handle messaging events (postbacks)
       if (entry.messaging && entry.messaging.length > 0) {
         console.log("Processing messaging events:", entry.messaging);
@@ -714,7 +813,7 @@ export async function handleInstagramWebhook(
         for (const messageEvent of entry.messaging) {
           if (messageEvent.postback && messageEvent.postback.payload) {
             const account = await InstagramAccount.findOne({
-              instagramId: entry.id,
+              instagramId: ownerIgId,
             });
 
             if (account) {
@@ -737,7 +836,7 @@ export async function handleInstagramWebhook(
             messageEvent.message.quick_reply.payload
           ) {
             const account = await InstagramAccount.findOne({
-              instagramId: entry.id,
+              instagramId: ownerIgId,
             });
 
             if (account) {
@@ -754,9 +853,34 @@ export async function handleInstagramWebhook(
 
       // Handle comment changes
       if (entry.changes && entry.changes.length > 0) {
-        console.log("Processing comment changes:", entry.changes);
+        console.log("Processing comment/follow changes:", entry.changes);
 
         for (const change of entry.changes) {
+          // FOLLOWER CHANGES (NEW)
+          if (change.field === "followers") {
+            try {
+              const verb = change.value?.verb; // "add" or "remove"
+              const followerId = change.value?.follower?.id;
+              if (!followerId) continue;
+
+              if (verb === "add") {
+                // mark follower added for this owner account
+                await markFollowerAdded(ownerIgId, followerId);
+                console.log(
+                  `Follower added recorded owner=${ownerIgId} follower=${followerId}`
+                );
+              } else if (verb === "remove") {
+                await markFollowerRemoved(ownerIgId, followerId);
+                console.log(
+                  `Follower removed recorded owner=${ownerIgId} follower=${followerId}`
+                );
+              }
+            } catch (err) {
+              console.error("Error processing follower change:", err);
+            }
+          }
+
+          // COMMENTS
           if (change.field === "comments") {
             const commentData = change.value;
 
@@ -777,14 +901,15 @@ export async function handleInstagramWebhook(
             }
 
             const account = await InstagramAccount.findOne({
-              instagramId: entry.id,
+              instagramId: ownerIgId,
             });
 
             if (!account) {
-              console.warn(`Account not found: ${entry.id}`);
+              console.warn(`Account not found: ${ownerIgId}`);
               continue;
             }
             if (account.instagramId === comment.user_id) {
+              // comment from owner itself - ignore
               continue;
             }
 
