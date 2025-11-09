@@ -460,22 +460,6 @@ export async function handlePostback(
           recipientId,
           templates[0].content
         );
-
-        // Log successful access
-        await InstaReplyLog.create({
-          userId,
-          accountId,
-          commentId: `postback_check_${Date.now()}`,
-          commentText: `Check follow postback: ${payload}`,
-          replyText: "User followed - link sent",
-          success: true,
-          responseTime: 0,
-          mediaId: "postback",
-          commenterUsername: recipientId,
-          followStatus: "following",
-          dmSent: true,
-          action: "check_follow_approved",
-        });
       } else {
         // User doesn't follow - send follow reminder
         await sendFollowReminderDM(
@@ -484,22 +468,6 @@ export async function handlePostback(
           recipientId,
           account.username
         );
-
-        // Log follow reminder sent
-        await InstaReplyLog.create({
-          userId,
-          accountId,
-          commentId: `postback_reminder_${Date.now()}`,
-          commentText: `Follow reminder sent: ${payload}`,
-          replyText: "User not following - reminder sent",
-          success: true,
-          responseTime: 0,
-          mediaId: "postback",
-          commenterUsername: recipientId,
-          followStatus: "not_following",
-          dmSent: true,
-          action: "follow_reminder_sent",
-        });
       }
     }
 
@@ -521,22 +489,6 @@ export async function handlePostback(
           recipientId,
           templates[0].content
         );
-
-        // Log successful follow verification
-        await InstaReplyLog.create({
-          userId,
-          accountId,
-          commentId: `postback_verify_${Date.now()}`,
-          commentText: `Verify follow postback: ${payload}`,
-          replyText: "Follow verified - link sent",
-          success: true,
-          responseTime: 0,
-          mediaId: "postback",
-          commenterUsername: recipientId,
-          followStatus: "verified_following",
-          dmSent: true,
-          action: "follow_verified_approved",
-        });
       } else {
         // User still not following - send reminder again
         await sendFollowReminderDM(
@@ -545,48 +497,11 @@ export async function handlePostback(
           recipientId,
           account.username
         );
-
-        // Log follow verification failed
-        await InstaReplyLog.create({
-          userId,
-          accountId,
-          commentId: `postback_verify_fail_${Date.now()}`,
-          commentText: `Follow verification failed: ${payload}`,
-          replyText: "User still not following - reminder sent again",
-          success: false,
-          responseTime: 0,
-          mediaId: "postback",
-          commenterUsername: recipientId,
-          followStatus: "still_not_following",
-          dmSent: true,
-          action: "follow_verification_failed",
-        });
       }
     }
   } catch (error) {
     console.error("Error handling postback:", error);
-
-    // Log postback error
-    try {
-      await InstaReplyLog.create({
-        userId,
-        accountId,
-        commentId: `postback_error_${Date.now()}`,
-        commentText: `Postback error: ${payload}`,
-        replyText: `Error: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-        success: false,
-        responseTime: 0,
-        mediaId: "postback",
-        commenterUsername: recipientId,
-        followStatus: "error",
-        dmSent: false,
-        action: "postback_error",
-      });
-    } catch (logError) {
-      console.error("Failed to log postback error:", logError);
-    }
+    return;
   }
 }
 
@@ -685,11 +600,7 @@ export async function processComment(
       responseTime,
       mediaId: comment.media_id,
       commenterUsername: comment.username,
-      followStatus: "initial_dm_sent",
-      dmSent: dmMessage,
-      action: "initial_comment_processed",
     });
-
     // Update template usage
     if (matchingTemplate._id) {
       await InstaReplyTemplate.findByIdAndUpdate(matchingTemplate._id, {
