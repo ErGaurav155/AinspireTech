@@ -8,7 +8,6 @@ import InstaReplyTemplate, {
 } from "../database/models/insta/ReplyTemplate.model";
 import { getUserById } from "./user.actions";
 import User from "../database/models/user.model";
-import Follower from "../database/models/insta/Follower.model";
 
 // Interfaces
 interface InstagramComment {
@@ -31,8 +30,7 @@ interface InstagramProfile {
 }
 
 interface FollowRelationship {
-  follows: boolean;
-  followed_by: boolean;
+  is_user_follow_business?: boolean;
 }
 
 // Rate Limiter
@@ -73,87 +71,25 @@ function isMeaningfulComment(text: string): boolean {
   return cleanedText.length > 0 && !emojiOnly && !isGifComment;
 }
 
-// ----------------- FOLLOWER HELPERS (NEW) -----------------
-
-/**
- * Upsert follower document when a follow webhook is received.
- * ownerIgId = the IG BUSINESS account that was followed
- * igUserId = the follower's IG ID
- */
-async function markFollowerAdded(ownerIgId: string, igUserId: string) {
-  try {
-    await Follower.updateOne(
-      { ownerIgId, igUserId },
-      {
-        $set: { isFollowing: true, updatedAt: new Date() },
-      },
-      { upsert: true }
-    );
-  } catch (err) {
-    console.error("markFollowerAdded error:", err);
-  }
-}
-
-/** Mark follower as unfollowed (set flag) */
-async function markFollowerRemoved(ownerIgId: string, igUserId: string) {
-  try {
-    await Follower.updateOne(
-      { ownerIgId, igUserId },
-      { $set: { isFollowing: false, updatedAt: new Date() } }
-    );
-  } catch (err) {
-    console.error("markFollowerRemoved error:", err);
-  }
-}
-
-/**
- * Touch follower on comment/interaction:
- * - If record exists, update updatedAt (and optionally keep isFollowing unchanged).
- * - If not exists, create a minimal record with isFollowing:false so we can track engagement,
- *   and let a future follow webhook flip it to true.
- */
-async function touchFollowerOnInteraction(ownerIgId: string, igUserId: string) {
-  try {
-    await Follower.updateOne(
-      { ownerIgId, igUserId, isFollowing: { $exists: true } },
-      {
-        $set: { updatedAt: new Date() },
-      },
-      { upsert: false }
-    );
-  } catch (err) {
-    console.error("touchFollowerOnInteraction error:", err);
-  }
-}
-
-/**
- * Local DB-first follower check. If DB says they're following => return true.
- * Otherwise fallback to remote API check (and update DB if remote confirms).
- */
-async function checkFollowRelationshipDBFirst(
-  ownerIgId: string,
-  accessToken: string,
-  commenterUserId: string
+export async function checkFollowRelationshipDBFirst(
+  igScopedUserId: string,
+  pageAccessToken: string
 ): Promise<FollowRelationship> {
-  try {
-    // Ensure DB connected
-    await connectToDatabase();
+  const url = `https://graph.instagram.com/v23.0/${igScopedUserId}?fields=is_user_follow_business&access_token=${pageAccessToken}`;
 
-    // Check local DB
-    const local = await Follower.findOne({
-      ownerIgId,
-      igUserId: commenterUserId,
-      isFollowing: true,
-    }).lean();
-    if (local) {
-      return { follows: true, followed_by: false };
-    }
+  const response = await fetch(url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
 
-    return { follows: false, followed_by: false };
-  } catch (err) {
-    console.error("checkFollowRelationshipDBFirst error:", err);
-    return { follows: false, followed_by: false };
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch Instagram user follow status: ${response.status} ${response.statusText}`
+    );
   }
+
+  const data = await response.json();
+  return data as FollowRelationship;
 }
 
 // ----------------- Instagram API Functions -----------------
@@ -512,12 +448,11 @@ export async function handlePostback(
 
       // Check if user follows - DB-first method
       const followStatus = await checkFollowRelationshipDBFirst(
-        account.instagramId,
-        account.accessToken,
-        recipientId
+        recipientId,
+        account.accessToken
       );
       console.log("Follow status:", followStatus);
-      if (followStatus.follows) {
+      if (followStatus.is_user_follow_business) {
         // User follows - send link directly
         await sendFinalLinkDM(
           account.instagramId,
@@ -574,12 +509,11 @@ export async function handlePostback(
 
       // Verify if user actually followed (DB-first)
       const followStatus = await checkFollowRelationshipDBFirst(
-        account.instagramId,
-        account.accessToken,
-        recipientId
+        recipientId,
+        account.accessToken
       );
 
-      if (followStatus.follows) {
+      if (followStatus.is_user_follow_business) {
         // User is now following - send the link
         await sendFinalLinkDM(
           account.instagramId,
@@ -711,16 +645,6 @@ export async function processComment(
     if (!matchingTemplate) return;
 
     const startTime = Date.now();
-
-    // TOUCH or UPsert follower interaction record (so we track engaged users)
-    // If user is not following yet, we create a record with isFollowing:false so future follow webhook can flip it.
-    try {
-      if (comment.user_id) {
-        await touchFollowerOnInteraction(account.instagramId, comment.user_id);
-      }
-    } catch (err) {
-      console.error("Error touching follower interaction:", err);
-    }
 
     // Process comment - send initial DM to everyone
     try {
@@ -856,30 +780,6 @@ export async function handleInstagramWebhook(
         console.log("Processing comment/follow changes:", entry.changes);
 
         for (const change of entry.changes) {
-          // FOLLOWER CHANGES (NEW)
-          if (change.field === "followers") {
-            try {
-              const verb = change.value?.verb; // "add" or "remove"
-              const followerId = change.value?.follower?.id;
-              if (!followerId) continue;
-
-              if (verb === "add") {
-                // mark follower added for this owner account
-                await markFollowerAdded(ownerIgId, followerId);
-                console.log(
-                  `Follower added recorded owner=${ownerIgId} follower=${followerId}`
-                );
-              } else if (verb === "remove") {
-                await markFollowerRemoved(ownerIgId, followerId);
-                console.log(
-                  `Follower removed recorded owner=${ownerIgId} follower=${followerId}`
-                );
-              }
-            } catch (err) {
-              console.error("Error processing follower change:", err);
-            }
-          }
-
           // COMMENTS
           if (change.field === "comments") {
             const commentData = change.value;
