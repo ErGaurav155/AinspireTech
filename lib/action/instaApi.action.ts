@@ -228,17 +228,17 @@ async function sendFollowReminderDM(
               type: "template",
               payload: {
                 template_type: "button",
-                text: `I noticed you have not followed us yet 😔 It would mean a lot if you visit our profile and hit follow, then tap "I am following" to unlock your link!`,
+                text: `I noticed you have not followed us yet . It would mean a lot if you visit our profile and hit follow, then tap "I am following" to unlock your link!`,
                 buttons: [
-                  {
-                    type: "web_url",
-                    title: "Visit Profile",
-                    url: `https://www.instagram.com/${targetUsername}/`,
-                    webview_height_ratio: "full",
-                  },
+                  // {
+                  //   type: "web_url",
+                  //   title: "Visit Profile",
+                  //   url: `https://www.instagram.com/${targetUsername}/`,
+                  //   webview_height_ratio: "full",
+                  // },
                   {
                     type: "postback",
-                    title: "I am following ✅",
+                    title: "I am following",
                     payload: `VERIFY_FOLLOW_${targetUsername}`,
                   },
                 ],
