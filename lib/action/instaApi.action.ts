@@ -222,7 +222,7 @@ async function sendFollowReminderDM(
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          recipient: { comment_id: recipientId },
+          recipient: { id: recipientId },
           message: {
             attachment: {
               type: "template",
@@ -230,12 +230,12 @@ async function sendFollowReminderDM(
                 template_type: "button",
                 text: `I noticed you have not followed us yet . It would mean a lot if you visit our profile and hit follow, then tap "I am following" to unlock your link!`,
                 buttons: [
-                  // {
-                  //   type: "web_url",
-                  //   title: "Visit Profile",
-                  //   url: `https://www.instagram.com/${targetUsername}/`,
-                  //   webview_height_ratio: "full",
-                  // },
+                  {
+                    type: "web_url",
+                    title: "Visit Profile",
+                    url: `https://www.instagram.com/${targetUsername}/`,
+                    webview_height_ratio: "full",
+                  },
                   {
                     type: "postback",
                     title: "I am following",
@@ -287,13 +287,13 @@ async function sendFinalLinkDM(
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          recipient: { comment_id: recipientId },
+          recipient: { id: recipientId },
           message: {
             attachment: {
               type: "template",
               payload: {
                 template_type: "button",
-                text: `Awesome! Thanks for following! 🎉 ${text}`,
+                text: `Awesome! Thanks for following! ${text}`,
                 buttons: [
                   {
                     type: "web_url",
