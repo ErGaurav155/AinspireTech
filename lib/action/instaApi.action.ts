@@ -159,7 +159,8 @@ async function sendInitialAccessDM(
   accountId: string,
   accessToken: string,
   recipientId: string,
-  targetUsername: string
+  targetUsername: string,
+  templateMediaId: string
 ): Promise<boolean> {
   try {
     const response = await fetch(
@@ -182,7 +183,7 @@ async function sendInitialAccessDM(
                   {
                     type: "postback",
                     title: "Send me the access",
-                    payload: `CHECK_FOLLOW_${targetUsername}`,
+                    payload: `CHECK_FOLLOW_${templateMediaId}`,
                   },
                 ],
               },
@@ -210,7 +211,8 @@ async function sendFollowReminderDM(
   accountId: string,
   accessToken: string,
   recipientId: string,
-  targetUsername: string
+  targetUsername: string,
+  targetTemplate: string
 ): Promise<boolean> {
   try {
     const response = await fetch(
@@ -239,7 +241,7 @@ async function sendFollowReminderDM(
                   {
                     type: "postback",
                     title: "I am following",
-                    payload: `VERIFY_FOLLOW_${targetUsername}`,
+                    payload: `VERIFY_FOLLOW_${targetTemplate}`,
                   },
                 ],
               },
@@ -422,7 +424,6 @@ export async function handlePostback(
 ): Promise<void> {
   try {
     await connectToDatabase();
-    console.log(`Processing postback: ${payload}`);
 
     const account = await InstagramAccount.findOne({ instagramId: accountId });
     if (!account) {
@@ -430,28 +431,35 @@ export async function handlePostback(
       return;
     }
 
-    // Get templates for this user/account
-    const templates = await InstaReplyTemplate.find({
-      userId,
-      accountId,
-      isActive: true,
-    }).sort({ priority: 1 });
-
-    if (templates.length === 0) {
-      console.error("No active templates found for postback");
-      return;
-    }
-
     // Handle CHECK_FOLLOW - when user clicks "Send me the access"
     if (payload.startsWith("CHECK_FOLLOW_")) {
-      const targetUsername = payload.replace("CHECK_FOLLOW_", "");
+      const targetTemplate = payload.replace("CHECK_FOLLOW_", "");
+      // Get templates for this user/account
+      const templates = await InstaReplyTemplate.find({
+        mediaId: targetTemplate,
+        isActive: true,
+      }).sort({ priority: 1 });
+
+      if (templates.length === 0) {
+        console.error("No active templates found for postback");
+        return;
+      }
+      if (templates[0].isFollow === false) {
+        // Directly send link if no follow required
+        await sendFinalLinkDM(
+          account.instagramId,
+          account.accessToken,
+          recipientId,
+          templates[0].content
+        );
+        return;
+      }
 
       // Check if user follows - DB-first method
       const followStatus = await checkFollowRelationshipDBFirst(
         recipientId,
         account.accessToken
       );
-      console.log("Follow status:", followStatus);
       if (followStatus.is_user_follow_business) {
         // User follows - send link directly
         await sendFinalLinkDM(
@@ -466,15 +474,25 @@ export async function handlePostback(
           account.instagramId,
           account.accessToken,
           recipientId,
-          account.username
+          account.username,
+          targetTemplate
         );
       }
     }
 
     // Handle VERIFY_FOLLOW - when user clicks "I am following"
     else if (payload.startsWith("VERIFY_FOLLOW_")) {
-      const targetUsername = payload.replace("VERIFY_FOLLOW_", "");
+      const targetTemplate = payload.replace("VERIFY_FOLLOW_", "");
+      // Get templates for this user/account
+      const templates = await InstaReplyTemplate.find({
+        mediaId: targetTemplate,
+        isActive: true,
+      }).sort({ priority: 1 });
 
+      if (templates.length === 0) {
+        console.error("No active templates found for postback");
+        return;
+      }
       // Verify if user actually followed (DB-first)
       const followStatus = await checkFollowRelationshipDBFirst(
         recipientId,
@@ -495,7 +513,8 @@ export async function handlePostback(
           account.instagramId,
           account.accessToken,
           recipientId,
-          account.username
+          account.username,
+          targetTemplate
         );
       }
     }
@@ -568,7 +587,8 @@ export async function processComment(
         account.instagramId,
         account.accessToken,
         comment.id,
-        account.username
+        account.username,
+        matchingTemplate.mediaId
       );
 
       // Always reply to comment
@@ -643,8 +663,6 @@ export async function handleInstagramWebhook(
 
       // Handle messaging events (postbacks)
       if (entry.messaging && entry.messaging.length > 0) {
-        console.log("Processing messaging events:", entry.messaging);
-
         for (const messageEvent of entry.messaging) {
           if (messageEvent.postback && messageEvent.postback.payload) {
             const account = await InstagramAccount.findOne({
@@ -652,9 +670,6 @@ export async function handleInstagramWebhook(
             });
 
             if (account) {
-              console.log(
-                `Handling postback for account ${account.instagramId}`
-              );
               await handlePostback(
                 account.instagramId,
                 account.userId,
@@ -688,8 +703,6 @@ export async function handleInstagramWebhook(
 
       // Handle comment changes
       if (entry.changes && entry.changes.length > 0) {
-        console.log("Processing comment/follow changes:", entry.changes);
-
         for (const change of entry.changes) {
           // COMMENTS
           if (change.field === "comments") {

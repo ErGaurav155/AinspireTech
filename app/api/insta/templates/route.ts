@@ -96,6 +96,7 @@ export async function POST(req: Request) {
       triggers,
       priority,
       accountUsername,
+      isFollow,
     } = body;
 
     // ✅ Validation
@@ -108,7 +109,8 @@ export async function POST(req: Request) {
       !triggers ||
       !mediaId ||
       !mediaUrl ||
-      !accountUsername
+      !accountUsername ||
+      !isFollow
     ) {
       return NextResponse.json(
         { ok: false, error: "All fields are required" },
@@ -181,6 +183,7 @@ export async function POST(req: Request) {
       mediaUrl,
       accountUsername: accountUsername.toLowerCase(),
       isActive: true,
+      isFollow: isFollow,
       usageCount: 0,
     });
 

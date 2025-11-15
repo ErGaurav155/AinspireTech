@@ -82,6 +82,7 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "@/components/ui/use-toast";
 import { useTheme } from "next-themes";
+import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 
@@ -108,6 +109,8 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const [totalTemplates, setTotalTemplates] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [analyticsData, setAnalyticsData] = useState<any>([]);
+  const [canFollow, setCanFollow] = useState(false);
+
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
@@ -160,6 +163,8 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const [newTemplate, setNewTemplate] = useState({
     name: "",
     content: [{ text: "", link: "" }],
+    isFollow: false,
+
     reply: [""],
     triggers: [""],
     priority: 5,
@@ -554,9 +559,18 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   // Reload templates when search term changes
 
   useEffect(() => {
-    if (userId) {
-      fetchTemplates(account.accountId, true);
-    }
+    const fetchData = async () => {
+      if (userId) {
+        const subs = await getInstaSubscriptionInfo(userId);
+        if (!subs || subs.length === 0) {
+          setCanFollow(false);
+        } else {
+          setCanFollow(true);
+        }
+        fetchTemplates(account.accountId, true);
+      }
+    };
+    fetchData();
   }, [userId, fetchTemplates, account.accountId]);
 
   // Update search effect
@@ -629,6 +643,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
           userId: userId,
           accountId: account.accountId,
           ...newTemplate,
+          isFollow: canFollow ? newTemplate.isFollow : false,
           accountUsername: account.username,
           reply: newTemplate.reply.filter((r) => r.trim() !== ""),
           content: newTemplate.content.filter((c) => c.text.trim() !== ""),
@@ -649,6 +664,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
         setNewTemplate({
           name: "",
           content: [{ text: "", link: "" }],
+          isFollow: false,
           reply: [""],
           triggers: [""],
           priority: 5,
@@ -695,7 +711,10 @@ export default function AccountPage({ params }: { params: { id: string } }) {
       const response = await fetch(`/api/insta/templates/${templateId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(template),
+        body: JSON.stringify({
+          ...template,
+          isFollow: canFollow ? template.isFollow : false,
+        }),
       });
 
       if (response.ok) {
@@ -1374,7 +1393,36 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                         </div>
                       ))}
                     </div>
-
+                    <div
+                      className={` flex items-center justify-between gap-8 p-3 border rounded-md ${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                    >
+                      <p> a DM asking to follow you before they get the link</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="bg-blue-700 px-1 rounded-sm">Paid</div>
+                        <Switch
+                          disabled={!canFollow}
+                          checked={
+                            editingTemplate
+                              ? editingTemplate.isFollow
+                              : newTemplate.isFollow
+                          }
+                          onCheckedChange={() => {
+                            if (editingTemplate) {
+                              setEditingTemplate({
+                                ...editingTemplate,
+                                isFollow: !editingTemplate.isFollow,
+                              });
+                            } else {
+                              setNewTemplate({
+                                ...newTemplate,
+                                isFollow: !newTemplate.isFollow,
+                              });
+                            }
+                          }}
+                          className="self-start  data-[state=checked]:bg-[#00F0FF]"
+                        />
+                      </div>
+                    </div>
                     {/* Triggers Section */}
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
@@ -1790,6 +1838,28 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                                   {trigger}
                                 </Badge>
                               )
+                            )}
+                          </div>
+                        </div>
+                        <div className="pb-2 w-full">
+                          <p className={`text-sm ${textMuted} mb-2`}>
+                            Content For:
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {template.isFollow ? (
+                              <Badge
+                                variant="outline"
+                                className={`text-base font-light font-montserrat ${inputBorder} ${textMuted}`}
+                              >
+                                Followers Only
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className={`text-base font-light font-montserrat ${inputBorder} ${textMuted}`}
+                              >
+                                Everyone
+                              </Badge>
                             )}
                           </div>
                         </div>

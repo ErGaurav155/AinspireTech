@@ -15,6 +15,7 @@ export interface IReplyTemplate extends Document {
   content: IContentItem[]; // Changed from string[] to IContentItem[]
   triggers: string[];
   isActive: boolean;
+  isFollow: boolean;
   priority: number;
   accountUsername: string;
   usageCount: number;
@@ -81,6 +82,10 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    isFollow: {
+      type: Boolean,
+      default: false,
     },
     priority: {
       type: Number,
