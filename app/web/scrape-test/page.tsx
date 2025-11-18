@@ -64,6 +64,39 @@ interface ScrapingResult {
   message?: string;
 }
 
+// Helper functions for safe value access
+const getSafeString = (
+  value: any,
+  fallback: string = "Not available"
+): string => {
+  return value && typeof value === "string" && value.trim() !== ""
+    ? value
+    : fallback;
+};
+
+const getSafeArray = (value: any, fallback: any[] = []): any[] => {
+  return Array.isArray(value) && value.length > 0 ? value : fallback;
+};
+
+const getSafeNumber = (value: any, fallback: number = 0): number => {
+  return typeof value === "number" && !isNaN(value) ? value : fallback;
+};
+
+const getSafeObject = (value: any, fallback: any = {}): any => {
+  return value && typeof value === "object" && Object.keys(value).length > 0
+    ? value
+    : fallback;
+};
+
+const formatDate = (dateString: string): string => {
+  if (!dateString) return "Not available";
+  try {
+    return new Date(dateString).toLocaleString();
+  } catch {
+    return "Invalid date";
+  }
+};
+
 export default function WebsiteContentAnalyzer() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -90,22 +123,82 @@ export default function WebsiteContentAnalyzer() {
         body: JSON.stringify({
           url,
           userId,
-          maxPages: 10,
+          maxPages: 5,
           maxDepth: 2,
         }),
       });
 
-      const data: ScrapingResult = await response.json();
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Scraping failed");
+      }
+
       setResult(data);
     } catch (error) {
       console.error("Request failed:", error);
       setResult({
         success: false,
-        error: "Failed to connect to scraping service",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to connect to scraping service",
       });
     } finally {
       setLoading(false);
     }
+  };
+
+  // Safe data accessors
+  const scrapingInfo = result?.data?.scrapingInfo || {
+    totalPagesScraped: 0,
+    successfulPages: 0,
+    failedPages: 0,
+    scrapedAt: "",
+    baseDomain: "Unknown domain",
+  };
+
+  const contentStatistics = result?.data?.contentStatistics || {
+    totalParagraphs: 0,
+    totalHeadings: 0,
+    totalKeyPoints: 0,
+    totalFeatures: 0,
+    totalBenefits: 0,
+    totalContentSnippets: 0,
+    averageParagraphsPerPage: 0,
+  };
+
+  const pages = getSafeArray(result?.data?.pages);
+  const websiteSummary = result?.data?.websiteSummary || {
+    mainTopics: [],
+    keyServices: [],
+    contentOverview: {},
+  };
+
+  const currentPage = pages[selectedPage] || {
+    url: "",
+    pageInfo: {
+      title: "No page selected",
+      description: "",
+      mainHeading: "",
+      depth: 0,
+    },
+    content: {
+      headings: { h1: [], h2: [], h3: [], h4: [], h5: [], h6: [] },
+      paragraphs: [],
+      keyPoints: [],
+      features: [],
+      benefits: [],
+      mainContent: "",
+    },
+    contentMetrics: {
+      paragraphCount: 0,
+      headingCount: 0,
+      keyPointsCount: 0,
+      featuresCount: 0,
+      benefitsCount: 0,
+      totalContentLength: 0,
+    },
   };
 
   if (!result) {
@@ -168,7 +261,7 @@ export default function WebsiteContentAnalyzer() {
           </h1>
           <p className="text-gray-600">
             Comprehensive content extraction from{" "}
-            {result?.data?.scrapingInfo.baseDomain}
+            {getSafeString(scrapingInfo.baseDomain, "the website")}
           </p>
         </div>
 
@@ -177,7 +270,9 @@ export default function WebsiteContentAnalyzer() {
             <div className="text-red-800 font-medium text-lg mb-2">
               ❌ Analysis Failed
             </div>
-            <p className="text-red-700">{result.error}</p>
+            <p className="text-red-700">
+              {getSafeString(result.error, "Unknown error occurred")}
+            </p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -185,25 +280,25 @@ export default function WebsiteContentAnalyzer() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white rounded-lg shadow-sm p-4 text-center">
                 <div className="text-2xl font-bold text-blue-600">
-                  {result?.data?.scrapingInfo.totalPagesScraped}
+                  {getSafeNumber(scrapingInfo.totalPagesScraped)}
                 </div>
                 <div className="text-gray-600 text-sm">Pages Analyzed</div>
               </div>
               <div className="bg-white rounded-lg shadow-sm p-4 text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {result?.data?.contentStatistics.totalParagraphs}
+                  {getSafeNumber(contentStatistics.totalParagraphs)}
                 </div>
                 <div className="text-gray-600 text-sm">Paragraphs Found</div>
               </div>
               <div className="bg-white rounded-lg shadow-sm p-4 text-center">
                 <div className="text-2xl font-bold text-purple-600">
-                  {result?.data?.contentStatistics.totalHeadings}
+                  {getSafeNumber(contentStatistics.totalHeadings)}
                 </div>
                 <div className="text-gray-600 text-sm">Headings Extracted</div>
               </div>
               <div className="bg-white rounded-lg shadow-sm p-4 text-center">
                 <div className="text-2xl font-bold text-orange-600">
-                  {result?.data?.contentStatistics.totalContentSnippets}
+                  {getSafeNumber(contentStatistics.totalContentSnippets)}
                 </div>
                 <div className="text-gray-600 text-sm">Content Snippets</div>
               </div>
@@ -215,7 +310,7 @@ export default function WebsiteContentAnalyzer() {
                 <nav className="flex -mb-px">
                   {[
                     { id: "overview", name: "Website Overview" },
-                    { id: "pages", name: "Page Contents" },
+                    { id: "pages", name: `Page Contents (${pages.length})` },
                     { id: "topics", name: "Main Topics" },
                     { id: "services", name: "Key Services" },
                   ].map((tab) => (
@@ -253,13 +348,13 @@ export default function WebsiteContentAnalyzer() {
                                 Successful Pages:
                               </dt>
                               <dd className="font-medium">
-                                {result?.data?.scrapingInfo.successfulPages}
+                                {getSafeNumber(scrapingInfo.successfulPages)}
                               </dd>
                             </div>
                             <div className="flex justify-between">
                               <dt className="text-gray-600">Failed Pages:</dt>
                               <dd className="font-medium">
-                                {result?.data?.scrapingInfo.failedPages}
+                                {getSafeNumber(scrapingInfo.failedPages)}
                               </dd>
                             </div>
                             <div className="flex justify-between">
@@ -267,16 +362,31 @@ export default function WebsiteContentAnalyzer() {
                                 Average Paragraphs/Page:
                               </dt>
                               <dd className="font-medium">
-                                {
-                                  result?.data?.contentStatistics
-                                    .averageParagraphsPerPage
-                                }
+                                {getSafeNumber(
+                                  contentStatistics.averageParagraphsPerPage
+                                )}
                               </dd>
                             </div>
                             <div className="flex justify-between">
                               <dt className="text-gray-600">Features Found:</dt>
                               <dd className="font-medium">
-                                {result?.data?.contentStatistics.totalFeatures}
+                                {getSafeNumber(contentStatistics.totalFeatures)}
+                              </dd>
+                            </div>
+                            <div className="flex justify-between">
+                              <dt className="text-gray-600">Key Points:</dt>
+                              <dd className="font-medium">
+                                {getSafeNumber(
+                                  contentStatistics.totalKeyPoints
+                                )}
+                              </dd>
+                            </div>
+                            <div className="flex justify-between">
+                              <dt className="text-gray-600">
+                                Benefits Identified:
+                              </dt>
+                              <dd className="font-medium">
+                                {getSafeNumber(contentStatistics.totalBenefits)}
                               </dd>
                             </div>
                           </dl>
@@ -289,19 +399,94 @@ export default function WebsiteContentAnalyzer() {
                             <div className="flex justify-between">
                               <dt className="text-gray-600">Domain:</dt>
                               <dd className="font-medium">
-                                {result?.data?.scrapingInfo.baseDomain}
+                                {getSafeString(scrapingInfo.baseDomain)}
                               </dd>
                             </div>
-
+                            <div className="flex justify-between">
+                              <dt className="text-gray-600">Analysis Date:</dt>
+                              <dd className="font-medium">
+                                {formatDate(scrapingInfo.scrapedAt)}
+                              </dd>
+                            </div>
                             <div className="flex justify-between">
                               <dt className="text-gray-600">
                                 Total Content Words:
                               </dt>
                               <dd className="font-medium">
-                                {result?.data?.websiteSummary.contentOverview.totalContentWords?.toLocaleString()}
+                                {websiteSummary.contentOverview?.totalContentWords?.toLocaleString() ||
+                                  "Not calculated"}
+                              </dd>
+                            </div>
+                            <div className="flex justify-between">
+                              <dt className="text-gray-600">
+                                Content Density:
+                              </dt>
+                              <dd className="font-medium capitalize">
+                                {getSafeString(
+                                  websiteSummary.contentOverview
+                                    ?.contentDensity,
+                                  "Not calculated"
+                                )}
                               </dd>
                             </div>
                           </dl>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Content Quality Indicators */}
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3">
+                        Content Quality Indicators
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div className="text-center">
+                          <div
+                            className={`text-lg font-bold ${
+                              contentStatistics.totalParagraphs > 0
+                                ? "text-green-600"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {contentStatistics.totalParagraphs > 0 ? "✓" : "○"}
+                          </div>
+                          <div className="text-gray-600">Has Content</div>
+                        </div>
+                        <div className="text-center">
+                          <div
+                            className={`text-lg font-bold ${
+                              contentStatistics.totalHeadings > 0
+                                ? "text-green-600"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {contentStatistics.totalHeadings > 0 ? "✓" : "○"}
+                          </div>
+                          <div className="text-gray-600">Structured</div>
+                        </div>
+                        <div className="text-center">
+                          <div
+                            className={`text-lg font-bold ${
+                              contentStatistics.totalFeatures > 0
+                                ? "text-green-600"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {contentStatistics.totalFeatures > 0 ? "✓" : "○"}
+                          </div>
+                          <div className="text-gray-600">Features Listed</div>
+                        </div>
+                        <div className="text-center">
+                          <div
+                            className={`text-lg font-bold ${
+                              pages.length > 1
+                                ? "text-green-600"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {pages.length > 1 ? "✓" : "○"}
+                          </div>
+                          <div className="text-gray-600">Multiple Pages</div>
                         </div>
                       </div>
                     </div>
@@ -312,175 +497,271 @@ export default function WebsiteContentAnalyzer() {
                 {activeTab === "pages" && (
                   <div className="space-y-6">
                     {/* Page Selector */}
-                    <div className="flex space-x-2 overflow-x-auto pb-2">
-                      {result?.data?.pages.map((page, index) => (
-                        <button
-                          key={page.url}
-                          onClick={() => setSelectedPage(index)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-                            selectedPage === index
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          }`}
-                        >
-                          {page.pageInfo.title || `Page ${index + 1}`}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Page Content */}
-                    {result?.data?.pages[selectedPage] && (
-                      <div className="space-y-6">
-                        {/* Page Header */}
-                        <div className="bg-blue-50 rounded-lg p-4">
-                          <h3 className="text-xl font-bold text-gray-900 mb-2">
-                            {result?.data?.pages[selectedPage].pageInfo.title}
-                          </h3>
-                          <p className="text-blue-700 mb-1">
-                            {
-                              result?.data?.pages[selectedPage].pageInfo
-                                .description
-                            }
-                          </p>
-                          <p className="text-blue-600 text-sm">
-                            {result?.data?.pages[selectedPage].url}
-                          </p>
+                    {pages.length > 0 ? (
+                      <>
+                        <div className="flex space-x-2 overflow-x-auto pb-2">
+                          {pages.map((page, index) => (
+                            <button
+                              key={page.url || index}
+                              onClick={() => setSelectedPage(index)}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
+                                selectedPage === index
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              }`}
+                            >
+                              {getSafeString(
+                                page.pageInfo?.title,
+                                `Page ${index + 1}`
+                              )}
+                            </button>
+                          ))}
                         </div>
 
-                        {/* Content Metrics */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          <div className="bg-white border rounded-lg p-3 text-center">
-                            <div className="text-lg font-bold text-gray-900">
-                              {
-                                result?.data?.pages[selectedPage].contentMetrics
-                                  .paragraphCount
-                              }
-                            </div>
-                            <div className="text-gray-600 text-sm">
-                              Paragraphs
-                            </div>
-                          </div>
-                          <div className="bg-white border rounded-lg p-3 text-center">
-                            <div className="text-lg font-bold text-gray-900">
-                              {
-                                result?.data?.pages[selectedPage].contentMetrics
-                                  .headingCount
-                              }
-                            </div>
-                            <div className="text-gray-600 text-sm">
-                              Headings
-                            </div>
-                          </div>
-                          <div className="bg-white border rounded-lg p-3 text-center">
-                            <div className="text-lg font-bold text-gray-900">
-                              {
-                                result?.data?.pages[selectedPage].contentMetrics
-                                  .keyPointsCount
-                              }
-                            </div>
-                            <div className="text-gray-600 text-sm">
-                              Key Points
+                        {/* Page Content */}
+                        <div className="space-y-6">
+                          {/* Page Header */}
+                          <div className="bg-blue-50 rounded-lg p-4">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">
+                              {getSafeString(
+                                currentPage.pageInfo.title,
+                                "Untitled Page"
+                              )}
+                            </h3>
+                            <p className="text-blue-700 mb-1">
+                              {getSafeString(
+                                currentPage.pageInfo.description,
+                                "No description available"
+                              )}
+                            </p>
+                            <p className="text-blue-600 text-sm break-all">
+                              {getSafeString(
+                                currentPage.url,
+                                "URL not available"
+                              )}
+                            </p>
+                            <div className="mt-2 text-xs text-gray-600">
+                              Depth: {getSafeNumber(currentPage.pageInfo.depth)}{" "}
+                              • Main Heading:{" "}
+                              {getSafeString(
+                                currentPage.pageInfo.mainHeading,
+                                "Not found"
+                              )}
                             </div>
                           </div>
-                        </div>
 
-                        {/* Headings */}
-                        <div className="space-y-4">
-                          <h4 className="font-semibold text-gray-900">
-                            Headings Structure
-                          </h4>
-                          {Object.entries(
-                            result?.data?.pages[selectedPage].content.headings
-                          ).map(
-                            ([level, headings]) =>
-                              headings.length > 0 && (
-                                <div key={level}>
-                                  <h5 className="text-sm font-medium text-gray-700 mb-2 capitalize">
-                                    {level} Headings ({headings.length})
-                                  </h5>
-                                  <div className="space-y-1">
-                                    {headings.map((heading, idx) => (
-                                      <div
-                                        key={idx}
-                                        className="text-gray-900 bg-gray-50 rounded px-3 py-2 text-sm"
-                                      >
-                                        {heading}
-                                      </div>
-                                    ))}
+                          {/* Content Metrics */}
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div className="bg-white border rounded-lg p-3 text-center">
+                              <div className="text-lg font-bold text-gray-900">
+                                {getSafeNumber(
+                                  currentPage.contentMetrics.paragraphCount
+                                )}
+                              </div>
+                              <div className="text-gray-600 text-sm">
+                                Paragraphs
+                              </div>
+                            </div>
+                            <div className="bg-white border rounded-lg p-3 text-center">
+                              <div className="text-lg font-bold text-gray-900">
+                                {getSafeNumber(
+                                  currentPage.contentMetrics.headingCount
+                                )}
+                              </div>
+                              <div className="text-gray-600 text-sm">
+                                Headings
+                              </div>
+                            </div>
+                            <div className="bg-white border rounded-lg p-3 text-center">
+                              <div className="text-lg font-bold text-gray-900">
+                                {getSafeNumber(
+                                  currentPage.contentMetrics.keyPointsCount
+                                )}
+                              </div>
+                              <div className="text-gray-600 text-sm">
+                                Key Points
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Headings */}
+                          <div className="space-y-4">
+                            <h4 className="font-semibold text-gray-900">
+                              Headings Structure
+                            </h4>
+                            {Object.entries(currentPage.content.headings).map(
+                              ([level, headings]) => {
+                                const safeHeadings = getSafeArray(headings);
+                                return safeHeadings.length > 0 ? (
+                                  <div key={level}>
+                                    <h5 className="text-sm font-medium text-gray-700 mb-2 capitalize">
+                                      {level} Headings ({safeHeadings.length})
+                                    </h5>
+                                    <div className="space-y-1">
+                                      {safeHeadings.map((heading, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="text-gray-900 bg-gray-50 rounded px-3 py-2 text-sm"
+                                        >
+                                          {getSafeString(
+                                            heading,
+                                            "Empty heading"
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                              )
-                          )}
-                        </div>
+                                ) : (
+                                  <div
+                                    key={level}
+                                    className="text-sm text-gray-500 italic"
+                                  >
+                                    No {level} headings found
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
 
-                        {/* Paragraphs */}
-                        {result?.data?.pages[selectedPage].content.paragraphs
-                          .length > 0 && (
+                          {/* Paragraphs */}
                           <div>
                             <h4 className="font-semibold text-gray-900 mb-3">
                               Main Content (
                               {
-                                result?.data?.pages[selectedPage].content
-                                  .paragraphs.length
+                                getSafeArray(currentPage.content.paragraphs)
+                                  .length
                               }{" "}
                               paragraphs)
                             </h4>
-                            <div className="space-y-3">
-                              {result?.data?.pages[
-                                selectedPage
-                              ].content.paragraphs.map((paragraph, idx) => (
-                                <p
-                                  key={idx}
-                                  className="text-gray-700 leading-relaxed"
-                                >
-                                  {paragraph}
-                                </p>
-                              ))}
-                            </div>
+                            {currentPage.content.paragraphs.length > 0 ? (
+                              <div className="space-y-3">
+                                {currentPage.content.paragraphs.map(
+                                  (paragraph: any, idx: any) => (
+                                    <p
+                                      key={idx}
+                                      className="text-gray-700 leading-relaxed"
+                                    >
+                                      {getSafeString(
+                                        paragraph,
+                                        "[Empty paragraph]"
+                                      )}
+                                    </p>
+                                  )
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-gray-500 italic">
+                                No paragraphs content extracted from this page.
+                              </p>
+                            )}
                           </div>
-                        )}
 
-                        {/* Key Points */}
-                        {result?.data?.pages[selectedPage].content.keyPoints
-                          .length > 0 && (
+                          {/* Key Points */}
                           <div>
                             <h4 className="font-semibold text-gray-900 mb-3">
-                              Key Points
+                              Key Points (
+                              {
+                                getSafeArray(currentPage.content.keyPoints)
+                                  .length
+                              }
+                              )
                             </h4>
-                            <ul className="space-y-2">
-                              {result?.data?.pages[
-                                selectedPage
-                              ].content.keyPoints.map((point, idx) => (
-                                <li key={idx} className="flex items-start">
-                                  <span className="text-green-500 mr-2">•</span>
-                                  <span className="text-gray-700">{point}</span>
-                                </li>
-                              ))}
-                            </ul>
+                            {currentPage.content.keyPoints.length > 0 ? (
+                              <ul className="space-y-2">
+                                {currentPage.content.keyPoints.map(
+                                  (point: any, idx: any) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-green-500 mr-2">
+                                        •
+                                      </span>
+                                      <span className="text-gray-700">
+                                        {getSafeString(point)}
+                                      </span>
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            ) : (
+                              <p className="text-gray-500 italic">
+                                No key points identified on this page.
+                              </p>
+                            )}
                           </div>
-                        )}
 
-                        {/* Features */}
-                        {result?.data?.pages[selectedPage].content.features
-                          .length > 0 && (
+                          {/* Features */}
                           <div>
                             <h4 className="font-semibold text-gray-900 mb-3">
-                              Features
+                              Features (
+                              {
+                                getSafeArray(currentPage.content.features)
+                                  .length
+                              }
+                              )
                             </h4>
-                            <ul className="space-y-2">
-                              {result?.data?.pages[
-                                selectedPage
-                              ].content.features.map((feature, idx) => (
-                                <li key={idx} className="flex items-start">
-                                  <span className="text-blue-500 mr-2">⚡</span>
-                                  <span className="text-gray-700">
-                                    {feature}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
+                            {currentPage.content.features.length > 0 ? (
+                              <ul className="space-y-2">
+                                {currentPage.content.features.map(
+                                  (feature: any, idx: any) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-blue-500 mr-2">
+                                        ⚡
+                                      </span>
+                                      <span className="text-gray-700">
+                                        {getSafeString(feature)}
+                                      </span>
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            ) : (
+                              <p className="text-gray-500 italic">
+                                No features listed on this page.
+                              </p>
+                            )}
                           </div>
-                        )}
+
+                          {/* Benefits */}
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3">
+                              Benefits (
+                              {
+                                getSafeArray(currentPage.content.benefits)
+                                  .length
+                              }
+                              )
+                            </h4>
+                            {currentPage.content.benefits.length > 0 ? (
+                              <ul className="space-y-2">
+                                {currentPage.content.benefits.map(
+                                  (benefit: any, idx: any) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-green-500 mr-2">
+                                        ✓
+                                      </span>
+                                      <span className="text-gray-700">
+                                        {getSafeString(benefit)}
+                                      </span>
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            ) : (
+                              <p className="text-gray-500 italic">
+                                No benefits identified on this page.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-8">
+                        <div className="text-gray-500 text-lg">
+                          No pages were successfully analyzed.
+                        </div>
+                        <div className="text-sm text-gray-400 mt-2">
+                          This could be due to website restrictions or technical
+                          issues.
+                        </div>
                       </div>
                     )}
                   </div>
@@ -490,20 +771,31 @@ export default function WebsiteContentAnalyzer() {
                 {activeTab === "topics" && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Main Topics Identified
+                      Main Topics Identified (
+                      {getSafeArray(websiteSummary.mainTopics).length})
                     </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {result?.data?.websiteSummary.mainTopics.map(
-                        (topic, index) => (
+                    {websiteSummary.mainTopics.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {websiteSummary.mainTopics.map((topic, index) => (
                           <span
                             key={index}
                             className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
                           >
-                            {topic}
+                            {getSafeString(topic)}
                           </span>
-                        )
-                      )}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <div className="text-gray-500">
+                          No main topics could be identified from the content.
+                        </div>
+                        <div className="text-sm text-gray-400 mt-2">
+                          This usually happens when theres limited textual
+                          content on the website.
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -511,11 +803,12 @@ export default function WebsiteContentAnalyzer() {
                 {activeTab === "services" && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Key Services Offered
+                      Key Services Offered (
+                      {getSafeArray(websiteSummary.keyServices).length})
                     </h3>
-                    <div className="space-y-3">
-                      {result?.data?.websiteSummary.keyServices.map(
-                        (service, index) => (
+                    {websiteSummary.keyServices.length > 0 ? (
+                      <div className="space-y-3">
+                        {websiteSummary.keyServices.map((service, index) => (
                           <div
                             key={index}
                             className="bg-green-50 border border-green-200 rounded-lg p-4"
@@ -523,13 +816,23 @@ export default function WebsiteContentAnalyzer() {
                             <div className="flex items-center">
                               <span className="text-green-500 mr-3">🛠️</span>
                               <span className="text-gray-900 font-medium">
-                                {service}
+                                {getSafeString(service)}
                               </span>
                             </div>
                           </div>
-                        )
-                      )}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <div className="text-gray-500">
+                          No specific services could be identified.
+                        </div>
+                        <div className="text-sm text-gray-400 mt-2">
+                          Services are automatically detected from headings and
+                          key content phrases.
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
