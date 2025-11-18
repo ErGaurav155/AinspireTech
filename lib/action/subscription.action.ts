@@ -118,11 +118,11 @@ export const getSubscription = async (
 export const getSubscriptionInfo = async (userId: string) => {
   try {
     await connectToDatabase(); // Ensure database connection
-
+    console.log("Fetching subscriptions for userId:", userId);
     // Filter subscriptions by userId and subscriptionStatus
     const subscriptions = await WebSubscription.find({
-      userId,
-      productId: {
+      clerkId: userId,
+      chatbotType: {
         $in: [
           "chatbot-customer-support",
           "chatbot-e-commerce",
@@ -130,9 +130,9 @@ export const getSubscriptionInfo = async (userId: string) => {
           "chatbot-education",
         ],
       },
-      subscriptionStatus: "active", // Only fetch active subscriptions
+      status: "active", // Only fetch active subscriptions
     });
-
+    console.log("Fetched subscriptions:", subscriptions);
     if (!subscriptions || subscriptions.length === 0) {
       return []; // Return an empty array if no active subscriptions
     }

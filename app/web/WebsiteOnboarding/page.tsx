@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { WebScapping } from "@/components/shared/WebScapping";
+import { WebScrapping } from "@/components/shared/WebScapping";
 
 const WebsiteOnboard = () => {
   const searchParams = useSearchParams();
@@ -37,7 +37,7 @@ const WebsiteOnboard = () => {
 
   return (
     <div>
-      <WebScapping
+      <WebScrapping
         subscriptionId={subscriptionId}
         userId={userId}
         agentId={agentId}

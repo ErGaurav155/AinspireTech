@@ -677,7 +677,7 @@ export default function Dashboard() {
                           className="h-12 w-12 rounded-full object-cover"
                         />
                         <div
-                          className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 ${badgeBg} ${
+                          className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 $ ${
                             account?.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
                           }`}
                         />

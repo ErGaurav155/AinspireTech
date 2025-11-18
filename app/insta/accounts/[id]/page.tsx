@@ -854,7 +854,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                     className="h-24 w-24 rounded-full object-cover"
                   />
                   <div
-                    className={`absolute -bottom-2 -right-2 h-6 w-6 rounded-full border-2 ${badgeBg} ${
+                    className={`absolute -bottom-2 -right-2 h-6 w-6 rounded-full border-2 ${
                       account.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
                     }`}
                   />

@@ -2,6 +2,7 @@
 /* eslint-disable no-prototype-builtins */
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -390,3 +391,35 @@ import axios from "axios";
 //     throw error;
 //   }
 // }
+// lib/aws-s3.ts
+
+// lib/aws-s3.ts
+
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
+
+export async function uploadToS3(data: any, fileName: string): Promise<string> {
+  try {
+    const jsonData = JSON.stringify(data, null, 2);
+    const buffer = Buffer.from(jsonData, "utf-8");
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET!,
+      Key: `scraped-data/${fileName}.json`,
+      Body: buffer,
+      ContentType: "application/json",
+    });
+
+    await s3Client.send(command);
+
+    return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/scraped-data/${fileName}.json`;
+  } catch (error: any) {
+    console.error("S3 upload error:", error);
+    throw new Error(`Failed to upload to S3: ${error.message}`);
+  }
+}

@@ -1,37 +1,16 @@
+// components/shared/WebScrapping.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  getUserByDbId,
   getUserById,
   setScrappedFile,
   setWebsiteScrapped,
 } from "@/lib/action/user.actions";
-import { getAgentSubscriptionInfo } from "@/lib/action/subscription.action";
-import {
-  sendSubscriptionEmailToOwner,
-  sendSubscriptionEmailToUser,
-} from "@/lib/action/sendEmail.action";
 import { useRouter } from "next/navigation";
+import { sendSubscriptionEmailToUser } from "@/lib/action/sendEmail.action";
 
-const formSchema = z.object({
-  websiteUrl: z.string().url("Invalid URL").min(1, "Website URL is required"),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
-export const WebScapping = ({
+export const WebScrapping = ({
   userId,
   agentId,
   subscriptionId,
@@ -41,78 +20,77 @@ export const WebScapping = ({
   subscriptionId: string;
 }) => {
   const [loading, setLoading] = useState(false);
-
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [scrapingStatus, setScrapingStatus] = useState(
+    "Initializing AWS scraping..."
+  );
 
   const router = useRouter();
-  const {
-    handleSubmit,
-    register,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-  });
-  const processSubscription = async () => {
+
+  const processSubscription = useCallback(async () => {
     try {
-      const agentSubscriptions = await getAgentSubscriptionInfo(
-        String(userId),
-        String(agentId)
-      );
-      console.log("agentSubscriptions:", agentSubscriptions);
+      setScrapingStatus("Validating subscription and getting website URL...");
 
-      if (!agentSubscriptions.length) {
-        console.log("I run here");
-
-        router.push("/");
-        return;
-      }
-
+      // Get user data with website URL (your existing logic)
       const user = await getUserById(userId);
       const mainUrl = user.websiteUrl;
-      if (user.isScrapped) {
-        console.log("I am not here");
 
+      if (user.isScrapped) {
         router.push("/");
         return;
       }
-      const response = await fetch("/api/scrape-anu", {
+
+      setScrapingStatus("Starting AWS-powered website scraping...");
+
+      // Call the enhanced AWS scraping API
+      const response = await fetch("/api/scrape", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ mainUrl, userId }),
+        body: JSON.stringify({
+          url: mainUrl,
+          userId: userId,
+          subscriptionId: subscriptionId,
+        }),
       });
 
       const data = await response.json();
+
       if (data.success) {
-        console.log("I scrapped successfully here");
+        setScrapingStatus("Storing scraped data reference in database...");
 
-        await setScrappedFile(userId, data.fileName);
+        // Store the S3 URL in your MongoDB
+        await setScrappedFile(userId, data.s3Url);
+
+        setScrapingStatus("Finalizing scraping process...");
+        await setWebsiteScrapped(userId);
+
+        setScrapingStatus("Completed! Redirecting to dashboard...");
+
+        // Optional: Send confirmation emails (your existing logic)
+        await sendSubscriptionEmailToUser({
+          email: user.email,
+          userDbId: user._id,
+          agentId: agentId,
+          subscriptionId: subscriptionId,
+        });
+
+        router.push("/web/UserDashboard");
       } else {
-        console.error("Error:", data.message);
+        console.error("AWS Scraping Error:", data.error);
+        setScrapingStatus(`Scraping failed: ${data.error}. Redirecting...`);
+        router.push("/web/UserDashboard");
       }
-      await sendSubscriptionEmailToOwner({
-        email: "gauravgkhaire155@gmail.com",
-        userDbId: user._id,
-        subscriptionId: subscriptionId,
-      });
-
-      await sendSubscriptionEmailToUser({
-        email: user.email,
-        userDbId: user._id,
-        agentId: agentId,
-        subscriptionId: subscriptionId,
-      });
-
-      await setWebsiteScrapped(userId);
-      router.push("/web/UserDashboard");
     } catch (error) {
-      console.error("Error during subscription process:", error);
+      console.error("Error during AWS scraping process:", error);
+      setScrapingStatus("Error occurred during scraping. Redirecting...");
       router.push("/web/UserDashboard");
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, agentId, subscriptionId, router]);
+
   useEffect(() => {
     const executeProcess = async () => {
       if (!isSubmitted) {
@@ -123,27 +101,33 @@ export const WebScapping = ({
     };
 
     executeProcess();
-  });
+  }, [isSubmitted, processSubscription]);
 
   return (
-    <>
-      <AlertDialog defaultOpen>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <div className="flex-between ">
-              <p className="p-16-semibold text-green-400">Payment Success...</p>
+    <div className="p-6">
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-bold text-green-600 mb-4">
+          AWS Website Scraping in Progress
+        </h2>
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3">
+            <div
+              className={`w-3 h-3 rounded-full ${
+                loading ? "bg-yellow-500 animate-pulse" : "bg-green-500"
+              }`}
+            ></div>
+            <p className="text-gray-700">{scrapingStatus}</p>
+          </div>
+          {loading && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-blue-700 text-sm">
+                <strong>AWS Services Used:</strong> Lambda (Puppeteer) → S3
+                (Storage) → MongoDB (Reference)
+              </p>
             </div>
-
-            <AlertDialogTitle className="p-24-bold text-green-600">
-              Your Info On Website is Learn By Our Ai...Might Take 24 Hours.
-            </AlertDialogTitle>
-
-            <AlertDialogDescription className="p-16-regular py-3 text-green-500">
-              Redirect To UserDashboard Copy Green Box Code Add To Your Website.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };

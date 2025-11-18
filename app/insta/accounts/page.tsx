@@ -476,7 +476,7 @@ export default function AccountsPage() {
                           className="h-16 w-16 rounded-full object-cover"
                         />
                         <div
-                          className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 ${badgeBg} ${
+                          className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2  ${
                             account?.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
                           }`}
                         />
