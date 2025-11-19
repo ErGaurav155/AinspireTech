@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 
 interface ScrapedData {
@@ -426,40 +425,6 @@ export default function HomePage() {
                             ))}
                         </div>
                       </div>
-
-                      {/* Images */}
-                      {page.content.images &&
-                        page.content.images.length > 0 && (
-                          <div>
-                            <h4 className="font-semibold text-gray-700 text-sm mb-2">
-                              Images ({page.content.images.length})
-                            </h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                              {page.content.images
-                                .slice(0, 6)
-                                .map((image, i) => (
-                                  <div key={i} className="border rounded p-2">
-                                    <Image
-                                      src={image.src}
-                                      alt={image.alt || `Image ${i + 1}`}
-                                      height={20}
-                                      width={20}
-                                      className="w-full h-20 object-cover rounded"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).src =
-                                          "/placeholder-image.png";
-                                      }}
-                                    />
-                                    {image.alt && (
-                                      <p className="text-xs text-gray-600 mt-1 truncate">
-                                        {image.alt}
-                                      </p>
-                                    )}
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
-                        )}
 
                       {/* Paragraphs */}
                       {page.content.paragraphs.length > 0 && (
