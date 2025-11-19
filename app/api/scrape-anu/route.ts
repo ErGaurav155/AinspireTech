@@ -3,38 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const maxDuration = 30;
 
-// Use GitHub URL for production, local file for development
-const CHROMIUM_PACK_URL = process.env.VERCEL
-  ? "https://github.com/ErGaurav155/AinspireTech/raw/main/public/chromium-pack.tar"
-  : "/chromium-pack.tar";
-
-let cachedExecutablePath: string | null = null;
-let downloadPromise: Promise<string> | null = null;
-
-async function getChromiumPath(): Promise<string> {
-  if (cachedExecutablePath) return cachedExecutablePath;
-
-  if (!downloadPromise) {
-    const chromium = (await import("@sparticuz/chromium-min")).default;
-    downloadPromise = chromium
-      .executablePath(CHROMIUM_PACK_URL)
-      .then((path) => {
-        cachedExecutablePath = path;
-        console.log("✅ Chromium path resolved:", path);
-        console.log("🔗 Using Chromium URL:", CHROMIUM_PACK_URL);
-        return path;
-      })
-      .catch((error) => {
-        console.error("❌ Failed to get Chromium path:", error);
-        console.log("🔗 Attempted URL:", CHROMIUM_PACK_URL);
-        downloadPromise = null;
-        throw error;
-      });
-  }
-
-  return downloadPromise;
-}
-
 class TextContentScraper {
   private visitedUrls: Set<string> = new Set();
   private scrapedPages: any[] = [];
@@ -55,65 +23,51 @@ class TextContentScraper {
           "--disable-setuid-sandbox",
           "--disable-dev-shm-usage",
           "--disable-gpu",
+          "--single-process",
+          "--no-zygote",
         ],
       };
 
       console.log(`🌐 Starting content scraping from: ${startUrl}`);
       console.log(`🏷️ Environment: ${process.env.NODE_ENV}`);
       console.log(`🚀 Vercel: ${isVercel}`);
-      console.log(`🔗 Chromium URL: ${CHROMIUM_PACK_URL}`);
 
       if (isVercel) {
-        // Vercel production - use puppeteer-core with GitHub chromium-pack.tar
+        // Vercel production - use @sparticuz/chromium-min with simplified setup
         const chromium = (await import("@sparticuz/chromium-min")).default;
         puppeteer = await import("puppeteer-core");
 
+        console.log("🚀 Using @sparticuz/chromium-min for production...");
+
         try {
-          const executablePath = await getChromiumPath();
-          console.log("🔧 Using Chromium executable path:", executablePath);
+          // Use the default executable path without custom tar files
+          const executablePath = await chromium.executablePath();
+          console.log("✅ Chromium executable path:", executablePath);
 
           launchOptions = {
             ...launchOptions,
-            args: [
-              ...chromium.args,
-              "--no-sandbox",
-              "--disable-setuid-sandbox",
-              "--disable-dev-shm-usage",
-              "--disable-gpu",
-              "--single-process",
-              "--no-zygote",
-            ],
+            args: chromium.args,
             executablePath,
+            headless: chromium.headless,
             ignoreHTTPSErrors: true,
           };
         } catch (chromiumError) {
-          console.error(
-            "❌ Chromium setup failed, falling back to default:",
-            chromiumError
-          );
-          // Fallback: let @sparticuz/chromium-min handle it automatically
-          const executablePath = await chromium.executablePath();
-          launchOptions.executablePath = executablePath;
-          launchOptions.args = chromium.args;
+          console.error("❌ Chromium setup failed:", chromiumError);
+          throw new Error(`Chromium initialization failed: ${chromiumError}`);
         }
       } else {
         // Local development - use regular puppeteer with system Chrome
+        console.log("💻 Using local Chrome for development...");
         puppeteer = await import("puppeteer");
         launchOptions.executablePath = getChromePath();
-        console.log("💻 Using local Chrome:", launchOptions.executablePath);
+        console.log("🔧 Using local Chrome:", launchOptions.executablePath);
       }
 
       this.baseDomain = new URL(startUrl).hostname;
 
-      // Launch browser
-      browser = await puppeteer.launch({
-        ...launchOptions,
-        defaultViewport: {
-          width: 1280,
-          height: 720,
-        },
-      });
-
+      // Launch browser with timeout
+      console.log("🔄 Launching browser...");
+      browser = await puppeteer.launch(launchOptions);
       console.log("✅ Browser launched successfully");
 
       // Start recursive scraping
@@ -125,8 +79,7 @@ class TextContentScraper {
 
       // Generate comprehensive content report
       const contentReport = this.generateContentReport();
-
-      console.log("📊 Scrape metadata generated:", contentReport.scrapingInfo);
+      console.log("📊 Scrape metadata generated");
 
       return {
         success: true,
@@ -140,8 +93,12 @@ class TextContentScraper {
       };
     } finally {
       if (browser) {
-        await browser.close().catch(console.error);
-        console.log("🔚 Browser closed");
+        try {
+          await browser.close();
+          console.log("🔚 Browser closed");
+        } catch (closeError) {
+          console.error("❌ Error closing browser:", closeError);
+        }
       }
     }
   }
@@ -173,12 +130,16 @@ class TextContentScraper {
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
       );
 
+      // Set longer timeouts for Vercel
+      await page.setDefaultNavigationTimeout(30000);
+      await page.setDefaultTimeout(30000);
+
       await page.goto(url, {
-        waitUntil: "domcontentloaded",
-        timeout: 15000, // Increased timeout
+        waitUntil: "networkidle0",
+        timeout: 30000,
       });
 
-      await page.waitForSelector("body", { timeout: 5000 });
+      await page.waitForSelector("body", { timeout: 10000 });
 
       // Extract comprehensive text content
       const pageContent = await page.evaluate(() => {
@@ -202,8 +163,8 @@ class TextContentScraper {
         const extractParagraphs = () => {
           const allParagraphs = Array.from(document.querySelectorAll("p"))
             .map((p) => p.textContent?.trim() || "")
-            .filter((text) => text.length > 20 && text.length < 2000)
-            .slice(0, 20);
+            .filter((text) => text.length > 20 && text.length < 1000)
+            .slice(0, 10); // Reduced for Vercel
           return allParagraphs;
         };
 
@@ -213,7 +174,7 @@ class TextContentScraper {
               src: img.src || "",
               alt: img.alt || "",
             }))
-            .slice(0, 10); // Limit images
+            .slice(0, 5); // Reduced for Vercel
         };
 
         return {
@@ -225,7 +186,7 @@ class TextContentScraper {
           paragraphs: extractParagraphs(),
           images: extractImages(),
           mainContent:
-            document.body.textContent?.substring(0, 2000).trim() || "",
+            document.body.textContent?.substring(0, 1000).trim() || "", // Reduced for Vercel
         };
       });
 
@@ -237,7 +198,7 @@ class TextContentScraper {
 
       this.scrapedPages.push(scrapedPage);
 
-      // Extract internal links for further crawling
+      // Extract internal links for further crawling (simplified for Vercel)
       if (depth < this.maxDepth && this.scrapedPages.length < this.maxPages) {
         const internalLinks = await page.evaluate((baseDomain: string) => {
           const allLinks = Array.from(document.querySelectorAll("a[href]"));
@@ -266,7 +227,7 @@ class TextContentScraper {
             }
           });
 
-          return [...new Set(internalLinks)].slice(0, 3); // Reduced for stability
+          return [...new Set(internalLinks)].slice(0, 2); // Further reduced for Vercel
         }, this.baseDomain);
 
         // Recursively scrape discovered links
@@ -294,7 +255,11 @@ class TextContentScraper {
         depth,
       });
     } finally {
-      await page.close().catch(console.error);
+      try {
+        await page.close();
+      } catch (closeError) {
+        console.error("Error closing page:", closeError);
+      }
     }
   }
 
@@ -418,7 +383,7 @@ function getChromePath(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { url, userId, maxPages = 3, maxDepth = 1 } = await request.json();
+    const { url, userId, maxPages = 2, maxDepth = 1 } = await request.json(); // Reduced limits for Vercel
 
     if (!url || !userId) {
       return NextResponse.json(
@@ -481,7 +446,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Optional: Add GET endpoint to check Chromium status
+// Chromium status check endpoint
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -489,14 +454,15 @@ export async function GET(request: NextRequest) {
 
     if (checkChromium) {
       try {
-        const path = await getChromiumPath();
+        const chromium = (await import("@sparticuz/chromium-min")).default;
+        const executablePath = await chromium.executablePath();
+
         return NextResponse.json({
           success: true,
           chromium: {
-            path,
+            path: executablePath,
             status: "ready",
-            source: process.env.VERCEL ? "github" : "local",
-            url: CHROMIUM_PACK_URL,
+            source: "auto-download",
           },
         });
       } catch (error: any) {
@@ -505,8 +471,7 @@ export async function GET(request: NextRequest) {
           chromium: {
             status: "error",
             error: error.message,
-            source: process.env.VERCEL ? "github" : "local",
-            url: CHROMIUM_PACK_URL,
+            source: "auto-download",
           },
         });
       }
