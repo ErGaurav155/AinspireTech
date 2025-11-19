@@ -41,7 +41,7 @@ const nextConfig = {
         ...config.resolve.fallback,
         puppeteer: false,
         "puppeteer-core": false,
-        "chrome-aws-lambda": false,
+        "@sparticuz/chromium-min": false,
         fs: false,
         net: false,
         tls: false,
@@ -54,13 +54,19 @@ const nextConfig = {
   },
 
   experimental: {
-    serverComponentsExternalPackages: ["puppeteer-core", "chrome-aws-lambda"],
+    serverComponentsExternalPackages: [
+      "puppeteer-core",
+      "@sparticuz/chromium-min",
+    ],
   },
 
   transpilePackages: [],
 
   // Increase timeout for API routes
   staticPageGenerationTimeout: 60,
+
+  // Add output standalone for better serverless compatibility
+  output: "standalone",
 };
 
 module.exports = nextConfig;
