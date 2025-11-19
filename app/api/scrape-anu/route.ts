@@ -18,6 +18,11 @@ async function getPuppeteer() {
   if (process.env.NODE_ENV === "development") {
     // Development: Use local Chrome
     const { default: puppeteer } = await import("puppeteer-core");
+
+    if (!process.env.CHROME_EXECUTABLE_PATH) {
+      throw new Error("CHROME_EXECUTABLE_PATH is required for development");
+    }
+
     return {
       puppeteer,
       executablePath: getChromePath(),
@@ -31,23 +36,56 @@ async function getPuppeteer() {
   } else {
     // Production: Use @sparticuz/chromium-min (Vercel compatible)
     try {
-      const chromium = await import("@sparticuz/chromium-min");
+      const chromiumModule = await import("@sparticuz/chromium-min");
       const { default: puppeteer } = await import("puppeteer-core");
 
-      // Set Chromium path explicitly for Vercel
-      await chromium.default.font(
-        "https://raw.githack.com/googlei18n/noto-emoji/master/fonts/NotoColorEmoji.ttf"
+      // Access the chromium instance correctly
+      const chromium = chromiumModule.default;
+
+      // Use the working Chromium binary URL
+      const executablePath = await chromium.executablePath(
+        `https://github.com/Sparticuz/chromium/releases/download/v116.0.0/chromium-v116.0.0-pack.tar`
       );
+
+      console.log("Chromium executable path resolved:", executablePath);
 
       return {
         puppeteer,
-        executablePath: await chromium.default.executablePath(),
-        args: chromium.default.args,
+        executablePath,
+        args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
       };
     } catch (error) {
       console.error("Failed to load chromium:", error);
       throw new Error("Chromium initialization failed");
     }
+  }
+}
+
+// Alternative browser launch function using the working pattern
+async function launchBrowser() {
+  if (process.env.NODE_ENV === "development") {
+    const { default: puppeteer } = await import("puppeteer-core");
+    return puppeteer.launch({
+      executablePath: getChromePath(),
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: true,
+    });
+  } else {
+    const chromiumModule = await import("@sparticuz/chromium-min");
+    const { default: puppeteer } = await import("puppeteer-core");
+
+    // Access the chromium instance correctly
+    const chromium = chromiumModule.default;
+
+    return puppeteer.launch({
+      args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(
+        `https://github.com/Sparticuz/chromium/releases/download/v116.0.0/chromium-v116.0.0-pack.tar`
+      ),
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
+    });
   }
 }
 
@@ -62,53 +100,14 @@ class TextContentScraper {
     let browser = null;
 
     try {
-      const { puppeteer, executablePath, args } = await getPuppeteer();
-
       this.baseDomain = new URL(startUrl).hostname;
 
       console.log(`Starting content scraping from: ${startUrl}`);
       console.log(`Environment: ${process.env.NODE_ENV}`);
-      console.log(`Executable path: ${executablePath}`);
 
-      // Launch browser with Vercel-compatible configuration
-      browser = await puppeteer.launch({
-        args: [
-          ...args,
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--disable-gpu",
-          "--single-process",
-          "--no-zygote",
-          "--disable-web-security",
-          "--disable-features=VizDisplayCompositor",
-          "--disable-software-rasterizer",
-          "--disable-background-timer-throttling",
-          "--disable-backgrounding-occluded-windows",
-          "--disable-renderer-backgrounding",
-          "--disable-field-trial-config",
-          "--disable-back-forward-cache",
-          "--disable-component-extensions-with-background-pages",
-          "--disable-default-apps",
-          "--disable-extensions",
-          "--disable-translate",
-          "--disable-sync",
-          "--metrics-recording-only",
-          "--mute-audio",
-          "--no-default-browser-check",
-          "--no-first-run",
-          "--use-gl=swiftshader",
-          "--hide-scrollbars",
-          "--disable-ipc-flooding-protection",
-        ],
-        defaultViewport: {
-          width: 1280,
-          height: 720,
-        },
-        executablePath: "/var/task/node_modules/@sparticuz/chromium/bin",
-        headless: true,
-        ignoreHTTPSErrors: true,
-      });
+      // Use the working browser launch function
+      browser = await launchBrowser();
+      console.log("Browser launched successfully");
 
       // Start recursive scraping
       await this.scrapePageContent(browser, startUrl, 0);
@@ -182,16 +181,16 @@ class TextContentScraper {
 
     try {
       await page.setUserAgent(
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
       );
 
-      // Set longer timeout for Vercel
+      // Set reasonable timeout
       await page.goto(url, {
         waitUntil: "domcontentloaded",
-        timeout: 10000,
+        timeout: 15000,
       });
 
-      await page.waitForSelector("body", { timeout: 5000 });
+      await page.waitForSelector("body", { timeout: 8000 });
 
       // Extract comprehensive text content
       const pageContent = await page.evaluate(() => {
@@ -216,8 +215,19 @@ class TextContentScraper {
           const allParagraphs = Array.from(document.querySelectorAll("p"))
             .map((p) => p.textContent?.trim() || "")
             .filter((text) => text.length > 20 && text.length < 2000)
-            .slice(0, 20); // Reduced for Vercel
+            .slice(0, 20);
           return allParagraphs;
+        };
+
+        const extractKeyPoints = () => {
+          const keyPoints: string[] = [];
+
+          // Extract list items
+          const listItems = Array.from(document.querySelectorAll("li"))
+            .map((li) => li.textContent?.trim() || "")
+            .filter((text) => text.length > 10 && text.length < 200);
+
+          return [...new Set(listItems)].slice(0, 10);
         };
 
         return {
@@ -227,8 +237,9 @@ class TextContentScraper {
           mainHeading: document.querySelector("h1")?.textContent?.trim() || "",
           headings: extractHeadings(),
           paragraphs: extractParagraphs(),
+          keyPoints: extractKeyPoints(),
           mainContent:
-            document.body.textContent?.substring(0, 2000).trim() || "", // Reduced for Vercel
+            document.body.textContent?.substring(0, 3000).trim() || "",
         };
       });
 
@@ -240,7 +251,7 @@ class TextContentScraper {
 
       this.scrapedPages.push(scrapedPage);
 
-      // Extract internal links for further crawling (simplified for Vercel)
+      // Extract internal links for further crawling
       if (depth < this.maxDepth) {
         const internalLinks = await page.evaluate((baseDomain: string) => {
           const allLinks = Array.from(document.querySelectorAll("a[href]"));
@@ -258,7 +269,10 @@ class TextContentScraper {
                   !absoluteUrl.includes("#") &&
                   !absoluteUrl.includes("mailto:") &&
                   !absoluteUrl.includes("tel:") &&
-                  !absoluteUrl.includes("javascript:")
+                  !absoluteUrl.includes("javascript:") &&
+                  !absoluteUrl.match(
+                    /\.(pdf|doc|docx|xls|xlsx|zip|rar|jpg|jpeg|png|gif)$/i
+                  )
                 ) {
                   internalLinks.push(absoluteUrl);
                 }
@@ -268,7 +282,7 @@ class TextContentScraper {
             }
           });
 
-          return [...new Set(internalLinks)].slice(0, 5); // Further reduced for Vercel
+          return [...new Set(internalLinks)].slice(0, 8);
         }, this.baseDomain);
 
         // Recursively scrape discovered links
@@ -289,6 +303,7 @@ class TextContentScraper {
         mainHeading: "",
         headings: {},
         paragraphs: [],
+        keyPoints: [],
         mainContent: "",
         status: "failed",
         error: error.message,
@@ -304,6 +319,20 @@ class TextContentScraper {
       (page: any) => page.status === "success"
     );
 
+    const totalParagraphs = successfulPages.reduce(
+      (sum: number, page: any) => sum + page.paragraphs.length,
+      0
+    );
+    const totalHeadings = successfulPages.reduce(
+      (sum: number, page: any) =>
+        sum + Object.values(page.headings).flat().length,
+      0
+    );
+    const totalKeyPoints = successfulPages.reduce(
+      (sum: number, page: any) => sum + page.keyPoints.length,
+      0
+    );
+
     return {
       scrapingInfo: {
         scrapedAt: new Date().toISOString(),
@@ -315,24 +344,17 @@ class TextContentScraper {
         maxPages: this.maxPages,
         maxDepth: this.maxDepth,
         environment: process.env.NODE_ENV,
+        method: "puppeteer",
       },
       contentStatistics: {
-        totalParagraphs: successfulPages.reduce(
-          (sum: number, page: any) => sum + page.paragraphs.length,
-          0
-        ),
-        totalHeadings: successfulPages.reduce(
-          (sum: number, page: any) =>
-            sum + Object.values(page.headings).flat().length,
-          0
-        ),
-        totalContentSnippets: successfulPages.reduce(
-          (sum: number, page: any) =>
-            sum +
-            page.paragraphs.length +
-            Object.values(page.headings).flat().length,
-          0
-        ),
+        totalParagraphs,
+        totalHeadings,
+        totalKeyPoints,
+        totalFeatures: 0,
+        totalBenefits: 0,
+        totalContentSnippets: totalParagraphs + totalHeadings + totalKeyPoints,
+        averageParagraphsPerPage:
+          Math.round(totalParagraphs / successfulPages.length) || 0,
       },
       pages: successfulPages.map((page: any) => ({
         url: page.url,
@@ -345,6 +367,9 @@ class TextContentScraper {
         content: {
           headings: page.headings,
           paragraphs: page.paragraphs,
+          keyPoints: page.keyPoints,
+          features: [],
+          benefits: [],
           mainContent:
             page.mainContent.substring(0, 500) +
             (page.mainContent.length > 500 ? "..." : ""),
@@ -352,12 +377,24 @@ class TextContentScraper {
         contentMetrics: {
           paragraphCount: page.paragraphs.length,
           headingCount: Object.values(page.headings).flat().length,
+          keyPointsCount: page.keyPoints.length,
+          featuresCount: 0,
+          benefitsCount: 0,
           totalContentLength: page.mainContent.length,
         },
       })),
       websiteSummary: {
         mainTopics: this.extractMainTopics(successfulPages),
-        totalPages: successfulPages.length,
+        keyServices: this.extractServices(successfulPages),
+        contentOverview: {
+          totalContentWords: successfulPages.reduce(
+            (sum: number, page: any) =>
+              sum + page.mainContent.split(/\s+/).length,
+            0
+          ),
+          uniquePages: successfulPages.length,
+          contentDensity: successfulPages.length > 2 ? "high" : "medium",
+        },
       },
     };
   }
@@ -379,14 +416,37 @@ class TextContentScraper {
 
     return Array.from(commonWords.entries())
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
+      .slice(0, 8)
       .map(([word]) => word);
+  }
+
+  private extractServices(pages: any[]): string[] {
+    const services: string[] = [];
+
+    pages.forEach((page: any) => {
+      const serviceIndicators = [
+        ...Object.values(page.headings).flat(),
+        ...page.keyPoints,
+        ...page.paragraphs,
+      ];
+
+      serviceIndicators.forEach((text: string) => {
+        if (
+          text.match(/(generator|tool|service|feature|create|build|make)/i) &&
+          text.length < 100
+        ) {
+          services.push(text);
+        }
+      });
+    });
+
+    return [...new Set(services)].slice(0, 10);
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { url, userId, maxPages = 3, maxDepth = 1 } = await request.json(); // Further reduced for Vercel
+    const { url, userId, maxPages = 3, maxDepth = 1 } = await request.json();
 
     if (!url || !userId) {
       return NextResponse.json(
@@ -424,7 +484,7 @@ export async function POST(request: NextRequest) {
         success: true,
         s3Url: result.s3Url,
         data: result.data,
-        message: `Successfully extracted content from ${result?.data?.scrapingInfo.totalPagesScraped} pages`,
+        message: `Successfully extracted content from ${result?.data?.scrapingInfo.totalPagesScraped} pages using Puppeteer`,
       });
     } else {
       return NextResponse.json(
