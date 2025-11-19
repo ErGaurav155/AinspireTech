@@ -442,6 +442,8 @@ export default function HomePage() {
                                     <Image
                                       src={image.src}
                                       alt={image.alt || `Image ${i + 1}`}
+                                      height={20}
+                                      width={20}
                                       className="w-full h-20 object-cover rounded"
                                       onError={(e) => {
                                         (e.target as HTMLImageElement).src =
