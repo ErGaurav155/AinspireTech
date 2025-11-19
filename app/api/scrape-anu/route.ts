@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const maxDuration = 30;
 
-// Use the local file in public folder for both development and production
-const CHROMIUM_PACK_URL = "/chromium-pack.tar";
+// Use GitHub URL for production, local file for development
+const CHROMIUM_PACK_URL = process.env.VERCEL
+  ? "https://github.com/ErGaurav155/AinspireTech/raw/main/public/chromium-pack.tar"
+  : "/chromium-pack.tar";
 
 let cachedExecutablePath: string | null = null;
 let downloadPromise: Promise<string> | null = null;
@@ -19,10 +21,12 @@ async function getChromiumPath(): Promise<string> {
       .then((path) => {
         cachedExecutablePath = path;
         console.log("✅ Chromium path resolved:", path);
+        console.log("🔗 Using Chromium URL:", CHROMIUM_PACK_URL);
         return path;
       })
       .catch((error) => {
         console.error("❌ Failed to get Chromium path:", error);
+        console.log("🔗 Attempted URL:", CHROMIUM_PACK_URL);
         downloadPromise = null;
         throw error;
       });
@@ -57,9 +61,10 @@ class TextContentScraper {
       console.log(`🌐 Starting content scraping from: ${startUrl}`);
       console.log(`🏷️ Environment: ${process.env.NODE_ENV}`);
       console.log(`🚀 Vercel: ${isVercel}`);
+      console.log(`🔗 Chromium URL: ${CHROMIUM_PACK_URL}`);
 
       if (isVercel) {
-        // Vercel production - use puppeteer-core with our chromium-pack.tar
+        // Vercel production - use puppeteer-core with GitHub chromium-pack.tar
         const chromium = (await import("@sparticuz/chromium-min")).default;
         puppeteer = await import("puppeteer-core");
 
@@ -490,6 +495,8 @@ export async function GET(request: NextRequest) {
           chromium: {
             path,
             status: "ready",
+            source: process.env.VERCEL ? "github" : "local",
+            url: CHROMIUM_PACK_URL,
           },
         });
       } catch (error: any) {
@@ -498,6 +505,8 @@ export async function GET(request: NextRequest) {
           chromium: {
             status: "error",
             error: error.message,
+            source: process.env.VERCEL ? "github" : "local",
+            url: CHROMIUM_PACK_URL,
           },
         });
       }
