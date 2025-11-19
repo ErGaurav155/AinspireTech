@@ -86,42 +86,6 @@ export default function HomePage() {
   >("checking");
   const { userId, isLoaded } = useAuth();
 
-  // Check Chromium status on component mount
-  useEffect(() => {
-    checkChromiumStatus();
-  }, []);
-
-  const checkChromiumStatus = async () => {
-    try {
-      const response = await fetch("/api/scrape?checkChromium=true");
-      const data = await response.json();
-      setChromiumStatus(data.success ? "ready" : "error");
-    } catch (error) {
-      console.error("Failed to check Chromium status:", error);
-      setChromiumStatus("error");
-    }
-  };
-
-  const loadHistory = useCallback(async () => {
-    if (!userId) return;
-
-    try {
-      const response = await fetch(`/api/scrapes?userId=${userId}`);
-      if (response.ok) {
-        const result = await response.json();
-        setHistory(result.data || []);
-      }
-    } catch (err) {
-      console.error("Failed to load history:", err);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    if (isLoaded && userId) {
-      loadHistory();
-    }
-  }, [isLoaded, userId, loadHistory]);
-
   const handleScrape = async () => {
     if (!userId) {
       setError("Please sign in to use the scraper");
@@ -150,7 +114,7 @@ export default function HomePage() {
     setScrapedData(null);
 
     try {
-      const response = await fetch("/api/scrape", {
+      const response = await fetch("/api/scrape-anu", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -174,7 +138,6 @@ export default function HomePage() {
       if (data.success) {
         setScrapedData(data.data);
         // Reload history to include the new scrape
-        await loadHistory();
       } else {
         throw new Error(data.error || "Scraping failed");
       }
@@ -527,70 +490,6 @@ export default function HomePage() {
                 ))}
               </>
             )}
-          </div>
-
-          {/* History Section */}
-          <div className="bg-white rounded-lg shadow-md p-6 h-fit sticky top-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Scraping History
-              </h2>
-              <button
-                onClick={loadHistory}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-              >
-                Refresh
-              </button>
-            </div>
-            <div className="space-y-3 max-h-[600px] overflow-y-auto">
-              {history.map((item) => (
-                <div
-                  key={item._id}
-                  className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => {
-                    // You can implement viewing historical scrapes here
-                    console.log("Selected history item:", item);
-                  }}
-                >
-                  <h3 className="font-semibold text-gray-900 truncate text-sm mb-1">
-                    {item.title || "No Title"}
-                  </h3>
-                  <p className="text-gray-600 truncate text-xs mb-2">
-                    {item.url}
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <span className={getStatusBadge(item.status)}>
-                      {item.status}
-                    </span>
-                    <span className="text-gray-500 text-xs">
-                      {new Date(item.scrapedAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
-              {history.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="text-gray-400 mb-2">
-                    <svg
-                      className="w-12 h-12 mx-auto"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-gray-500 text-sm">
-                    No scrapes yet. Start by scraping a website!
-                  </p>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>
