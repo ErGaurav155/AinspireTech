@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "node scripts/postinstall.mjs",
+    "setup-chromium": "node scripts/postinstall.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.933.0",
@@ -88,6 +90,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@sparticuz/chromium": "^141.0.0",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "20.17.12",
     "@types/nodemailer": "^6.4.17",
@@ -98,6 +101,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8",
+    "puppeteer": "^24.30.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwindcss": "^3.4.17",

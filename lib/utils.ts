@@ -395,31 +395,25 @@ import axios from "axios";
 
 // lib/aws-s3.ts
 
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
+export const s3 = new S3Client({
+  region: process.env.AWS_REGION || "ap-south-1",
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
   },
 });
 
-export async function uploadToS3(data: any, fileName: string): Promise<string> {
-  try {
-    const jsonData = JSON.stringify(data, null, 2);
-    const buffer = Buffer.from(jsonData, "utf-8");
+export async function uploadToS3(data: any, key: string): Promise<string> {
+  const command = new PutObjectCommand({
+    Bucket: process.env.S3_BUCKET_NAME!,
+    Key: key,
+    Body: JSON.stringify(data, null, 2),
+    ContentType: "application/json",
+  });
 
-    const command = new PutObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET!,
-      Key: `scraped-data/${fileName}.json`,
-      Body: buffer,
-      ContentType: "application/json",
-    });
+  await s3.send(command);
 
-    await s3Client.send(command);
-
-    return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/scraped-data/${fileName}.json`;
-  } catch (error: any) {
-    console.error("S3 upload error:", error);
-    throw new Error(`Failed to upload to S3: ${error.message}`);
-  }
+  return `https://${process.env.S3_BUCKET_NAME}.s3.${
+    process.env.AWS_REGION || "ap-south-1"
+  }.amazonaws.com/${key}`;
 }

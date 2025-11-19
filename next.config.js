@@ -35,38 +35,13 @@ const nextConfig = {
     ],
   },
 
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        puppeteer: false,
-        "puppeteer-core": false,
-        "@sparticuz/chromium-min": false,
-        fs: false,
-        net: false,
-        tls: false,
-      };
-    }
-
-    config.module.exprContextCritical = false;
-
-    return config;
-  },
-
   experimental: {
     serverComponentsExternalPackages: [
-      "puppeteer-core",
       "@sparticuz/chromium-min",
+      "puppeteer-core",
     ],
   },
-
-  transpilePackages: [],
-
-  // Increase timeout for API routes
-  staticPageGenerationTimeout: 60,
-
-  // Add output standalone for better serverless compatibility
-  output: "standalone",
+  serverExternalPackages: ["@sparticuz/chromium-min", "puppeteer-core"],
 };
 
 module.exports = nextConfig;
