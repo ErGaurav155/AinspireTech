@@ -62,6 +62,7 @@ class TextContentScraper {
 
       // Launch browser with Vercel-compatible configuration
       browser = await puppeteer.launch({
+        ignoreDefaultArgs: ["--disable-extensions"],
         args: args,
         defaultViewport: { width: 1920, height: 1080 },
         executablePath,
