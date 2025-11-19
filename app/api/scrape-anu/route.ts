@@ -105,7 +105,7 @@ class TextContentScraper {
           width: 1280,
           height: 720,
         },
-        executablePath,
+        executablePath: "/var/task/node_modules/@sparticuz/chromium/bin",
         headless: true,
         ignoreHTTPSErrors: true,
       });
