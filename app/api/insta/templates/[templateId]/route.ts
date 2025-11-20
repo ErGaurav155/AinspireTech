@@ -4,9 +4,10 @@ import { NextResponse } from "next/server";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { templateId: string } }
+  { params }: { params: Promise<{ templateId: string }> }
 ) {
   try {
+    const { templateId } = await params;
     await connectToDatabase();
 
     const body = await req.json();
@@ -14,7 +15,7 @@ export async function PUT(
       body;
 
     const template = await InstaReplyTemplate.findOneAndUpdate(
-      { _id: params?.templateId },
+      { _id: templateId },
       {
         name,
         content,
@@ -45,13 +46,14 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { templateId: string } }
+  { params }: { params: Promise<{ templateId: string }> }
 ) {
   try {
+    const { templateId } = await params;
     await connectToDatabase();
 
     const template = await InstaReplyTemplate.findOneAndDelete({
-      _id: params.templateId,
+      _id: templateId,
     });
 
     if (!template) {

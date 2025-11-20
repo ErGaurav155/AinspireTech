@@ -209,7 +209,7 @@ export default function AnalyticsPage() {
               profilePicture:
                 instaData.profile_picture_url ||
                 dbAccount.profilePicture ||
-                "/public/assets/img/default-img.jpg",
+                "@/public/assets/img/default-img.jpg",
               followersCount:
                 instaData.followers_count || dbAccount.followersCount || 0,
               postsCount: instaData.media_count || dbAccount.postsCount || 0,

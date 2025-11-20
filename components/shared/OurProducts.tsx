@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FeaImg1 from "@/public/assets/img/headingimg.png";
 import FeaImg2 from "@/public/assets/img/featureImg2.png";
-import FeaImg3 from "@/public/assets/img/FeatureImg3.png";
+import FeaImg3 from "@/public/assets/img/featureImg3.png";
 import FeaImg4 from "@/public/assets/img/featureImg4.png";
 import FeaBot1 from "@/public/assets/Feature/FeatChatbot1.png";
 import FeaBot2 from "@/public/assets/Feature/FeatChatbot2.png";

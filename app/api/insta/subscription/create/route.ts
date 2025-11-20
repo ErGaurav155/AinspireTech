@@ -1,14 +1,14 @@
 // app/api/subscriptions/insta/razorpay/route.ts
 
-import { auth } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 import { addMonths, addYears } from "date-fns";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import InstaSubscription from "@/lib/database/models/insta/InstaSubscription.model";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

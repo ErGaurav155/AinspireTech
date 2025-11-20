@@ -6,12 +6,13 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectToDatabase();
 
-    const account = await InstagramAccount.findById(params.id);
+    const account = await InstagramAccount.findById(id);
 
     if (!account) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
@@ -19,7 +20,7 @@ export async function GET(
 
     // Get templates count
     const templatesCount = await InstaReplyTemplate.countDocuments({
-      accountId: params.id,
+      accountId: id,
       isActive: true,
     });
 
@@ -42,16 +43,17 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectToDatabase();
 
     const body = await req.json();
     const { isActive, displayName } = body;
 
     const account = await InstagramAccount.findByIdAndUpdate(
-      params.id,
+      id,
       {
         isActive,
         displayName,
@@ -76,13 +78,14 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectToDatabase();
 
     // Delete account and all related data
-    const account = await InstagramAccount.findByIdAndDelete(params.id);
+    const account = await InstagramAccount.findByIdAndDelete(id);
     if (!account) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }

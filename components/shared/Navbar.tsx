@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import Logo from "/public/assets/img/logo.png";
+import Logo from "@/public/assets/img/logo.png";
 import { SignedIn, SignedOut, useAuth, UserButton } from "@clerk/nextjs";
 import { ArrowRight } from "lucide-react";
 import { getUserById } from "@/lib/action/user.actions";

@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 import Conversation from "@/lib/database/models/web/Conversation.model";
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { chatbotType: string } }
+  { params }: { params: Promise<{ chatbotType: string }> }
 ) {
   try {
-    const { userId } = auth();
+    const { chatbotType } = await params;
+    const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,7 +23,7 @@ export async function GET(
     await connectToDatabase;
     const activeSubscription = await WebSubscription.findOne({
       clerkId: userId,
-      chatbotType: params.chatbotType,
+      chatbotType: chatbotType,
       status: "active",
     });
 
@@ -36,7 +37,7 @@ export async function GET(
     // Generate mock conversations if none exist
     const existingConversations = await Conversation.find({
       clerkId: userId,
-      chatbotType: params.chatbotType,
+      chatbotType: chatbotType,
     })
       .sort({ updatedAt: -1 })
       .skip(offset)
@@ -49,7 +50,7 @@ export async function GET(
         {
           _id: "mock1",
           chatbotId: "chatbot1",
-          chatbotType: params.chatbotType,
+          chatbotType: chatbotType,
           clerkId: userId,
           customerName: "John Doe",
           customerEmail: "john@example.com",
@@ -84,7 +85,7 @@ export async function GET(
         {
           _id: "mock2",
           chatbotId: "chatbot1",
-          chatbotType: params.chatbotType,
+          chatbotType: chatbotType,
           clerkId: userId,
           customerName: "Jane Smith",
           customerEmail: "jane@example.com",
@@ -111,7 +112,7 @@ export async function GET(
         {
           _id: "mock3",
           chatbotId: "chatbot1",
-          chatbotType: params.chatbotType,
+          chatbotType: chatbotType,
           clerkId: userId,
           customerName: "Mike Johnson",
           customerEmail: "mike@example.com",
@@ -147,7 +148,7 @@ export async function GET(
 
     const total = await Conversation.countDocuments({
       clerkId: userId,
-      chatbotType: params.chatbotType,
+      chatbotType: chatbotType,
     });
 
     return NextResponse.json({

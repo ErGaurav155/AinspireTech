@@ -15,7 +15,7 @@ import Image from "next/image";
 import featureImg from "@/public/assets/img/featureImg4.png";
 import featureImg2 from "@/public/assets/img/featureImg2.png";
 import featureImg3 from "@/public/assets/img/headingimg.png";
-import featureImg4 from "@/public/assets/img/FeatureImg3.png";
+import featureImg4 from "@/public/assets/img/featureImg3.png";
 import { useTheme } from "next-themes";
 
 export function FeatureSection() {

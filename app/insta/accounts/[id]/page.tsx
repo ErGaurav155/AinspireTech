@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Settings,
@@ -39,13 +39,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import defaultImg from "@/public/assets/img/default-img.jpg";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Dialog,
   DialogContent,
@@ -102,7 +96,12 @@ interface ContentItem {
   link?: string;
 }
 
-export default function AccountPage({ params }: { params: { id: string } }) {
+export default function AccountPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
   const [templates, setTemplates] = useState<any>([]);
   const [loadMoreCount, setLoadMoreCount] = useState(0);
   const [hasMoreTemplates, setHasMoreTemplates] = useState(false);
@@ -286,7 +285,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/insta/accounts/${params.id}`, {
+      const response = await fetch(`/api/insta/accounts/${id}`, {
         method: "DELETE",
       });
 
@@ -467,7 +466,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                 profilePicture:
                   instaData.profile_picture_url ||
                   dbAccount.profilePicture ||
-                  "/public/assets/img/default-img.jpg",
+                  defaultImg,
                 followersCount:
                   instaData.followers_count || dbAccount.followersCount || 0,
                 postsCount: instaData.media_count || dbAccount.postsCount || 0,
@@ -525,7 +524,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
 
   const fetchAccountData = useCallback(async () => {
     try {
-      const accountsData = await fetchAccounts(params.id);
+      const accountsData = await fetchAccounts(id);
       const response = await fetch(`/api/insta/replylogs?userId=${userId}`);
       let recentActivity;
       if (response.ok) {
@@ -546,15 +545,15 @@ export default function AccountPage({ params }: { params: { id: string } }) {
     } finally {
       setIsLoading(false);
     }
-  }, [userId, fetchAccounts, params.id]);
+  }, [userId, fetchAccounts, id]);
 
   useEffect(() => {
-    if (!params.id || !userId) {
+    if (!id || !userId) {
       router.push("/sign-in");
       return;
     }
     fetchAccountData();
-  }, [userId, router, params.id, fetchAccountData]);
+  }, [userId, router, id, fetchAccountData]);
 
   // Reload templates when search term changes
 
@@ -794,7 +793,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
 
   const refresh = async () => {
     await localStorage.removeItem(ACCOUNTS_CACHE_KEY);
-    await fetchAccounts(params.id);
+    await fetchAccounts(id);
   };
 
   const filteredTemplates = templates.filter((template: any) => {
@@ -848,7 +847,11 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                   <Image
                     width={100}
                     height={100}
-                    src={hasError ? defaultImg : defaultImg}
+                    src={
+                      hasError
+                        ? defaultImg
+                        : account?.profilePicture || defaultImg
+                    }
                     alt={account.displayName || "Instagram Account"}
                     onError={handleError}
                     className="h-24 w-24 rounded-full object-cover"
@@ -1102,7 +1105,11 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                                 }}
                               >
                                 <Image
-                                  src={media.media_url}
+                                  src={
+                                    media?.media_url
+                                      ? media?.media_url
+                                      : defaultImg
+                                  }
                                   alt="Post"
                                   height={128}
                                   width={128}
@@ -1755,7 +1762,7 @@ export default function AccountPage({ params }: { params: { id: string } }) {
                             className={`relative w-40 h-40 rounded-md overflow-hidden border ${inputBorder} mb-2`}
                           >
                             <Image
-                              src={template.mediaUrl}
+                              src={template?.mediaUrl || defaultImg}
                               alt="Linked media"
                               height={160}
                               width={160}

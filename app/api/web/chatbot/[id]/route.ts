@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
 
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import Chatbot from "@/lib/database/models/web/chatbot.model";
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = auth();
+    const { id } = await params;
+
+    const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -19,7 +21,7 @@ export async function GET(
     await connectToDatabase;
 
     const chatbot = await Chatbot.findOne({
-      _id: new ObjectId(params.id),
+      _id: new ObjectId(id),
       clerkId: userId,
     });
 
@@ -39,10 +41,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = auth();
+    const { id } = await params;
+
+    const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -54,7 +58,7 @@ export async function PUT(
 
     const result = await Chatbot.updateOne(
       {
-        _id: new ObjectId(params.id),
+        _id: new ObjectId(id),
         clerkId: userId,
       },
       {
@@ -83,10 +87,12 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = auth();
+    const { id } = await params;
+
+    const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -95,7 +101,7 @@ export async function DELETE(
     await connectToDatabase;
 
     const result = await Chatbot.deleteOne({
-      _id: new ObjectId(params.id),
+      _id: new ObjectId(id),
       clerkId: userId,
     });
 

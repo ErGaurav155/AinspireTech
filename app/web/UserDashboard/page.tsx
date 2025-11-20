@@ -83,7 +83,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { useAuth, useClerk, useUser } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { apiClient } from "@/lib/utils";
 import { toast } from "@/components/ui/use-toast";
 import {
@@ -167,7 +167,7 @@ export default function DashboardPage() {
   const [copied, setCopied] = useState(false);
   const [subscriptions, setSubscriptions] = useState<any>({});
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
-  const [websiteUrl, setWebsiteUrl] = useState(null);
+  const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
   const [websiteData, setWebsiteData] = useState("");
 
   const [appointmentQuestions, setAppointmentQuestions] = useState([
@@ -1755,14 +1755,22 @@ export default function DashboardPage() {
                           Website URL
                         </Label>
                         <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
-                          <Input
-                            disabled={websiteUrl === null ? true : false}
-                            id="websiteUrl"
-                            value={websiteUrl!}
-                            // onChange={(e) => setWebsiteUrl(e.target.value || "")}
-                            className={`${inputBg} ${inputBorder} ${textPrimary} font-montserrat`}
-                            placeholder="https://yourwebsite.com"
-                          />
+                          {websiteUrl === null ? (
+                            <Input
+                              disabled={websiteUrl === null ? true : false}
+                              id="websiteUrl"
+                              value={websiteUrl!}
+                              onChange={(e) => setWebsiteUrl(e.target.value)}
+                              className={`${inputBg} ${inputBorder} ${textPrimary} font-montserrat`}
+                              placeholder="https://yourwebsite.com"
+                            />
+                          ) : (
+                            <p
+                              className={`flex items-center justify-center border ${inputBorder} ${textPrimary} font-montserrat p-2 rounded-lg w-full`}
+                            >
+                              {websiteUrl}
+                            </p>
+                          )}
                           <Button
                             disabled={websiteUrl === null ? true : false}
                             className={` hover:opacity-90 text-black ${

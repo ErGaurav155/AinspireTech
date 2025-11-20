@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import WebSubscription from "@/lib/database/models/web/Websubcription.model";
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { chatbotType: string } }
+  {
+    params,
+  }: {
+    params: Promise<{ chatbotType: string }>;
+  }
 ) {
   try {
-    const { userId } = auth();
+    const { chatbotType } = await params;
+
+    const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -19,7 +25,7 @@ export async function GET(
 
     const activeSubscription = await WebSubscription.findOne({
       clerkId: userId,
-      chatbotType: params.chatbotType,
+      chatbotType: chatbotType,
       status: "active",
     });
 
@@ -85,7 +91,7 @@ export async function GET(
     };
 
     const analyticsData = {
-      overview: generateAnalyticsData(params.chatbotType),
+      overview: generateAnalyticsData(chatbotType),
       trends: generateTrendData(),
       responseTime: [
         { time: "0-30s", count: Math.floor(Math.random() * 200) + 100 },

@@ -3,8 +3,8 @@
 import { MapPin, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import Logo from "/public/assets/img/logo.png";
 import { useTheme } from "next-themes";
+import Logo from "@/public/assets/img/logo.png";
 import { useEffect, useState } from "react";
 
 export function Footer() {

@@ -1,6 +1,6 @@
 import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import { requireOwner } from "@/middleware";
+import { requireOwner } from "@/proxy";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {

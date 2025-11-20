@@ -6,7 +6,7 @@ import { Menu, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Image from "next/image";
-import Logo from "/public/assets/img/logo.png";
+import Logo from "@/public/assets/img/logo.png";
 import { useTheme } from "next-themes";
 import { ThemeToggle } from "@/components/theme-toggle";
 

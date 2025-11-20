@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
 import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase(); // 👈 ensure DB connection before queries
 
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

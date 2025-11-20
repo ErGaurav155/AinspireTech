@@ -3,9 +3,9 @@ import { Orbitron, Montserrat } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
 import StarsBackground from "@/components/insta/StarsBackground";
 import Script from "next/script";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const orbitron = Orbitron({
   subsets: ["latin"],

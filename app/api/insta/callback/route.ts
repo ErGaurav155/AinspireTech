@@ -2,7 +2,7 @@ import { getInstagramUser } from "@/lib/action/insta.action";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaSubscription from "@/lib/database/models/insta/InstaSubscription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Verify authentication
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId || userId !== userid) {
       return NextResponse.json(
         { error: "Unauthorized access" },

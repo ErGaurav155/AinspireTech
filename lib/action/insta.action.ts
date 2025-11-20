@@ -227,7 +227,7 @@ export const sendInstagramDM = async (
 /**
  * Cron job setup (run this function periodically)
  */
-export const setupTokenRefreshCron = (): void => {
+export const setupTokenRefreshCron = async (): Promise<void> => {
   // Run every 6 hours to check for expiring tokens
   setInterval(refreshExpiringTokens, 6 * 60 * 60 * 1000);
 

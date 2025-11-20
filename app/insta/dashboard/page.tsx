@@ -32,6 +32,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import defaultImg from "@/public/assets/img/default-img.jpg";
+
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import Image from "next/image";
@@ -42,7 +44,6 @@ import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
-import defaultImg from "@/public/assets/img/default-img.jpg";
 import { formatResponseTimeSmart, refreshInstagramToken } from "@/lib/utils";
 import { AccountSelectionDialog } from "@/components/insta/AccountSelectionDialog";
 import {
@@ -190,7 +191,7 @@ export default function Dashboard() {
               profilePicture:
                 instaData.profile_picture_url ||
                 dbAccount.profilePicture ||
-                "/public/assets/img/default-img.jpg",
+                defaultImg,
               followersCount:
                 instaData.followers_count || dbAccount.followersCount || 0,
               postsCount: instaData.media_count || dbAccount.postsCount || 0,

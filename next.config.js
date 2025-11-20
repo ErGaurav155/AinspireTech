@@ -14,7 +14,18 @@ const nextConfig = {
   },
 
   images: {
+    domains: [
+      "scontent.cdninstagram.com",
+      "instagram.fdad1-1.fna.fbcdn.net",
+      "instagram.fdad2-1.fna.fbcdn.net",
+      // Add other Instagram CDN domains as needed
+    ],
     remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "scontent.cdninstagram.com",
+        pathname: "/**",
+      },
       {
         protocol: "https",
         hostname: "images.pexels.com",
@@ -35,12 +46,6 @@ const nextConfig = {
     ],
   },
 
-  experimental: {
-    serverComponentsExternalPackages: [
-      "@sparticuz/chromium-min",
-      "puppeteer-core",
-    ],
-  },
   serverExternalPackages: ["@sparticuz/chromium-min", "puppeteer-core"],
 };
 

@@ -97,10 +97,8 @@ export function BusinessMessagingTemplate() {
             viewport={{ once: false }}
             initial="hidden"
           >
-            <p className="block">
-              We are currently providing instagram,messenger automations and
-              website chatbots.
-            </p>
+            We are currently providing instagram,messenger automations and
+            website chatbots.
             <span className="">For other platforms will come soon.</span>
           </motion.p>
         </motion.div>
