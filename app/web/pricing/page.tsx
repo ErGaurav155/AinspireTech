@@ -14,7 +14,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Checkout } from "@/components/shared/Checkout";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { Switch } from "@/components/ui/switch";
@@ -38,7 +38,7 @@ interface Subscription {
   billingCycle: string;
 }
 
-const Pricing = () => {
+const PricingWithSearchParamsWeb = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [login, setLogin] = useState(true);
@@ -424,4 +424,19 @@ const Pricing = () => {
   );
 };
 
-export default Pricing;
+export default function Pricing() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-500">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading pricing information...</p>
+          </div>
+        </div>
+      }
+    >
+      <PricingWithSearchParamsWeb />
+    </Suspense>
+  );
+}

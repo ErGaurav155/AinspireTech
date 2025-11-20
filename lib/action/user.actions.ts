@@ -45,7 +45,6 @@ export async function getUserById(userId: string) {
   } catch (error) {
     handleError(error);
   }
-  revalidateTag("users");
 }
 export async function getUserByDbId(userId: string) {
   try {
@@ -59,7 +58,6 @@ export async function getUserByDbId(userId: string) {
   } catch (error) {
     handleError(error);
   }
-  revalidateTag("users");
 }
 export async function updateNumberByDbId(buyerId: string, newNumber: string) {
   try {
@@ -79,8 +77,6 @@ export async function updateNumberByDbId(buyerId: string, newNumber: string) {
   } catch (error) {
     handleError(error);
   }
-
-  revalidateTag("users");
 }
 export async function updateUserByDbId(userId: string, newUrl: string) {
   try {
@@ -100,8 +96,6 @@ export async function updateUserByDbId(userId: string, newUrl: string) {
   } catch (error) {
     handleError(error);
   }
-
-  revalidateTag("users");
 }
 export async function setWebsiteScrapped(userId: string) {
   try {
@@ -121,7 +115,6 @@ export async function setWebsiteScrapped(userId: string) {
   } catch (error) {
     handleError(error);
   }
-  revalidateTag("users");
 }
 export async function setScrappedFile(userId: string, fileName: string) {
   try {
@@ -141,8 +134,6 @@ export async function setScrappedFile(userId: string, fileName: string) {
   } catch (error) {
     handleError(error);
   }
-
-  revalidateTag("users");
 }
 
 // UPDATE
@@ -401,8 +392,6 @@ export async function resetFreeCouponsForAllUsers() {
             totalReplies: 0,
             updatedAt: new Date(),
           },
-        },
-        {
           limit: batchSize,
         }
       );

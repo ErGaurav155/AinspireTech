@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { WebScrapping } from "@/components/shared/WebScapping";
 
-const WebsiteOnboard = () => {
+const WebsiteOnboardWithSearchParamsWeb = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -46,4 +46,19 @@ const WebsiteOnboard = () => {
   );
 };
 
-export default WebsiteOnboard;
+export default function WebsiteOnboard() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-500">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading pricing information...</p>
+          </div>
+        </div>
+      }
+    >
+      <WebsiteOnboardWithSearchParamsWeb />
+    </Suspense>
+  );
+}

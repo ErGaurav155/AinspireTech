@@ -24,7 +24,8 @@ export async function POST(req: Request) {
 
   // 1. Verify signature
   const body = await req.text();
-  const signature = headers().get("x-hub-signature") || "";
+  const headerPayload = await headers(); // ← Added await
+  const signature = headerPayload.get("x-hub-signature") || ""; // ← Now use headerPayload.get()
   const expectedSignature =
     "sha1=" +
     crypto

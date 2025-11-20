@@ -4,8 +4,7 @@ import {
   cleanupUserData,
   updateUser,
 } from "@/lib/action/user.actions";
-import { clerkClient } from "@clerk/nextjs";
-import { WebhookEvent } from "@clerk/nextjs/server";
+import { clerkClient, WebhookEvent } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
@@ -21,7 +20,7 @@ export async function POST(req: Request) {
   }
 
   // Get the headers
-  const headerPayload = headers();
+  const headerPayload = await headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
   const svix_signature = headerPayload.get("svix-signature");
@@ -81,13 +80,13 @@ export async function POST(req: Request) {
     const user = {
       clerkId: id,
       email: email_addresses[0].email_address,
-      username: username,
-      firstName: first_name,
-      lastName: last_name,
-      websiteUrl: websiteUrl,
+      username: username!,
+      firstName: first_name!,
+      lastName: last_name!,
+      websiteUrl: websiteUrl!,
       isScrapped: isScrapped,
-      scrappedFile: scrappedFile,
-      phone,
+      scrappedFile: scrappedFile!,
+      phone: phone!,
       totalReplies: totalReplies,
       replyLimit: replyLimit,
       accountLimit: accountLimit,
@@ -98,7 +97,8 @@ export async function POST(req: Request) {
 
     // Set public metadata
     if (newUser) {
-      await clerkClient.users.updateUserMetadata(id, {
+      const client = await clerkClient(); // ← Await the clerkClient
+      await client.users.updateUserMetadata(id, {
         publicMetadata: {
           userId: newUser._id,
         },
@@ -113,9 +113,9 @@ export async function POST(req: Request) {
     const { id, image_url, first_name, last_name, username } = evt.data;
 
     const user = {
-      firstName: first_name,
-      lastName: last_name,
-      username: username,
+      firstName: first_name!,
+      lastName: last_name!,
+      username: username!,
       photo: image_url,
     };
 

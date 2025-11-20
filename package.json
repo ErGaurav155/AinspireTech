@@ -6,9 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "node scripts/postinstall.mjs",
-    "fix-chromium": "npm install @sparticuz/chromium && node scripts/postinstall.mjs"
+    "lint": "next lint"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.933.0",

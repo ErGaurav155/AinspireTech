@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Check, Zap, X, Loader2, BadgeCheck } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
@@ -37,7 +37,7 @@ import { ConfirmSubscriptionChangeDialog } from "@/components/insta/CancelSubcri
 import { Textarea } from "@/components/ui/textarea";
 
 // Main Pricing Component
-export default function Pricing() {
+function PricingWithSearchParams() {
   const { userId } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1110,5 +1110,21 @@ export default function Pricing() {
         isLoading={isCancelling}
       />
     </div>
+  );
+}
+export default function Pricing() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-500">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading pricing information...</p>
+          </div>
+        </div>
+      }
+    >
+      <PricingWithSearchParams />
+    </Suspense>
   );
 }
