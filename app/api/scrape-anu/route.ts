@@ -9,10 +9,6 @@ const CHROMIUM_PACK_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
 let cachedExecutablePath: string | null = null;
 let downloadPromise: Promise<string> | null = null;
 
-/**
- * Downloads and caches the Chromium executable path.
- * Uses a download promise to prevent concurrent downloads.
- */
 async function getChromiumPath(): Promise<string> {
   // Return cached path if available
   if (cachedExecutablePath) return cachedExecutablePath;
