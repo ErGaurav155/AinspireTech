@@ -15,7 +15,7 @@ import Image from "next/image";
 import featureImg from "@/public/assets/img/featureImg4.png";
 import featureImg2 from "@/public/assets/img/featureImg2.png";
 import featureImg3 from "@/public/assets/img/headingimg.png";
-// import featureImg4 from "@/public/assets/img/featureImg3.png";
+import featureImg4 from "@/public/assets/img/featureImg1.png";
 import { useTheme } from "next-themes";
 
 export function FeatureSection() {
@@ -173,7 +173,7 @@ export function FeatureSection() {
     {
       icon: <MessageCircle className="h-6 w-6" />,
       title: "Auto-Respond to Instagram Story Replies",
-      url: featureImg3,
+      url: featureImg4,
 
       description:
         "Automatically respond to story replies with a DM sent directly to the users inbox. Add trigger keywords or respond to all comments.",

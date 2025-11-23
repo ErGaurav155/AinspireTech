@@ -12,7 +12,7 @@ const FileSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
-    content: {
+    link: {
       type: mongoose.Schema.Types.Mixed,
       required: true,
     },

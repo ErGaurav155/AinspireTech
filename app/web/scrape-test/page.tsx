@@ -1,26 +1,28 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useState } from "react";
 
-interface ScrapedData {
+interface ScrapedPage {
   url: string;
   title: string;
   description: string;
-  keywords: string;
   headings: {
     h1: string[];
     h2: string[];
     h3: string[];
   };
-  links: Array<{
-    href: string;
-    text: string;
-  }>;
-  images: Array<{
-    src: string;
-    alt: string;
-  }>;
   content: string;
+  level: number;
+}
+
+interface ScrapedData {
+  fileName: string;
+  domain: string;
+  totalPages: number;
+  maxLevel: number;
+  cloudinaryLink: string;
+  pages: ScrapedPage[];
 }
 
 export default function HomePage() {
@@ -28,36 +30,43 @@ export default function HomePage() {
   const [scrapedData, setScrapedData] = useState<ScrapedData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const { userId } = useAuth();
   const handleScrape = async () => {
-    if (!url) {
+    if (!url || !userId) {
       setError("Please enter a valid URL.");
       return;
     }
+
     // Client-side URL validation: must start with http:// or https:// and be a valid URL
     if (!/^https?:\/\//i.test(url.trim())) {
       setError("URL must start with http:// or https://");
       return;
     }
+
     try {
       new URL(url.trim());
     } catch {
       setError("Invalid URL format. Please enter a valid URL.");
       return;
     }
+
     setLoading(true);
     setError(null);
     setScrapedData(null);
 
     try {
       const response = await fetch(
-        `/api/scrape-anu?url=${encodeURIComponent(url)}`
+        `/api/scrape-anu?url=${encodeURIComponent(
+          url
+        )}&userId=${encodeURIComponent(userId)}`
       );
+
       if (!response.ok) {
         if (response.status === 429) {
           throw new Error("Rate limit reached. Please try again later.");
         }
-        throw new Error("Failed to scrape website.");
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to scrape website.");
       }
 
       const result = await response.json();
@@ -76,134 +85,176 @@ export default function HomePage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-50">
-      <div className="w-full max-w-4xl text-center">
-        <h1 className="text-4xl font-bold mb-4 text-gray-800">
-          Website Scraper
+    <main className="flex min-h-screen flex-col items-center p-8 bg-gray-50">
+      <div className="w-full max-w-6xl">
+        <h1 className="text-4xl font-bold mb-4 text-gray-800 text-center">
+          Advanced Website Scraper
         </h1>
-        <p className="text-lg text-gray-600 mb-8">
-          Enter a URL below to extract website content using Puppeteer running
-          in a Vercel Function.
+        <p className="text-lg text-gray-600 mb-8 text-center">
+          Enter a URL to scrape multiple levels of pages (up to 10 pages, 3
+          levels deep)
         </p>
-        <div className="flex gap-2 mb-8">
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com"
-            className="grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-black focus:outline-none"
-          />
+
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Website URL
+              </label>
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://example.com"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-black focus:outline-none"
+              />
+            </div>
+          </div>
+
           <button
             onClick={handleScrape}
             disabled={loading}
-            className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+            className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
           >
-            {loading ? "Scraping..." : "Scrape"}
+            {loading ? "Scraping..." : "Start Scraping"}
           </button>
         </div>
-        {error && <p className="text-red-500 mt-4">{error}</p>}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
 
         {scrapedData && (
-          <div className="mt-8 border border-gray-200 rounded-lg shadow-lg overflow-hidden bg-white">
-            <h2 className="text-2xl font-semibold p-4 bg-gray-100 border-b text-black">
-              Scraped Website Data
-            </h2>
-
-            <div className="p-6 space-y-6 text-left">
-              {/* Basic Info */}
-              <div>
-                <h3 className="text-xl font-semibold mb-2 text-gray-800">
-                  Basic Information
-                </h3>
-                <div className="space-y-2">
-                  <p>
-                    <strong>URL:</strong>{" "}
-                    <span className="text-blue-600 wrap-break-word">
-                      {scrapedData.url}
-                    </span>
-                  </p>
-                  <p>
-                    <strong>Title:</strong> {scrapedData.title || "No title"}
-                  </p>
-                  {scrapedData.description && (
-                    <p>
-                      <strong>Description:</strong> {scrapedData.description}
-                    </p>
-                  )}
-                  {scrapedData.keywords && (
-                    <p>
-                      <strong>Keywords:</strong> {scrapedData.keywords}
-                    </p>
-                  )}
+          <div className="space-y-6">
+            {/* Summary Card */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+                Scraping Summary
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {scrapedData.totalPages}
+                  </div>
+                  <div className="text-sm text-gray-600">Pages Scraped</div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-green-600">
+                    {scrapedData.maxLevel}
+                  </div>
+                  <div className="text-sm text-gray-600">Max Level</div>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {scrapedData.domain}
+                  </div>
+                  <div className="text-sm text-gray-600">Domain</div>
+                </div>
+                <div className="bg-orange-50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {scrapedData.fileName}
+                  </div>
+                  <div className="text-sm text-gray-600">File Name</div>
                 </div>
               </div>
 
-              {/* Headings */}
-              <div>
-                <h3 className="text-xl font-semibold mb-2 text-gray-800">
-                  Headings
+              {/* Cloudinary Link */}
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <h3 className="font-semibold text-gray-700 mb-2">
+                  Cloudinary File Link
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {Object.entries(scrapedData.headings).map(
-                    ([level, headings]) =>
-                      headings.length > 0 && (
-                        <div key={level} className="border rounded-lg p-3">
-                          <h4 className="font-semibold text-gray-700 capitalize mb-2">
-                            {level}
-                          </h4>
-                          <ul className="space-y-1 text-sm">
-                            {headings.map((heading, index) => (
-                              <li
-                                key={index}
-                                className="truncate"
-                                title={heading}
-                              >
-                                {heading}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )
-                  )}
-                </div>
+                <a
+                  href={scrapedData.cloudinaryLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 break-all"
+                >
+                  {scrapedData.cloudinaryLink}
+                </a>
               </div>
+            </div>
 
-              {/* Links */}
-              {scrapedData.links.length > 0 && (
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-800">
-                    Links ({scrapedData.links.length})
-                  </h3>
-                  <div className="max-h-40 overflow-y-auto border rounded-lg p-3">
-                    {scrapedData.links.map((link, index) => (
-                      <div
-                        key={index}
-                        className="mb-2 pb-2 border-b last:border-b-0"
-                      >
-                        <div className="font-medium text-sm">{link.text}</div>
-                        <div className="text-blue-600 text-xs wrap-break-word">
-                          {link.href}
-                        </div>
+            {/* Pages List */}
+            <div className="space-y-4">
+              {scrapedData.pages.map((page, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-lg shadow-lg overflow-hidden"
+                >
+                  <div className="bg-gray-100 px-6 py-4 border-b">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-xl font-semibold text-gray-800">
+                        {page.title || "No Title"}
+                      </h3>
+                      <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                        Level {page.level}
+                      </span>
+                    </div>
+                    <p className="text-blue-600 text-sm mt-1 break-words">
+                      {page.url}
+                    </p>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                    {/* Basic Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-semibold text-gray-700 mb-2">
+                          Description
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {page.description || "No description available"}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                      <div>
+                        <h4 className="font-semibold text-gray-700 mb-2">
+                          Content Preview
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {page.content || "No content available"}
+                        </p>
+                      </div>
+                    </div>
 
-              {/* Content Preview */}
-              {scrapedData.content && (
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-800">
-                    Content Preview
-                  </h3>
-                  <div className="border rounded-lg p-3 max-h-40 overflow-y-auto">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                      {scrapedData.content}
-                      {scrapedData.content.length === 2000 && "..."}
-                    </p>
+                    {/* Headings */}
+                    <div>
+                      <h4 className="font-semibold text-gray-700 mb-3">
+                        Headings
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {Object.entries(page.headings).map(
+                          ([level, headings]) => (
+                            <div key={level} className="border rounded-lg p-3">
+                              <h5 className="font-semibold text-gray-700 capitalize mb-2">
+                                {level} ({headings.length})
+                              </h5>
+                              {headings.length > 0 ? (
+                                <ul className="space-y-1 text-sm max-h-32 overflow-y-auto">
+                                  {headings.map((heading, idx) => (
+                                    <li
+                                      key={idx}
+                                      className="truncate"
+                                      title={heading}
+                                    >
+                                      {heading}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-gray-500 text-sm">
+                                  No {level} headings
+                                </p>
+                              )}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         )}
