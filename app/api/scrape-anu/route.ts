@@ -1,16 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
-import File from "@/lib/database/models/web/scrappeddata.model";
-import { uploadTextToCloudinary } from "@/lib/action/transaction.action";
-
-// MongoDB connection
-const MONGODB_URL =
-  process.env.MONGODB_URL || "mongodb://localhost:27017/websitescraper";
-
-async function connectToDatabase() {
-  if (mongoose.connection.readyState >= 1) return;
-  await mongoose.connect(MONGODB_URL);
-}
 
 // alternatively, you can host the chromium-pack.tar file elsewhere and update the URL below
 const CHROMIUM_PACK_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
@@ -48,29 +36,6 @@ async function getChromiumPath(): Promise<string> {
 /**
  * Function to remove emojis and unsupported characters for OpenAI compatibility
  */
-function sanitizeForOpenAI(text: string): string {
-  if (!text) return "";
-
-  return (
-    text
-      // Remove emojis and special Unicode characters
-      .replace(/[\u{1F600}-\u{1F64F}]/gu, "") // Emoticons
-      .replace(/[\u{1F300}-\u{1F5FF}]/gu, "") // Symbols & pictographs
-      .replace(/[\u{1F680}-\u{1F6FF}]/gu, "") // Transport & map symbols
-      .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, "") // Flags
-      .replace(/[\u{2700}-\u{27BF}]/gu, "") // Dingbats
-      .replace(/[\u{1F900}-\u{1F9FF}]/gu, "") // Supplemental symbols and pictographs
-      // Remove other problematic characters
-      .replace(/[^\x20-\x7E\n\t\r]/g, "") // Keep only printable ASCII + newline/tab/carriage return
-      // Remove the Unicode replacement character (�)
-      .replace(/�/g, "")
-      // Remove any backslashes that might create invalid escape sequences
-      .replace(/\\[^nrt"\\\/]/g, "") // Keep only valid escape sequences: \n, \r, \t, \", \\, \/
-      // Clean up multiple spaces
-      .replace(/\s+/g, " ")
-      .trim()
-  );
-}
 
 interface ScrapedPage {
   url: string;
@@ -188,20 +153,14 @@ class WebScraper {
       // Sanitize all text fields for OpenAI compatibility
       const pageData: ScrapedPage = {
         url: scrapedData.url,
-        title: sanitizeForOpenAI(scrapedData.title),
-        description: sanitizeForOpenAI(scrapedData.description),
+        title: scrapedData.title,
+        description: scrapedData.description,
         headings: {
-          h1: scrapedData.headings.h1.map((heading: any) =>
-            sanitizeForOpenAI(heading)
-          ),
-          h2: scrapedData.headings.h2.map((heading: any) =>
-            sanitizeForOpenAI(heading)
-          ),
-          h3: scrapedData.headings.h3.map((heading: any) =>
-            sanitizeForOpenAI(heading)
-          ),
+          h1: scrapedData.headings.h1.map((heading: any) => heading),
+          h2: scrapedData.headings.h2.map((heading: any) => heading),
+          h3: scrapedData.headings.h3.map((heading: any) => heading),
         },
-        content: sanitizeForOpenAI(scrapedData.content),
+        content: scrapedData.content,
         level: level,
       };
 
@@ -283,56 +242,10 @@ class WebScraper {
 }
 
 /**
- * Format scraped data into object with URL as key and description as value
- */
-function formatScrapedData(pages: ScrapedPage[]): string {
-  const dataObject: { [key: string]: string } = {};
-
-  pages.forEach((page) => {
-    // Create description with title, meta description, and first heading
-    let description = "";
-
-    if (page.title) {
-      description += `Title: ${page.title}. `;
-    }
-
-    if (page.description) {
-      description += `Description: ${page.description}. `;
-    }
-
-    if (page.headings.h1.length > 0) {
-      description += `Main Heading: ${page.headings.h1[0]}. `;
-    }
-
-    if (page.content) {
-      // Add first 100 characters of content
-      const contentPreview = page.content.substring(0, 100);
-      description += `Content: ${contentPreview}${
-        page.content.length > 100 ? "..." : ""
-      }`;
-    }
-
-    // Final sanitization of the complete description
-    description = sanitizeForOpenAI(description);
-
-    // Limit description to ~500 tokens (2000 characters)
-    if (description.length > 1000) {
-      description = description.substring(0, 997) + "...";
-    }
-
-    dataObject[page.url] = description.trim();
-  });
-
-  return JSON.stringify(dataObject, null, 2);
-}
-
-/**
- * API endpoint to scrape website content with multiple levels
+ * API endpoint to scrape website content only
  * Usage: /api/scrape?url=https://example.com&userId=user123
  */
 export async function GET(request: NextRequest) {
-  await connectToDatabase();
-
   // Extract URL parameter from query string
   const { searchParams } = new URL(request.url);
   const urlParam = searchParams.get("url");
@@ -405,34 +318,21 @@ export async function GET(request: NextRequest) {
     const domain = new URL(parsedUrl.toString()).hostname.replace(/^www\./, "");
     const fileName = `${domain}_${Date.now()}`;
 
-    // Format data as object with URL as key and description as value
-    const formattedData = formatScrapedData(scrapedPages);
-
-    // Upload to Cloudinary
-    const cloudinaryUrl = await uploadTextToCloudinary(formattedData, fileName);
-
-    // Save to MongoDB with Cloudinary link
-    const fileData = new File({
-      fileName,
-      userId,
-      link: cloudinaryUrl,
-      domain,
-    });
-
-    await fileData.save();
-
-    // Return scraped data as JSON
+    // Return only scraped data without processing
     return NextResponse.json({
       success: true,
       data: {
         fileName,
         domain,
+        userId,
         totalPages: scrapedPages.length,
         maxLevel: Math.max(...scrapedPages.map((page) => page.level)),
-        cloudinaryLink: cloudinaryUrl,
-        pages: scrapedPages,
+        scrapedPages: scrapedPages,
+        rawData: scrapedPages, // Include raw data for processing
       },
       scrapedAt: new Date().toISOString(),
+      message:
+        "Scraping completed successfully. Call /api/process-data to store and upload.",
     });
   } catch (error) {
     console.error("Scraping error:", error);

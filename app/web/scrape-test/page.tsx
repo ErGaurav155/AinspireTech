@@ -19,6 +19,7 @@ interface ScrapedPage {
 interface ScrapedData {
   fileName: string;
   domain: string;
+  userId: string;
   totalPages: number;
   maxLevel: number;
   cloudinaryLink: string;
@@ -29,7 +30,10 @@ export default function HomePage() {
   const [url, setUrl] = useState("");
   const [scrapedData, setScrapedData] = useState<ScrapedData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [scrapingComplete, setScrapingComplete] = useState(false);
+  const [rawScrapedData, setRawScrapedData] = useState<any>(null);
   const { userId } = useAuth();
   const handleScrape = async () => {
     if (!url || !userId) {
@@ -53,25 +57,33 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     setScrapedData(null);
+    setScrapingComplete(false);
+    setRawScrapedData(null);
 
     try {
-      const response = await fetch(
+      // Step 1: Call scraping API
+      const scrapeResponse = await fetch(
         `/api/scrape-anu?url=${encodeURIComponent(
           url
         )}&userId=${encodeURIComponent(userId)}`
       );
 
-      if (!response.ok) {
-        if (response.status === 429) {
+      if (!scrapeResponse.ok) {
+        if (scrapeResponse.status === 429) {
           throw new Error("Rate limit reached. Please try again later.");
         }
-        const errorText = await response.text();
+        const errorText = await scrapeResponse.text();
         throw new Error(errorText || "Failed to scrape website.");
       }
 
-      const result = await response.json();
-      if (result.success) {
-        setScrapedData(result.data);
+      const scrapeResult = await scrapeResponse.json();
+
+      if (scrapeResult.success) {
+        setRawScrapedData(scrapeResult.data);
+        setScrapingComplete(true);
+
+        // Step 2: Automatically call processing API
+        await handleProcessData(scrapeResult.data);
       } else {
         throw new Error("Scraping failed");
       }
@@ -81,6 +93,42 @@ export default function HomePage() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleProcessData = async (data: any) => {
+    setProcessing(true);
+    setError(null);
+
+    try {
+      const processResponse = await fetch("/api/scrape-anu/process-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!processResponse.ok) {
+        const errorText = await processResponse.text();
+        throw new Error(errorText || "Failed to process data.");
+      }
+
+      const processResult = await processResponse.json();
+
+      if (processResult.success) {
+        setScrapedData(processResult.data);
+      } else {
+        throw new Error("Data processing failed");
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while processing data."
+      );
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -113,12 +161,25 @@ export default function HomePage() {
 
           <button
             onClick={handleScrape}
-            disabled={loading}
+            disabled={loading || processing}
             className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
           >
-            {loading ? "Scraping..." : "Start Scraping"}
+            {loading
+              ? "Scraping..."
+              : processing
+              ? "Processing..."
+              : "Start Scraping"}
           </button>
         </div>
+
+        {/* Status Indicators */}
+        {scrapingComplete && !scrapedData && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <p className="text-yellow-700">
+              ✓ Scraping complete! Processing data...
+            </p>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
