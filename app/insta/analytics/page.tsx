@@ -36,12 +36,13 @@ import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { AnalyticsDashboard } from "@/components/insta/Analytics-dashboard";
 import { useAuth } from "@clerk/nextjs";
 import defaultImg from "@/public/assets/img/default-img.jpg";
-import { formatResponseTimeSmart, refreshInstagramToken } from "@/lib/utils";
+import { formatResponseTimeSmart } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getUserById } from "@/lib/action/user.actions";
 import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 import { useTheme } from "next-themes";
+import { refreshInstagramToken } from "@/lib/action/insta.action";
 
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 const ANALYTICS_CACHE_KEY = "analyticsData";

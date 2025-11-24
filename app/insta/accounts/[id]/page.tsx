@@ -53,7 +53,6 @@ import {
   isCacheValid,
   InstagramAccount,
   formatResponseTimeSmart,
-  refreshInstagramToken,
 } from "@/lib/utils";
 
 import {
@@ -77,6 +76,7 @@ import { useAuth } from "@clerk/nextjs";
 import { toast } from "@/components/ui/use-toast";
 import { useTheme } from "next-themes";
 import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
+import { refreshInstagramToken } from "@/lib/action/insta.action";
 
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 

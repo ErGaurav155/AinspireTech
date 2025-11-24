@@ -44,11 +44,12 @@ import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
-import { formatResponseTimeSmart, refreshInstagramToken } from "@/lib/utils";
+import { formatResponseTimeSmart } from "@/lib/utils";
 import { AccountSelectionDialog } from "@/components/insta/AccountSelectionDialog";
 import {
   getInstaAccounts,
   deleteInstaAccount,
+  refreshInstagramToken,
 } from "@/lib/action/insta.action";
 import { instagramPricingPlans } from "@/constant";
 import { useTheme } from "next-themes";

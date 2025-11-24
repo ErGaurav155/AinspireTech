@@ -4,15 +4,78 @@ import OpenAI from "openai";
 import { connectToDatabase } from "../database/mongoose";
 import File from "@/lib/database/models/web/scrappeddata.model";
 
-const openai = setupOpenAI();
-function setupOpenAI() {
-  if (!process.env.DEEPSEEK_API_KEY) {
-    return new Error("OpenAI API key is not set");
+// Cache for OpenAI instance
+let openaiInstance: OpenAI | Error | null = null;
+
+function getOpenAI(): OpenAI | Error {
+  if (openaiInstance) {
+    return openaiInstance;
   }
-  return new OpenAI({
+
+  if (!process.env.DEEPSEEK_API_KEY) {
+    openaiInstance = new Error("DEEPSEEK_API_KEY is not set");
+    return openaiInstance;
+  }
+
+  openaiInstance = new OpenAI({
     baseURL: "https://api.deepseek.com",
     apiKey: process.env.DEEPSEEK_API_KEY,
   });
+
+  return openaiInstance;
+}
+
+async function downloadCloudinaryContent(
+  cloudinaryUrl: string
+): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+  try {
+    const response = await fetch(cloudinaryUrl, {
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.text();
+  } catch (error) {
+    clearTimeout(timeout);
+    throw error;
+  }
+}
+
+function formatContextFromData(data: any): string {
+  if (!data) return "No data available";
+
+  // Handle URL->description object format
+  if (typeof data === "object" && !Array.isArray(data)) {
+    const urlKeys = Object.keys(data).filter((key) => key.startsWith("http"));
+    if (urlKeys.length > 0) {
+      return urlKeys
+        .map((url) => `Page: ${url}\nInfo: ${data[url]}`)
+        .join("\n\n");
+    }
+  }
+
+  // Handle array of pages format
+  if (Array.isArray(data)) {
+    return data
+      .map(
+        (page: any) =>
+          `URL: ${page.url}\nTitle: ${page.title || "N/A"}\nDescription: ${
+            page.description || "N/A"
+          }\nContent: ${(page.content || "").substring(0, 200)}...`
+      )
+      .join("\n\n");
+  }
+
+  // Handle string data
+  return String(data).substring(0, 4000); // Limit context length
 }
 
 export const generateGptResponse = async ({
@@ -22,56 +85,60 @@ export const generateGptResponse = async ({
   userInput: string;
   userfileName: string;
 }) => {
+  const openai = getOpenAI();
   if (openai instanceof Error) {
     throw openai;
   }
-  await connectToDatabase();
-  const existingFile = await File.findOne({
-    fileName: userfileName,
-  });
-  let context;
-  if (existingFile) {
-    context = existingFile.content
-      .map((page: any) => {
-        return `
-      Website Page URL: ${page.url}
-      Title: ${page.metadata?.title}
-      Description: ${page.metadata?.description || "No description"}
-      text: ${page.text}
-    `;
-      })
-      .join("\n\n");
-  } else {
-    context = "You are an AI assistant that helps users";
+
+  try {
+    await connectToDatabase();
+
+    const existingFile = await File.findOne({ fileName: userfileName });
+
+    let context = "No website data available. Please scrape a website first.";
+
+    if (existingFile?.link) {
+      try {
+        const cloudinaryContent = await downloadCloudinaryContent(
+          existingFile.link
+        );
+        const parsedData = JSON.parse(cloudinaryContent);
+        context = formatContextFromData(parsedData);
+      } catch (error) {
+        console.error("Failed to load Cloudinary data:", error);
+        context = "Website data is temporarily unavailable.";
+      }
+    }
+
+    const completion = await openai.chat.completions.create({
+      model: "deepseek-chat",
+      messages: [
+        {
+          role: "system",
+          content: `You are a helpful assistant. Use this context to answer questions:\n\n${context}\n\nKeep responses to 2-3 lines and only use the provided context.`,
+        },
+        { role: "user", content: userInput },
+      ],
+      max_tokens: 300,
+      temperature: 0.7,
+    });
+
+    const response = completion.choices[0]?.message?.content;
+
+    if (!response) {
+      throw new Error("Empty response from AI model");
+    }
+
+    return response;
+  } catch (error) {
+    console.error("Error in generateGptResponse:", error);
+    throw new Error(
+      `Failed to generate response: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
-  const completion = await openai.chat.completions.create({
-    model: "deepseek-chat",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are an AI assistant that helps users by providing information based context provided.Only respond based on the provided content.repsponse must be in 2-3 lines.if you dont kow about anything asked by user then fing the email from context and add it to this line-'i dont know about this you can email'.",
-      },
-      { role: "user", content: context },
-      {
-        role: "user",
-        content: userInput,
-      },
-    ],
-    max_tokens: 500,
-
-    temperature: 1,
-  });
-
-  const gptArgs = completion?.choices[0]?.message?.content;
-
-  if (!gptArgs) {
-    throw new Error("Bad response from OpenAI");
-  }
-
-  return JSON.parse(JSON.stringify(gptArgs));
 };
-
 export const generateMcqResponse = async ({
   userInput,
   isMCQRequest,
@@ -79,10 +146,10 @@ export const generateMcqResponse = async ({
   userInput: string;
   isMCQRequest: boolean;
 }) => {
+  const openai = getOpenAI();
   if (openai instanceof Error) {
     throw openai;
   }
-
   const systemMessage = isMCQRequest
     ? `Generate 10 MCQs in JSON format.Must follow below structure also dont provide any heading and json word text:
     {

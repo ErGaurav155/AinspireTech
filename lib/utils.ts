@@ -21,7 +21,6 @@ export const handleError = (error: unknown) => {
   }
 };
 
-import { connectToDatabase } from "./database/mongoose";
 import InstagramAccount from "./database/models/insta/InstagramAccount.model";
 
 export function createAuthResponse(error: string, status: number = 401) {
@@ -184,45 +183,6 @@ class ApiClient {
 
 export const apiClient = new ApiClient();
 
-export async function refreshInstagramToken(userId: string) {
-  await connectToDatabase();
-
-  const tokenRecord = await InstagramAccount.findOne({ userId });
-  if (!tokenRecord) throw new Error("Token not found");
-
-  // Refresh if token expires in less than 24 hours
-  if (tokenRecord.expiresAt > new Date(Date.now() + 24 * 60 * 60 * 1000)) {
-    return tokenRecord;
-  }
-
-  const refreshUrl = new URL(
-    "https://graph.instagram.com/refresh_access_token"
-  );
-  refreshUrl.searchParams.append("grant_type", "ig_refresh_token");
-  refreshUrl.searchParams.append("access_token", tokenRecord.accessToken);
-
-  const refreshRes = await fetch(refreshUrl.toString());
-  const refreshData = await refreshRes.json();
-
-  if (!refreshData.access_token) {
-    throw new Error("Failed to refresh token");
-  }
-
-  const expiresIn = refreshData.expires_in;
-  const expiresAt = new Date(Date.now() + expiresIn * 1000);
-
-  const updatedToken = await InstagramAccount.findOneAndUpdate(
-    { userId },
-    {
-      accessToken: refreshData.access_token,
-      lastTokenRefresh: Date.now(),
-      expiresAt,
-    },
-    { new: true }
-  );
-
-  return updatedToken;
-}
 // lib/cacheUtils.ts
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 

@@ -127,7 +127,7 @@ class WebScraper {
           text = text.replace(/\s+/g, " ").trim();
 
           // Limit to approximately 500 tokens (assuming average 4 characters per token)
-          const maxLength = 2000; // ~500 tokens
+          const maxLength = 1000; // ~500 tokens
           if (text.length > maxLength) {
             text = text.substring(0, maxLength) + "...";
           }
@@ -275,7 +275,7 @@ function formatScrapedData(pages: ScrapedPage[]): string {
     }
 
     // Limit description to ~500 tokens (2000 characters)
-    if (description.length > 2000) {
+    if (description.length > 1000) {
       description = description.substring(0, 1997) + "...";
     }
 

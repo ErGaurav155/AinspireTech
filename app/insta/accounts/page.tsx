@@ -31,10 +31,10 @@ import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import defaultImg from "@/public/assets/img/default-img.jpg"; // Default image for error handling
-import { refreshInstagramToken } from "@/lib/utils";
 import { getUserById } from "@/lib/action/user.actions";
 import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 import { useTheme } from "next-themes";
+import { refreshInstagramToken } from "@/lib/action/insta.action";
 
 // Cache key
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
