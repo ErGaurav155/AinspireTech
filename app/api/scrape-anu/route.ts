@@ -45,6 +45,33 @@ async function getChromiumPath(): Promise<string> {
   return downloadPromise;
 }
 
+/**
+ * Function to remove emojis and unsupported characters for OpenAI compatibility
+ */
+function sanitizeForOpenAI(text: string): string {
+  if (!text) return "";
+
+  return (
+    text
+      // Remove emojis and special Unicode characters
+      .replace(/[\u{1F600}-\u{1F64F}]/gu, "") // Emoticons
+      .replace(/[\u{1F300}-\u{1F5FF}]/gu, "") // Symbols & pictographs
+      .replace(/[\u{1F680}-\u{1F6FF}]/gu, "") // Transport & map symbols
+      .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, "") // Flags
+      .replace(/[\u{2700}-\u{27BF}]/gu, "") // Dingbats
+      .replace(/[\u{1F900}-\u{1F9FF}]/gu, "") // Supplemental symbols and pictographs
+      // Remove other problematic characters
+      .replace(/[^\x20-\x7E\n\t\r]/g, "") // Keep only printable ASCII + newline/tab/carriage return
+      // Remove the Unicode replacement character (�)
+      .replace(/�/g, "")
+      // Remove any backslashes that might create invalid escape sequences
+      .replace(/\\[^nrt"\\\/]/g, "") // Keep only valid escape sequences: \n, \r, \t, \", \\, \/
+      // Clean up multiple spaces
+      .replace(/\s+/g, " ")
+      .trim()
+  );
+}
+
 interface ScrapedPage {
   url: string;
   title: string;
@@ -158,12 +185,23 @@ class WebScraper {
 
       await page.close();
 
+      // Sanitize all text fields for OpenAI compatibility
       const pageData: ScrapedPage = {
         url: scrapedData.url,
-        title: scrapedData.title,
-        description: scrapedData.description,
-        headings: scrapedData.headings,
-        content: scrapedData.content,
+        title: sanitizeForOpenAI(scrapedData.title),
+        description: sanitizeForOpenAI(scrapedData.description),
+        headings: {
+          h1: scrapedData.headings.h1.map((heading: any) =>
+            sanitizeForOpenAI(heading)
+          ),
+          h2: scrapedData.headings.h2.map((heading: any) =>
+            sanitizeForOpenAI(heading)
+          ),
+          h3: scrapedData.headings.h3.map((heading: any) =>
+            sanitizeForOpenAI(heading)
+          ),
+        },
+        content: sanitizeForOpenAI(scrapedData.content),
         level: level,
       };
 
@@ -274,9 +312,12 @@ function formatScrapedData(pages: ScrapedPage[]): string {
       }`;
     }
 
+    // Final sanitization of the complete description
+    description = sanitizeForOpenAI(description);
+
     // Limit description to ~500 tokens (2000 characters)
     if (description.length > 1000) {
-      description = description.substring(0, 1997) + "...";
+      description = description.substring(0, 997) + "...";
     }
 
     dataObject[page.url] = description.trim();
