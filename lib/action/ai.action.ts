@@ -35,6 +35,7 @@ async function downloadCloudinaryContent(
     const response = await fetch(cloudinaryUrl, {
       signal: controller.signal,
     });
+    console.log("response cloudinary:", response);
 
     clearTimeout(timeout);
 
@@ -94,7 +95,7 @@ export const generateGptResponse = async ({
     await connectToDatabase();
 
     const existingFile = await File.findOne({ fileName: userfileName });
-
+    console.log("existingFile:", existingFile);
     let context = "No website data available. Please scrape a website first.";
 
     if (existingFile?.link) {
@@ -102,8 +103,13 @@ export const generateGptResponse = async ({
         const cloudinaryContent = await downloadCloudinaryContent(
           existingFile.link
         );
+        console.log("cloudinaryContent:", cloudinaryContent);
+
         const parsedData = JSON.parse(cloudinaryContent);
+        console.log("parsedData:", parsedData);
+
         context = formatContextFromData(parsedData);
+        console.log("context:", context);
       } catch (error) {
         console.error("Failed to load Cloudinary data:", error);
         context = "Website data is temporarily unavailable.";
@@ -122,8 +128,10 @@ export const generateGptResponse = async ({
       max_tokens: 300,
       temperature: 0.7,
     });
+    console.log("completion:", completion);
 
     const response = completion.choices[0]?.message?.content;
+    console.log("response:", response);
 
     if (!response) {
       throw new Error("Empty response from AI model");
