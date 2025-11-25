@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
     // Save to MongoDB with Cloudinary link
     const fileData = new File({
       fileName,
-      userId,
+      userId: userId,
       link: cloudinaryUrl,
       domain,
     });

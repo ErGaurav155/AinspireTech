@@ -33,10 +33,6 @@ async function getChromiumPath(): Promise<string> {
   return downloadPromise;
 }
 
-/**
- * Function to remove emojis and unsupported characters for OpenAI compatibility
- */
-
 interface ScrapedPage {
   url: string;
   title: string;
@@ -65,10 +61,7 @@ class WebScraper {
     url: string,
     level: number
   ): Promise<ScrapedPage | null> {
-    if (
-      this.visitedUrls.has(url) ||
-      this.scrapedPages.length >= this.maxPages
-    ) {
+    if (this.visitedUrls.has(url)) {
       return null;
     }
 
@@ -79,7 +72,11 @@ class WebScraper {
       await page.setUserAgent(
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
       );
-      await page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
+
+      await page.goto(url, {
+        waitUntil: "networkidle2",
+        timeout: 30000,
+      });
 
       const scrapedData = await page.evaluate(() => {
         const getMetaContent = (name: string) => {
@@ -105,37 +102,24 @@ class WebScraper {
         };
 
         const extractContent = () => {
-          // Get main content areas first
           const mainContent =
             document.querySelector("main") ||
             document.querySelector("article") ||
             document.querySelector(".content") ||
             document.querySelector("#content") ||
+            document.querySelector('[role="main"]') ||
             document.body;
 
           let text = mainContent.innerText || mainContent.textContent || "";
 
-          // Clean up the text
           text = text.replace(/\s+/g, " ").trim();
 
-          // Limit to approximately 500 tokens (assuming average 4 characters per token)
-          const maxLength = 1000; // ~500 tokens
+          const maxLength = 800;
           if (text.length > maxLength) {
             text = text.substring(0, maxLength) + "...";
           }
 
           return text;
-        };
-
-        const extractLinks = () => {
-          return Array.from(document.querySelectorAll("a[href]"))
-            .map((a) => (a as HTMLAnchorElement).href)
-            .filter(
-              (href) =>
-                href &&
-                !href.startsWith("javascript:") &&
-                !href.startsWith("mailto:")
-            );
         };
 
         return {
@@ -144,36 +128,24 @@ class WebScraper {
           description: getMetaContent("description"),
           headings: extractHeadings(),
           content: extractContent(),
-          links: extractLinks(),
         };
       });
 
       await page.close();
 
-      // Sanitize all text fields for OpenAI compatibility
       const pageData: ScrapedPage = {
         url: scrapedData.url,
         title: scrapedData.title,
         description: scrapedData.description,
-        headings: {
-          h1: scrapedData.headings.h1.map((heading: any) => heading),
-          h2: scrapedData.headings.h2.map((heading: any) => heading),
-          h3: scrapedData.headings.h3.map((heading: any) => heading),
-        },
+        headings: scrapedData.headings,
         content: scrapedData.content,
         level: level,
       };
 
-      this.scrapedPages.push(pageData);
-      console.log(`Scraped page: ${url} (level ${level})`);
-
-      // Return links for next level scraping
-      return {
-        ...pageData,
-        links: scrapedData.links,
-      } as any;
+      console.log(`✅ Scraped page: ${url} (level ${level}) - Found  links`);
+      return pageData;
     } catch (error) {
-      console.error(`Failed to scrape ${url}:`, error);
+      console.error(`❌ Failed to scrape ${url}:`, error);
       return null;
     }
   }
@@ -205,78 +177,238 @@ class WebScraper {
     }
   }
 
-  async scrapeWebsite(startUrl: string): Promise<ScrapedPage[]> {
+  private async discoverAllUrls(
+    startUrl: string
+  ): Promise<{ url: string; level: number }[]> {
     const baseDomain = this.extractDomain(startUrl);
-    const queue: { url: string; level: number }[] = [
+    const allUrls: { url: string; level: number }[] = [
       { url: this.normalizeUrl(startUrl), level: 0 },
     ];
+    const discoveredUrls = new Set<string>([this.normalizeUrl(startUrl)]);
 
-    while (queue.length > 0 && this.scrapedPages.length < this.maxPages) {
-      const { url, level } = queue.shift()!;
+    let currentLevel = 0;
 
-      if (level > this.maxLevel) continue;
+    while (currentLevel <= this.maxLevel && allUrls.length < this.maxPages) {
+      const currentLevelUrls = allUrls.filter(
+        (item) => item.level === currentLevel
+      );
 
-      const result = await this.scrapePage(url, level);
+      if (currentLevelUrls.length === 0) {
+        break;
+      }
 
-      if (result && "links" in result) {
-        const typedResult = result as ScrapedPage & { links: string[] };
+      console.log(
+        `🔍 Discovering URLs at level ${currentLevel} with ${currentLevelUrls.length} pages`
+      );
 
-        // Add new links to queue for next level
-        if (level < this.maxLevel) {
-          for (const link of typedResult.links) {
-            const normalizedLink = this.normalizeUrl(link);
-            if (
-              this.isSameDomain(link, baseDomain) &&
-              !this.visitedUrls.has(normalizedLink) &&
-              !queue.some((item) => item.url === normalizedLink)
-            ) {
-              queue.push({ url: normalizedLink, level: level + 1 });
+      // Scrape all pages at current level concurrently to discover links
+      const discoveryPromises = currentLevelUrls.map(({ url }) =>
+        this.scrapePageForDiscovery(url)
+      );
+      const discoveryResults = await Promise.allSettled(discoveryPromises);
+
+      let newUrlsCount = 0;
+
+      for (const result of discoveryResults) {
+        if (result.status === "fulfilled" && result.value) {
+          const { links } = result.value;
+
+          if (links && links.length > 0 && currentLevel < this.maxLevel) {
+            for (const link of links) {
+              const normalizedLink = this.normalizeUrl(link);
+
+              if (
+                this.isSameDomain(link, baseDomain) &&
+                !discoveredUrls.has(normalizedLink) &&
+                allUrls.length < this.maxPages
+              ) {
+                discoveredUrls.add(normalizedLink);
+                allUrls.push({ url: normalizedLink, level: currentLevel + 1 });
+                newUrlsCount++;
+
+                // Stop if we reached max pages
+                if (allUrls.length >= this.maxPages) {
+                  break;
+                }
+              }
             }
           }
         }
+
+        // Stop outer loop if we reached max pages
+        if (allUrls.length >= this.maxPages) {
+          break;
+        }
       }
+
+      console.log(
+        `🔗 Discovered ${newUrlsCount} new URLs for level ${currentLevel + 1}`
+      );
+      currentLevel++;
+
+      // Stop if we reached max pages
+      if (allUrls.length >= this.maxPages) {
+        break;
+      }
+    }
+
+    console.log(`🎯 Total URLs discovered: ${allUrls.length}`);
+
+    // Log the actual URLs for debugging
+    console.log(
+      "📋 Discovered URLs:",
+      allUrls.map((item) => ({
+        url: item.url,
+        level: item.level,
+      }))
+    );
+
+    return allUrls;
+  }
+
+  private async scrapePageForDiscovery(
+    url: string
+  ): Promise<{ url: string; links: string[] } | null> {
+    try {
+      const page = await this.browser.newPage();
+      await page.setUserAgent(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+      );
+
+      await page.goto(url, {
+        waitUntil: "networkidle2",
+        timeout: 10000,
+      });
+
+      const scrapedData = await page.evaluate(() => {
+        const extractLinks = () => {
+          return Array.from(document.querySelectorAll("a[href]"))
+            .map((a) => (a as HTMLAnchorElement).href)
+            .filter(
+              (href) =>
+                href &&
+                !href.startsWith("javascript:") &&
+                !href.startsWith("mailto:") &&
+                !href.startsWith("#") &&
+                !href.includes("tel:") &&
+                !href.includes("sms:")
+            );
+        };
+
+        return {
+          url: window.location.href,
+          links: extractLinks(),
+        };
+      });
+
+      await page.close();
+      console.log(
+        `🔍 Discovery: ${url} - found ${scrapedData.links.length} links`
+      );
+      return scrapedData;
+    } catch (error) {
+      console.error(`❌ Failed to discover links from ${url}:`, error);
+      return null;
+    }
+  }
+
+  async scrapeWebsite(startUrl: string): Promise<ScrapedPage[]> {
+    console.log("🚀 Starting concurrent scraping process...");
+
+    // First: Discover all URLs we want to scrape
+    const allUrlsToScrape = await this.discoverAllUrls(startUrl);
+    console.log(`🎯 Will scrape ${allUrlsToScrape.length} URLs concurrently`);
+
+    // Clear visited URLs so we can scrape the discovered URLs
+    this.visitedUrls.clear();
+
+    // Second: Scrape ALL pages concurrently
+    const scrapePromises = allUrlsToScrape.map(({ url, level }) =>
+      this.scrapePage(url, level)
+    );
+
+    console.log("🔄 Starting concurrent scraping of all pages...");
+    const scrapeResults = await Promise.allSettled(scrapePromises);
+
+    // Process results
+    const successfulScrapes: ScrapedPage[] = [];
+    for (const result of scrapeResults) {
+      if (result.status === "fulfilled" && result.value) {
+        successfulScrapes.push(result.value);
+      } else if (result.status === "rejected") {
+        console.error("❌ Page scraping failed:", result.reason);
+      }
+    }
+
+    this.scrapedPages = successfulScrapes;
+
+    console.log(
+      `🎉 Concurrent scraping completed: ${this.scrapedPages.length} pages successfully scraped`
+    );
+
+    // Log successfully scraped URLs
+    if (this.scrapedPages.length > 0) {
+      console.log(
+        "✅ Successfully scraped URLs:",
+        this.scrapedPages.map((page) => ({
+          url: page.url,
+          level: page.level,
+          title: page.title,
+        }))
+      );
     }
 
     return this.scrapedPages;
   }
 }
 
-/**
- * API endpoint to scrape website content only
- * Usage: /api/scrape?url=https://example.com&userId=user123
- */
 export async function GET(request: NextRequest) {
-  // Extract URL parameter from query string
+  console.log("🚀 Scraping API called");
+
   const { searchParams } = new URL(request.url);
   const urlParam = searchParams.get("url");
   const userId = searchParams.get("userId") || "anonymous";
 
   if (!urlParam) {
-    return new NextResponse("Please provide a URL.", { status: 400 });
+    return NextResponse.json(
+      { error: "Please provide a URL." },
+      { status: 400 }
+    );
   }
 
-  // Prepend http:// if missing
   let inputUrl = urlParam.trim();
   if (!/^https?:\/\//i.test(inputUrl)) {
     inputUrl = `http://${inputUrl}`;
   }
 
-  // Validate the URL is a valid HTTP/HTTPS URL
   let parsedUrl: URL;
+  let mainUrl;
+  let domain;
   try {
     parsedUrl = new URL(inputUrl);
+    domain = parsedUrl.hostname;
+
+    // // Remove www. prefix
+    domain = domain.startsWith("www.") ? domain.substring(4) : domain;
+
+    // // Determine the actual protocol that works
+    const protocol = parsedUrl.protocol;
+    mainUrl = `${protocol}//${domain}`;
     if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
-      return new NextResponse("URL must start with http:// or https://", {
-        status: 400,
-      });
+      return NextResponse.json(
+        { error: "URL must start with http:// or https://" },
+        { status: 400 }
+      );
     }
   } catch {
-    return new NextResponse("Invalid URL provided.", { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid URL provided." },
+      { status: 400 }
+    );
   }
 
   let browser;
   try {
-    // Configure browser based on environment
     const isVercel = !!process.env.VERCEL_ENV;
     let puppeteer: any,
       launchOptions: any = {
@@ -284,41 +416,44 @@ export async function GET(request: NextRequest) {
       };
 
     if (isVercel) {
-      // Vercel: Use puppeteer-core with downloaded Chromium binary
       const chromium = (await import("@sparticuz/chromium-min")).default;
       puppeteer = await import("puppeteer-core");
       const executablePath = await getChromiumPath();
       launchOptions = {
         ...launchOptions,
-        args: chromium.args,
+        args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
         executablePath,
       };
-      console.log("Launching browser with executable path:", executablePath);
+      console.log("🔧 Launching browser with Chromium on Vercel");
     } else {
-      // Local: Use regular puppeteer with bundled Chromium
       puppeteer = await import("puppeteer");
+      launchOptions.args = ["--no-sandbox", "--disable-setuid-sandbox"];
+      console.log("🔧 Launching browser with local Puppeteer");
     }
 
-    // Launch browser and scrape website content
+    console.log("🚀 Launching browser...");
     browser = await puppeteer.launch(launchOptions);
+    console.log("✅ Browser launched successfully");
 
+    let scrapedPages: ScrapedPage[];
+
+    console.log("🔍 Starting CONCURRENT scraping mode");
     const scraper = new WebScraper(browser);
-    const scrapedPages = await scraper.scrapeWebsite(parsedUrl.toString());
+    scrapedPages = await scraper.scrapeWebsite(mainUrl.toString());
 
     if (scrapedPages.length === 0) {
-      return new NextResponse(
-        "No pages could be scraped from the provided URL.",
-        {
-          status: 400,
-        }
+      return NextResponse.json(
+        { error: "No pages could be scraped from the provided URL." },
+        { status: 400 }
       );
     }
 
-    // Extract domain for filename
-    const domain = new URL(parsedUrl.toString()).hostname.replace(/^www\./, "");
     const fileName = `${domain}_${Date.now()}`;
 
-    // Return only scraped data without processing
+    console.log(
+      `✅ Concurrent scraping completed: ${scrapedPages.length} pages found`
+    );
+
     return NextResponse.json({
       success: true,
       data: {
@@ -328,21 +463,28 @@ export async function GET(request: NextRequest) {
         totalPages: scrapedPages.length,
         maxLevel: Math.max(...scrapedPages.map((page) => page.level)),
         scrapedPages: scrapedPages,
-        rawData: scrapedPages, // Include raw data for processing
       },
       scrapedAt: new Date().toISOString(),
       message:
-        "Scraping completed successfully. Call /api/process-data to store and upload.",
+        "Concurrent scraping completed successfully. Call /api/process-data to store and upload.",
     });
   } catch (error) {
-    console.error("Scraping error:", error);
-    return new NextResponse("An error occurred while scraping the website.", {
-      status: 500,
-    });
+    console.error("💥 Scraping error:", error);
+    return NextResponse.json(
+      { error: "An error occurred while scraping the website." },
+      { status: 500 }
+    );
   } finally {
-    // Always clean up browser resources
     if (browser) {
       await browser.close();
+      console.log("🔚 Browser closed");
     }
   }
+}
+
+export async function POST() {
+  return NextResponse.json(
+    { error: "Method not allowed. Use GET instead." },
+    { status: 405 }
+  );
 }

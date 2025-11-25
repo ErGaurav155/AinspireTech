@@ -81,7 +81,7 @@ export default function HomePage() {
       if (scrapeResult.success) {
         setRawScrapedData(scrapeResult.data);
         setScrapingComplete(true);
-
+        console.log("rawScrapedData:", scrapeResult.data);
         // Step 2: Automatically call processing API
         await handleProcessData(scrapeResult.data);
       } else {
