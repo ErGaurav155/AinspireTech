@@ -75,7 +75,7 @@ class WebScraper {
 
       await page.goto(url, {
         waitUntil: "load",
-        timeout: 20000,
+        timeout: 30000,
       });
 
       const scrapedData = await page.evaluate(() => {
