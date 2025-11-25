@@ -305,7 +305,7 @@ const PricingWithSearchParamsWeb = () => {
                   <SignedOut>
                     <button
                       onClick={() => router.push("/sign-in")}
-                      className=" w-full mt-3 py-3 rounded-full font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
+                      className="z-50 w-full mt-3 py-3 rounded-full font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
                     >
                       Get Started
                     </button>

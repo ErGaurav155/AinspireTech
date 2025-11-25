@@ -102,14 +102,14 @@ export default function Navbar() {
             <SignedOut>
               <Button
                 variant="outline"
-                className={`hover:opacity-90 transition-opacity ${outlineButton}`}
+                className={` hover:opacity-90 transition-opacity ${outlineButton} `}
                 asChild
               >
                 <Link href="/sign-in">Sign In</Link>
               </Button>
             </SignedOut>
             <Button
-              className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
+              className=" text-black hover:opacity-90 transition-opacity"
               asChild
             >
               <Link href="/insta/pricing">

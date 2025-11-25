@@ -8,10 +8,13 @@ const isPublicRoute = createRouteMatcher([
   "/insta",
   "/Aboutus",
   "/web/pricing",
+  "/web/feature",
+  "/web/product",
+  "/web/product/(.*)",
+  "/insta/pricing",
+  "/web/scrape-test",
   "/contactUs",
   "/Review",
-  "/web/product/(.*)",
-  "/new/product",
   "/api/cron",
   "/api/webhooks/clerk",
   "/api/webhooks/instagram",
@@ -24,7 +27,11 @@ const isPublicRoute = createRouteMatcher([
   "/api/embed/webQuestion",
   "/privacy-policy",
   "/TermsandCondition",
-  "/api/scrape(.*)",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/chatbotembed.js",
+  "/mcqchatbotembed.js",
+  "/chromium-pack.tar",
 ]);
 
 export default clerkMiddleware((auth, request) => {
