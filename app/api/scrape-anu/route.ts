@@ -50,7 +50,7 @@ class WebScraper {
   private browser: any;
   private visitedUrls: Set<string> = new Set();
   private scrapedPages: ScrapedPage[] = [];
-  private maxPages: number = 10;
+  private maxPages: number = 6;
   private maxLevel: number = 3;
 
   constructor(browser: any) {
@@ -74,8 +74,8 @@ class WebScraper {
       );
 
       await page.goto(url, {
-        waitUntil: "networkidle2",
-        timeout: 30000,
+        waitUntil: "load",
+        timeout: 20000,
       });
 
       const scrapedData = await page.evaluate(() => {
@@ -276,8 +276,8 @@ class WebScraper {
       );
 
       await page.goto(url, {
-        waitUntil: "networkidle2",
-        timeout: 10000,
+        waitUntil: "load",
+        timeout: 20000,
       });
 
       const scrapedData = await page.evaluate(() => {
