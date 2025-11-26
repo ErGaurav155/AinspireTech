@@ -14,7 +14,6 @@ import WebsiteData from "../database/models/web/WebsiteData.model";
 import WebConversation from "../database/models/web/Conversation.model";
 import WebAppointmentQuestions from "../database/models/web/AppointmentQuestions.model";
 import InstaReplyTemplate from "../database/models/insta/ReplyTemplate.model";
-import File from "../database/models/web/scrappeddata.model";
 import Razorpay from "razorpay";
 
 const razorpay = new Razorpay({
@@ -177,8 +176,6 @@ export async function cleanupUserData(clerkId: string) {
       WebsiteData?.deleteMany({ clerkId }),
       WebConversation?.deleteMany({ clerkId }),
       WebAppointmentQuestions?.deleteMany({ clerkId }),
-      File?.deleteMany({ userId: clerkId }),
-
       // Instagram-related data
       InstaReplyTemplate?.deleteMany({ userId: clerkId }),
       InstaReplyLog?.deleteMany({ userId: clerkId }),

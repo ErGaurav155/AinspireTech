@@ -12,7 +12,6 @@ const isPublicRoute = createRouteMatcher([
   "/web/product",
   "/web/product/(.*)",
   "/insta/pricing",
-  "/web/scrape-test",
   "/contactUs",
   "/Review",
   "/api/cron",

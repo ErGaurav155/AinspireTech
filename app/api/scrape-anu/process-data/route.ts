@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
-import File from "@/lib/database/models/web/scrappeddata.model";
 import { uploadTextToCloudinary } from "@/lib/action/transaction.action";
 
 // MongoDB connection
@@ -135,18 +134,6 @@ export async function POST(request: NextRequest) {
 
     // Upload to Cloudinary
     const cloudinaryUrl = await uploadTextToCloudinary(formattedData, fileName);
-
-    // Save to MongoDB with Cloudinary link
-    const fileData = new File({
-      fileName,
-      userId: userId,
-      link: cloudinaryUrl,
-      domain,
-    });
-
-    await fileData.save();
-
-    console.log(`Data processed successfully: ${fileName}`);
 
     // Return success response
     return NextResponse.json({

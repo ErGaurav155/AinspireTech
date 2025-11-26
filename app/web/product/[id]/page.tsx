@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { HeadsetIcon } from "lucide-react";
 import { Footer } from "@/components/shared/Footer";
 import { productDetails } from "@/constant";
@@ -12,9 +12,9 @@ interface ProductParams {
   id: string;
 }
 
-const ProductDetail = ({ params }: { params: ProductParams }) => {
+const ProductDetail = ({ params }: { params: Promise<ProductParams> }) => {
   const router = useRouter();
-  const { id } = params;
+  const { id } = use(params);
   const { theme } = useTheme();
 
   // Theme-based styles

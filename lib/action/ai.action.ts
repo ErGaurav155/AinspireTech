@@ -2,7 +2,6 @@
 
 import OpenAI from "openai";
 import { connectToDatabase } from "../database/mongoose";
-import File from "@/lib/database/models/web/scrappeddata.model";
 
 // Cache for OpenAI instance
 let openaiInstance: OpenAI | Error | null = null;
@@ -93,15 +92,11 @@ export const generateGptResponse = async ({
   try {
     await connectToDatabase();
 
-    const existingFile = await File.findOne({ fileName: userfileName });
-
     let context = "No website data available. Please scrape a website first.";
 
-    if (existingFile?.link) {
+    if (userfileName) {
       try {
-        const cloudinaryContent = await downloadCloudinaryContent(
-          existingFile.link
-        );
+        const cloudinaryContent = await downloadCloudinaryContent(userfileName);
         const parsedData = JSON.parse(cloudinaryContent);
         context = formatContextFromData(parsedData);
       } catch (error) {

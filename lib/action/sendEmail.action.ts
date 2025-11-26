@@ -82,7 +82,7 @@ export const sendAppointmentEmailToUser = async ({
     from: process.env.EMAIL_USER,
     to: email,
     subject: "New Subscription Alert",
-    text: `Congratulations! SomeONe Booked New Appointment. name:${data[0].answer}, email:${data[1].answer}, other details are: ${data[3].answer}. Please go to dashboard to get detailed appointment information`,
+    text: `Congratulations! SomeOne Booked New Appointment. name:${data[0].answer}, email:${data[1].answer}, other details are: ${data[3].answer}. Please go to dashboard to get detailed appointment information`,
   };
 
   await transporter.sendMail(mailOptions);

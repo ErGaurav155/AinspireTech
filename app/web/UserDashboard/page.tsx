@@ -92,9 +92,34 @@ import {
 } from "@/lib/action/subscription.action";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useTheme } from "next-themes";
-import { getUserById } from "@/lib/action/user.actions";
+import {
+  getUserById,
+  setScrappedFile,
+  setWebsiteScrapped,
+} from "@/lib/action/user.actions";
 import { Toast } from "@/components/ui/toast";
+interface ScrapedPage {
+  url: string;
+  title: string;
+  description: string;
+  headings: {
+    h1: string[];
+    h2: string[];
+    h3: string[];
+  };
+  content: string;
+  level: number;
+}
 
+interface ScrapedData {
+  fileName: string;
+  domain: string;
+  userId: string;
+  totalPages: number;
+  maxLevel: number;
+  cloudinaryLink: string;
+  pages: ScrapedPage[];
+}
 // Chatbot types configuration
 const chatbotTypes = [
   {
@@ -208,8 +233,17 @@ export default function DashboardPage() {
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [webError, setWebError] = useState<string | null>(null);
+  const [scrapingComplete, setScrapingComplete] = useState(false);
+  const [rawScrapedData, setRawScrapedData] = useState<any>(null);
+  const [scrapedData, setScrapedData] = useState<ScrapedData | null>(null);
+  const [processing, setProcessing] = useState(false);
   const [showCancelSubDialog, setShowCancelSubDialog] = useState(false);
   const [cancelSub, setCancelSub] = useState(false);
+  const [isWebScrapped, setWebIsScrapped] = useState(true);
+  const [webLoading, setWebLoading] = useState(false);
+  const [fileLink, setFileLink] = useState();
+
   const [selectedChatbotId, setSelectedChatbotId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImmediateSubmitting, setIsImmediateSubmitting] = useState(false);
@@ -274,6 +308,8 @@ export default function DashboardPage() {
       const userInfo = await getUserById(userId!);
       if (userInfo) {
         setWebsiteUrl(userInfo.websiteUrl || null);
+        setWebIsScrapped(userInfo.isScrapped);
+        setFileLink(userInfo.scrappedFile);
       }
       // Load subscriptions
       const subscriptionsData = await apiClient.getSubscriptions(userId!);
@@ -338,11 +374,7 @@ export default function DashboardPage() {
     loadDashboardData();
   }, [userId, loadDashboardData, router]);
   const handleCopyCode = () => {
-    const code = `<script src="https://ainspiretech.com/chatbotembed.js" data-chatbot-config='{"userId":"${userId}","isAuthorized":${isSubscribed},"filename":"${
-      subscriptions[selectedChatbot]?.filename || "your-data-file"
-    }","chatbotType":"${selectedChatbot}","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi! How can I help you today?","chatbotName":"${
-      currentChatbot?.name
-    }"}'></script>`;
+    const code = `<script src="https://ainspiretech.com/chatbotembed.js" data-chatbot-config='{"userId":"${userId}","isAuthorized":${isSubscribed},"filename":"${fileLink}","chatbotType":"${selectedChatbot}","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi! How can I help you today?","chatbotName":"${currentChatbot?.name}"}'></script>`;
 
     navigator.clipboard.writeText(code);
     setCopied(true);
@@ -429,6 +461,111 @@ export default function DashboardPage() {
       alert("Failed to save website data: " + err.message);
     }
   };
+  const handleScrape = async () => {
+    if (!websiteUrl || !userId) {
+      setWebError("Please enter a valid URL.");
+      return;
+    }
+
+    // Client-side URL validation: must start with http:// or https:// and be a valid URL
+    if (!/^https?:\/\//i.test(websiteUrl.trim())) {
+      setWebError("URL must start with http:// or https://");
+      return;
+    }
+
+    try {
+      new URL(websiteUrl.trim());
+    } catch {
+      setWebError("Invalid URL format. Please enter a valid URL.");
+      return;
+    }
+    setWebLoading(true);
+    setWebError(null);
+    setScrapedData(null);
+    setScrapingComplete(false);
+    setRawScrapedData(null);
+
+    try {
+      // Step 1: Call scraping API
+      const webSubscriptionId = subscriptions[selectedChatbot]?.subscriptionId;
+      const webSelectedChatbot = selectedChatbot;
+
+      const scrapeResponse = await fetch(
+        `/api/scrape-anu?url=${encodeURIComponent(
+          websiteUrl
+        )}&userId=${encodeURIComponent(
+          userId
+        )}&subscriptionId=${webSubscriptionId}&agentId=${webSelectedChatbot}`
+      );
+
+      if (!scrapeResponse.ok) {
+        if (scrapeResponse.status === 429) {
+          throw new Error("Rate limit reached. Please try again later.");
+        }
+        const errorText = await scrapeResponse.text();
+        throw new Error(errorText || "Failed to scrape website.");
+      }
+
+      const scrapeResult = await scrapeResponse.json();
+
+      if (scrapeResult.success) {
+        setRawScrapedData(scrapeResult.data);
+        setScrapingComplete(true);
+        console.log("rawScrapedData:", scrapeResult.data);
+        // Step 2: Automatically call processing API
+        await handleProcessData(scrapeResult.data);
+      } else {
+        throw new Error("Scraping failed");
+      }
+    } catch (err) {
+      setWebError(
+        err instanceof Error ? err.message : "An unknown error occurred."
+      );
+    } finally {
+      setWebLoading(false);
+    }
+  };
+
+  const handleProcessData = async (data: any) => {
+    setProcessing(true);
+    setWebError(null);
+
+    try {
+      const processResponse = await fetch("/api/scrape-anu/process-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!processResponse.ok) {
+        const errorText = await processResponse.text();
+        throw new Error(errorText || "Failed to process data.");
+      }
+
+      const processResult = await processResponse.json();
+
+      if (processResult.success) {
+        await setScrappedFile(userId!, processResult.data.cloudinaryLink);
+
+        await setWebsiteScrapped(userId!);
+
+        setScrapedData(processResult.data);
+      } else {
+        throw new Error("Data processing failed");
+      }
+    } catch (err) {
+      setWebError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while processing data."
+      );
+    } finally {
+      setProcessing(false);
+      router.refresh();
+    }
+  };
 
   const saveAppointmentQuestions = async () => {
     try {
@@ -463,6 +600,7 @@ export default function DashboardPage() {
   const removeAppointmentQuestion = (id: number) => {
     setAppointmentQuestions(appointmentQuestions.filter((q) => q.id !== id));
   };
+
   // Add this function near your other functions
   const saveFAQ = async () => {
     try {
@@ -692,7 +830,9 @@ export default function DashboardPage() {
                         } ${activeBorder}`
                       : `${hoverBorder}`
                   }`}
-                  onClick={() => setSelectedChatbot(chatbot.id)}
+                  onClick={() => {
+                    setSelectedChatbot(chatbot.id);
+                  }}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
@@ -1755,7 +1895,7 @@ export default function DashboardPage() {
                           Website URL
                         </Label>
                         <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
-                          {websiteUrl === null ? (
+                          {websiteUrl === null || !isWebScrapped ? (
                             <Input
                               disabled={websiteUrl === null ? true : false}
                               id="websiteUrl"
@@ -1772,17 +1912,49 @@ export default function DashboardPage() {
                             </p>
                           )}
                           <Button
-                            disabled={websiteUrl === null ? true : false}
+                            disabled={
+                              (websiteUrl === null
+                                ? false
+                                : isWebScrapped
+                                ? true
+                                : false) ||
+                              loading ||
+                              processing
+                            }
+                            onClick={() => handleScrape()}
                             className={` hover:opacity-90 text-black ${
-                              websiteUrl === null
+                              websiteUrl === null || isWebScrapped === false
                                 ? "bg-gradient-to-r from-[#00F0FF] to-[#0080FF]"
                                 : "bg-gray-500"
                             }`}
                           >
                             <Upload className="h-4 w-4 mr-1" />
-                            Upload
+                            {webLoading
+                              ? "Scraping..."
+                              : processing
+                              ? "Processing..."
+                              : "Start Scraping"}
                           </Button>
                         </div>
+                        {webError && (
+                          <div className=" border border-red-200 rounded-lg p-4 mt-8">
+                            <p
+                              className={`text-red-700 ${textPrimary} font-montserrat`}
+                            >
+                              {webError}
+                            </p>
+                          </div>
+                        )}
+                        {(webLoading || processing) && (
+                          <div className=" border border-green-200 rounded-lg p-4 mt-8">
+                            <p
+                              className={`text-green-700 ${textPrimary}font-montserrat`}
+                            >
+                              This might take 1-2 min so please wait,Dont do
+                              anything.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>

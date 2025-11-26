@@ -49,7 +49,7 @@ export default async function RootLayout({
 
           <Script
             src="https://ainspiretech.com/chatbotembed.js"
-            data-chatbot-config='{"userId":"user_33b7hzsvMiYlCeTynG0TeD5LxM9","isAuthorized":true,"filename":"ainspiretech.com_1764083624794","chatbotType":"chatbot-lead-generation","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi! How can I help you today?","chatbotName":"AinspireTech Assistant"}'
+            data-chatbot-config='{"userId":"user_32gfPkz04sXmH5xzFQKyZvqib4Q","isAuthorized":true,"filename":"https://res.cloudinary.com/dr6yywiz8/raw/upload/v1764154028/scraped-data/ainspiretech.com_1764154022960","chatbotType":"chatbot-lead-generation","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi! How can I help you today?","chatbotName":"Lead Generation"}'
           ></Script>
         </body>
       </html>

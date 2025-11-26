@@ -179,7 +179,7 @@ export const getWebSubscriptionInfo = async (
 
     // Filter subscriptions by userId and subscriptionStatus
     const subscriptions = await WebSubscription.find({
-      userId,
+      clerkId: userId,
       productId: agentId,
       billingMode: billingCycle,
       subscriptionStatus: "active", // Only fetch active subscriptions
@@ -197,18 +197,23 @@ export const getWebSubscriptionInfo = async (
 };
 export const getAgentSubscriptionInfo = async (
   userId: string,
-  agentId: string
+  agentId: string,
+  subscriptionId: string
 ) => {
   try {
     await connectToDatabase(); // Ensure database connection
+    console.log("userId:", userId);
+    console.log("agentId:", agentId);
+    console.log("subscriptions:", subscriptionId);
 
     // Filter subscriptions by userId and subscriptionStatus
     const subscriptions = await WebSubscription.find({
       clerkId: userId,
       chatbotType: agentId,
-      status: "active", // Only fetch active subscriptions
+      subscriptionId: subscriptionId,
+      status: "active",
     });
-
+    console.log("subscriptions:", subscriptions);
     if (!subscriptions || subscriptions.length === 0) {
       return []; // Return an empty array if no active subscriptions
     }
