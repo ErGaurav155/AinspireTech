@@ -10,7 +10,6 @@ import WebSubscription from "../database/models/web/Websubcription.model";
 import InstaReplyLog from "../database/models/insta/ReplyLog.model";
 import InstaSubscription from "../database/models/insta/InstaSubscription.model";
 import InstagramAccount from "../database/models/insta/InstagramAccount.model";
-import WebsiteData from "../database/models/web/WebsiteData.model";
 import WebConversation from "../database/models/web/Conversation.model";
 import WebAppointmentQuestions from "../database/models/web/AppointmentQuestions.model";
 import InstaReplyTemplate from "../database/models/insta/ReplyTemplate.model";
@@ -173,7 +172,6 @@ export async function cleanupUserData(clerkId: string) {
     const deletionPromises = [
       // Web-related data
       WebSubscription?.deleteMany({ clerkId }),
-      WebsiteData?.deleteMany({ clerkId }),
       WebConversation?.deleteMany({ clerkId }),
       WebAppointmentQuestions?.deleteMany({ clerkId }),
       // Instagram-related data

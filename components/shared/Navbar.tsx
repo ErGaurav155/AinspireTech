@@ -28,7 +28,7 @@ export function NavBar() {
   const [showInstaBar, setShowInstaBar] = useState<Checked>(false);
   const [showWebBar, setShowWebBar] = useState<Checked>(false);
   const router = useRouter();
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -54,11 +54,13 @@ export function NavBar() {
         console.error("Error checking owner status:", error);
       }
     };
-
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
     if (userId) {
       isOwner();
     }
-  }, [userId]);
+  }, [userId, isLoaded]);
 
   const navItems = [
     { id: "insta", label: "Insta", href: "/insta" },
@@ -70,7 +72,16 @@ export function NavBar() {
     setActiveNavItem(id);
     setIsMenuOpen(false);
   };
-
+  if (!isLoaded) {
+    return (
+      <div className={`min-h-screen  flex items-center justify-center `}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <header
       className={`sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b transition-all duration-300 ${

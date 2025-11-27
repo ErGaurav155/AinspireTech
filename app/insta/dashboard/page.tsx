@@ -55,7 +55,7 @@ import { instagramPricingPlans } from "@/constant";
 import { useTheme } from "next-themes";
 
 export default function Dashboard() {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const router = useRouter();
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [userInfo, setUserInfo] = useState<any>();
@@ -323,10 +323,12 @@ export default function Dashboard() {
         console.error("Failed to fetch subscriptions:", error);
       }
     };
-
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
     fetchSubscriptions();
     fetchDashboardData();
-  }, [userId, fetchDashboardData]);
+  }, [userId, fetchDashboardData, isLoaded]);
 
   // Handle cancellation initiation
   const handleCancelInitiation = () => {
@@ -444,7 +446,7 @@ export default function Dashboard() {
     await fetchDashboardData();
   };
 
-  if (isLoading) {
+  if (isLoading || !isLoaded) {
     return (
       <div
         className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}

@@ -43,7 +43,7 @@ const PricingWithSearchParamsWeb = () => {
   const [loading, setLoading] = useState(true);
   const [login, setLogin] = useState(true);
   const router = useRouter();
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const searchParams = useSearchParams();
   const activeProductId = searchParams.get("id");
   const { theme } = useTheme();
@@ -99,11 +99,13 @@ const PricingWithSearchParamsWeb = () => {
         }
       }
     }
-
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
     fetchSubscriptions();
-  }, [userId]);
+  }, [userId, isLoaded]);
 
-  if (loading) {
+  if (loading || !isLoaded) {
     return (
       <div
         className={`flex items-center justify-center min-h-screen ${textPrimary} font-bold text-xl ${loadingBg} relative z-10`}
@@ -322,6 +324,7 @@ const PricingWithSearchParamsWeb = () => {
                     </button>
                   ) : (
                     <Checkout
+                      userId={userId!}
                       productId={productId}
                       billingCycle={billingMode}
                       amount={displayedPrice}

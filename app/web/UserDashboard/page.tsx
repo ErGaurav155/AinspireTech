@@ -193,7 +193,6 @@ export default function DashboardPage() {
   const [subscriptions, setSubscriptions] = useState<any>({});
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
-  const [websiteData, setWebsiteData] = useState("");
 
   const [appointmentQuestions, setAppointmentQuestions] = useState([
     {
@@ -263,7 +262,7 @@ export default function DashboardPage() {
       category: "Support",
     },
   ]);
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const { theme } = useTheme();
 
   // Theme-based styles
@@ -327,11 +326,6 @@ export default function DashboardPage() {
       } else {
         setDefaultValue("overview");
       }
-      // Load website data for selected chatbot
-      const websiteDataResponse = await apiClient.getWebsiteData(
-        selectedChatbot
-      );
-      setWebsiteData(websiteDataResponse.websiteData.content);
 
       // Load appointment questions for selected chatbot
       const questionsResponse = await apiClient.getAppointmentQuestions(
@@ -366,13 +360,16 @@ export default function DashboardPage() {
   }, [selectedChatbot, userId]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
     if (!userId) {
       router.push("/sign-in");
       return;
     }
 
     loadDashboardData();
-  }, [userId, loadDashboardData, router]);
+  }, [userId, loadDashboardData, router, isLoaded]);
   const handleCopyCode = () => {
     const code = `<script src="https://ainspiretech.com/chatbotembed.js" data-chatbot-config='{"userId":"${userId}","isAuthorized":${isSubscribed},"filename":"${fileLink}","chatbotType":"${selectedChatbot}","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi! How can I help you today?","chatbotName":"${currentChatbot?.name}"}'></script>`;
 
@@ -453,14 +450,6 @@ export default function DashboardPage() {
     }
   };
 
-  const saveWebsiteData = async () => {
-    try {
-      await apiClient.saveWebsiteData(selectedChatbot, websiteData);
-      alert("Website data saved successfully!");
-    } catch (err: any) {
-      alert("Failed to save website data: " + err.message);
-    }
-  };
   const handleScrape = async () => {
     if (!websiteUrl || !userId) {
       setWebError("Please enter a valid URL.");
@@ -638,7 +627,7 @@ export default function DashboardPage() {
     setFaqQuestions(faqQuestions.filter((q) => q.id !== id));
   };
 
-  if (loading) {
+  if (loading || !isLoaded) {
     return (
       <div
         className={`min-h-screen ${containerBg} ${textPrimary} flex items-center justify-center`}
@@ -1594,40 +1583,6 @@ export default function DashboardPage() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
-                  <CardHeader className="p-2">
-                    <CardTitle className={`${textPrimary} flex items-center`}>
-                      <Globe className="h-5 w-5 mr-2" />
-                      Website Data for {currentChatbot?.name}
-                    </CardTitle>
-                    <CardDescription className={textSecondary}>
-                      Update your website information for better AI responses
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-2">
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="websiteData" className={textSecondary}>
-                          Website Information
-                        </Label>
-                        <Textarea
-                          id="websiteData"
-                          value={websiteData}
-                          onChange={(e) => setWebsiteData(e.target.value)}
-                          className={`mt-2 ${inputBg} ${inputBorder} ${textPrimary} min-h-[200px] font-montserrat`}
-                          placeholder="Enter your website information, services, business hours, etc."
-                        />
-                      </div>
-                      <Button
-                        onClick={saveWebsiteData}
-                        className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black`}
-                      >
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Website Data
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
 
                 <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
                   <CardHeader className="p-4">
@@ -1662,23 +1617,30 @@ export default function DashboardPage() {
                           }`}
                         >
                           <div className="flex items-center justify-between mb-3">
-                            <Input
-                              value={faq.question}
-                              onChange={(e) =>
-                                updateFAQQuestion(
-                                  faq.id,
-                                  "question",
-                                  e.target.value
-                                )
-                              }
-                              className={`${inputBg} ${inputBorder} ${textPrimary} text-sm font-montserrat mb-2`}
-                              placeholder="FAQ Question"
-                            />
+                            <div className="flex-1 mr-2">
+                              <Input
+                                value={faq.question}
+                                onChange={(e) =>
+                                  updateFAQQuestion(
+                                    faq.id,
+                                    "question",
+                                    e.target.value
+                                  )
+                                }
+                                className={`${inputBg} ${inputBorder} ${textPrimary} text-sm font-montserrat mb-2`}
+                                placeholder="FAQ Question"
+                              />
+                              {!faq.question.trim() && (
+                                <p className="text-red-500 text-xs mt-1 font-montserrat">
+                                  Question cannot be empty
+                                </p>
+                              )}
+                            </div>
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => removeFAQQuestion(faq.id)}
-                              className="text-red-400 hover:text-red-300 ml-2"
+                              className="text-red-400 hover:text-red-300"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -1708,24 +1670,31 @@ export default function DashboardPage() {
                             </select>
                           </div>
 
-                          <Textarea
-                            value={faq.answer}
-                            onChange={(e) =>
-                              updateFAQQuestion(
-                                faq.id,
-                                "answer",
-                                e.target.value
-                              )
-                            }
-                            className={`${inputBg} ${inputBorder} ${textPrimary} text-sm font-montserrat min-h-[80px]`}
-                            placeholder="FAQ Answer"
-                          />
+                          <div className="relative">
+                            <Textarea
+                              value={faq.answer}
+                              onChange={(e) =>
+                                updateFAQQuestion(
+                                  faq.id,
+                                  "answer",
+                                  e.target.value
+                                )
+                              }
+                              className={`${inputBg} ${inputBorder} ${textPrimary} text-sm font-montserrat min-h-[80px]`}
+                              placeholder="FAQ Answer"
+                            />
+                            {!faq.answer.trim() && (
+                              <p className="text-red-500 text-xs mt-1 font-montserrat">
+                                Answer cannot be empty
+                              </p>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
 
                     {faqQuestions.length === 0 && (
-                      <div className="text-center py-8">
+                      <div className="text-center py-8 font-montserrat">
                         <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                         <p className={textSecondary}>
                           No FAQ questions added yet
@@ -1738,107 +1707,37 @@ export default function DashboardPage() {
 
                     <div className="pt-4">
                       <Button
+                        disabled={
+                          faqQuestions.length === 0 ||
+                          faqQuestions.some(
+                            (faq) => !faq.question.trim() || !faq.answer.trim()
+                          )
+                        }
                         onClick={saveFAQ}
-                        className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black`}
+                        className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
                         <Save className="h-4 w-4 mr-2" />
-                        Save FAQ Questions
+                        {faqQuestions.some(
+                          (faq) => !faq.question.trim() || !faq.answer.trim()
+                        )
+                          ? "Please fill all questions and answers"
+                          : "Save FAQ Questions"}
                       </Button>
+
+                      {faqQuestions.length > 0 &&
+                        faqQuestions.some(
+                          (faq) => !faq.question.trim() || !faq.answer.trim()
+                        ) && (
+                          <p className="text-red-500 text-sm mt-2 font-montserrat">
+                            Please fill in all questions and answers before
+                            saving
+                          </p>
+                        )}
                     </div>
                   </CardContent>
                 </Card>
               </div>
             </TabsContent>
-            {/* <TabsContent value="integration3" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
-                  <CardHeader className="p-2">
-                    <CardTitle className="text-white">
-                      {currentChatbot?.name} Integration
-                    </CardTitle>
-                    <CardDescription className="text-gray-400 font-montserrat">
-                      Copy and paste this code into your website
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-2">
-                    <div className="space-y-4">
-                      <div className="relative">
-                        <pre className="bg-[#a54b17]/5 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
-                          <code className="font-montserrat">{chatbotCode}</code>
-                        </pre>
-                        <Button
-                          size="sm"
-                          className="absolute top-2 text-white right-2 bg-[#1a894c]/90  hover:bg-[#1a894c]"
-                          onClick={handleCopyCode}
-                        >
-                          {copied ? (
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                          ) : (
-                            <Copy className="h-4 w-4 mr-1" />
-                          )}
-                          {copied ? "Copied!" : "Copy"}
-                        </Button>
-                      </div>
-
-                      <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4">
-                        <div className="flex items-start space-x-3">
-                          <AlertCircle className="h-5 w-5 text-blue-400 mt-0.5" />
-                          <div>
-                            <h4 className="text-sm font-medium text-blue-400">
-                              Integration Instructions
-                            </h4>
-                            <p className="text-sm text-gray-300 mt-1 font-montserrat">
-                              1. Copy the code above
-                              <br />
-                              2. Paste it before the closing &lt;/body&gt; tag
-                              on your website
-                              <br />
-                              3. The {currentChatbot?.name.toLowerCase()} will
-                              automatically appear on your site
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-transparent backdrop-blur-sm border-gray-800/50">
-                  <CardHeader className="p-2">
-                    <CardTitle className="text-white flex items-center">
-                      <Globe className="h-5 w-5 mr-2" />
-                      Website Data for {currentChatbot?.name}
-                    </CardTitle>
-                    <CardDescription className="text-gray-400 font-montserrat">
-                      Update your website information for better AI responses
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-2">
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="websiteData" className="text-gray-300">
-                          Website Information
-                        </Label>
-                        <Textarea
-                          id="websiteData"
-                          value={websiteData}
-                          onChange={(e) => setWebsiteData(e.target.value)}
-                          className="mt-2 bg-[#8f28a4]/5 border-gray-700 text-white min-h-[200px] font-montserrat"
-                          placeholder="Enter your website information, services, business hours, etc."
-                        />
-                      </div>
-                      <Button
-                        onClick={saveWebsiteData}
-                        className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black`}
-                      >
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Website Data
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent> */}
 
             <TabsContent value="settings" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

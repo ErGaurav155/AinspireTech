@@ -48,7 +48,7 @@ const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 const ANALYTICS_CACHE_KEY = "analyticsData";
 
 export default function AnalyticsPage() {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [templates, setTemplates] = useState<any>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
@@ -107,6 +107,9 @@ export default function AnalyticsPage() {
   }, [analyticsData, selectedAccount]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
     if (!userId) {
       router.push("/sign-in");
       return;
@@ -114,7 +117,7 @@ export default function AnalyticsPage() {
 
     const data = getFilteredData();
     setFilteredData(data);
-  }, [userId, getFilteredData, router]);
+  }, [userId, getFilteredData, router, isLoaded]);
   const fetchAccounts = useCallback(async () => {
     if (!userId) {
       router.push("/sign-in");
@@ -440,7 +443,7 @@ export default function AnalyticsPage() {
     await fetchAnalyticsData();
   };
 
-  if (isLoading) {
+  if (isLoading || !isLoaded) {
     return (
       <div
         className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}

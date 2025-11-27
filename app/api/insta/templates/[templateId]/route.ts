@@ -11,14 +11,23 @@ export async function PUT(
     await connectToDatabase();
 
     const body = await req.json();
-    const { name, content, triggers, reply, priority, isActive, isFollow } =
-      body;
+    const {
+      name,
+      content,
+      openDm,
+      triggers,
+      reply,
+      priority,
+      isActive,
+      isFollow,
+    } = body;
 
     const template = await InstaReplyTemplate.findOneAndUpdate(
       { _id: templateId },
       {
         name,
         content,
+        openDm,
         triggers,
         reply,
         priority,

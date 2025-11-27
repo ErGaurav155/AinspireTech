@@ -91,6 +91,7 @@ export async function POST(req: Request) {
       mediaId,
       mediaUrl,
       name,
+      openDm,
       content,
       reply,
       triggers,
@@ -104,6 +105,7 @@ export async function POST(req: Request) {
       !userId ||
       !accountId ||
       !name ||
+      !openDm ||
       !content ||
       !reply ||
       !triggers ||
@@ -175,6 +177,7 @@ export async function POST(req: Request) {
       userId,
       accountId,
       name,
+      openDm,
       content: formattedContent,
       reply: formattedReply,
       triggers: formattedTriggers,

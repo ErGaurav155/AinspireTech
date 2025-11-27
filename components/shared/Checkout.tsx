@@ -27,6 +27,7 @@ import { apiClient } from "@/lib/utils";
 import { Button } from "../ui/button";
 
 interface CheckoutProps {
+  userId: string;
   amount: number;
   productId: string;
   billingCycle: string;
@@ -46,12 +47,12 @@ type PhoneFormData = z.infer<typeof phoneFormSchema>;
 type WebsiteFormData = z.infer<typeof websiteFormSchema>;
 
 export const Checkout = ({
+  userId,
   amount,
   productId,
   billingCycle,
 }: CheckoutProps) => {
   const router = useRouter();
-  const { userId } = useAuth();
 
   if (!userId) {
     router.push("/sign-in");

@@ -26,6 +26,7 @@ import {
   Cell,
 } from "recharts";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
 
 // Mock data for charts
 // const dailyData = [
@@ -58,11 +59,11 @@ export interface SentimentChartData {
 }
 
 export function AnalyticsDashboard({ templates }: { templates: any }) {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { theme } = useTheme();
-
+  const router = useRouter();
   // Theme-based styles
   const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
   const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
@@ -86,6 +87,13 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
   >([]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
+    if (!userId) {
+      router.push("/sign-in");
+      return; // Wait for auth to load
+    }
     if (templates && templates.length > 0) {
       // Calculate total usage count
       let totalUsageCount = 0;
@@ -157,9 +165,9 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
     } else {
       setIsLoading(false);
     }
-  }, [templates]); // REMOVED templateData from dependencies
+  }, [templates, userId, isLoaded, router]); // REMOVED templateData from dependencies
 
-  if (isLoading) {
+  if (isLoading || !isLoaded) {
     return (
       <div
         className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}

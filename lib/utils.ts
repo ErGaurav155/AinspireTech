@@ -136,18 +136,6 @@ class ApiClient {
     );
   }
 
-  // Website data methods
-  async getWebsiteData(chatbotType: string) {
-    return this.request(`/web/website-data?chatbotType=${chatbotType}`);
-  }
-
-  async saveWebsiteData(chatbotType: string, content: string) {
-    return this.request("/web/website-data", {
-      method: "POST",
-      body: JSON.stringify({ chatbotType, content }),
-    });
-  }
-
   // Appointment questions methods
   async getAppointmentQuestions(chatbotType: string) {
     return this.request(

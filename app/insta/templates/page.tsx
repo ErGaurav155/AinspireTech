@@ -107,7 +107,7 @@ export default function TemplatesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [canFollow, setCanFollow] = useState(false);
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const router = useRouter();
   const { theme } = useTheme();
 
@@ -132,6 +132,7 @@ export default function TemplatesPage() {
   const [newTemplate, setNewTemplate] = useState({
     name: "",
     content: [{ text: "", link: "" }],
+    openDm: "",
     reply: [""],
     triggers: [""],
     isFollow: false,
@@ -142,6 +143,9 @@ export default function TemplatesPage() {
   });
 
   useEffect(() => {
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
     if (!userId) {
       router.push("/sign-in");
       return;
@@ -170,7 +174,7 @@ export default function TemplatesPage() {
       }
     };
     fetchAccounts();
-  }, [router, userId]);
+  }, [router, userId, isLoaded]);
 
   // Fetch templates with loadMoreCount
   const fetchTemplates = useCallback(async () => {
@@ -500,6 +504,7 @@ export default function TemplatesPage() {
         });
         setNewTemplate({
           name: "",
+          openDm: "",
           content: [{ text: "", link: "" }],
           reply: [""],
           isFollow: false,
@@ -562,7 +567,7 @@ export default function TemplatesPage() {
     return matchesSearch;
   });
 
-  if (isLoading) {
+  if (isLoading || !isLoaded) {
     return (
       <div
         className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
@@ -901,7 +906,34 @@ export default function TemplatesPage() {
                     </div>
                   ))}
                 </div>
-
+                <div className="space-y-2">
+                  <Label htmlFor="priority" className={textSecondary}>
+                    An opening DM
+                  </Label>
+                  <Textarea
+                    id="openDm"
+                    value={
+                      editingTemplate
+                        ? editingTemplate.openDm || ""
+                        : newTemplate.openDm || ""
+                    }
+                    onChange={(e) => {
+                      if (editingTemplate) {
+                        setEditingTemplate({
+                          ...editingTemplate,
+                          openDm: e.target.value,
+                        });
+                      } else {
+                        setNewTemplate({
+                          ...newTemplate,
+                          openDm: e.target.value,
+                        });
+                      }
+                    }}
+                    placeholder="Hey there! I’m so happy you’re here, thanks so much for your interest 😊 Click below and I’ll send you the link in just a sec ✨"
+                    className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                  />
+                </div>
                 {/* Multi-DmReply Section */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
@@ -1253,6 +1285,7 @@ export default function TemplatesPage() {
                     isUpdateTemplate ||
                     (editingTemplate
                       ? !editingTemplate.name ||
+                        !editingTemplate.openDm ||
                         !editingTemplate.accountUsername ||
                         !editingTemplate.mediaId ||
                         editingTemplate.reply.length === 0 ||
@@ -1269,6 +1302,7 @@ export default function TemplatesPage() {
                             c.text.trim() === "" || c.link!.trim() === ""
                         )
                       : !newTemplate.name ||
+                        !newTemplate.openDm ||
                         !newTemplate.accountUsername ||
                         !newTemplate.mediaId ||
                         newTemplate.reply.length === 0 ||
@@ -1458,6 +1492,19 @@ export default function TemplatesPage() {
                           {reply}
                         </Badge>
                       ))}
+                    </div>
+                  </div>
+                  <div className=" flex-1">
+                    <p className={`text-sm ${textMuted} mb-2`}>An opening DM</p>
+                    <div className="flex ">
+                      <Badge
+                        variant="outline"
+                        className={`flex flex-col items-start justify-center ${textMuted} ${inputBg} p-3 rounded-md `}
+                      >
+                        <p className="text-base font-light font-montserrat">
+                          {template.openDm}
+                        </p>
+                      </Badge>
                     </div>
                   </div>
                   <div className="space-y-4 flex-1">

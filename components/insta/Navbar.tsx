@@ -109,7 +109,7 @@ export default function Navbar() {
               </Button>
             </SignedOut>
             <Button
-              className=" text-black hover:opacity-90 transition-opacity"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
               asChild
             >
               <Link href="/insta/pricing">

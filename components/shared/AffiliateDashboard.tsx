@@ -20,7 +20,7 @@ interface AffiliateStats {
 }
 
 export function AffiliateDashboard() {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const [stats, setStats] = useState<AffiliateStats | null>(null);
   const [loading, setLoading] = useState(true);
   const loadStats = useCallback(async () => {
@@ -37,16 +37,19 @@ export function AffiliateDashboard() {
   }, [userId]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
     if (userId) {
       loadStats();
     }
-  }, [userId, loadStats]);
+  }, [userId, loadStats, isLoaded]);
 
   const affiliateLink = stats
     ? `${window.location.origin}/web/pricing?affiliate=${stats.affiliate.affiliateCode}`
     : "";
 
-  if (loading) return <div>Loading...</div>;
+  if (loading || !isLoaded) return <div>Loading...</div>;
   if (!stats) return <div>No affiliate account found</div>;
 
   return (

@@ -156,14 +156,14 @@ export default function AccountPage({
   const [isUpdateTemplate, setIsUpdateTempalte] = useState(false);
 
   const [isStale, setIsStale] = useState(false);
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
 
   // Updated newTemplate state to handle content as objects
   const [newTemplate, setNewTemplate] = useState({
     name: "",
+    openDm: "",
     content: [{ text: "", link: "" }],
     isFollow: false,
-
     reply: [""],
     triggers: [""],
     priority: 5,
@@ -548,12 +548,15 @@ export default function AccountPage({
   }, [userId, fetchAccounts, id]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
     if (!id || !userId) {
       router.push("/sign-in");
       return;
     }
     fetchAccountData();
-  }, [userId, router, id, fetchAccountData]);
+  }, [userId, router, id, fetchAccountData, isLoaded]);
 
   // Reload templates when search term changes
 
@@ -662,6 +665,7 @@ export default function AccountPage({
         });
         setNewTemplate({
           name: "",
+          openDm: "",
           content: [{ text: "", link: "" }],
           isFollow: false,
           reply: [""],
@@ -810,7 +814,7 @@ export default function AccountPage({
     return matchesSearch;
   });
 
-  if (isLoading) {
+  if (isLoading || !isLoaded) {
     return (
       <div
         className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
@@ -1288,7 +1292,34 @@ export default function AccountPage({
                           </Button>
                         )}
                       </div>
-
+                      <div className="space-y-2">
+                        <Label htmlFor="priority" className={textSecondary}>
+                          An opening DM
+                        </Label>
+                        <Textarea
+                          id="openDm"
+                          value={
+                            editingTemplate
+                              ? editingTemplate.openDm || ""
+                              : newTemplate.openDm || ""
+                          }
+                          onChange={(e) => {
+                            if (editingTemplate) {
+                              setEditingTemplate({
+                                ...editingTemplate,
+                                openDm: e.target.value,
+                              });
+                            } else {
+                              setNewTemplate({
+                                ...newTemplate,
+                                openDm: e.target.value,
+                              });
+                            }
+                          }}
+                          placeholder="Hey there! I’m so happy you’re here, thanks so much for your interest 😊 Click below and I’ll send you the link in just a sec ✨"
+                          className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                        />
+                      </div>
                       {(editingTemplate
                         ? editingTemplate.content
                         : newTemplate.content
@@ -1790,6 +1821,23 @@ export default function AccountPage({
                               {reply}
                             </Badge>
                           ))}
+                        </div>
+                      </div>
+                      <div className="space-y-4 flex-1">
+                        <div className="w-full">
+                          <p className={`text-sm ${textMuted} mb-2`}>
+                            An opening DM
+                          </p>
+                          <div className="flex flex-col gap-2">
+                            <Badge
+                              variant="outline"
+                              className={`flex flex-col items-start justify-center ${textMuted} ${inputBg} p-3 rounded-md mb-1`}
+                            >
+                              <p className="text-base font-light font-montserrat">
+                                {template.openDm}
+                              </p>
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                       <div className="space-y-4 flex-1">

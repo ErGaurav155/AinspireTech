@@ -38,7 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 // Main Pricing Component
 function PricingWithSearchParams() {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeProductId = searchParams.get("code");
@@ -212,9 +212,11 @@ function PricingWithSearchParams() {
         setIsLoading(false);
       }
     };
-
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
     fetchUserData();
-  }, [userId, router, activeProductId]);
+  }, [userId, router, activeProductId, isLoaded]);
   // Get account limit for a plan
   // const getAccountLimit = (plan: PricingPlan) => {
   //   switch (plan.id) {
@@ -471,7 +473,7 @@ function PricingWithSearchParams() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !isLoaded) {
     return (
       <div
         className={`min-h-screen flex items-center justify-center bg-transparent`}

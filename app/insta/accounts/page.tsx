@@ -43,7 +43,7 @@ export default function AccountsPage() {
   const [accounts, setAccounts] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const router = useRouter();
   const [hasError, setHasError] = useState<string[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
@@ -192,10 +192,11 @@ export default function AccountsPage() {
         console.error("Failed to fetch subscriptions:", error);
       }
     };
+    if (!isLoaded) return; // Wait for auth to load
 
     fetchSubscriptions();
     fetchAccounts();
-  }, [userId, router, fetchAccounts]);
+  }, [userId, router, fetchAccounts, isLoaded]);
 
   const handleToggleAccount = async (accountId: string) => {
     const account = accounts.find((acc: any) => acc.id === accountId);
@@ -264,7 +265,7 @@ export default function AccountsPage() {
     await localStorage.removeItem(ACCOUNTS_CACHE_KEY);
     await fetchAccounts();
   };
-  if (isLoading) {
+  if (!isLoaded || isLoading) {
     return (
       <div
         className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}

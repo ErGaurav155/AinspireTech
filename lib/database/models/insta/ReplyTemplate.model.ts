@@ -12,6 +12,7 @@ export interface IReplyTemplate extends Document {
   mediaUrl: string;
   name: string;
   reply: string[];
+  openDm: string;
   content: IContentItem[]; // Changed from string[] to IContentItem[]
   triggers: string[];
   isActive: boolean;
@@ -71,6 +72,7 @@ const ReplyTemplateSchema = new Schema<IReplyTemplate>(
         maxlength: 500,
       },
     ],
+    openDm: { type: String, required: true, trim: true, maxlength: 500 },
     content: [ContentItemSchema], // Updated to use the ContentItemSchema
     triggers: [
       {

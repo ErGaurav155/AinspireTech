@@ -13,7 +13,7 @@ import { getAllInstaAccounts } from "@/lib/action/insta.action";
 import { useTheme } from "next-themes";
 
 export default function AddAccountPage() {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const router = useRouter();
   const [accountLimit, setAccountLimit] = useState(0);
   const [totalAccounts, setTotalAcoounts] = useState(0);
@@ -47,10 +47,23 @@ export default function AddAccountPage() {
         console.error("Error fetching subscriptions:", error.message);
       }
     }
-
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
     fetchSubscriptions();
-  }, [userId, router]);
-
+  }, [userId, router, isLoaded]);
+  if (!isLoaded) {
+    return (
+      <div
+        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
+      >
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
+          <p className={textPrimary}>Loading...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={`min-h-screen ${containerBg} ${textPrimary}`}>
       <div className="container mx-auto px-4 py-8 max-w-2xl">
