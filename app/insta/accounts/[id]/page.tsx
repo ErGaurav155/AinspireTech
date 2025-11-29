@@ -159,19 +159,26 @@ export default function AccountPage({
   const { userId, isLoaded } = useAuth();
 
   // Updated newTemplate state to handle content as objects
+
   const [newTemplate, setNewTemplate] = useState({
     name: "",
-    openDm: "",
-    content: [{ text: "", link: "" }],
+    content: [
+      { text: "This Is the link you want,Click the button below.", link: "" },
+    ],
+    openDm:
+      "Hey there! I’m so happy you’re here, thanks so much for your interest 😊 Click below and I’ll send you the link in just a sec ✨",
+    reply: [
+      "Thanks! Please see DMs.",
+      "Sent you a message! Check it out!",
+      "Nice! Check your DMs!",
+    ],
+    triggers: ["Price", "Link", "Product"],
     isFollow: false,
-    reply: [""],
-    triggers: [""],
     priority: 5,
     accountUsername: account.username || "",
     mediaId: "",
     mediaUrl: "",
   });
-
   const fetchAccountMedia = async (accountId: string, username: string) => {
     setIsLoadingMedia(true);
     try {
@@ -1219,14 +1226,14 @@ export default function AccountPage({
                                     });
                                   }
                                 }}
-                                className="text-red-500 hover:bg-red-500/10 h-6 w-6"
+                                className="text-red-500 bg-red-100 hover:bg-red-500/10 h-6 w-6"
                               >
-                                <X className="h-3 w-3" />
+                                <X className="h-5 w-5" />
                               </Button>
                             )}
                           </div>
 
-                          <Textarea
+                          <Input
                             id={`reply-${index}`}
                             value={reply}
                             onChange={(e) => {
@@ -1361,9 +1368,9 @@ export default function AccountPage({
                                     });
                                   }
                                 }}
-                                className="text-red-500 hover:bg-red-500/10 h-6 w-6"
+                                className="text-red-500 bg-red-100 hover:bg-red-500/10 h-6 w-6"
                               >
-                                <X className="h-3 w-3" />
+                                <X className="h-5 w-5" />
                               </Button>
                             )}
                           </div>
@@ -1500,78 +1507,80 @@ export default function AccountPage({
                         )}
                       </div>
 
-                      {(editingTemplate
-                        ? editingTemplate.triggers
-                        : newTemplate.triggers
-                      )?.map((trigger: any, index: number) => (
-                        <div key={index} className="space-y-2">
-                          <div className="flex justify-between">
-                            <Label
-                              htmlFor={`trigger-${index}`}
-                              className={textSecondary}
-                            >
-                              Trigger {index + 1}
-                            </Label>
-                            {(editingTemplate
-                              ? editingTemplate.triggers
-                              : newTemplate.triggers
-                            )?.length > 1 && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  const updatedTriggers = editingTemplate
-                                    ? [...editingTemplate.triggers]
-                                    : [...newTemplate.triggers];
-                                  updatedTriggers.splice(index, 1);
-
-                                  if (editingTemplate) {
-                                    setEditingTemplate({
-                                      ...editingTemplate,
-                                      triggers: updatedTriggers,
-                                    });
-                                  } else {
-                                    setNewTemplate({
-                                      ...newTemplate,
-                                      triggers: updatedTriggers,
-                                    });
-                                  }
-                                }}
-                                className="text-red-500 hover:bg-red-500/10 h-6 w-6"
+                      <div className="flex items-center justify-start gap-5 w-full">
+                        {(editingTemplate
+                          ? editingTemplate.triggers
+                          : newTemplate.triggers
+                        )?.map((trigger: any, index: number) => (
+                          <div key={index} className="space-y-2">
+                            <div className="flex justify-between">
+                              <Label
+                                htmlFor={`trigger-${index}`}
+                                className={textSecondary}
                               >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            )}
+                                Trigger {index + 1}
+                              </Label>
+                              {(editingTemplate
+                                ? editingTemplate.triggers
+                                : newTemplate.triggers
+                              )?.length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    const updatedTriggers = editingTemplate
+                                      ? [...editingTemplate.triggers]
+                                      : [...newTemplate.triggers];
+                                    updatedTriggers.splice(index, 1);
+
+                                    if (editingTemplate) {
+                                      setEditingTemplate({
+                                        ...editingTemplate,
+                                        triggers: updatedTriggers,
+                                      });
+                                    } else {
+                                      setNewTemplate({
+                                        ...newTemplate,
+                                        triggers: updatedTriggers,
+                                      });
+                                    }
+                                  }}
+                                  className="text-red-500 bg-red-100 hover:bg-red-500/10 h-6 w-6"
+                                >
+                                  <X className="h-5 w-5" />
+                                </Button>
+                              )}
+                            </div>
+
+                            <Input
+                              id={`trigger-${index}`}
+                              value={trigger}
+                              onChange={(e) => {
+                                const updatedTriggers = editingTemplate
+                                  ? [...editingTemplate.triggers]
+                                  : [...newTemplate.triggers];
+
+                                updatedTriggers[index] = e.target.value;
+
+                                if (editingTemplate) {
+                                  setEditingTemplate({
+                                    ...editingTemplate,
+                                    triggers: updatedTriggers,
+                                  });
+                                } else {
+                                  setNewTemplate({
+                                    ...newTemplate,
+                                    triggers: updatedTriggers,
+                                  });
+                                }
+                              }}
+                              placeholder="Enter trigger keyword Like Link,Product,etc."
+                              className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                            />
                           </div>
-
-                          <Input
-                            id={`trigger-${index}`}
-                            value={trigger}
-                            onChange={(e) => {
-                              const updatedTriggers = editingTemplate
-                                ? [...editingTemplate.triggers]
-                                : [...newTemplate.triggers];
-
-                              updatedTriggers[index] = e.target.value;
-
-                              if (editingTemplate) {
-                                setEditingTemplate({
-                                  ...editingTemplate,
-                                  triggers: updatedTriggers,
-                                });
-                              } else {
-                                setNewTemplate({
-                                  ...newTemplate,
-                                  triggers: updatedTriggers,
-                                });
-                              }
-                            }}
-                            placeholder="Enter trigger keyword Like Link,Product,etc."
-                            className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
-                          />
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
 
                     <div className="space-y-2">
