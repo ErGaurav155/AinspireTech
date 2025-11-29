@@ -160,7 +160,8 @@ async function sendInitialAccessDM(
   accessToken: string,
   recipientId: string,
   targetUsername: string,
-  templateMediaId: string
+  templateMediaId: string,
+  openDm: string
 ): Promise<boolean> {
   try {
     const response = await fetch(
@@ -178,7 +179,7 @@ async function sendInitialAccessDM(
               type: "template",
               payload: {
                 template_type: "button",
-                text: "Hey thanks a ton for the comment! 😊 Now simply tap below and I will send you the access right now!",
+                text: openDm,
                 buttons: [
                   {
                     type: "postback",
@@ -588,7 +589,8 @@ export async function processComment(
         account.accessToken,
         comment.id,
         account.username,
-        matchingTemplate.mediaId
+        matchingTemplate.mediaId,
+        matchingTemplate.openDm
       );
 
       // Always reply to comment
