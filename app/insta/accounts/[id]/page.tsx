@@ -1256,7 +1256,7 @@ export default function AccountPage({
                               }
                             }}
                             placeholder="Eg.Sent you a message! Check it out!"
-                            className={`min-h-[80px] ${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                            className={` ${inputBg} ${inputBorder} ${inputText} font-montserrat`}
                           />
                         </div>
                       ))}
@@ -1400,7 +1400,7 @@ export default function AccountPage({
                                 });
                               }
                             }}
-                            placeholder="Eg.Hey there! I'm so happy you're here, thanks so much for your interest 😊 Click below and I'll send you the link in just a sec ✨"
+                            placeholder="This Is the link you want,Click the button below."
                             className={`min-h-[80px] ${inputBg} ${inputBorder} ${inputText} font-montserrat`}
                           />
 

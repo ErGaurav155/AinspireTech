@@ -1051,7 +1051,7 @@ export default function TemplatesPage() {
                             });
                           }
                         }}
-                        placeholder="Eg.Hey there! I'm so happy you're here, thanks so much for your interest 😊Click below and I'll send you the link in just a sec ✨"
+                        placeholder="This Is the link you want,Click the button below."
                         className={`min-h-[80px] ${inputBg} ${inputBorder} ${inputText} font-montserrat`}
                       />
 

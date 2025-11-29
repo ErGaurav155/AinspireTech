@@ -30,7 +30,7 @@ import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import defaultImg from "@/public/assets/img/default-img.jpg"; // Default image for error handling
+import defaultImg from "@/public/assets/img/default-img.jpg";
 import { getUserById } from "@/lib/action/user.actions";
 import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 import { useTheme } from "next-themes";
@@ -126,7 +126,7 @@ export default function AccountsPage() {
               profilePicture:
                 instaData.profile_picture_url ||
                 dbAccount.profilePicture ||
-                "@/public/assets/img/default-img.jpg",
+                defaultImg,
               followersCount:
                 instaData.followers_count || dbAccount.followersCount || 0,
               postsCount: instaData.media_count || dbAccount.postsCount || 0,
