@@ -103,6 +103,7 @@ export const getSubscription = async (
     const subscriptions = await WebSubscription.find({
       chatbotId: chatbotId,
       subscriptionId: selectedSubscriptionId,
+      status: "active",
     });
 
     if (!subscriptions || subscriptions.length === 0) {
@@ -115,6 +116,36 @@ export const getSubscription = async (
     throw new Error("Failed to retrieve subscription info.");
   }
 };
+export async function updateSubcriptionInfo(
+  userId: string,
+  selectedChatbot: string,
+  subcriptionId: string,
+  chatbotMessage: string,
+  chatbotName: string
+) {
+  try {
+    await connectToDatabase();
+
+    const user = await WebSubscription.findOneAndUpdate(
+      {
+        clerkId: userId,
+        chatbotType: selectedChatbot,
+        subscriptionId: subcriptionId,
+        status: "active",
+      },
+      { $set: { chatbotName: chatbotName, chatbotMessage: chatbotMessage } },
+      { new: true }
+    );
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return JSON.parse(JSON.stringify(user));
+  } catch (error) {
+    handleError(error);
+  }
+}
 export const getSubscriptionInfo = async (userId: string) => {
   try {
     await connectToDatabase(); // Ensure database connection

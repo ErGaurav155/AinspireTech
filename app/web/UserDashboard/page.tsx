@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogTitle,
@@ -89,6 +91,7 @@ import { toast } from "@/components/ui/use-toast";
 import {
   cancelRazorPaySubscription,
   getSubscription,
+  updateSubcriptionInfo,
 } from "@/lib/action/subscription.action";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useTheme } from "next-themes";
@@ -98,6 +101,11 @@ import {
   setWebsiteScrapped,
 } from "@/lib/action/user.actions";
 import { Toast } from "@/components/ui/toast";
+import z from "zod";
+import { countryCodes } from "@/constant";
+import OTPVerification from "@/components/shared/OTPVerification";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 interface ScrapedPage {
   url: string;
   title: string;
@@ -183,6 +191,13 @@ const chatbotTypes = [
     ],
   },
 ];
+const phoneFormSchema = z.object({
+  MobileNumber: z
+    .string()
+    .min(10, "MOBILE number is required")
+    .regex(/^\d+$/, "invalid number"),
+});
+type PhoneFormData = z.infer<typeof phoneFormSchema>;
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -193,6 +208,10 @@ export default function DashboardPage() {
   const [subscriptions, setSubscriptions] = useState<any>({});
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
+  const [isOtpSubmitting, setIsOtpSubmitting] = useState(false);
+  const [step, setStep] = useState<"phone" | "otp" | "weblink">("weblink");
+  const [phone, setPhone] = useState<string | null>(null);
+  const [countryCode, setCountryCode] = useState("+1"); // Default to US
 
   const [appointmentQuestions, setAppointmentQuestions] = useState([
     {
@@ -242,6 +261,10 @@ export default function DashboardPage() {
   const [isWebScrapped, setWebIsScrapped] = useState(true);
   const [webLoading, setWebLoading] = useState(false);
   const [fileLink, setFileLink] = useState();
+  const [chatbotNamed, setChatbotNamed] = useState<null | string>(null);
+  const [chatbotMessaged, setChatbotMessaged] = useState<null | string>(null);
+
+  const [infoLoading, setInfoLoading] = useState(false);
 
   const [selectedChatbotId, setSelectedChatbotId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -300,6 +323,13 @@ export default function DashboardPage() {
     theme === "dark"
       ? "bg-gray-900/95 backdrop-blur-md"
       : "bg-white backdrop-blur-md";
+  const {
+    handleSubmit: handlePhoneSubmit,
+    register: registerPhone,
+    formState: { errors: phoneErrors },
+  } = useForm<PhoneFormData>({
+    resolver: zodResolver(phoneFormSchema),
+  });
 
   const loadDashboardData = useCallback(async () => {
     try {
@@ -309,6 +339,7 @@ export default function DashboardPage() {
         setWebsiteUrl(userInfo.websiteUrl || null);
         setWebIsScrapped(userInfo.isScrapped);
         setFileLink(userInfo.scrappedFile);
+        setPhone(userInfo.phone);
       }
       // Load subscriptions
       const subscriptionsData = await apiClient.getSubscriptions(userId!);
@@ -321,6 +352,7 @@ export default function DashboardPage() {
         {}
       );
       setSubscriptions(subscriptionsMap);
+
       if (selectedChatbot === "chatbot-education") {
         setDefaultValue("integration");
       } else {
@@ -371,7 +403,7 @@ export default function DashboardPage() {
     loadDashboardData();
   }, [userId, loadDashboardData, router, isLoaded]);
   const handleCopyCode = () => {
-    const code = `<script src="https://ainspiretech.com/chatbotembed.js" data-chatbot-config='{"userId":"${userId}","isAuthorized":${isSubscribed},"filename":"${fileLink}","chatbotType":"${selectedChatbot}","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi! How can I help you today?","chatbotName":"${currentChatbot?.name}"}'></script>`;
+    const code = `<script src="https://ainspiretech.com/chatbotembed.js" data-chatbot-config='{"userId":"${userId}","isAuthorized":${isSubscribed},"filename":"${fileLink}","chatbotType":"${selectedChatbot}","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"${subscriptions[selectedChatbot]?.chatbotMessage}","chatbotName":"${subscriptions[selectedChatbot]?.chatbotName}"}'></script>`;
 
     navigator.clipboard.writeText(code);
     setCopied(true);
@@ -626,7 +658,65 @@ export default function DashboardPage() {
   const removeFAQQuestion = (id: string) => {
     setFaqQuestions(faqQuestions.filter((q) => q.id !== id));
   };
+  const handlePhoneSubmission = async (data: PhoneFormData) => {
+    setIsOtpSubmitting(true);
+    try {
+      const fullPhoneNumber = `${countryCode}${data.MobileNumber}`;
 
+      const res = await fetch("/api/web/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullPhoneNumber }),
+      });
+      if (res.ok) {
+        setPhone(fullPhoneNumber);
+        setStep("otp");
+      } else {
+        console.error("Failed to send OTP:", res.statusText);
+      }
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+    } finally {
+      setIsOtpSubmitting(false);
+    }
+  };
+  const handleChangedInfo = async () => {
+    const subcriptionId = subscriptions[selectedChatbot]?.subscriptionId;
+    setInfoLoading(true);
+    try {
+      if (
+        !userId ||
+        !selectedChatbot ||
+        !subcriptionId ||
+        !chatbotMessaged ||
+        !chatbotNamed
+      ) {
+        return;
+      }
+
+      const getSub = await updateSubcriptionInfo(
+        userId!,
+        selectedChatbot,
+        subcriptionId,
+        chatbotMessaged!,
+        chatbotNamed!
+      );
+      if (getSub) {
+        toast({
+          title: " Got Success",
+          description: "Updated chatbotInfo successfully!",
+          duration: 3000,
+          className: "success-toast",
+        });
+      } else {
+        console.error("Failed to update chatbotInfo:", getSub.statusText);
+      }
+    } catch (error) {
+      console.error("Error updating chatbotInfo:", error);
+    } finally {
+      setInfoLoading(false);
+    }
+  };
   if (loading || !isLoaded) {
     return (
       <div
@@ -821,6 +911,10 @@ export default function DashboardPage() {
                   }`}
                   onClick={() => {
                     setSelectedChatbot(chatbot.id);
+                    setChatbotNamed(subscriptions[chatbot.id]?.chatbotName);
+                    setChatbotMessaged(
+                      subscriptions[chatbot.id]?.chatbotMessage
+                    );
                   }}
                 >
                   <CardContent className="p-4">
@@ -1519,8 +1613,10 @@ export default function DashboardPage() {
                             {`<script src="https://ainspiretech.com/chatbotembed.js" data-chatbot-config='{"userId":"${userId}","isAuthorized":${isSubscribed},"filename":"${
                               subscriptions[selectedChatbot]?.filename ||
                               "your-data-file"
-                            }","chatbotType":"${selectedChatbot}","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi! How can I help you today?","chatbotName":"${
-                              currentChatbot?.name
+                            }","chatbotType":"${selectedChatbot}","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"${
+                              subscriptions[selectedChatbot]?.chatbotMessage
+                            }","chatbotName":"${
+                              subscriptions[selectedChatbot]?.chatbotName
                             }"}'></script>`}
                           </code>
                         </pre>
@@ -1763,8 +1859,16 @@ export default function DashboardPage() {
                           </Label>
                           <Input
                             id="chatbotName"
+                            value={
+                              chatbotNamed ? chatbotNamed : currentChatbot?.name
+                            }
+                            onChange={(event) =>
+                              setChatbotNamed(event?.target.value)
+                            }
                             className={`mt-2 ${inputBg} ${inputBorder} ${textPrimary} font-montserrat`}
-                            placeholder={currentChatbot?.name}
+                            placeholder={
+                              chatbotNamed ? chatbotNamed : currentChatbot?.name
+                            }
                           />
                         </div>
                         <div>
@@ -1776,17 +1880,33 @@ export default function DashboardPage() {
                           </Label>
                           <Input
                             id="welcomeMessage"
+                            value={
+                              chatbotMessaged
+                                ? chatbotMessaged
+                                : "Hi! How can I help you today?"
+                            }
+                            onChange={(event) =>
+                              setChatbotMessaged(event?.target.value)
+                            }
                             className={`mt-2 ${inputBg} ${inputBorder} ${textPrimary} font-montserrat`}
-                            placeholder="Hi! How can I help you today?"
+                            placeholder={
+                              chatbotMessaged
+                                ? chatbotMessaged
+                                : "Hi! How can I help you today?"
+                            }
                           />
                         </div>
                       </div>
 
                       <div className="pt-4">
                         <Button
+                          onClick={() => handleChangedInfo()}
+                          disabled={
+                            infoLoading || !chatbotMessaged || !chatbotNamed
+                          }
                           className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black`}
                         >
-                          Save Changes
+                          {infoLoading ? "Saving...." : "Save Changes"}
                         </Button>
                       </div>
                       <div className="">
@@ -1835,6 +1955,75 @@ export default function DashboardPage() {
                               : "Start Scraping"}
                           </Button>
                         </div>
+                        {currentChatbot?.id === "chatbot-lead-generation" && (
+                          <>
+                            {" "}
+                            <div className="pt-4">
+                              <Label
+                                htmlFor="websiteUrl"
+                                className={textSecondary}
+                              >
+                                Whatsapp Number
+                              </Label>
+                              <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
+                                {phone === null ? (
+                                  <p
+                                    className={`flex items-center justify-center border ${inputBorder} ${textPrimary} font-montserrat p-2 rounded-lg w-full`}
+                                  >
+                                    Please Add Whatsapp Number.
+                                  </p>
+                                ) : (
+                                  <p
+                                    className={`flex items-center justify-center border ${inputBorder} ${textPrimary} font-montserrat p-2 rounded-lg w-full`}
+                                  >
+                                    {phone}
+                                  </p>
+                                )}
+                                {/* <Button
+                            disabled={
+                              (websiteUrl === null
+                                ? false
+                                : isWebScrapped
+                                ? true
+                                : false) ||
+                              loading ||
+                              processing
+                            }
+                            onClick={() => handleScrape()}
+                            className={` hover:opacity-90 text-black ${
+                              websiteUrl === null || isWebScrapped === false
+                                ? "bg-gradient-to-r from-[#00F0FF] to-[#0080FF]"
+                                : "bg-gray-500"
+                            }`}
+                          >
+                            <Upload className="h-4 w-4 mr-1" />
+                            {webLoading
+                              ? "Scraping..."
+                              : processing
+                              ? "Processing..."
+                              : "Start Scraping"}
+                          </Button> */}
+                                <Button
+                                  onClick={() => setStep("phone")}
+                                  // disabled={phone === null ? false : true}
+                                  disabled={true}
+                                  className={` hover:opacity-90 text-black ${
+                                    phone === null
+                                      ? "bg-gradient-to-r from-[#00F0FF] to-[#0080FF]"
+                                      : "bg-gray-500"
+                                  }`}
+                                >
+                                  <Save className="h-4 w-4 mr-2" />
+                                  {/* Verify Number */} Cooming Soon...
+                                </Button>
+                              </div>
+                            </div>
+                            <span className="text-green-400 text-sm font-montserrat mt-1">
+                              * Add Whatsapp number to get appointment info
+                              immedietly on whatsapp
+                            </span>
+                          </>
+                        )}
                         {webError && (
                           <div className=" border border-red-200 rounded-lg p-4 mt-8">
                             <p
@@ -2060,6 +2249,225 @@ export default function DashboardPage() {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+      {step === "phone" && (
+        <AlertDialog defaultOpen>
+          <AlertDialogContent className="bg-gradient-to-br from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] backdrop-blur-2xl border border-white/10 rounded-2xl max-w-md p-0 overflow-hidden shadow-2xl">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, scale: 0.9 },
+                visible: {
+                  opacity: 1,
+                  scale: 1,
+                  transition: {
+                    duration: 0.5,
+                    ease: "easeOut",
+                  },
+                },
+              }}
+              initial="hidden"
+              animate="visible"
+              className="relative"
+            >
+              {/* Animated Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00F0FF]/5 via-transparent to-[#B026FF]/5"></div>
+
+              {/* Header */}
+              <div className="relative p-6 border-b border-white/10">
+                <div className="flex justify-between items-center">
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <AlertDialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                      OTP Verification
+                    </AlertDialogTitle>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Secure your account
+                    </p>
+                  </motion.div>
+
+                  <AlertDialogCancel
+                    onClick={() => router.push(`/web/pricing`)}
+                    className="border-0 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group bg-transparent"
+                  >
+                    <XMarkIcon className="h-6 w-6 text-gray-400 group-hover:text-white transition-colors" />
+                  </AlertDialogCancel>
+                </div>
+              </div>
+
+              {/* Content */}
+              <form
+                onSubmit={handlePhoneSubmit(handlePhoneSubmission)}
+                className="p-6 space-y-6"
+              >
+                {/* Title */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-center"
+                >
+                  <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                    PLEASE ENTER YOUR MOBILE NUMBER
+                  </h3>
+                </motion.div>
+
+                {/* Phone Input */}
+                <motion.div
+                  className="space-y-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <label className="block text-sm font-medium text-gray-300">
+                    Enter Your Phone Number
+                  </label>
+
+                  <motion.div
+                    className="flex items-center w-full bg-[#1a1a1a]/80 backdrop-blur-sm border-2 border-white/10 rounded-xl overflow-hidden transition-all duration-300"
+                    whileFocus={{
+                      borderColor: "#00F0FF",
+                      boxShadow: "0 0 20px rgba(0, 240, 255, 0.2)",
+                    }}
+                    whileHover={{
+                      borderColor: "#B026FF",
+                      boxShadow: "0 0 15px rgba(176, 38, 255, 0.1)",
+                    }}
+                  >
+                    <select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="bg-[#1a1a1a] text-white p-4 border-r border-white/10 focus:outline-none focus:ring-2 focus:ring-[#00F0FF] no-scrollbar appearance-none cursor-pointer"
+                    >
+                      {countryCodes.map((countryCode, index) => (
+                        <option
+                          key={index}
+                          className="bg-[#1a1a1a] text-gray-300 py-2"
+                          value={countryCode.code}
+                        >
+                          {countryCode.code}
+                        </option>
+                      ))}
+                    </select>
+
+                    <input
+                      id="MobileNumber"
+                      type="text"
+                      {...registerPhone("MobileNumber")}
+                      className="w-full bg-transparent py-4 px-4 text-white placeholder:text-gray-500 focus:outline-none text-lg"
+                      placeholder="Phone number"
+                    />
+                  </motion.div>
+
+                  <AnimatePresence>
+                    {phoneErrors.MobileNumber && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-center"
+                      >
+                        <p className="text-red-400 text-sm bg-red-400/10 py-2 rounded-lg border border-red-400/20">
+                          {phoneErrors.MobileNumber.message}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+
+                {/* Send OTP Button */}
+                <motion.button
+                  type="submit"
+                  variants={{
+                    initial: {
+                      background:
+                        "linear-gradient(135deg, #00F0FF 0%, #B026FF 100%)",
+                    },
+                    hover: {
+                      background:
+                        "linear-gradient(135deg, #00F0FF 20%, #B026FF 80%)",
+                      scale: 1.02,
+                      boxShadow: "0 10px 30px rgba(0, 240, 255, 0.3)",
+                      transition: {
+                        duration: 0.3,
+                        ease: "easeOut",
+                      },
+                    },
+                    tap: {
+                      scale: 0.98,
+                    },
+                    loading: {
+                      background: "linear-gradient(135deg, #666 0%, #888 100%)",
+                    },
+                  }}
+                  initial="initial"
+                  whileHover={isOtpSubmitting ? "loading" : "hover"}
+                  whileTap="tap"
+                  animate={isOtpSubmitting ? "loading" : "initial"}
+                  className={`w-full py-4 relative z-30 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
+                    isOtpSubmitting ? "cursor-not-allowed" : ""
+                  }`}
+                  disabled={isOtpSubmitting}
+                >
+                  {isOtpSubmitting ? (
+                    <motion.div
+                      className="flex items-center justify-center gap-3"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                      />
+                      Sending OTP...
+                    </motion.div>
+                  ) : (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      Send OTP
+                    </motion.span>
+                  )}
+                </motion.button>
+              </form>
+
+              {/* Footer */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="p-4 text-center border-t border-white/10 bg-black/20"
+              >
+                <AlertDialogDescription className="text-sm">
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF] font-semibold font-montserrat">
+                    IT WILL HELP US TO PROVIDE BETTER SERVICES
+                  </span>
+                </AlertDialogDescription>
+              </motion.div>
+
+              {/* Decorative Elements */}
+              <div className="absolute top-0 left-0 w-20 h-20 bg-[#00F0FF]/10 rounded-full blur-xl -translate-x-1/2 -translate-y-1/2"></div>
+              <div className="absolute bottom-0 right-0 w-20 h-20 bg-[#B026FF]/10 rounded-full blur-xl translate-x-1/2 translate-y-1/2"></div>
+            </motion.div>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+      {step === "otp" && (
+        <OTPVerification
+          phone={phone!}
+          onVerified={() => {
+            setStep("weblink");
+          }}
+          userId={userId}
+        />
+      )}
     </div>
   );
 }

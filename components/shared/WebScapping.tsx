@@ -181,7 +181,7 @@ export const WebScrapping = ({
           <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">
             Website Setup in Progress
           </h1>
-          <p className="text-gray-600 mb-8 text-center">
+          <p className="text-gray-600 mb-8 text-center font-montserrat">
             We are scraping your website to train your AI agent. This may take a
             few minutes.
           </p>
@@ -262,10 +262,10 @@ export const WebScrapping = ({
               <div className="flex items-center space-x-3">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-600"></div>
                 <div>
-                  <p className="text-yellow-700 font-medium">
+                  <p className="text-yellow-700 text-sm font-montserrat">
                     {loading ? "Scraping Website..." : "Processing Data..."}
                   </p>
-                  <p className="text-yellow-600 text-sm">
+                  <p className="text-yellow-600 text-sm font-montserrat">
                     {loading
                       ? "Collecting content from your website pages..."
                       : "Organizing and preparing your data for AI training..."}
@@ -277,7 +277,7 @@ export const WebScrapping = ({
 
           {/* Success Summary */}
           {scrapedData && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 font-montserrat">
               <h3 className="text-lg font-semibold text-green-800 mb-4">
                 ✓ Scraping Completed Successfully!
               </h3>
@@ -312,7 +312,7 @@ export const WebScrapping = ({
 
           {/* Error Display */}
           {error && !scrapedData && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6 font-montserrat">
               <h3 className="text-lg font-semibold text-red-800 mb-2">
                 ⚠️ Scraping Issue
               </h3>
@@ -327,7 +327,7 @@ export const WebScrapping = ({
 
           {/* Redirect Notice */}
           {(scrapedData || error) && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center font-montserrat">
               <p className="text-blue-700">
                 {scrapedData
                   ? "✓ Setup complete! Redirecting to your dashboard..."

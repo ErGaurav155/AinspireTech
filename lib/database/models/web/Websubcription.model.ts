@@ -8,6 +8,8 @@ export interface ISubscription extends Document {
     | "chatbot-lead-generation"
     | "chatbot-education";
   subscriptionId: string;
+  chatbotName: string;
+  chatbotMessage: string;
   plan: string;
   billingCycle: "monthly" | "yearly";
   status: "active" | "cancelled" | "expired";
@@ -22,6 +24,14 @@ const SubscriptionSchema = new Schema<ISubscription>(
     clerkId: {
       type: String,
       required: true,
+    },
+    chatbotName: {
+      type: String,
+      default: "AI Assistance",
+    },
+    chatbotMessage: {
+      type: String,
+      default: "Hi,How May i help you?",
     },
     chatbotType: {
       type: String,

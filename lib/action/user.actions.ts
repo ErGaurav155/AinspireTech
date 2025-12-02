@@ -57,12 +57,12 @@ export async function getUserByDbId(userId: string) {
     handleError(error);
   }
 }
-export async function updateNumberByDbId(buyerId: string, newNumber: string) {
+export async function updateNumberByUserId(userId: string, newNumber: string) {
   try {
     await connectToDatabase();
 
     const user = await User.findOneAndUpdate(
-      { _id: buyerId },
+      { userId: userId },
       { $set: { phone: newNumber } },
       { new: true }
     );

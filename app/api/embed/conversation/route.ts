@@ -109,7 +109,9 @@ export async function POST(request: NextRequest) {
         email: user.email,
         data: formData,
       });
-      await sendWhatsAppInfo({ data: formData, userId });
+      if (user.phone !== null) {
+        await sendWhatsAppInfo({ data: formData, userId });
+      }
     }
 
     return NextResponse.json(

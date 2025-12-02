@@ -18,8 +18,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
 import { getUserById, updateUserByDbId } from "@/lib/action/user.actions";
-import OTPVerification from "./OTPVerification";
-import { countryCodes } from "@/constant";
+
 import { toast } from "../ui/use-toast";
 import Script from "next/script";
 import { createTransaction } from "@/lib/action/transaction.action";
@@ -58,29 +57,17 @@ export const Checkout = ({
     router.push("/sign-in");
   }
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isOtpSubmitting, setIsOtpSubmitting] = useState(false);
   const [buyerId, setBuyerId] = useState(null);
-  const [countryCode, setCountryCode] = useState("+1"); // Default to US
 
   const [isActive, setIsActive] = useState(false);
   const [feedInfo, setFeedInfo] = useState(false);
-  const [step, setStep] = useState<"phone" | "otp" | "weblink" | "payment">(
-    "phone"
-  );
-  const [phone, setPhone] = useState("");
+  const [step, setStep] = useState<"weblink" | "payment">("weblink");
   const locationRef = useRef<string>("India"); // Store location without causing re-renders
   const razorpaymonthlyplanId = useRef<string | null>(null);
   const razorpayyearlyplanId = useRef<string | null>(null);
   const razorpayplanId = useRef<string | null>(null);
 
   const buyerIdRef = useRef<string | null>(null);
-  const {
-    handleSubmit: handlePhoneSubmit,
-    register: registerPhone,
-    formState: { errors: phoneErrors },
-  } = useForm<PhoneFormData>({
-    resolver: zodResolver(phoneFormSchema),
-  });
 
   const {
     handleSubmit: handleWebsiteSubmit,
@@ -125,28 +112,7 @@ export const Checkout = ({
 
     return true;
   };
-  const handlePhoneSubmission = async (data: PhoneFormData) => {
-    setIsOtpSubmitting(true);
-    try {
-      const fullPhoneNumber = `${countryCode}${data.MobileNumber}`;
 
-      const res = await fetch("/api/web/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullPhoneNumber }),
-      });
-      if (res.ok) {
-        setPhone(fullPhoneNumber);
-        setStep("otp");
-      } else {
-        console.error("Failed to send OTP:", res.statusText);
-      }
-    } catch (error) {
-      console.error("Error sending OTP:", error);
-    } finally {
-      setIsOtpSubmitting(false);
-    }
-  };
   const handleRazorpayPayment = async () => {
     try {
       const response = await fetch("/api/webhooks/razerpay/subscription", {
@@ -322,226 +288,6 @@ export const Checkout = ({
       {feedInfo && (
         <>
           <div>
-            {step === "phone" && (
-              <AlertDialog defaultOpen>
-                <AlertDialogContent className="bg-gradient-to-br from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] backdrop-blur-2xl border border-white/10 rounded-2xl max-w-md p-0 overflow-hidden shadow-2xl">
-                  <motion.div
-                    variants={{
-                      hidden: { opacity: 0, scale: 0.9 },
-                      visible: {
-                        opacity: 1,
-                        scale: 1,
-                        transition: {
-                          duration: 0.5,
-                          ease: "easeOut",
-                        },
-                      },
-                    }}
-                    initial="hidden"
-                    animate="visible"
-                    className="relative"
-                  >
-                    {/* Animated Background */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#00F0FF]/5 via-transparent to-[#B026FF]/5"></div>
-
-                    {/* Header */}
-                    <div className="relative p-6 border-b border-white/10">
-                      <div className="flex justify-between items-center">
-                        <motion.div
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.2 }}
-                        >
-                          <AlertDialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-                            OTP Verification
-                          </AlertDialogTitle>
-                          <p className="text-sm text-gray-400 mt-1">
-                            Secure your account
-                          </p>
-                        </motion.div>
-
-                        <AlertDialogCancel
-                          onClick={() => router.push(`/web/pricing`)}
-                          className="border-0 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group bg-transparent"
-                        >
-                          <XMarkIcon className="h-6 w-6 text-gray-400 group-hover:text-white transition-colors" />
-                        </AlertDialogCancel>
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <form
-                      onSubmit={handlePhoneSubmit(handlePhoneSubmission)}
-                      className="p-6 space-y-6"
-                    >
-                      {/* Title */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="text-center"
-                      >
-                        <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-                          PLEASE ENTER YOUR MOBILE NUMBER
-                        </h3>
-                      </motion.div>
-
-                      {/* Phone Input */}
-                      <motion.div
-                        className="space-y-4"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.4 }}
-                      >
-                        <label className="block text-sm font-medium text-gray-300">
-                          Enter Your Phone Number
-                        </label>
-
-                        <motion.div
-                          className="flex items-center w-full bg-[#1a1a1a]/80 backdrop-blur-sm border-2 border-white/10 rounded-xl overflow-hidden transition-all duration-300"
-                          whileFocus={{
-                            borderColor: "#00F0FF",
-                            boxShadow: "0 0 20px rgba(0, 240, 255, 0.2)",
-                          }}
-                          whileHover={{
-                            borderColor: "#B026FF",
-                            boxShadow: "0 0 15px rgba(176, 38, 255, 0.1)",
-                          }}
-                        >
-                          <select
-                            value={countryCode}
-                            onChange={(e) => setCountryCode(e.target.value)}
-                            className="bg-[#1a1a1a] text-white p-4 border-r border-white/10 focus:outline-none focus:ring-2 focus:ring-[#00F0FF] no-scrollbar appearance-none cursor-pointer"
-                          >
-                            {countryCodes.map((countryCode, index) => (
-                              <option
-                                key={index}
-                                className="bg-[#1a1a1a] text-gray-300 py-2"
-                                value={countryCode.code}
-                              >
-                                {countryCode.code}
-                              </option>
-                            ))}
-                          </select>
-
-                          <input
-                            id="MobileNumber"
-                            type="text"
-                            {...registerPhone("MobileNumber")}
-                            className="w-full bg-transparent py-4 px-4 text-white placeholder:text-gray-500 focus:outline-none text-lg"
-                            placeholder="Phone number"
-                          />
-                        </motion.div>
-
-                        <AnimatePresence>
-                          {phoneErrors.MobileNumber && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="text-center"
-                            >
-                              <p className="text-red-400 text-sm bg-red-400/10 py-2 rounded-lg border border-red-400/20">
-                                {phoneErrors.MobileNumber.message}
-                              </p>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-
-                      {/* Send OTP Button */}
-                      <motion.button
-                        type="submit"
-                        variants={{
-                          initial: {
-                            background:
-                              "linear-gradient(135deg, #00F0FF 0%, #B026FF 100%)",
-                          },
-                          hover: {
-                            background:
-                              "linear-gradient(135deg, #00F0FF 20%, #B026FF 80%)",
-                            scale: 1.02,
-                            boxShadow: "0 10px 30px rgba(0, 240, 255, 0.3)",
-                            transition: {
-                              duration: 0.3,
-                              ease: "easeOut",
-                            },
-                          },
-                          tap: {
-                            scale: 0.98,
-                          },
-                          loading: {
-                            background:
-                              "linear-gradient(135deg, #666 0%, #888 100%)",
-                          },
-                        }}
-                        initial="initial"
-                        whileHover={isOtpSubmitting ? "loading" : "hover"}
-                        whileTap="tap"
-                        animate={isOtpSubmitting ? "loading" : "initial"}
-                        className={`w-full py-4 relative z-30 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
-                          isOtpSubmitting ? "cursor-not-allowed" : ""
-                        }`}
-                        disabled={isOtpSubmitting}
-                      >
-                        {isOtpSubmitting ? (
-                          <motion.div
-                            className="flex items-center justify-center gap-3"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                          >
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{
-                                duration: 1,
-                                repeat: Infinity,
-                                ease: "linear",
-                              }}
-                              className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                            />
-                            Sending OTP...
-                          </motion.div>
-                        ) : (
-                          <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                          >
-                            Send OTP
-                          </motion.span>
-                        )}
-                      </motion.button>
-                    </form>
-
-                    {/* Footer */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.6 }}
-                      className="p-4 text-center border-t border-white/10 bg-black/20"
-                    >
-                      <AlertDialogDescription className="text-sm">
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF] font-semibold font-montserrat">
-                          IT WILL HELP US TO PROVIDE BETTER SERVICES
-                        </span>
-                      </AlertDialogDescription>
-                    </motion.div>
-
-                    {/* Decorative Elements */}
-                    <div className="absolute top-0 left-0 w-20 h-20 bg-[#00F0FF]/10 rounded-full blur-xl -translate-x-1/2 -translate-y-1/2"></div>
-                    <div className="absolute bottom-0 right-0 w-20 h-20 bg-[#B026FF]/10 rounded-full blur-xl translate-x-1/2 translate-y-1/2"></div>
-                  </motion.div>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            {step === "otp" && (
-              <OTPVerification
-                phone={phone}
-                onVerified={() => {
-                  setStep("weblink");
-                }}
-                buyerId={buyerId}
-              />
-            )}
             {step === "weblink" && (
               <div>
                 <AlertDialog defaultOpen>

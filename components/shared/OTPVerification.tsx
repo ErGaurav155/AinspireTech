@@ -14,14 +14,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { updateNumberByDbId } from "@/lib/action/user.actions";
+import { updateNumberByUserId } from "@/lib/action/user.actions";
 import { toast } from "../ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface OTPVerificationProps {
   phone: string;
   onVerified: () => void;
-  buyerId: string | null;
+  userId: string | null;
 }
 
 const formSchema = z.object({
@@ -36,7 +36,7 @@ type FormData = z.infer<typeof formSchema>;
 export default function OTPVerification({
   phone,
   onVerified,
-  buyerId,
+  userId,
 }: OTPVerificationProps) {
   const [isVerifying, setIsVerifying] = useState(false);
   const [wrongOtp, setWrongOtp] = useState(false);
@@ -179,11 +179,11 @@ export default function OTPVerification({
 
       if (res.ok) {
         onVerified();
-        if (!buyerId) {
+        if (!userId) {
           throw new Error("User database ID is not available.");
         }
 
-        const response = await updateNumberByDbId(buyerId, phone);
+        const response = await updateNumberByUserId(userId, phone);
         if (response) {
           toast({
             title: "Number successfully verified!",
