@@ -80,9 +80,13 @@ export default function PaymentModal({
     billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
   const inrPrice = Math.round(price * 87);
 
+  // Add this function to your existing PaymentModal component
   const handleRazorpayPayment = async () => {
     setIsProcessing(true);
     try {
+      // Get referral code from localStorage
+      const referralCode = localStorage.getItem("referralCode");
+
       const response = await fetch("/api/webhooks/razerpay/subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -91,6 +95,7 @@ export default function PaymentModal({
           razorpayplanId: razorpayplanId.current!,
           productId: plan.id,
           buyerId,
+          referralCode: referralCode || null, // Add referral code
         }),
       });
 
@@ -110,6 +115,7 @@ export default function PaymentModal({
           productId: razorpayplanId.current,
           buyerId: buyerId,
           amount: price,
+          referralCode: referralCode || "", // Add to notes
         },
         handler: async (response: any) => {
           const data = {
@@ -127,6 +133,7 @@ export default function PaymentModal({
           if (res.success) {
             toast.success("Payment Successful! Code added to your Dashboard");
 
+            // Create subscription with referral
             await fetch("/api/insta/subscription/create", {
               method: "POST",
               headers: {
@@ -137,6 +144,7 @@ export default function PaymentModal({
                 plan: razorpayplanId.current,
                 subscriptionId: subscriptionCreate.subsId,
                 billingCycle: billingCycle,
+                referralCode: referralCode || null, // Pass referral code
               }),
             });
 
@@ -147,6 +155,12 @@ export default function PaymentModal({
             );
 
             await onSuccess(plan.id);
+
+            // Clear referral code after successful purchase
+            if (referralCode) {
+              localStorage.removeItem("referralCode");
+            }
+
             router.push("/insta/dashboard");
           } else {
             toast.error("Order canceled! " + res.message);

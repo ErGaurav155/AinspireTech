@@ -76,11 +76,18 @@ class ApiClient {
     chatbotType: string,
     plan: string,
     billingCycle: string,
-    subscriptionId: string
+    subscriptionId: string,
+    referralCode?: string | null
   ) {
     return this.request("/web/subscription/create", {
       method: "POST",
-      body: JSON.stringify({ chatbotType, plan, billingCycle, subscriptionId }),
+      body: JSON.stringify({
+        chatbotType,
+        plan,
+        billingCycle,
+        subscriptionId,
+        referralCode: referralCode || null,
+      }),
     });
   }
 

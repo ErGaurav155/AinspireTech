@@ -14,6 +14,7 @@ import WebConversation from "../database/models/web/Conversation.model";
 import WebAppointmentQuestions from "../database/models/web/AppointmentQuestions.model";
 import InstaReplyTemplate from "../database/models/insta/ReplyTemplate.model";
 import Razorpay from "razorpay";
+import Affiliate from "../database/models/affiliate/Affiliate";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
@@ -406,5 +407,20 @@ export async function resetFreeCouponsForAllUsers() {
   } catch (error) {
     console.error("Error resetting free coupons:", error);
     throw error;
+  }
+}
+export async function getAffiliateUser(userId: string) {
+  try {
+    await connectToDatabase();
+
+    const user = await Affiliate.findOne({ userId: userId });
+
+    if (!user)
+      return JSON.parse(
+        JSON.stringify({ success: false, message: "User Not Found" })
+      );
+    return JSON.parse(JSON.stringify({ success: true, user: user }));
+  } catch (error) {
+    handleError(error);
   }
 }

@@ -113,8 +113,12 @@ export const Checkout = ({
     return true;
   };
 
+  // In your existing Checkout component, update the handleRazorpayPayment function:
   const handleRazorpayPayment = async () => {
     try {
+      // Get referral code from localStorage
+      const referralCode = localStorage.getItem("referralCode");
+
       const response = await fetch("/api/webhooks/razerpay/subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -123,6 +127,7 @@ export const Checkout = ({
           razorpayplanId: razorpayplanId.current,
           productId,
           buyerId,
+          referralCode: referralCode || null, // Add referral code
         }),
       });
 
@@ -141,6 +146,7 @@ export const Checkout = ({
           productId: productId,
           buyerId: buyerId,
           amount: amount,
+          referralCode: referralCode || "", // Add to notes
         },
         handler: async (response: any) => {
           const data = {
@@ -162,11 +168,14 @@ export const Checkout = ({
               duration: 3000,
               className: "success-toast",
             });
+
+            // Create subscription with referral code
             await apiClient.createSubscription(
               productId,
               razorpayplanId.current!,
               billingCycle,
-              subscriptionCreate.subsId
+              subscriptionCreate.subsId,
+              referralCode || null // Add referral code parameter
             );
 
             await createTransaction({
@@ -176,6 +185,12 @@ export const Checkout = ({
               buyerId: buyerId!,
               createdAt: new Date(),
             });
+
+            // Clear referral code after successful purchase
+            if (referralCode) {
+              localStorage.removeItem("referralCode");
+            }
+
             router.push(
               `/web/WebsiteOnboarding?userId=${userId}&agentId=${productId}&subscriptionId=${subscriptionCreate.subsId}`
             );

@@ -8,6 +8,13 @@
     {
       "path": "/api/cron?secret=whsec_BGrEpsnDXDHGZ/XhYB9CxSgfYW5PQHS9x5R8",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/affiliate/process-commissions",
+      "schedule": "0 0 1 * *",
+      "headers": {
+        "x-cron-secret": "whsec_BGrEpsnDXDHGZ/XhYB9CxSgfYW5PQHS9x5R8"
+      }
     }
   ],
   "headers": [

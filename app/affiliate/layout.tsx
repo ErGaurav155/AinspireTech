@@ -1,0 +1,23 @@
+import type { Metadata } from "next";
+import { Toaster } from "@/components/ui/sonner";
+import { Footer } from "@/components/shared/Footer";
+
+export const metadata: Metadata = {
+  title: "InstaReply Pro - Instagram Auto-Reply Management",
+  description:
+    "Professional Instagram comment automation and reply management system",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <main className="">
+      {children}
+      <Footer />
+      <Toaster />
+    </main>
+  );
+}

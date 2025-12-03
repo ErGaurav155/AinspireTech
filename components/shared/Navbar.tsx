@@ -179,7 +179,7 @@ export function NavBar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <button
-                  onClick={() => router.push("/referrals")}
+                  onClick={() => router.push("/affiliate")}
                   className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                 >
                   <span className="mr-2">Affiliate</span>
@@ -275,7 +275,7 @@ export function NavBar() {
                     Insta Automation
                   </button>
                   <button
-                    onClick={() => router.push("/referrals")}
+                    onClick={() => router.push("/affiliate")}
                     className=" items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                   >
                     <span className="mr-2">Affiliate</span>
