@@ -6,16 +6,14 @@ import InstaSubscription from "@/lib/database/models/insta/InstaSubscription.mod
 import Referral from "@/lib/database/models/affiliate/Referral";
 import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-const CRON_SECRET = process.env.CRON_SECRET || "your-secret-key";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const headersList = await headers();
-    const cronSecret = headersList.get("x-cron-secret");
+    const url = new URL(request.url);
+    const secret = url.searchParams.get("secret");
 
-    if (cronSecret !== CRON_SECRET) {
+    if (secret !== process.env.CRON_SECRET) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     await connectToDatabase();
