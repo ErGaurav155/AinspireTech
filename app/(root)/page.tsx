@@ -1,3 +1,4 @@
+// app/page.tsx
 "use client";
 
 import { BusinessMessagingTemplate } from "@/components/shared/BusinessMessagingTemplate";
@@ -8,24 +9,22 @@ import { AIVoiceAgentShowcase } from "@/components/shared/OurProducts";
 import OutProduct from "@/components/shared/product";
 import TestimonialSection from "@/components/shared/Testimonial";
 import HeroSection from "@/components/web/Hero";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-const Home = () => {
+// Create a separate client component for the main content
+function HomeContent() {
   const [mounted, setMounted] = useState(false);
   const searchParams = useSearchParams();
   const [referralCode, setReferralCode] = useState<string | null>(null);
+
   useEffect(() => {
     setMounted(true);
     const ref = searchParams.get("ref");
     if (ref) {
       setReferralCode(ref);
-
-      // Store in localStorage or sessionStorage for later use
       localStorage.setItem("referral_code", ref);
-
-      // Optionally, store in a cookie
-      document.cookie = `referral_code=${ref}; path=/; max-age=604800`; // 7 days
+      document.cookie = `referral_code=${ref}; path=/; max-age=604800`;
     }
   }, [searchParams]);
 
@@ -36,8 +35,9 @@ const Home = () => {
       </div>
     );
   }
+
   return (
-    <div className="flex wrapper2 relative bg-transparent  z-10  flex-col gap-1 items-center justify-center">
+    <div className="flex wrapper2 relative bg-transparent z-10 flex-col gap-1 items-center justify-center">
       <DiscountBanner />
       <HeroSection />
       <BusinessMessagingTemplate />
@@ -47,6 +47,24 @@ const Home = () => {
       <TestimonialSection />
       <Footer />
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function HomeLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-transparent">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  );
+}
+
+// Main Home component with Suspense boundary
+const Home = () => {
+  return (
+    <Suspense fallback={<HomeLoading />}>
+      <HomeContent />
+    </Suspense>
   );
 };
 
