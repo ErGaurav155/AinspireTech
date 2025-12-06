@@ -44,6 +44,7 @@ export async function POST(request: Request) {
     const existingAffiliate = await Affiliate.findOne({ userId: clerkId });
     if (existingAffiliate) {
       return NextResponse.json({
+        success: true,
         message: "Already an affiliate",
         affiliate: existingAffiliate,
       });

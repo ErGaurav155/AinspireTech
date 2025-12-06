@@ -181,11 +181,13 @@ export default function AffiliateLandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [referrals, setReferrals] = useState(10);
   const { theme } = useTheme();
+  const [loading, setLoading] = useState(false);
   const [link, setLink] = useState(false);
   const { userId, isLoaded } = useAuth();
   const router = useRouter();
   useEffect(() => {
     async function fetchAffiliateLink() {
+      setLoading(true);
       if (!userId) {
         router.push("/sign-in");
         return;
@@ -200,6 +202,8 @@ export default function AffiliateLandingPage() {
         }
       } catch (error: any) {
         console.error("Error fetching Affiliate Link:", error.message);
+      } finally {
+        setLoading(false);
       }
     }
     if (!isLoaded) {
@@ -321,7 +325,7 @@ export default function AffiliateLandingPage() {
   };
 
   const earnings = calculateEarnings(referrals);
-  if (!isLoaded) {
+  if (!isLoaded || loading) {
     return (
       <div
         className={`min-h-screen ${titleText} flex items-center justify-center ${containerBg}`}
