@@ -95,7 +95,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       affiliate,
-      affiliateLink: `${process.env.NEXT_PUBLIC_APP_URL}/signup?ref=${affiliateCode}`,
+      affiliateLink: `${process.env.NEXT_PUBLIC_APP_URL}?ref=${affiliateCode}`,
     });
   } catch (error: any) {
     console.error("Error creating affiliate:", error);

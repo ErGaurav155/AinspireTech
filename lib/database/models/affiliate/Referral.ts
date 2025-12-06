@@ -21,8 +21,8 @@ const ReferralSchema = new Schema(
 
     // Subscription details
     subscriptionId: {
-      type: Schema.Types.ObjectId,
-      refPath: "subscriptionModel",
+      type: String,
+      required: true,
     },
     subscriptionModel: {
       type: String,
