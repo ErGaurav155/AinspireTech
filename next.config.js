@@ -14,13 +14,8 @@ const nextConfig = {
   },
 
   images: {
-    domains: [
-      "scontent.cdninstagram.com",
-      "instagram.fdad1-1.fna.fbcdn.net",
-      "instagram.fdad2-1.fna.fbcdn.net",
-      // Add other Instagram CDN domains as needed
-    ],
     remotePatterns: [
+      // Instagram CDN domains
       {
         protocol: "https",
         hostname: "scontent.cdninstagram.com",
@@ -28,21 +23,42 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "images.pexels.com",
-        port: "",
+        hostname: "instagram.fdad1-1.fna.fbcdn.net",
+        pathname: "/**",
       },
       {
         protocol: "https",
-        hostname: "**.cdninstagram.com",
-      },
-      {
-        protocol: "https",
-        hostname: "**.instagram.com",
+        hostname: "instagram.fdad2-1.fna.fbcdn.net",
+        pathname: "/**",
       },
       {
         protocol: "https",
         hostname: "instagram.fnag6-3.fna.fbcdn.net",
+        pathname: "/**",
       },
+      // Wildcard patterns for all CDN and Instagram domains
+      {
+        protocol: "https",
+        hostname: "**.cdninstagram.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "**.instagram.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "**.fbcdn.net",
+        pathname: "/**",
+      },
+      // Pexels
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
+        pathname: "/**",
+      },
+      // Add more specific patterns as needed
     ],
   },
 
