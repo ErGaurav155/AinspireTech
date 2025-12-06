@@ -63,7 +63,7 @@
     "fs": "^0.0.1-security",
     "input-otp": "^1.4.2",
     "instagram-private-api": "^1.46.1",
-    "lucide-react": "^0.323.0",
+    "lucide-react": "^0.556.0",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.2",
     "next": "^16.0.7",
