@@ -85,7 +85,7 @@ export default function PaymentModal({
     setIsProcessing(true);
     try {
       // Get referral code from localStorage
-      const referralCode = localStorage.getItem("referralCode");
+      const referralCode = localStorage.getItem("referral_code");
 
       const response = await fetch("/api/webhooks/razerpay/subscription", {
         method: "POST",
@@ -148,17 +148,13 @@ export default function PaymentModal({
               }),
             });
 
-            const UserData = await updateUserLimits(
-              buyerId,
-              plan.limit,
-              plan.account
-            );
+            await updateUserLimits(buyerId, plan.limit, plan.account);
 
             await onSuccess(plan.id);
 
             // Clear referral code after successful purchase
             if (referralCode) {
-              localStorage.removeItem("referralCode");
+              localStorage.removeItem("referral_code");
             }
 
             router.push("/insta/dashboard");

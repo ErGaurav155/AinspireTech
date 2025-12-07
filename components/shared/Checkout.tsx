@@ -117,7 +117,7 @@ export const Checkout = ({
   const handleRazorpayPayment = async () => {
     try {
       // Get referral code from localStorage
-      const referralCode = localStorage.getItem("referralCode");
+      const referralCode = localStorage.getItem("referral_code");
 
       const response = await fetch("/api/webhooks/razerpay/subscription", {
         method: "POST",
@@ -188,7 +188,7 @@ export const Checkout = ({
 
             // Clear referral code after successful purchase
             if (referralCode) {
-              localStorage.removeItem("referralCode");
+              localStorage.removeItem("referral_code");
             }
 
             router.push(

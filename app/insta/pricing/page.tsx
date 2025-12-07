@@ -1,5 +1,5 @@
 "use client";
-
+import { toast } from "@/components/ui/use-toast";
 import { Suspense, useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Check, Zap, X, Loader2, BadgeCheck } from "lucide-react";
@@ -23,7 +23,6 @@ import {
 } from "@/lib/action/subscription.action";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { instagramPricingPlans } from "@/constant";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   getInstaAccounts,
@@ -62,7 +61,6 @@ function PricingWithSearchParams() {
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { theme } = useTheme();
-
   // Theme-based styles
   const containerBg = theme === "dark" ? "bg-transperant" : "bg-gray-50";
   const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
@@ -145,8 +143,20 @@ function PricingWithSearchParams() {
               const data = await response.json();
 
               if (response.ok) {
+                toast({
+                  title: "Success!",
+                  description: "Affiliate account created successfully",
+                  duration: 3000,
+                });
                 setIsInstaAccount(true);
               } else {
+                toast({
+                  title: "Falied!",
+                  description: `${
+                    data.error.message || "Failed to connect account"
+                  }`,
+                  duration: 3000,
+                });
                 throw new Error(data.error || "Failed to connect account");
               }
             } catch (error) {
@@ -207,7 +217,11 @@ function PricingWithSearchParams() {
         }
       } catch (error) {
         console.error("Error fetching user info:", error);
-        toast.error("Failed to load subscription data");
+        toast({
+          title: "Falied!",
+          description: "Failed to load subscription data",
+          duration: 3000,
+        });
       } finally {
         setIsLoading(false);
       }
@@ -234,8 +248,11 @@ function PricingWithSearchParams() {
   // };
   const handleCancelSubscription = async () => {
     if (!currentSubscription) {
-      console.log("selectedSubcription:", currentSubscription);
-      toast.error("No subscription selected for cancellation");
+      toast({
+        title: "Falied!",
+        description: "No subscription selected for cancellation",
+        duration: 3000,
+      });
       return;
     }
 
@@ -260,15 +277,21 @@ function PricingWithSearchParams() {
       //   cancellationReason || "User requested cancellation"
       // );
 
-      toast.success("Subscription cancelled successfully", {
+      toast({
+        title: "Subscription cancelled successfully!",
         description: "Your plan has been cancelled",
+        duration: 3000,
       });
 
       // Clear current subscription
       setCurrentSubscription([]);
     } catch (error) {
       console.error("Error cancelling subscription:", error);
-      toast.error("Failed to cancel subscription");
+      toast({
+        title: "Falied!",
+        description: "Failed to cancel subscription",
+        duration: 3000,
+      });
     } finally {
       setIsCancelling(false);
       setShowCancelDialog(false);
@@ -344,7 +367,11 @@ function PricingWithSearchParams() {
       // Check if we need to delete accounts
     } catch (error) {
       console.error("Error changing subscription:", error);
-      toast.error("Failed to change subscription");
+      toast({
+        title: "Falied!",
+        description: "Failed to change subscription",
+        duration: 3000,
+      });
     } finally {
       setIsProcessingChange(false);
       setIsSubscribed(false);
@@ -368,8 +395,11 @@ function PricingWithSearchParams() {
         // }
       }
 
-      toast.success("Accounts deleted successfully");
-
+      toast({
+        title: "success!",
+        description: "Accounts deleted successfully",
+        duration: 3000,
+      });
       // Update user accounts list
       const updatedAccounts = userAccounts.filter(
         (account) => !selectedAccountIds.includes(account._id)
@@ -381,7 +411,11 @@ function PricingWithSearchParams() {
       setShowCancelDialog(true);
     } catch (error) {
       console.error("Error deleting accounts:", error);
-      toast.error("Failed to delete accounts");
+      toast({
+        title: "Falied!",
+        description: "Failed to delete accounts",
+        duration: 3000,
+      });
     } finally {
       setIsProcessingChange(false);
       setPendingPlan(null);
@@ -418,8 +452,11 @@ function PricingWithSearchParams() {
         // }
       }
 
-      toast.success("Accounts deleted successfully");
-
+      toast({
+        title: "success!",
+        description: "Accounts deleted successfully",
+        duration: 3000,
+      });
       // Update user accounts list
       const updatedAccounts = userAccounts.filter(
         (account) => !selectedAccountIds.includes(account._id)
@@ -430,7 +467,11 @@ function PricingWithSearchParams() {
       await processCancellation();
     } catch (error) {
       console.error("Error deleting accounts:", error);
-      toast.error("Failed to delete accounts");
+      toast({
+        title: "Falied!",
+        description: "Failed to delete accounts",
+        duration: 3000,
+      });
       setIsCancelling(false);
     }
   };
@@ -458,16 +499,22 @@ function PricingWithSearchParams() {
       //   currentSubscription.subscriptionId,
       //   "User requested cancellation"
       // );
-      toast.success("Subscription cancelled successfully", {
-        description: "Your plan has been cancelled",
-      });
 
+      toast({
+        title: "Subscription cancelled successfully",
+        description: "Your plan has been cancelled",
+        duration: 3000,
+      });
       // Clear current subscription
       setCurrentSubscription(null);
       setIsSubscribed(false);
     } catch (error) {
       console.error("Error cancelling subscription:", error);
-      toast.error("Failed to cancel subscription");
+      toast({
+        title: "Falied!",
+        description: "Failed to cancel subscription",
+        duration: 3000,
+      });
     } finally {
       setIsCancelling(false);
     }

@@ -156,27 +156,36 @@ export async function GET(req: NextRequest) {
     }
 
     // Check if account already exists for this user
-    const existingAccount = await InstagramAccount.findOne({
+    const existingAccountWithUser = await InstagramAccount.findOne({
       userId,
       instagramId: user.user_id,
     });
 
-    if (existingAccount) {
+    if (existingAccountWithUser) {
       // Update existing account
-      existingAccount.accessToken = longLivedData.access_token;
-      existingAccount.lastTokenRefresh = new Date();
-      existingAccount.expiresAt = expiresAt;
-      existingAccount.isActive = true;
+      existingAccountWithUser.accessToken = longLivedData.access_token;
+      existingAccountWithUser.lastTokenRefresh = new Date();
+      existingAccountWithUser.expiresAt = expiresAt;
+      existingAccountWithUser.isActive = true;
 
-      await existingAccount.save();
+      await existingAccountWithUser.save();
 
       return NextResponse.json({
-        account: existingAccount,
+        account: existingAccountWithUser,
         message: "Account updated successfully",
         status: 200,
       });
     }
-
+    const existingAccount = await InstagramAccount.findOne({
+      instagramId: user.user_id,
+    });
+    if (existingAccount) {
+      return NextResponse.json({
+        account: existingAccount,
+        message: "Dublicate Account Found",
+        status: 400,
+      });
+    }
     // Create new account
     const newAccount = await InstagramAccount.create({
       userId,

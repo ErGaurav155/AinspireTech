@@ -34,10 +34,12 @@ import { Instagram, Shield, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import LoginPage from "./InstagramAutomationWizard";
+import { useTheme } from "next-themes";
 interface AccountVerificationProps {
   totalAccounts: number;
   accountLimit: number;
 }
+
 const AddAccount = ({
   totalAccounts,
   accountLimit,
@@ -46,7 +48,11 @@ const AddAccount = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialog, setDialog] = useState(false);
   const router = useRouter();
+  const { theme } = useTheme();
 
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
   // const handleSubmit = async (e: React.FormEvent) => {
   //   e.preventDefault();
   //   setIsSubmitting(true);
@@ -59,7 +65,7 @@ const AddAccount = ({
   //   }, 2000);
   // };
   return (
-    <div>
+    <div className={`space-y-6 ${textPrimary} ${containerBg}`}>
       <div className="text-center mb-8">
         <div className="flex justify-center mb-4">
           <div className="h-16 w-16 bg-pink-100 rounded-full flex items-center justify-center">
@@ -93,7 +99,9 @@ const AddAccount = ({
         </CardHeader>
         <CardContent className="p-2">
           <Dialog open={isLoad} onOpenChange={() => setIsLoad(false)}>
-            <DialogContent className="max-w-md bg-[#0a0a0a]/90 backdrop-blur-lg border border-[#333] rounded-xl">
+            <DialogContent
+              className={`max-w-md ${containerBg} backdrop-blur-lg border border-[#333] rounded-xl`}
+            >
               <DialogHeader>
                 <DialogTitle className="text-start text-white font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
                   Connect Instagram

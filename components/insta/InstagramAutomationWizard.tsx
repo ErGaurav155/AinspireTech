@@ -1,8 +1,14 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import Link from "next/link";
 
 export default function LoginPage() {
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
   const instaId = process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID;
 
   if (!instaId) {
@@ -15,14 +21,16 @@ export default function LoginPage() {
   )}&response_type=code&scope=instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_manage_insights`;
 
   return (
-    <div className="flex items-center justify-center">
+    <div className={` ${textPrimary} flex items-center justify-center `}>
       <div className="max-w-md w-full p-0 md:p-6 backdrop-blur-md rounded-lg shadow-md">
-        <h1 className="text-xl md:text-2xl font-bold mb-6 text-center">
+        <h1
+          className={`text-xl md:text-2xl font-bold mb-6 text-center  ${textPrimary}`}
+        >
           Instagram Business Login
         </h1>
         <Link
           href={authUrl}
-          className="w-full flex items-center justify-center p-2 md:px-4 md:py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#B026FF] hover:to-[#00F0FF] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          className="w-full flex items-center justify-center p-2 md:px-4 md:py-3 border border-transparent rounded-md shadow-sm text-base font-medium bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:from-[#B026FF] text-white hover:to-[#00F0FF] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
         >
           Connect Instagram Account
         </Link>
