@@ -27,7 +27,7 @@ export default function Navbar() {
     );
   }
   // Theme-based styles (only after mounted)
-  const navBg = theme === "dark" ? "bg-[#0a0a0a]/80" : "bg-white/80";
+  const navBg = theme === "dark" ? "bg-[#0a0a0a]/80" : "bg-white/50";
   const borderColor = theme === "dark" ? "border-white/10" : "border-gray-200";
   const logoBg = theme === "dark" ? "bg-[#0A0A0A]" : "bg-white";
   const linkText =

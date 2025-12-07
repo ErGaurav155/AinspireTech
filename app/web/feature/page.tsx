@@ -141,9 +141,7 @@ export default function Home() {
   };
 
   return (
-    <div
-      className={`min-h-screen max-w-7xl m-auto ${textPrimary} ${containerBg}`}
-    >
+    <div className={`min-h-screen max-w-7xl m-auto ${textPrimary}`}>
       <BreadcrumbsDefault />
 
       {/* Hero Section */}

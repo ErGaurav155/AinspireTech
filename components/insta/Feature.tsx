@@ -22,7 +22,7 @@ export function FeatureSection() {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/50";
 
   const badgeBorder =
     theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
@@ -255,7 +255,7 @@ export function FeatureSection() {
 
         {/* Features Grid */}
         <motion.div
-          className={`flex flex-col gap-4 sm:gap-8 md:gap-12 max-w-7xl mx-auto items-center justify-center h-full ${containerBg} backdrop-blur-sm`}
+          className={`flex flex-col gap-4 sm:gap-8 md:gap-12 max-w-7xl mx-auto items-center justify-center h-full ${containerBg} backdrop-blur-sm rounded`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"

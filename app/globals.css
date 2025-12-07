@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 220 14% 96%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -40,6 +40,7 @@
     /* Background adjustments */
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    background-image: linear-gradient(to bottom, #e5e7eb, #f9fafb);
 
     /* Card backgrounds */
     .card-hover {

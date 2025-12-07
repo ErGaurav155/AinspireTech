@@ -1,7 +1,6 @@
 "use client";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import ContactForm from "@/components/shared/Contactus";
-import { Footer } from "@/components/shared/Footer";
 import { MotionDiv } from "@/components/shared/Motion";
 
 import React from "react";
@@ -29,8 +28,6 @@ const contactUs = () => {
         <BreadcrumbsDefault />
 
         <ContactForm />
-
-        <Footer />
       </div>
     </MotionDiv>
   );

@@ -17,9 +17,8 @@ function InstaCTASection() {
     theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
   const titleText = theme === "dark" ? "text-white" : "text-n-7";
   const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const cardGradientFrom = theme === "dark" ? "from-[#0a0a0a]" : "from-gray-50";
-  const cardGradientTo =
-    theme === "dark" ? "to-[#1a1a1a]/90" : "to-gray-100/90";
+  const cardBg = theme === "dark" ? "bg-transparent" : "bg-white/50";
+
   const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
   const outlineButtonBorder =
     theme === "dark" ? "border-[#B026FF]/30" : "border-[#B026FF]/50";
@@ -118,7 +117,7 @@ function InstaCTASection() {
 
   return (
     <motion.div
-      className="text-center"
+      className="text-center pb-5 md:p-10"
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
@@ -132,7 +131,7 @@ function InstaCTASection() {
         initial="hidden"
       >
         <Card
-          className={`max-w-4xl mx-auto bg-transparent border ${cardBorder} backdrop-blur-md`}
+          className={`max-w-4xl mx-auto bg-transparent border ${cardBg} ${cardBorder} backdrop-blur-md`}
         >
           <CardContent className="py-12 px-3">
             <motion.div

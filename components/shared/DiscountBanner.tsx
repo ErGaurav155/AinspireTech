@@ -83,7 +83,7 @@ const DiscountBanner = () => {
   const containerBg =
     theme === "dark"
       ? "bg-gradient-to-r from-[#0a0a0a]/90 to-[#1a1a1a]/90"
-      : "bg-gradient-to-r from-white/95 to-gray-50/95";
+      : "bg-gradient-to-b from-gray-200 to-gray-50";
 
   const borderColor =
     theme === "dark" ? "border-[#11df78]/30" : "border-green-200";

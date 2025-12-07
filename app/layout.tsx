@@ -39,7 +39,7 @@ export default async function RootLayout({
           className={cn(
             orbitron.variable,
             montserrat.variable,
-            "font-orbitron min-h-screen bg-background text-foreground transition-colors duration-300"
+            "font-orbitron min-h-screen bg-background  text-foreground transition-colors duration-300"
           )}
         >
           <ThemeProvider>
@@ -48,8 +48,8 @@ export default async function RootLayout({
           </ThemeProvider>
 
           <Script
-            src="https://ainspiretech.com/chatbotembed.js"
-            data-chatbot-config='{"userId":"user_36I2SDrvJ4gvruVPDBJSlvhqQUB","isAuthorized":true,"filename":"https://res.cloudinary.com/dr6yywiz8/raw/upload/v1764680170/scraped-data/criconai.com_1764680165292","chatbotType":"chatbot-lead-generation","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi! How can I Help?","chatbotName":"Godzilla"}'
+            src="chatbotembed.js"
+            data-chatbot-config='{"userId":"user_36I2SDrvJ4gvruVPDBJSlvhqQUB","isAuthorized":true,"filename":"https://res.cloudinary.com/dr6yywiz8/raw/upload/v1764680170/scraped-data/criconai.com_1764680165292","chatbotType":"chatbot-lead-generation","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi! How can I Help?","chatbotName":"zilla"}'
           ></Script>
         </body>
       </html>

@@ -8,7 +8,7 @@ const Faq = () => {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/50";
   const badgeBorder =
     theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
   const titleText = theme === "dark" ? "text-white" : "text-n-7";
@@ -147,9 +147,9 @@ const Faq = () => {
   return (
     <div>
       {/* FAQ Section */}
-      <section className={`py-16 ${containerBg}`}>
+      <section className={`py-16  rounded`}>
         <motion.div
-          className="max-w-4xl mx-auto"
+          className=" mx-auto"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -177,7 +177,7 @@ const Faq = () => {
           </motion.div>
 
           <div
-            className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${containerBg} backdrop-blur-sm`}
+            className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${containerBg} p-5 backdrop-blur-sm`}
           >
             {faqData.map((faq, index) => (
               <motion.div

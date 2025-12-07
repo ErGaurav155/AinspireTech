@@ -17,7 +17,7 @@ export function ClientShowcase() {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const tabBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-gray-100";
+  const tabBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-white/80";
 
   const tabBorder = theme === "dark" ? "border-gray-800" : "border-gray-300";
 
@@ -26,9 +26,9 @@ export function ClientShowcase() {
       ? "text-gray-300 hover:text-white"
       : "text-n-5 hover:text-gray-900";
 
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/40";
 
-  const cardBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-white";
+  const cardBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-white/90";
 
   const cardBorder = theme === "dark" ? "border-gray-800" : "border-gray-200";
 
@@ -38,7 +38,7 @@ export function ClientShowcase() {
   const statsBg =
     theme === "dark"
       ? "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border-[#00F0FF]/30"
-      : "bg-gradient-to-r from-gray-50 to-gray-100 border-[#00F0FF]/50";
+      : "bg-gradient-to-r from-white/50 to-white/60 border-[#00F0FF]/50";
 
   const statsText = theme === "dark" ? "text-gray-300" : "text-n-6";
 
@@ -365,7 +365,7 @@ export function ClientShowcase() {
 
         {/* Content */}
         <motion.div
-          className={`max-w-6xl mx-auto ${containerBg} backdrop-blur-sm`}
+          className={`max-w-6xl mx-auto ${containerBg} backdrop-blur-sm p-3`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"

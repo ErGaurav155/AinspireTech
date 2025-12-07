@@ -1,3 +1,4 @@
+import { Footer } from "@/components/shared/Footer";
 import { NavBar } from "@/components/shared/Navbar";
 import { Toaster } from "@/components/ui/toaster";
 import { Metadata } from "next";
@@ -15,6 +16,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       {children}
 
       <Toaster />
+      <Footer />
     </main>
   );
 };

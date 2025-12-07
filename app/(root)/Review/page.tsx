@@ -1,5 +1,4 @@
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
-import { Footer } from "@/components/shared/Footer";
 import TestimonialSection from "@/components/shared/Testimonial";
 import { Metadata } from "next";
 import React from "react";
@@ -13,7 +12,6 @@ const Tesimonials = () => {
     <div className=" mt-10 mx-auto max-w-7xl w-full gap-5  flex flex-col justify-between items-center ">
       <BreadcrumbsDefault />
       <TestimonialSection />
-      <Footer />
     </div>
   );
 };

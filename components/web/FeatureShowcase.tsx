@@ -35,7 +35,7 @@ export function FeatureShowcase() {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/40";
 
   const badgeBorder =
     theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
@@ -44,7 +44,7 @@ export function FeatureShowcase() {
 
   const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
 
-  const cardBg = theme === "dark" ? "border-white/10" : "border-gray-200";
+  const cardBg = theme === "dark" ? "bg-white/10" : "bg-white/90";
 
   const cardHoverBorder =
     theme === "dark" ? "border-[#258b94]/40" : "border-[#258b94]/60";
@@ -347,7 +347,7 @@ export function FeatureShowcase() {
 
         {/* Category Filters */}
         <motion.div
-          className={`flex flex-wrap justify-center gap-1 md:gap-4 mb-4 md:mb-12 ${containerBg} backdrop-blur-sm`}
+          className={`flex flex-wrap justify-center gap-1 md:gap-4 mb-4 md:mb-12 ${containerBg} backdrop-blur-sm p-3 rounded`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -381,7 +381,7 @@ export function FeatureShowcase() {
 
         {/* Features Grid */}
         <motion.div
-          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto ${containerBg} backdrop-blur-sm`}
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto ${containerBg} backdrop-blur-sm p-5 rounded`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"

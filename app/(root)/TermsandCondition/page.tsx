@@ -1,5 +1,4 @@
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
-import { Footer } from "@/components/shared/Footer";
 import React from "react";
 
 const TermsOfService = async () => {
@@ -208,7 +207,6 @@ const TermsOfService = async () => {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

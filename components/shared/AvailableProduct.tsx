@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { productDetails } from "@/constant";
 import { HeadsetIcon } from "lucide-react";
 import { Button } from "../ui/button";
+import { useTheme } from "next-themes";
 
 interface Product {
   productId: string;
@@ -21,6 +22,10 @@ interface AvailableProductProps {
 const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
+  const { theme } = useTheme();
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
+  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
+  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
 
   useEffect(() => {
     // Sort products with available ones first
@@ -60,12 +65,12 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
           <div
             key={product.productId}
             className={`flex flex-col items-center justify-center gap-6 rounded-xl p-6 shadow-xl
-              bg-[#0a0a0a] backdrop-blur-sm border border-[#00F0FF]/30 hover:border-[#B026FF] transition-all
+              ${cardBg} backdrop-blur-sm border border-[#00F0FF]/30 hover:border-[#B026FF] transition-all
               ${!product.available && "opacity-70"}`}
           >
             {/* Product Header */}
             <div
-              className={`w-full flex items-center justify-start gap-3 rounded-xl p-3 bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20`}
+              className={`w-full flex items-center justify-start gap-3 rounded-xl p-3 bg-gradient-to-r from-[#00F0FF] to-[#B026FF]`}
             >
               <HeadsetIcon className="w-8 h-8 text-white" />
               <h2 className="text-lg font-semibold text-white">
@@ -87,10 +92,10 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
 
             {/* Product Description */}
             <div className="flex flex-col gap-3 w-full">
-              <h3 className="text-xl font-bold text-white">
+              <h3 className={`text-xl font-bold ${textPrimary}`}>
                 {product.description.heading}
               </h3>
-              <p className="text-gray-300 font-montserrat">
+              <p className={`text-gray-300 font-montserrat ${textPrimary}`}>
                 {product.description.subheading}
               </p>
             </div>
@@ -98,14 +103,25 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
             {/* Action Buttons */}
             <div className="flex gap-3 w-full mt-auto">
               {product.available ? (
-                <Button
-                  className="text-base  w-full font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
-                  onClick={() =>
-                    router.push(`/web/pricing?id=${product.productId}`)
-                  }
-                >
-                  Buy Now
-                </Button>
+                <>
+                  {" "}
+                  <Button
+                    className="text-base  w-full font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
+                    onClick={() =>
+                      router.push(`/web/pricing?id=${product.productId}`)
+                    }
+                  >
+                    Buy Now
+                  </Button>
+                  <Button
+                    className="text-base  w-full font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
+                    onClick={() =>
+                      router.push(`/web/product/${product.productId}`)
+                    }
+                  >
+                    Detail Info
+                  </Button>
+                </>
               ) : (
                 <Button
                   className="text-base w-full font-bold bg-gradient-to-r from-gray-500 to-gray-700 text-gray-300 cursor-not-allowed"

@@ -11,7 +11,7 @@ function InstaHowItWorksSection() {
   const { theme } = useTheme();
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
+  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/50";
 
   const titleText = theme === "dark" ? "text-white" : "text-n-7";
 
@@ -157,7 +157,7 @@ function InstaHowItWorksSection() {
       </motion.div>
 
       <motion.div
-        className={`max-w-5xl w-full mx-auto ${containerBg} backdrop-blur-sm`}
+        className={` w-full mx-auto ${containerBg} backdrop-blur-sm p-3 md:p-10 lg:p-20`}
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"

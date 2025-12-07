@@ -623,7 +623,7 @@ const FeatureComparisonTable = () => {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className={`${containerBg} backdrop-blur-sm border ${containerBorder} rounded-2xl overflow-hidden shadow-2xl font-montserrat`}
+          className={`${containerBg} backdrop-blur-sm border ${containerBorder} rounded-2xl overflow-hidden shadow-xl font-montserrat`}
         >
           <div className="overflow-x-auto">
             <table className="w-full">

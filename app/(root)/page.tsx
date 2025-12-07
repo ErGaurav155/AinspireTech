@@ -45,7 +45,6 @@ function HomeContent() {
       <AIVoiceAgentShowcase />
       <OutProduct />
       <TestimonialSection />
-      <Footer />
     </div>
   );
 }

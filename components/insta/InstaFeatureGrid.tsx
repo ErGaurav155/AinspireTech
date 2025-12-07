@@ -61,7 +61,7 @@ export function InstaFeaturesGrid() {
   // Theme-based styles
   const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
 
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-pink/80";
+  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/50";
 
   const titleText = theme === "dark" ? "text-white" : "text-n-7";
 

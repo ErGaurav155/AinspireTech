@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTheme } from "next-themes";
 type Checked = DropdownMenuCheckboxItemProps["checked"];
 
 export function NavBar() {
@@ -29,6 +30,9 @@ export function NavBar() {
   const [showWebBar, setShowWebBar] = useState<Checked>(false);
   const router = useRouter();
   const { userId, isLoaded } = useAuth();
+  const { theme } = useTheme();
+  const cardBg = theme === "dark" ? "bg-transparent" : "bg-white/50";
+  const textPrimary = theme === "dark" ? "text-gray-300" : "text-n-5";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -84,7 +88,7 @@ export function NavBar() {
   }
   return (
     <header
-      className={`sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b transition-all duration-300 ${
+      className={`sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b transition-all duration-300 ${cardBg} ${
         isScrolled ? "rounded-lg shadow-md" : "rounded-none"
       }`}
     >
@@ -118,8 +122,8 @@ export function NavBar() {
             <Link
               key={item.id}
               href={item.href}
-              className={`nav-link relative group font-normal cursor-pointer ${
-                activeNavItem === item.id ? "text-[#00F0FF]" : "text-foreground"
+              className={`nav-link font-medium relative group  cursor-pointer ${
+                activeNavItem === item.id ? "text-[#00F0FF]" : `${textPrimary}`
               }`}
               onClick={() => handleNavClick(item.id)}
             >
@@ -152,9 +156,10 @@ export function NavBar() {
               </button>
             ) : (
               <>
+                <ThemeToggle />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer">
+                    <button className="hidden md:flex items-center justify-center px-4 py-2 rounded-md bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer">
                       Dashboards
                       <ArrowRight className="hidden lg:flex" size={16} />
                     </button>
@@ -180,14 +185,13 @@ export function NavBar() {
                 </DropdownMenu>
                 <button
                   onClick={() => router.push("/affiliate")}
-                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-md bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                 >
                   <span className="mr-2">Affiliate</span>
                   <ArrowRight className="hidden lg:flex" size={16} />
                 </button>
               </>
             )}
-            <ThemeToggle />
             <div className="block">
               <UserButton afterSignOutUrl="/" />
             </div>
@@ -233,8 +237,8 @@ export function NavBar() {
             <Link
               key={item.id}
               href={item.href}
-              className={`text-foreground font-medium md:font-semibold hover:text-[#00F0FF] transition-colors cursor-pointer ${
-                activeNavItem === item.id ? "text-[#00F0FF]" : ""
+              className={`text-foreground font-medium  hover:text-[#00F0FF] transition-colors cursor-pointer ${
+                activeNavItem === item.id ? "text-[#00F0FF]" : ` ${textPrimary}`
               }`}
               onClick={() => handleNavClick(item.id)}
             >

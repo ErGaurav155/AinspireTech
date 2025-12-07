@@ -1,5 +1,4 @@
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
-import { Footer } from "@/components/shared/Footer";
 import React from "react";
 
 const PrivacyPolicy = () => {
@@ -160,7 +159,6 @@ const PrivacyPolicy = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

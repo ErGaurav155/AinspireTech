@@ -28,7 +28,7 @@ export default function Navbar() {
     );
   }
   // Theme-based styles
-  const navBg = theme === "dark" ? "bg-[#0a0a0a]/80" : "bg-white/80";
+  const navBg = theme === "dark" ? "bg-[#0a0a0a]/80" : "bg-white/50";
   const navBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
   const textPrimary = theme === "dark" ? "text-gray-300" : "text-n-5";
   const textHover =

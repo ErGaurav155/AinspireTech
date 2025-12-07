@@ -599,7 +599,7 @@ function PricingWithSearchParams() {
       <section className="px-4 sm:px-6 lg:px-8 pb-16">
         <div className="max-w-6xl mx-auto">
           <div
-            className={`relative mb-10 group rounded-lg backdrop-blur-sm border transition-all duration-300 ${cardBorder} hover:border-[#00F0FF] bg-transparent`}
+            className={`relative mb-10 group rounded-lg backdrop-blur-sm border transition-all duration-300 ${cardBorder} ${cardBg} hover:border-[#00F0FF] bg-transparent`}
           >
             <div
               className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity from-[#FF2E9F]/10 to-transparent`}
@@ -671,7 +671,7 @@ function PricingWithSearchParams() {
               return (
                 <div
                   key={plan.id}
-                  className={`relative group rounded-lg backdrop-blur-sm border transition-all duration-300 ${
+                  className={`relative group rounded-lg backdrop-blur-sm border transition-all duration-300 ${cardBg} ${
                     plan.popular
                       ? "scale-105 z-10 border-[#B026FF]/30 hover:border-[#B026FF]"
                       : plan.id === "Insta-Automation-Starter"
@@ -836,7 +836,7 @@ function PricingWithSearchParams() {
             <table className="w-full border-collapse">
               <thead>
                 <tr
-                  className={`border-b-2 ${
+                  className={`border-b-2 ${cardBg} ${
                     theme === "dark" ? "border-[#333]" : "border-gray-300"
                   }`}
                 >
@@ -857,7 +857,7 @@ function PricingWithSearchParams() {
                 </tr>
               </thead>
               <tbody
-                className={`divide-y ${
+                className={`divide-y ${cardBg} ${
                   theme === "dark" ? "divide-[#333]" : "divide-gray-300"
                 }`}
               >
