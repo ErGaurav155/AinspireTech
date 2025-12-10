@@ -600,7 +600,7 @@ export default function AffiliateRegisterPage() {
                   </div>
 
                   <div
-                    className={`p-6 rounded-xl max-h-80 overflow-y-auto ${
+                    className={`p-6 rounded-xl max-h-80 overflow-y-auto font-montserrat ${
                       currentTheme === "dark" ? "bg-[#2a2a2a]" : "bg-gray-50"
                     }`}
                   >

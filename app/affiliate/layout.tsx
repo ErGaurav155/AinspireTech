@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/shared/Footer";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "InstaReply Pro - Instagram Auto-Reply Management",
