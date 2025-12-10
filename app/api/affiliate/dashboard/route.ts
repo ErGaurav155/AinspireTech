@@ -79,7 +79,7 @@ export async function GET() {
       referrals,
       monthlyCommissions,
       payoutHistory,
-      affiliateLink: `${process.env.NEXT_PUBLIC_APP_URL}/signup?ref=${affiliate.affiliateCode}`,
+      affiliateLink: `${process.env.NEXT_PUBLIC_APP_URL}?ref=${affiliate.affiliateCode}`,
     });
   } catch (error: any) {
     console.error("Error fetching dashboard:", error);
