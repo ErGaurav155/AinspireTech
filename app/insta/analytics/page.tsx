@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   BarChart3,
   TrendingUp,
@@ -59,21 +59,26 @@ export default function AnalyticsPage() {
   const [selectedAccount, setSelectedAccount] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-transperant" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
-  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const badgeBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
-  const selectBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white";
-  const selectBorder = theme === "dark" ? "border-white/20" : "border-gray-300";
-  const buttonOutlineBorder =
-    theme === "dark" ? "border-white/20" : "border-gray-300";
-  const buttonOutlineText = theme === "dark" ? "text-gray-300" : "text-n-6";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-transperant" : "bg-gray-50",
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      textSecondary: isDark ? "text-gray-300" : "text-n-5",
+      textMuted: isDark ? "text-gray-400" : "text-n-5",
+      cardBg: isDark ? "bg-[#0a0a0a]/60" : "bg-white/80",
+      cardBorder: isDark ? "border-white/10" : "border-gray-200",
+      badgeBg: isDark ? "bg-[#0a0a0a]" : "bg-white",
+      selectBg: isDark ? "bg-[#0a0a0a]/60" : "bg-white",
+      selectBorder: isDark ? "border-white/20" : "border-gray-300",
+      buttonOutlineBorder: isDark ? "border-white/20" : "border-gray-300",
+      buttonOutlineText: isDark ? "text-gray-300" : "text-n-6",
+    };
+  }, [currentTheme]);
 
   const getFilteredData = useCallback(() => {
     if (!analyticsData) return null;
@@ -445,13 +450,8 @@ export default function AnalyticsPage() {
 
   if (isLoading || !isLoaded) {
     return (
-      <div
-        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
-      >
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
-          <p className={textSecondary}>Loading analytics...</p>
-        </div>
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }
@@ -459,11 +459,11 @@ export default function AnalyticsPage() {
   if (error) {
     return (
       <div
-        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
+        className={`min-h-screen ${themeStyles.textPrimary} flex items-center justify-center ${themeStyles.containerBg}`}
       >
         <div className="text-center p-6 bg-red-900/20 rounded-lg max-w-md">
           <h2 className="text-xl font-bold mb-4">Error Loading Accounts</h2>
-          <p className={`${textSecondary} mb-6`}>{error}</p>
+          <p className={`${themeStyles.textSecondary} mb-6`}>{error}</p>
           <Button onClick={fetchAccounts} className="btn-gradient-cyan">
             <RefreshCw className="mr-2 h-4 w-4" />
             Try Again
@@ -474,7 +474,9 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className={`min-h-screen ${textPrimary} ${containerBg}`}>
+    <div
+      className={`min-h-screen ${themeStyles.textPrimary} ${themeStyles.containerBg}`}
+    >
       <div className="container mx-auto px-4 py-8">
         <BreadcrumbsDefault />
         {/* Header */}
@@ -491,12 +493,12 @@ export default function AnalyticsPage() {
               <span className="text-sm font-medium">Performance Analytics</span>
             </div>
             <h1
-              className={`text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent ${textPrimary}`}
+              className={`text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent ${themeStyles.textPrimary}`}
             >
               Analytics Dashboard
             </h1>
             <p
-              className={`${textSecondary} text-xl font-medium font-montserrat`}
+              className={`${themeStyles.textSecondary} text-xl font-medium font-montserrat`}
             >
               {selectedAccount === "all"
                 ? "Track performance across all accounts"
@@ -507,17 +509,21 @@ export default function AnalyticsPage() {
             <Button
               onClick={() => refresh()}
               variant="outline"
-              className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#0fcd6e]/80 hover:bg-white/10`}
+              className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#0fcd6e]/80 hover:bg-white/10`}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
 
             <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-              <SelectTrigger className={`w-48 ${selectBg} ${selectBorder}`}>
+              <SelectTrigger
+                className={`w-48 ${themeStyles.selectBg} ${themeStyles.selectBorder}`}
+              >
                 <SelectValue placeholder="Select account" />
               </SelectTrigger>
-              <SelectContent className={`${cardBg} ${cardBorder}`}>
+              <SelectContent
+                className={`${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+              >
                 <SelectItem value="all">All Accounts</SelectItem>
                 {analyticsData?.accounts?.map((account: any) => (
                   <SelectItem key={account.accountId} value={account.username}>
@@ -532,10 +538,12 @@ export default function AnalyticsPage() {
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card
-            className={`card-hover group hover:shadow-lg transition-all duration-300 ${cardBg} ${cardBorder}`}
+            className={`card-hover group hover:shadow-lg transition-all duration-300 ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Total Replies
               </CardTitle>
               <MessageSquare className="h-4 w-4 text-[#00F0FF]" />
@@ -548,7 +556,7 @@ export default function AnalyticsPage() {
                   : 500}
               </div>
               <p
-                className={`text-xs ${textMuted} flex items-center font-montserrat`}
+                className={`text-xs ${themeStyles.textMuted} flex items-center font-montserrat`}
               >
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
                 +12% from last period
@@ -557,10 +565,12 @@ export default function AnalyticsPage() {
           </Card>
 
           <Card
-            className={`card-hover group hover:shadow-lg transition-all duration-300 ${cardBg} ${cardBorder}`}
+            className={`card-hover group hover:shadow-lg transition-all duration-300 ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Success Rate
               </CardTitle>
               <Target className="h-4 w-4 text-[#B026FF]" />
@@ -570,7 +580,7 @@ export default function AnalyticsPage() {
                 {filteredData?.successRate || 0}%
               </div>
               <p
-                className={`text-xs ${textMuted} flex items-center font-montserrat`}
+                className={`text-xs ${themeStyles.textMuted} flex items-center font-montserrat`}
               >
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
                 +2.1% from last period
@@ -579,10 +589,12 @@ export default function AnalyticsPage() {
           </Card>
 
           <Card
-            className={`card-hover group hover:shadow-lg transition-all duration-300 ${cardBg} ${cardBorder}`}
+            className={`card-hover group hover:shadow-lg transition-all duration-300 ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Avg Response Time
               </CardTitle>
               <Clock className="h-4 w-4 text-[#FF2E9F]" />
@@ -596,7 +608,7 @@ export default function AnalyticsPage() {
                   : "0s"}
               </div>
               <p
-                className={`text-xs ${textMuted} flex items-center font-montserrat`}
+                className={`text-xs ${themeStyles.textMuted} flex items-center font-montserrat`}
               >
                 <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
                 -0.5s improvement
@@ -605,10 +617,12 @@ export default function AnalyticsPage() {
           </Card>
 
           <Card
-            className={`card-hover group hover:shadow-lg transition-all duration-300 ${cardBg} ${cardBorder}`}
+            className={`card-hover group hover:shadow-lg transition-all duration-300 ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Engagement Boost
               </CardTitle>
               <BarChart3 className="h-4 w-4 text-[#00F0FF]" />
@@ -617,7 +631,7 @@ export default function AnalyticsPage() {
               <div className="text-2xl font-bold text-[#00F0FF]">
                 +{filteredData?.engagementRate || 0}%
               </div>
-              <p className={`text-xs ${textMuted} font-montserrat`}>
+              <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 Since auto-replies enabled
               </p>
             </CardContent>
@@ -626,15 +640,21 @@ export default function AnalyticsPage() {
 
         {/* Account Performance */}
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
-          <Card className={`card-hover group ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover group ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader>
-              <CardTitle className={`flex items-center gap-2 ${textPrimary}`}>
+              <CardTitle
+                className={`flex items-center gap-2 ${themeStyles.textPrimary}`}
+              >
                 <Users className="h-5 w-5 text-[#00F0FF]" />
                 {selectedAccount === "all"
                   ? "Account Performance"
                   : "Account Details"}
               </CardTitle>
-              <CardDescription className={`${textSecondary} font-montserrat`}>
+              <CardDescription
+                className={`${themeStyles.textSecondary} font-montserrat`}
+              >
                 {selectedAccount === "all"
                   ? "Compare performance across your Instagram accounts"
                   : `Performance details for @${selectedAccount}`}
@@ -644,7 +664,7 @@ export default function AnalyticsPage() {
               {filteredData?.accounts?.map((account: any) => (
                 <div
                   key={account.id}
-                  className={`flex flex-col w-full items-center justify-between p-4 gap-3 border ${cardBorder} rounded-lg`}
+                  className={`flex flex-col w-full items-center justify-between p-4 gap-3 border ${themeStyles.cardBorder} rounded-lg`}
                 >
                   <div className="flex items-center space-x-2 lg:space-x-4">
                     <Image
@@ -661,11 +681,13 @@ export default function AnalyticsPage() {
                     />
                     <div>
                       <h4
-                        className={`text-base lg:text-lg font-medium lg:font-semibold font-montserrat ${textPrimary}`}
+                        className={`text-base lg:text-lg font-medium lg:font-semibold font-montserrat ${themeStyles.textPrimary}`}
                       >
                         @{account.username}
                       </h4>
-                      <p className={`text-sm ${textMuted} font-montserrat`}>
+                      <p
+                        className={`text-sm ${themeStyles.textMuted} font-montserrat`}
+                      >
                         {account.accountReply} replies
                       </p>
                     </div>
@@ -677,17 +699,17 @@ export default function AnalyticsPage() {
                         onClick={() => refreshInstagramToken(userId)}
                         variant="outline"
                         size="sm"
-                        className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
+                        className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
                       >
                         <RefreshCw className="mr-2 h-4 w-4" />
                         Refresh Token
                       </Button>
                     )}
                   <div className="flex items-center justify-between w-full font-montserrat">
-                    <div className={`text-xs ${textPrimary}`}>
+                    <div className={`text-xs ${themeStyles.textPrimary}`}>
                       {account.engagementRate}% engagement
                     </div>
-                    <div className={`text-xs ${textMuted}`}>
+                    <div className={`text-xs ${themeStyles.textMuted}`}>
                       {account?.avgResponseTime
                         ? formatResponseTimeSmart(account.avgResponseTime)
                         : "0s"}{" "}
@@ -701,7 +723,9 @@ export default function AnalyticsPage() {
                 filteredData?.accounts.length === 0) && (
                 <div className="text-center py-8">
                   <Instagram className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                  <p className={`${textSecondary} mb-4 font-montserrat`}>
+                  <p
+                    className={`${themeStyles.textSecondary} mb-4 font-montserrat`}
+                  >
                     No accounts connected yet
                   </p>
                   <Button className="btn-gradient-cyan" asChild>
@@ -715,13 +739,19 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className={`card-hover group ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover group ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader>
-              <CardTitle className={`flex items-center gap-2 ${textPrimary}`}>
+              <CardTitle
+                className={`flex items-center gap-2 ${themeStyles.textPrimary}`}
+              >
                 <Clock className="h-5 w-5 text-[#FF2E9F]" />
                 Recent Activity
               </CardTitle>
-              <CardDescription className={`${textSecondary} font-montserrat`}>
+              <CardDescription
+                className={`${themeStyles.textSecondary} font-montserrat`}
+              >
                 {selectedAccount === "all"
                   ? "Latest auto-reply activities across all accounts"
                   : `Recent activities for @${selectedAccount}`}
@@ -732,7 +762,7 @@ export default function AnalyticsPage() {
                 {filteredData?.recentActivity?.map((activity: any) => (
                   <div
                     key={activity.id}
-                    className={`flex items-center justify-between p-3 border ${cardBorder} rounded-lg`}
+                    className={`flex items-center justify-between p-3 border ${themeStyles.cardBorder} rounded-lg`}
                   >
                     <div className="flex items-center space-x-3">
                       <div
@@ -740,17 +770,19 @@ export default function AnalyticsPage() {
                       />
                       <div>
                         <p
-                          className={`text-sm font-medium ${textPrimary} font-montserrat`}
+                          className={`text-sm font-medium ${themeStyles.textPrimary} font-montserrat`}
                         >
                           {activity.type === "reply_sent"
                             ? "Reply sent"
                             : "Reply failed"}
-                          <span className={textSecondary}>
+                          <span className={themeStyles.textSecondary}>
                             {" "}
                             to @{activity.account}
                           </span>
                         </p>
-                        <p className={`text-xs ${textMuted} font-montserrat`}>
+                        <p
+                          className={`text-xs ${themeStyles.textMuted} font-montserrat`}
+                        >
                           Template: {activity.template}
                         </p>
                       </div>
@@ -764,7 +796,7 @@ export default function AnalyticsPage() {
                       >
                         Success
                       </Badge>
-                      <p className={`text-xs ${textMuted} mt-1`}>
+                      <p className={`text-xs ${themeStyles.textMuted} mt-1`}>
                         {formatTimestamp(activity.timestamp)}
                       </p>
                     </div>
@@ -772,7 +804,7 @@ export default function AnalyticsPage() {
                 ))}
                 {(!filteredData?.recentActivity ||
                   filteredData?.recentActivity.length === 0) && (
-                  <p className={`${textMuted} text-center`}>
+                  <p className={`${themeStyles.textMuted} text-center`}>
                     No recent activity available.
                   </p>
                 )}

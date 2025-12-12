@@ -2,7 +2,7 @@
 
 import { features } from "@/constant";
 import Image from "next/image";
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import cup from "@/public/assets/img/pricecup.png";
 import { useRouter } from "next/navigation";
@@ -27,25 +27,28 @@ const Check = ({ className }: { className?: string }) => (
 
 const ComparisonTable: React.FC = () => {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
-  const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
-  const titleText = theme === "dark" ? "text-white" : "text-n-7";
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const tableHeaderBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/80";
-  const tableRowHover =
-    theme === "dark" ? "hover:bg-[#1a1a1a]/50" : "hover:bg-gray-100/50";
-  const tableBorder = theme === "dark" ? "border-[#333]" : "border-gray-200";
-  const tableDivide = theme === "dark" ? "divide-[#333]" : "divide-gray-200";
-  const featureText = theme === "dark" ? "text-gray-300" : "text-n-7";
-  const disabledText = theme === "dark" ? "text-gray-500" : "text-n-5";
-  const comingSoonBg =
-    theme === "dark"
-      ? "bg-blue-900 text-blue-300"
-      : "bg-blue-100 text-blue-900";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]/10" : "bg-gray-50/50",
+      badgeBorder: isDark ? "border-[#00F0FF]/30" : "border-blue-700/30",
+      titleText: isDark ? "text-white" : "text-n-7",
+      descriptionText: isDark ? "text-gray-300" : "text-n-5",
+      tableHeaderBg: isDark ? "bg-[#0a0a0a]/10" : "bg-white/80",
+      tableRowHover: isDark ? "hover:bg-[#1a1a1a]/50" : "hover:bg-gray-100/50",
+      tableBorder: isDark ? "border-[#333]" : "border-gray-200",
+      tableDivide: isDark ? "divide-[#333]" : "divide-gray-200",
+      featureText: isDark ? "text-gray-300" : "text-n-7",
+      disabledText: isDark ? "text-gray-500" : "text-n-5",
+      comingSoonBg: isDark
+        ? "bg-blue-900 text-blue-300"
+        : "bg-blue-100 text-blue-900",
+    };
+  }, [currentTheme]);
 
   // EXACT same animation variants as FeatureSection component
   const containerVariants = {
@@ -167,7 +170,7 @@ const ComparisonTable: React.FC = () => {
         </motion.div>
       ) : (
         <motion.span
-          className={disabledText}
+          className={themeStyles.disabledText}
           variants={textVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -181,7 +184,7 @@ const ComparisonTable: React.FC = () => {
     if (value === "Coming soon") {
       return (
         <motion.span
-          className={`${comingSoonBg} px-2 py-1 rounded-md text-xs`}
+          className={`${themeStyles.comingSoonBg} px-2 py-1 rounded-md text-xs`}
           variants={textVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -194,7 +197,7 @@ const ComparisonTable: React.FC = () => {
 
     return (
       <motion.span
-        className={featureText}
+        className={themeStyles.featureText}
         variants={textVariants}
         whileInView="visible"
         viewport={{ once: false }}
@@ -206,7 +209,7 @@ const ComparisonTable: React.FC = () => {
   };
 
   return (
-    <section className={`py-16 bg-transparent ${containerBg}`}>
+    <section className={`py-16 bg-transparent ${themeStyles.containerBg}`}>
       <motion.div
         className="max-w-7xl mx-auto"
         variants={containerVariants}
@@ -223,7 +226,7 @@ const ComparisonTable: React.FC = () => {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className={`inline-flex items-center text-blue-700 border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
+            className={`inline-flex items-center text-blue-700 border ${themeStyles.badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -235,7 +238,7 @@ const ComparisonTable: React.FC = () => {
           </motion.div>
 
           <motion.h1
-            className={`text-3xl font-bold mb-4 gradient-text-main ${titleText}`}
+            className={`text-3xl font-bold mb-4 gradient-text-main ${themeStyles.titleText}`}
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -245,7 +248,7 @@ const ComparisonTable: React.FC = () => {
           </motion.h1>
 
           <motion.p
-            className={`text-xl mb-6 font-montserrat ${descriptionText}`}
+            className={`text-xl mb-6 font-montserrat ${themeStyles.descriptionText}`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -271,7 +274,7 @@ const ComparisonTable: React.FC = () => {
               <div className="w-6 h-6 rounded-full bg-blue-800 flex items-center justify-center mr-3">
                 <div className="w-2 h-2 rounded-full bg-blue-400"></div>
               </div>
-              <span className={`text-lg font-medium ${titleText}`}>
+              <span className={`text-lg font-medium ${themeStyles.titleText}`}>
                 Cheap & Best
               </span>
             </motion.div>
@@ -285,7 +288,7 @@ const ComparisonTable: React.FC = () => {
               <div className="w-6 h-6 rounded-full bg-blue-800 flex items-center justify-center mr-3">
                 <div className="w-2 h-2 rounded-full bg-blue-400"></div>
               </div>
-              <span className={`text-lg font-medium ${titleText}`}>
+              <span className={`text-lg font-medium ${themeStyles.titleText}`}>
                 299INR ($3.3) Per month
               </span>
             </motion.div>
@@ -309,7 +312,7 @@ const ComparisonTable: React.FC = () => {
 
         {/* Comparison Table */}
         <motion.div
-          className={`overflow-x-auto ${tableHeaderBg} backdrop-blur-sm`}
+          className={`overflow-x-auto ${themeStyles.tableHeaderBg} backdrop-blur-sm`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -318,7 +321,7 @@ const ComparisonTable: React.FC = () => {
           <table className="w-full border-collapse">
             <thead>
               <motion.tr
-                className={`border-b-2 ${tableBorder}`}
+                className={`border-b-2 ${themeStyles.tableBorder}`}
                 variants={cardVariants}
                 whileInView="visible"
                 viewport={{ once: false }}
@@ -326,7 +329,7 @@ const ComparisonTable: React.FC = () => {
               >
                 <th className="text-left py-4 px-6 font-semibold">
                   <motion.span
-                    className={titleText}
+                    className={themeStyles.titleText}
                     variants={titleVariants}
                     whileInView="visible"
                     viewport={{ once: false }}
@@ -412,11 +415,11 @@ const ComparisonTable: React.FC = () => {
                 </th>
               </motion.tr>
             </thead>
-            <tbody className={`divide-y ${tableDivide}`}>
+            <tbody className={`divide-y ${themeStyles.tableDivide}`}>
               {features.map((feature, index) => (
                 <motion.tr
                   key={index}
-                  className={tableRowHover}
+                  className={themeStyles.tableRowHover}
                   variants={rowVariants}
                   whileInView="visible"
                   viewport={{ once: false, margin: "-20px" }}
@@ -426,7 +429,7 @@ const ComparisonTable: React.FC = () => {
                 >
                   <td className="py-4 px-6 font-medium font-montserrat">
                     <motion.span
-                      className={featureText}
+                      className={themeStyles.featureText}
                       variants={textVariants}
                       whileInView="visible"
                       viewport={{ once: false }}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { RocketIcon, SparklesIcon } from "lucide-react";
 import Link from "next/link";
@@ -14,8 +14,35 @@ const DiscountBanner = () => {
   const [seconds, setSeconds] = useState("00");
   const [isVisible, setIsVisible] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
-  const { theme } = useTheme();
-
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
+  // Theme-based styles
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark
+        ? "bg-gradient-to-r from-[#0a0a0a]/90 to-[#1a1a1a]/90"
+        : "bg-gradient-to-b from-gray-200 to-gray-50",
+      borderColor: isDark ? "border-[#11df78]/30" : "border-green-200",
+      scrollBannerBg: isDark
+        ? "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a]"
+        : "bg-gradient-to-r from-white to-gray-50",
+      scrollBannerBorder: isDark ? "border-[#00F0FF]/20" : "border-blue-200",
+      countdownBg: isDark
+        ? "bg-[#0a0a0a] border-[#00F0FF]/30"
+        : "bg-white border-blue-200",
+      countdownText: isDark ? "text-gray-300" : "text-gray-800",
+      closeButtonBg: isDark
+        ? "bg-[#1a1a1a]/80 border-[#333] hover:bg-[#FF2E9F]/20 hover:border-[#FF2E9F]/50"
+        : "bg-gray-100 border-gray-300 hover:bg-[#FF2E9F]/20 hover:border-[#FF2E9F]/50",
+      saleBadgeBg: isDark
+        ? "bg-transparent border text-[#FF2E9F]"
+        : "bg-transparent border border-[#FF2E9F] text-[#FF2E9F]",
+      gradientOverlay: isDark
+        ? "bg-gradient-to-r from-transparent via-[#00F0FF]/10 to-transparent group-hover:via-[#B026FF]/20"
+        : "bg-gradient-to-r from-transparent via-blue-100 to-transparent group-hover:via-purple-100",
+    };
+  }, [currentTheme]);
   const initialCountdownDate = new Date("2024-07-13T13:00:00").getTime();
 
   const getNextCountdownDate = useCallback(() => {
@@ -79,45 +106,6 @@ const DiscountBanner = () => {
     return null;
   }
 
-  // Theme-based styles
-  const containerBg =
-    theme === "dark"
-      ? "bg-gradient-to-r from-[#0a0a0a]/90 to-[#1a1a1a]/90"
-      : "bg-gradient-to-b from-gray-200 to-gray-50";
-
-  const borderColor =
-    theme === "dark" ? "border-[#11df78]/30" : "border-green-200";
-
-  const scrollBannerBg =
-    theme === "dark"
-      ? "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a]"
-      : "bg-gradient-to-r from-white to-gray-50";
-
-  const scrollBannerBorder =
-    theme === "dark" ? "border-[#00F0FF]/20" : "border-blue-200";
-
-  const countdownBg =
-    theme === "dark"
-      ? "bg-[#0a0a0a] border-[#00F0FF]/30"
-      : "bg-white border-blue-200";
-
-  const countdownText = theme === "dark" ? "text-gray-300" : "text-gray-800";
-
-  const closeButtonBg =
-    theme === "dark"
-      ? "bg-[#1a1a1a]/80 border-[#333] hover:bg-[#FF2E9F]/20 hover:border-[#FF2E9F]/50"
-      : "bg-gray-100 border-gray-300 hover:bg-[#FF2E9F]/20 hover:border-[#FF2E9F]/50";
-
-  const saleBadgeBg =
-    theme === "dark"
-      ? "bg-transparent border text-[#FF2E9F]"
-      : "bg-transparent border border-[#FF2E9F] text-[#FF2E9F]";
-
-  const gradientOverlay =
-    theme === "dark"
-      ? "bg-gradient-to-r from-transparent via-[#00F0FF]/10 to-transparent group-hover:via-[#B026FF]/20"
-      : "bg-gradient-to-r from-transparent via-blue-100 to-transparent group-hover:via-purple-100";
-
   return (
     <div className="p-2 relative z-50 backdrop-blur-lg mt-5 top-0 left-0 w-full">
       <div className="absolute inset-0 overflow-hidden rounded-xl">
@@ -125,7 +113,11 @@ const DiscountBanner = () => {
         <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-r from-[#FF2E9F] to-[#B026FF] rounded-full opacity-10 blur-xl animate-pulse delay-1000"></div>
       </div>
       <div
-        className={`rounded-xl flex flex-col gap-1 justify-center items-center border ${borderColor} ${containerBg} text-foreground font-sans p-2 md:py-5 md:px-6 shadow-2xl ${
+        className={`rounded-xl flex flex-col gap-1 justify-center items-center border ${
+          themeStyles.borderColor
+        } ${
+          themeStyles.containerBg
+        } text-foreground font-sans p-2 md:py-5 md:px-6 shadow-2xl ${
           theme === "dark" ? "shadow-[#00F0FF]/10" : "shadow-blue-200/20"
         }`}
       >
@@ -133,7 +125,7 @@ const DiscountBanner = () => {
         <div className="flex flex-row-reverse items-center justify-between w-full">
           <button
             onClick={handleClose}
-            className={`relative p-1.5 rounded-full ${closeButtonBg} transition-all duration-300 group z-40`}
+            className={`relative p-1.5 rounded-full ${themeStyles.closeButtonBg} transition-all duration-300 group z-40`}
           >
             <XMarkIcon
               height={18}
@@ -142,7 +134,7 @@ const DiscountBanner = () => {
             />
           </button>
           <div
-            className={`relative ${saleBadgeBg} p-1 px-2 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300`}
+            className={`relative ${themeStyles.saleBadgeBg} p-1 px-2 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300`}
           >
             <div className="absolute -top-2 -right-2">
               <SparklesIcon className="h-5 w-5 text-yellow-300 animate-pulse" />
@@ -165,12 +157,12 @@ const DiscountBanner = () => {
               ].map((item, index) => (
                 <div key={index} className="flex flex-col items-center">
                   <div
-                    className={`${countdownBg} text-xs font-light md:text-sm md:font-normal p-1 md:py-2 md:px-4 rounded-lg shadow-inner border ${scrollBannerBorder}`}
+                    className={`${themeStyles.countdownBg} text-xs font-light md:text-sm md:font-normal p-1 md:py-2 md:px-4 rounded-lg shadow-inner border ${themeStyles.scrollBannerBorder}`}
                   >
                     {item.value}
                   </div>
                   <div
-                    className={`text-xs font-thin  md:text-sm md:font-light  ${countdownText} mt-1.5 tracking-wide`}
+                    className={`text-xs font-thin  md:text-sm md:font-light  ${themeStyles.countdownText} mt-1.5 tracking-wide`}
                   >
                     {item.label}
                   </div>
@@ -200,10 +192,10 @@ const DiscountBanner = () => {
           {/* Scrolling Banner */}
           <Link
             href={"/insta/pricing"}
-            className={`md:mt-3 w-full overflow-hidden rounded-lg relative group p-0 ${scrollBannerBg}`}
+            className={`md:mt-3 w-full overflow-hidden rounded-lg relative group p-0 ${themeStyles.scrollBannerBg}`}
           >
             <div
-              className={`absolute inset-0 ${gradientOverlay} transition-all duration-1000 text-sm border ${scrollBannerBorder} rounded-lg `}
+              className={`absolute inset-0 ${themeStyles.gradientOverlay} transition-all duration-1000 text-sm border ${themeStyles.scrollBannerBorder} rounded-lg `}
             ></div>
             <div
               className={`flex animate-scroll-left whitespace-nowrap py-1 md:py-3 relative z-10 font-light text-sm`}

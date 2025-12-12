@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { productDetails } from "@/constant";
 import { HeadsetIcon } from "lucide-react";
 import { Button } from "../ui/button";
@@ -22,10 +22,16 @@ interface AvailableProductProps {
 const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
-  const { theme } = useTheme();
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
+
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      cardBg: isDark ? "bg-[#0a0a0a]/60" : "bg-white/80",
+    };
+  }, [currentTheme]);
 
   useEffect(() => {
     // Sort products with available ones first
@@ -43,8 +49,8 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
 
   if (products.length === 0) {
     return (
-      <div className="flex items-center justify-center text-white font-bold text-xl">
-        Loading...
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }
@@ -65,7 +71,9 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
           <div
             key={product.productId}
             className={`flex flex-col items-center justify-center gap-6 rounded-xl p-6 shadow-xl
-              ${cardBg} backdrop-blur-sm border border-[#00F0FF]/30 hover:border-[#B026FF] transition-all
+              ${
+                themeStyles.cardBg
+              } backdrop-blur-sm border border-[#00F0FF]/30 hover:border-[#B026FF] transition-all
               ${!product.available && "opacity-70"}`}
           >
             {/* Product Header */}
@@ -92,10 +100,12 @@ const AvailableProduct = ({ showAvailableOnly }: AvailableProductProps) => {
 
             {/* Product Description */}
             <div className="flex flex-col gap-3 w-full">
-              <h3 className={`text-xl font-bold ${textPrimary}`}>
+              <h3 className={`text-xl font-bold ${themeStyles.textPrimary}`}>
                 {product.description.heading}
               </h3>
-              <p className={`text-gray-300 font-montserrat ${textPrimary}`}>
+              <p
+                className={`text-gray-300 font-montserrat ${themeStyles.textPrimary}`}
+              >
                 {product.description.subheading}
               </p>
             </div>

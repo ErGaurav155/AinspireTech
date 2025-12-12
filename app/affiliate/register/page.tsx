@@ -222,11 +222,8 @@ export default function AffiliateRegisterPage() {
   // Don't render until mounted to avoid hydration mismatch
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#00F0FF] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }
@@ -281,7 +278,7 @@ export default function AffiliateRegisterPage() {
             </span>
           </h1>
           <p
-            className={`text-lg max-w-2xl mx-auto ${themeStyles.descriptionText}`}
+            className={`text-lg max-w-2xl mx-auto ${themeStyles.descriptionText} font-montserrat`}
           >
             Earn 30% commission on every subscription you refer! Monthly
             subscriptions pay for 10 months, yearly for 3 years.
@@ -327,7 +324,9 @@ export default function AffiliateRegisterPage() {
                     >
                       {s.title}
                     </div>
-                    <div className="text-xs text-gray-500">{s.description}</div>
+                    <div className="text-xs text-gray-500 font-montserrat">
+                      {s.description}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -360,7 +359,9 @@ export default function AffiliateRegisterPage() {
                     >
                       Personal Information
                     </h2>
-                    <p className={themeStyles.descriptionText}>
+                    <p
+                      className={`${themeStyles.descriptionText} font-montserrat`}
+                    >
                       Tell us a bit about yourself
                     </p>
                   </div>
@@ -433,7 +434,9 @@ export default function AffiliateRegisterPage() {
                     >
                       Payment Information
                     </h2>
-                    <p className={themeStyles.descriptionText}>
+                    <p
+                      className={`${themeStyles.descriptionText} font-montserrat`}
+                    >
                       Choose how you want to receive payments
                     </p>
                   </div>
@@ -459,7 +462,7 @@ export default function AffiliateRegisterPage() {
                           {method.title}
                         </div>
                         <div
-                          className={`text-sm ${themeStyles.descriptionText}`}
+                          className={`text-sm font-montserrat ${themeStyles.descriptionText}`}
                         >
                           {method.description}
                         </div>
@@ -681,7 +684,7 @@ export default function AffiliateRegisterPage() {
                         I agree to the terms and conditions
                       </span>
                       <span
-                        className={`text-sm ${themeStyles.descriptionText}`}
+                        className={`text-sm font-montserrat ${themeStyles.descriptionText}`}
                       >
                         By checking this box, you agree to our affiliate program
                         rules
@@ -710,7 +713,7 @@ export default function AffiliateRegisterPage() {
                     Ready to Go!
                   </h2>
                   <p
-                    className={`text-lg mb-8 max-w-md mx-auto ${themeStyles.descriptionText}`}
+                    className={`text-lg mb-8 max-w-md mx-auto font-montserrat ${themeStyles.descriptionText}`}
                   >
                     Your affiliate account will be created. You will receive
                     your unique affiliate link immediately.

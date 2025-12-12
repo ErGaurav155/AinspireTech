@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Plus,
   Instagram,
@@ -59,21 +59,25 @@ export default function Dashboard() {
   const router = useRouter();
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [userInfo, setUserInfo] = useState<any>();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-transperant" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
-  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const badgeBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
-  const alertBg = theme === "dark" ? "bg-[#6d1717]/5" : "bg-red-50/80";
-  const buttonOutlineBorder =
-    theme === "dark" ? "border-white/20" : "border-gray-300";
-  const buttonOutlineText = theme === "dark" ? "text-gray-300" : "text-n-5";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-transperant" : "bg-gray-50",
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      textSecondary: isDark ? "text-gray-300" : "text-n-5",
+      textMuted: isDark ? "text-gray-400" : "text-n-5",
+      cardBg: isDark ? "bg-[#0a0a0a]/60" : "bg-white/80",
+      cardBorder: isDark ? "border-white/10" : "border-gray-200",
+      badgeBg: isDark ? "bg-[#0a0a0a]" : "bg-white",
+      alertBg: isDark ? "bg-[#6d1717]/5" : "bg-red-50/80",
+      buttonOutlineBorder: isDark ? "border-white/20" : "border-gray-300",
+      buttonOutlineText: isDark ? "text-gray-300" : "text-n-5",
+    };
+  }, [currentTheme]);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [selectedSubscriptionId, setSelectedSubscriptionId] = useState("");
   const [cancellationMode, setCancellationMode] = useState<
@@ -448,29 +452,28 @@ export default function Dashboard() {
 
   if (isLoading || !isLoaded) {
     return (
-      <div
-        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
-      >
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
-          <p className={textSecondary}>Loading dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }
   return (
-    <div className={`min-h-screen ${textPrimary} ${containerBg}`}>
+    <div
+      className={`min-h-screen ${themeStyles.textPrimary} ${themeStyles.containerBg}`}
+    >
       <BreadcrumbsDefault />{" "}
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex  flex-wrap justify-between items-center gap-3 lg:gap-0 mb-8">
           <div>
             <h1
-              className={`text-3xl lg:text-5xl font-bold mb-2 gradient-text-main ${textPrimary}`}
+              className={`text-3xl lg:text-5xl font-bold mb-2 gradient-text-main ${themeStyles.textPrimary}`}
             >
               Dashboard
             </h1>
-            <p className={`${textSecondary} text-lg font-montserrat`}>
+            <p
+              className={`${themeStyles.textSecondary} text-lg font-montserrat`}
+            >
               Manage your Instagram auto-reply system and monitor performance
             </p>
           </div>
@@ -478,7 +481,7 @@ export default function Dashboard() {
             <Button
               onClick={() => refresh()}
               variant="outline"
-              className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#09ab5a]/80  hover:bg-white/10`}
+              className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#09ab5a]/80  hover:bg-white/10`}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
@@ -514,23 +517,25 @@ export default function Dashboard() {
         </div>
         {subscriptions.length > 0 && (
           <Card
-            className={`bg-gradient-to-r from-purple-900/30 to-pink-900/30 backdrop-blur-sm border border-purple-500/30 mb-8 flex flex-col flex-wrap items-center justify-center ${cardBg}`}
+            className={`bg-gradient-to-r from-purple-900/30 to-pink-900/30 backdrop-blur-sm border border-purple-500/30 mb-8 flex flex-col flex-wrap items-center justify-center ${themeStyles.cardBg}`}
           >
             <CardHeader className="flex flex-wrap flex-col items-center justify-center gap-3">
               <Badge className="max-w-min bg-green-900/20 text-green-700 border-green-400/20">
                 Active
               </Badge>
-              <CardTitle className={`flex items-center gap-2 ${textPrimary}`}>
+              <CardTitle
+                className={`flex items-center gap-2 ${themeStyles.textPrimary}`}
+              >
                 <Zap className="h-5 w-5 text-yellow-400" />
                 Your Subscription
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col md:flex-row justify-start items-center gap-4">
               <div className="flex flex-wrap items-center justify-center gap-2">
-                <h3 className={`text-xl font-bold ${textPrimary}`}>
+                <h3 className={`text-xl font-bold ${themeStyles.textPrimary}`}>
                   {subscriptions[0].chatbotType}
                 </h3>
-                <p className={textSecondary}>
+                <p className={themeStyles.textSecondary}>
                   Next billing:{" "}
                   {new Date(subscriptions[0].expiresAt).toLocaleDateString()}
                 </p>
@@ -562,9 +567,13 @@ export default function Dashboard() {
         )}
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className={`card-hover group ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover group ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Active Accounts
               </CardTitle>
               <Instagram className="h-4 w-4 text-[#00F0FF]" />
@@ -577,21 +586,29 @@ export default function Dashboard() {
                   : 1}
               </div>
               {dashboardData?.totalAccounts ? (
-                <p className={`text-xs ${textMuted} font-montserrat`}>
+                <p
+                  className={`text-xs ${themeStyles.textMuted} font-montserrat`}
+                >
                   {dashboardData?.totalAccounts - dashboardData?.activeAccounts}{" "}
                   inactive
                 </p>
               ) : (
-                <p className={`text-xs ${textMuted} font-montserrat`}>
+                <p
+                  className={`text-xs ${themeStyles.textMuted} font-montserrat`}
+                >
                   0 inactive
                 </p>
               )}
             </CardContent>
           </Card>
 
-          <Card className={`card-hover group ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover group ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Reply Templates
               </CardTitle>
               <MessageSquare className="h-4 w-4 text-[#B026FF]" />
@@ -600,15 +617,19 @@ export default function Dashboard() {
               <div className="text-2xl font-bold text-[#B026FF]">
                 {dashboardData.totalTemplates || 0}
               </div>
-              <p className={`text-xs ${textMuted} font-montserrat`}>
+              <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 Across all accounts
               </p>
             </CardContent>
           </Card>
 
-          <Card className={`card-hover group ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover group ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Total Replies
               </CardTitle>
               <Zap className="h-4 w-4 text-[#FF2E9F]" />
@@ -620,15 +641,19 @@ export default function Dashboard() {
                   ? userInfo?.replyLimit
                   : 500}
               </div>
-              <p className={`text-xs ${textMuted} font-montserrat`}>
+              <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 +23% from last month
               </p>
             </CardContent>
           </Card>
 
-          <Card className={`card-hover group ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover group ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Engagement Rate
               </CardTitle>
               <BarChart3 className="h-4 w-4 text-[#00F0FF]" />
@@ -637,7 +662,7 @@ export default function Dashboard() {
               <div className="text-2xl font-bold text-[#00F0FF]">
                 {dashboardData.engagementRate || 0}%
               </div>
-              <p className={`text-xs ${textMuted} font-montserrat`}>
+              <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 +5% from last week
               </p>
             </CardContent>
@@ -646,14 +671,18 @@ export default function Dashboard() {
 
         {/* Account Management */}
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
-          <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader>
-              <CardTitle className={`flex items-center gap-2 ${textPrimary}`}>
+              <CardTitle
+                className={`flex items-center gap-2 ${themeStyles.textPrimary}`}
+              >
                 <Users className="h-5 w-5 text-[#00F0FF]" />
                 Instagram Accounts
               </CardTitle>
               <CardDescription
-                className={`${textSecondary} font-montserrat text-lg`}
+                className={`${themeStyles.textSecondary} font-montserrat text-lg`}
               >
                 Manage your connected Instagram accounts and their auto-reply
                 settings
@@ -664,7 +693,7 @@ export default function Dashboard() {
                 dashboardData?.accounts?.map((account: any) => (
                   <div
                     key={account?.id}
-                    className={`flex flex-wrap gap-3 md:gap-0 items-center justify-between p-2 md:p-4 border ${cardBorder} rounded-lg hover:bg-white/5 transition-colors`}
+                    className={`flex flex-wrap gap-3 md:gap-0 items-center justify-between p-2 md:p-4 border ${themeStyles.cardBorder} rounded-lg hover:bg-white/5 transition-colors`}
                   >
                     <div className="flex items-center space-x-2 md:space-x-4">
                       <div className="relative">
@@ -688,11 +717,11 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <h3
-                          className={`font-semibold text-sm md:text-base ${textPrimary}`}
+                          className={`font-semibold text-sm md:text-base ${themeStyles.textPrimary}`}
                         >
                           @{account?.username || "Unknown"}
                         </h3>
-                        <p className={`text-sm ${textSecondary}`}>
+                        <p className={`text-sm ${themeStyles.textSecondary}`}>
                           {account?.followersCount || 0} followers
                         </p>
                       </div>
@@ -719,7 +748,7 @@ export default function Dashboard() {
                             onClick={() => refreshInstagramToken(userId)}
                             variant="outline"
                             size="sm"
-                            className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
+                            className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
                           >
                             <RefreshCw className="mr-2 h-4 w-4" />
                             Refresh Token
@@ -729,7 +758,7 @@ export default function Dashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className={`${buttonOutlineBorder} ${buttonOutlineText} bg-[#B026FF]/70 hover:bg-[#B026FF]/15 transition-colors`}
+                        className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText} bg-[#B026FF]/70 hover:bg-[#B026FF]/15 transition-colors`}
                         asChild
                       >
                         <Link href={`/insta/accounts/${account?.id}`}>
@@ -745,7 +774,9 @@ export default function Dashboard() {
                 dashboardData?.accounts?.length === 0) && (
                 <div className="text-center py-8">
                   <Instagram className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                  <p className={`${textSecondary} mb-4 font-montserrat`}>
+                  <p
+                    className={`${themeStyles.textSecondary} mb-4 font-montserrat`}
+                  >
                     No accounts connected yet
                   </p>
                   <Button className="btn-gradient-cyan" asChild>
@@ -759,14 +790,18 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader>
-              <CardTitle className={`flex items-center gap-2 ${textPrimary}`}>
+              <CardTitle
+                className={`flex items-center gap-2 ${themeStyles.textPrimary}`}
+              >
                 <BarChart3 className="h-5 w-5 text-[#B026FF]" />
                 Performance Overview
               </CardTitle>
               <CardDescription
-                className={`${textSecondary} text-lg font-montserrat`}
+                className={`${themeStyles.textSecondary} text-lg font-montserrat`}
               >
                 Monitor your auto-reply performance and engagement metrics
               </CardDescription>
@@ -774,10 +809,12 @@ export default function Dashboard() {
             <CardContent className="space-y-6 p-2">
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className={`text-sm font-medium ${textSecondary}`}>
+                  <span
+                    className={`text-sm font-medium ${themeStyles.textSecondary}`}
+                  >
                     Reply Success Rate
                   </span>
-                  <span className={`text-sm ${textMuted}`}>
+                  <span className={`text-sm ${themeStyles.textMuted}`}>
                     {dashboardData.successRate || 0}%
                   </span>
                 </div>
@@ -789,10 +826,12 @@ export default function Dashboard() {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className={`text-sm font-medium ${textSecondary}`}>
+                  <span
+                    className={`text-sm font-medium ${themeStyles.textSecondary}`}
+                  >
                     Template Usage
                   </span>
-                  <span className={`text-sm ${textMuted}`}>
+                  <span className={`text-sm ${themeStyles.textMuted}`}>
                     {dashboardData?.totalReplies || 0}%
                   </span>
                 </div>
@@ -804,10 +843,12 @@ export default function Dashboard() {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className={`text-sm font-medium ${textSecondary}`}>
+                  <span
+                    className={`text-sm font-medium ${themeStyles.textSecondary}`}
+                  >
                     Response Time
                   </span>
-                  <span className={`text-sm ${textMuted}`}>
+                  <span className={`text-sm ${themeStyles.textMuted}`}>
                     {dashboardData?.overallAvgResponseTime
                       ? formatResponseTimeSmart(
                           dashboardData.overallAvgResponseTime
@@ -819,7 +860,7 @@ export default function Dashboard() {
               </div>
 
               <div className="pt-4 border-t border-white/10">
-                <h4 className={`font-semibold mb-3 ${textPrimary}`}>
+                <h4 className={`font-semibold mb-3 ${themeStyles.textPrimary}`}>
                   Recent Activity
                 </h4>
                 <div className="space-y-2">
@@ -832,17 +873,17 @@ export default function Dashboard() {
                           className="flex items-center justify-between text-sm"
                         >
                           <span
-                            className={`${textSecondary} font-montserrat text-lg`}
+                            className={`${themeStyles.textSecondary} font-montserrat text-lg`}
                           >
                             {activity.message}
                           </span>
-                          <span className={textMuted}>
+                          <span className={themeStyles.textMuted}>
                             {formatTimestamp(activity.timestamp)}
                           </span>
                         </div>
                       ))
                   ) : (
-                    <p className={textMuted}>No recent activity</p>
+                    <p className={themeStyles.textMuted}>No recent activity</p>
                   )}
                 </div>
               </div>
@@ -851,10 +892,16 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Actions */}
-        <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+        <Card
+          className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+        >
           <CardHeader>
-            <CardTitle className={textPrimary}>Quick Actions</CardTitle>
-            <CardDescription className={`${textSecondary} font-mono`}>
+            <CardTitle className={themeStyles.textPrimary}>
+              Quick Actions
+            </CardTitle>
+            <CardDescription
+              className={`${themeStyles.textSecondary} font-mono`}
+            >
               Common tasks and shortcuts to manage your Instagram automation
             </CardDescription>
           </CardHeader>
@@ -862,7 +909,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Button
                 variant="outline"
-                className={`h-auto p-6 flex flex-col items-center gap-3 bg-[#00F0FF]/10 border-[#00F0FF]/20 hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]/40 transition-all ${textPrimary}`}
+                className={`h-auto p-6 flex flex-col items-center gap-3 bg-[#00F0FF]/10 border-[#00F0FF]/20 hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]/40 transition-all ${themeStyles.textPrimary}`}
                 asChild
               >
                 <Link href="/insta/templates">
@@ -873,7 +920,7 @@ export default function Dashboard() {
 
               <Button
                 variant="outline"
-                className={`h-auto p-6 flex flex-col items-center gap-3 border-[#B026FF]/20 bg-[#B026FF]/10 hover:bg-[#B026FF]/15 hover:border-[#B026FF]/40 transition-all ${textPrimary}`}
+                className={`h-auto p-6 flex flex-col items-center gap-3 border-[#B026FF]/20 bg-[#B026FF]/10 hover:bg-[#B026FF]/15 hover:border-[#B026FF]/40 transition-all ${themeStyles.textPrimary}`}
                 asChild
               >
                 <Link href="/insta/analytics">
@@ -893,7 +940,7 @@ export default function Dashboard() {
                   }
                 }}
                 variant="outline"
-                className={`h-auto p-6 flex flex-col items-center gap-3 border-[#FF2E9F]/20 bg-[#FF2E9F]/10 hover:bg-[#FF2E9F]/15 hover:border-[#FF2E9F]/40 transition-all ${textPrimary}`}
+                className={`h-auto p-6 flex flex-col items-center gap-3 border-[#FF2E9F]/20 bg-[#FF2E9F]/10 hover:bg-[#FF2E9F]/15 hover:border-[#FF2E9F]/40 transition-all ${themeStyles.textPrimary}`}
               >
                 <Plus className="h-8 w-8 text-[#FF2E9F]" />
                 <span className="font-medium">Add Account</span>
@@ -906,11 +953,11 @@ export default function Dashboard() {
             <div
               className={`p-3 md:p-8 rounded-xl max-w-md w-full ${
                 theme === "dark" ? "bg-[#0a0a0a]/90" : "bg-white/90"
-              } backdrop-blur-lg border ${cardBorder}`}
+              } backdrop-blur-lg border ${themeStyles.cardBorder}`}
             >
               <div className="flex items-center justify-between mb-6">
                 <h2
-                  className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF] ${textPrimary}`}
+                  className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF] ${themeStyles.textPrimary}`}
                 >
                   Cancel Subscription
                 </h2>
@@ -919,13 +966,15 @@ export default function Dashboard() {
                   size="icon"
                   onClick={() => setShowCancelDialog(false)}
                 >
-                  <X className={`${textMuted} h-5 w-5 hover:${textPrimary}`} />
+                  <X
+                    className={`${themeStyles.textMuted} h-5 w-5 hover:${themeStyles.textPrimary}`}
+                  />
                 </Button>
               </div>
               <div className="space-y-6">
                 <div>
                   <label
-                    className={`block text-lg font-semibold ${textSecondary} mb-2`}
+                    className={`block text-lg font-semibold ${themeStyles.textSecondary} mb-2`}
                   >
                     Please Provide Reason
                   </label>
@@ -934,13 +983,17 @@ export default function Dashboard() {
                     onChange={(e) => setCancellationReason(e.target.value)}
                     className={`w-full ${
                       theme === "dark" ? "bg-gray-800/50" : "bg-gray-100"
-                    } border ${cardBorder} rounded-lg p-3 ${textPrimary} focus:outline-none focus:ring-2 focus:ring-[#B026FF] font-montserrat`}
+                    } border ${themeStyles.cardBorder} rounded-lg p-3 ${
+                      themeStyles.textPrimary
+                    } focus:outline-none focus:ring-2 focus:ring-[#B026FF] font-montserrat`}
                     placeholder="Cancellation reason"
                     required
                   />
                 </div>
 
-                <div className={`text-xs ${textMuted} font-montserrat`}>
+                <div
+                  className={`text-xs ${themeStyles.textMuted} font-montserrat`}
+                >
                   <p className="mb-2">
                     <strong>Immediate Cancellation:</strong> Service ends
                     immediately
@@ -980,12 +1033,14 @@ export default function Dashboard() {
         )}
       </div>
       <AlertDialog open={dialog} onOpenChange={setDialog}>
-        <AlertDialogContent className={`${alertBg} backdrop-blur-md`}>
+        <AlertDialogContent
+          className={`${themeStyles.alertBg} backdrop-blur-md`}
+        >
           <AlertDialogHeader>
-            <AlertDialogTitle className={textPrimary}>
+            <AlertDialogTitle className={themeStyles.textPrimary}>
               Your Account Limit Reached
             </AlertDialogTitle>
-            <AlertDialogDescription className={textSecondary}>
+            <AlertDialogDescription className={themeStyles.textSecondary}>
               To add more account you need to update your subscription.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1005,12 +1060,14 @@ export default function Dashboard() {
         open={showCancelConfirmDialog}
         onOpenChange={setShowCancelConfirmDialog}
       >
-        <AlertDialogContent className={`${alertBg} backdrop-blur-md`}>
+        <AlertDialogContent
+          className={`${themeStyles.alertBg} backdrop-blur-md`}
+        >
           <AlertDialogHeader>
-            <AlertDialogTitle className={textPrimary}>
+            <AlertDialogTitle className={themeStyles.textPrimary}>
               Confirm Cancellation
             </AlertDialogTitle>
-            <AlertDialogDescription className={textSecondary}>
+            <AlertDialogDescription className={themeStyles.textSecondary}>
               Are you sure you want to cancel your subscription? Your plan will
               revert to the Free plan which only allows 1 Instagram account.
             </AlertDialogDescription>

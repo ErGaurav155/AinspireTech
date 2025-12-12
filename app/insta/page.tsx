@@ -22,8 +22,8 @@ export default function Home() {
 
   if (!mounted) {
     return (
-      <div className="p-2 rounded-md bg-transparent w-full">
-        <div className="w-full" />
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }

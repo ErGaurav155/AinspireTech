@@ -7,7 +7,7 @@ import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import AddAccount from "@/components/insta/AddAccount";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getUserById } from "@/lib/action/user.actions";
 import { getAllInstaAccounts } from "@/lib/action/insta.action";
 import { useTheme } from "next-themes";
@@ -17,11 +17,18 @@ export default function AddAccountPage() {
   const router = useRouter();
   const [accountLimit, setAccountLimit] = useState(0);
   const [totalAccounts, setTotalAcoounts] = useState(0);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]" : "bg-gray-50",
+      textPrimary: isDark ? "text-white" : "text-n-7",
+    };
+  }, [currentTheme]);
 
   useEffect(() => {
     async function fetchSubscriptions() {
@@ -54,23 +61,25 @@ export default function AddAccountPage() {
   }, [userId, router, isLoaded]);
   if (!isLoaded) {
     return (
-      <div
-        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
-      >
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
-          <p className={textPrimary}>Loading...</p>
-        </div>
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }
   return (
-    <div className={`min-h-screen ${containerBg} ${textPrimary}`}>
+    <div
+      className={`min-h-screen ${themeStyles.containerBg} ${themeStyles.textPrimary}`}
+    >
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <BreadcrumbsDefault />
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="sm" asChild className={textPrimary}>
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className={themeStyles.textPrimary}
+          >
             <Link href="/insta/dashboard">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard

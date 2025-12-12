@@ -7,29 +7,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { testimonials } from "@/constant";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoscroll from "embla-carousel-auto-scroll";
-import { useTheme } from "next-themes";
 
 export function TestimonialSection() {
-  const { theme } = useTheme();
-
-  // Theme-based styles
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
-
-  const cardBorder =
-    theme === "dark"
-      ? "border-[#00F0FF]/30 hover:border-[#B026FF]"
-      : "border-blue-200 hover:border-purple-400";
-
-  const titleText = theme === "dark" ? "text-white" : "text-n-5";
-
-  const subtitleText = theme === "dark" ? "text-gray-300" : "text-n-5";
-
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
-
-  const sectionText = theme === "dark" ? "text-gray-300" : "text-n-5";
-
-  const avatarBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
-
+  const themeStyles = React.useMemo(() => {
+    return {
+      cardBg: "bg-card",
+      cardBorder: "border-[#00F0FF]/30 hover:border-[#B026FF]",
+      titleText: "text-foreground",
+      subtitleText: "text-muted-foreground",
+      descriptionText: "text-muted-foreground",
+      sectionText: "text-muted-foreground",
+      avatarBg: "bg-background",
+    };
+  }, []);
   // Forward scrolling carousel (left to right)
   const [emblaRefForward] = useEmblaCarousel(
     {
@@ -103,7 +93,7 @@ export function TestimonialSection() {
             <div className="w-20 h-1 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full"></div>
           </div>
           <p
-            className={`text-lg ${sectionText} max-w-2xl mx-auto font-montserrat`}
+            className={`text-lg ${themeStyles.sectionText} max-w-2xl mx-auto font-montserrat`}
           >
             We are satisfying our customers every day since Last 10+ Years.
           </p>
@@ -119,7 +109,7 @@ export function TestimonialSection() {
                   className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 p-4"
                 >
                   <Card
-                    className={`${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl transition-all`}
+                    className={`${themeStyles.cardBg} backdrop-blur-sm border ${themeStyles.cardBorder} rounded-xl transition-all`}
                   >
                     <CardContent className="p-6">
                       <div className="flex flex-col gap-6">
@@ -127,7 +117,7 @@ export function TestimonialSection() {
                           <div className="relative">
                             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
                             <div
-                              className={`relative w-16 h-16 rounded-full overflow-hidden ${avatarBg} flex items-center justify-center`}
+                              className={`relative w-16 h-16 rounded-full overflow-hidden ${themeStyles.avatarBg} flex items-center justify-center`}
                             >
                               <Image
                                 src={testimonial.image}
@@ -141,19 +131,19 @@ export function TestimonialSection() {
                           </div>
                           <div>
                             <h4
-                              className={`text-xs md:text-lg font-medium ${titleText}`}
+                              className={`text-xs md:text-lg font-medium ${themeStyles.titleText}`}
                             >
                               {testimonial.title}
                             </h4>
                             <span
-                              className={`text-xs md:text-sm ${subtitleText}`}
+                              className={`text-xs md:text-sm ${themeStyles.subtitleText}`}
                             >
                               {testimonial.name}
                             </span>
                           </div>
                         </div>
                         <p
-                          className={`${descriptionText} h-[10rem] overflow-y-auto no-scrollbar font-montserrat`}
+                          className={`${themeStyles.descriptionText} h-[10rem] overflow-y-auto no-scrollbar font-montserrat`}
                         >
                           {testimonial.text}
                         </p>
@@ -176,7 +166,7 @@ export function TestimonialSection() {
                   className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 p-4"
                 >
                   <Card
-                    className={`${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl transition-all`}
+                    className={`${themeStyles.cardBg} backdrop-blur-sm border ${themeStyles.cardBorder} rounded-xl transition-all`}
                   >
                     <CardContent className="p-6">
                       <div className="flex flex-col gap-6">
@@ -184,7 +174,7 @@ export function TestimonialSection() {
                           <div className="relative">
                             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
                             <div
-                              className={`relative w-16 h-16 rounded-full overflow-hidden ${avatarBg} flex items-center justify-center`}
+                              className={`relative w-16 h-16 rounded-full overflow-hidden ${themeStyles.avatarBg} flex items-center justify-center`}
                             >
                               <Image
                                 src={testimonial.image}
@@ -198,19 +188,19 @@ export function TestimonialSection() {
                           </div>
                           <div>
                             <h4
-                              className={`text-xs md:text-lg font-medium ${titleText}`}
+                              className={`text-xs md:text-lg font-medium ${themeStyles.titleText}`}
                             >
                               {testimonial.title}
                             </h4>
                             <span
-                              className={`text-xs md:text-sm ${subtitleText}`}
+                              className={`text-xs md:text-sm ${themeStyles.subtitleText}`}
                             >
                               {testimonial.name}
                             </span>
                           </div>
                         </div>
                         <p
-                          className={`${descriptionText} h-[10rem] overflow-y-auto no-scrollbar font-montserrat`}
+                          className={`${themeStyles.descriptionText} h-[10rem] overflow-y-auto no-scrollbar font-montserrat`}
                         >
                           {testimonial.text}
                         </p>

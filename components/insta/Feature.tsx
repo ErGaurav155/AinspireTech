@@ -17,35 +17,31 @@ import featureImg2 from "@/public/assets/img/featureImg2.png";
 import featureImg3 from "@/public/assets/img/headingimg.png";
 import featureImg4 from "@/public/assets/img/featureImg1.png";
 import { useTheme } from "next-themes";
+import { useMemo } from "react";
 
 export function FeatureSection() {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/50";
-
-  const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
-
-  const titleText = theme === "dark" ? "text-white" : "text-n-7";
-
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
-
-  const dividerBg =
-    theme === "dark"
-      ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF]"
-      : "bg-gradient-to-r from-[#00F0FF] to-[#B026FF]";
-
-  const ctaText =
-    theme === "dark"
-      ? "text-[#00F0FF] hover:text-[#B026FF]"
-      : "text-[#00F0FF] hover:text-[#B026FF]";
-
-  const cardHoverBorder =
-    theme === "dark"
-      ? "borderColor: 'rgba(37, 139, 148, 0.4)'"
-      : "borderColor: 'rgba(37, 139, 148, 0.2)'";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]/10" : "bg-white/50",
+      badgeBorder: isDark ? "border-[#00F0FF]/30" : "border-blue-700/30",
+      titleText: isDark ? "text-white" : "text-n-7",
+      descriptionText: isDark ? "text-gray-300" : "text-n-5",
+      dividerBg: isDark
+        ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF]"
+        : "bg-gradient-to-r from-[#00F0FF] to-[#B026FF]",
+      ctaText: isDark
+        ? "text-[#00F0FF] hover:text-[#B026FF]"
+        : "text-[#00F0FF] hover:text-[#B026FF]",
+      cardHoverBorder: isDark
+        ? "borderColor: 'rgba(37, 139, 148, 0.4)'"
+        : "borderColor: 'rgba(37, 139, 148, 0.2)'",
+    };
+  }, [currentTheme]);
   // EXACT same animation variants as testimonials component
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -222,7 +218,7 @@ export function FeatureSection() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className={`inline-flex items-center text-blue-700 border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
+            className={`inline-flex items-center text-blue-700 border ${themeStyles.badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -242,7 +238,7 @@ export function FeatureSection() {
             Feature Breakdown
           </motion.h2>
           <motion.p
-            className={`text-lg p-2 max-w-3xl mx-auto font-montserrat ${descriptionText}`}
+            className={`text-lg p-2 max-w-3xl mx-auto font-montserrat ${themeStyles.descriptionText}`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -255,7 +251,7 @@ export function FeatureSection() {
 
         {/* Features Grid */}
         <motion.div
-          className={`flex flex-col gap-4 sm:gap-8 md:gap-12 max-w-7xl mx-auto items-center justify-center h-full ${containerBg} backdrop-blur-sm rounded`}
+          className={`flex flex-col gap-4 sm:gap-8 md:gap-12 max-w-7xl mx-auto items-center justify-center h-full ${themeStyles.containerBg} backdrop-blur-sm rounded`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -296,7 +292,7 @@ export function FeatureSection() {
 
                   {/* Title */}
                   <motion.h3
-                    className={`text-lg md:text-xl font-semibold mb-4 ${titleText}`}
+                    className={`text-lg md:text-xl font-semibold mb-4 ${themeStyles.titleText}`}
                     variants={titleVariants}
                     whileInView="visible"
                     viewport={{ once: false }}
@@ -308,7 +304,7 @@ export function FeatureSection() {
 
                 {/* Description */}
                 <motion.p
-                  className={`leading-relaxed mb-6 font-montserrat ${descriptionText}`}
+                  className={`leading-relaxed mb-6 font-montserrat ${themeStyles.descriptionText}`}
                   variants={textVariants}
                   whileInView="visible"
                   viewport={{ once: false }}
@@ -319,7 +315,7 @@ export function FeatureSection() {
 
                 {/* Divider */}
                 <motion.div
-                  className={`w-20 h-1 ${dividerBg} rounded-full mb-6`}
+                  className={`w-20 h-1 ${themeStyles.dividerBg} rounded-full mb-6`}
                   variants={iconVariants}
                   whileInView="visible"
                   viewport={{ once: false }}
@@ -328,7 +324,7 @@ export function FeatureSection() {
 
                 {/* CTA Button */}
                 <motion.button
-                  className={`inline-flex items-center transition-colors duration-300 ${ctaText}`}
+                  className={`inline-flex items-center transition-colors duration-300 ${themeStyles.ctaText}`}
                   variants={textVariants}
                   whileInView="visible"
                   viewport={{ once: false }}

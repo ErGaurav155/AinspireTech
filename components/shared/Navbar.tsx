@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -30,10 +30,16 @@ export function NavBar() {
   const [showWebBar, setShowWebBar] = useState<Checked>(false);
   const router = useRouter();
   const { userId, isLoaded } = useAuth();
-  const { theme } = useTheme();
-  const cardBg = theme === "dark" ? "bg-transparent" : "bg-white/50";
-  const textPrimary = theme === "dark" ? "text-gray-300" : "text-n-5";
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      cardBg: isDark ? "bg-transparent" : "bg-white/50",
+      textPrimary: isDark ? "text-gray-300" : "text-n-5",
+    };
+  }, [currentTheme]);
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -88,9 +94,9 @@ export function NavBar() {
   }
   return (
     <header
-      className={`sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b transition-all duration-300 ${cardBg} ${
-        isScrolled ? "rounded-lg shadow-md" : "rounded-none"
-      }`}
+      className={`sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b transition-all duration-300 ${
+        themeStyles.cardBg
+      } ${isScrolled ? "rounded-lg shadow-md" : "rounded-none"}`}
     >
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between gap-2 items-center">
         {/* Logo */}
@@ -123,7 +129,9 @@ export function NavBar() {
               key={item.id}
               href={item.href}
               className={`nav-link font-medium relative group  cursor-pointer ${
-                activeNavItem === item.id ? "text-[#00F0FF]" : `${textPrimary}`
+                activeNavItem === item.id
+                  ? "text-[#00F0FF]"
+                  : `${themeStyles.textPrimary}`
               }`}
               onClick={() => handleNavClick(item.id)}
             >
@@ -238,7 +246,9 @@ export function NavBar() {
               key={item.id}
               href={item.href}
               className={`text-foreground font-medium  hover:text-[#00F0FF] transition-colors cursor-pointer ${
-                activeNavItem === item.id ? "text-[#00F0FF]" : ` ${textPrimary}`
+                activeNavItem === item.id
+                  ? "text-[#00F0FF]"
+                  : ` ${themeStyles.textPrimary}`
               }`}
               onClick={() => handleNavClick(item.id)}
             >

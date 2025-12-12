@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,30 +56,26 @@ export default function HeroSection() {
 // Instagram Section Component
 function InstagramSection() {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const badgeBorder =
-    theme === "dark" ? "border-blue-400/30" : "border-blue-400/50";
-
-  const badgeText = theme === "dark" ? "text-blue-400" : "text-blue-600";
-
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-800";
-
-  const trustBadgeText = theme === "dark" ? "text-gray-300" : "text-n-800";
-
-  const featureText = theme === "dark" ? "text-gray-300" : "text-n-800";
-
-  const secondaryText = theme === "dark" ? "text-gray-400" : "text-n-800";
-
-  const outlineButtonBorder =
-    theme === "dark" ? "border-[#00F0FF]" : "border-[#00F0FF]";
-
-  const outlineButtonText = theme === "dark" ? "text-[#00F0FF]" : "text-n-800";
-
-  const outlineButtonHover =
-    theme === "dark" ? "hover:bg-[#00F0FF]/10" : "hover:bg-[#00F0FF]/5";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      badgeBorder: isDark ? "border-blue-400/30" : "border-blue-400/50",
+      badgeText: isDark ? "text-blue-400" : "text-blue-600",
+      descriptionText: isDark ? "text-gray-300" : "text-n-800",
+      trustBadgeText: isDark ? "text-gray-300" : "text-n-800",
+      featureText: isDark ? "text-gray-300" : "text-n-800",
+      secondaryText: isDark ? "text-gray-400" : "text-n-800",
+      outlineButtonBorder: isDark ? "border-[#00F0FF]" : "border-[#00F0FF]",
+      outlineButtonText: isDark ? "text-[#00F0FF]" : "text-n-800",
+      outlineButtonHover: isDark
+        ? "hover:bg-[#00F0FF]/10"
+        : "hover:bg-[#00F0FF]/5",
+    };
+  }, [currentTheme]);
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -224,7 +220,7 @@ function InstagramSection() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className={`inline-flex items-center ${badgeText} border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
+            className={`inline-flex items-center ${themeStyles.badgeText} border ${themeStyles.badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={badgeVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -249,7 +245,7 @@ function InstagramSection() {
           </motion.h1>
 
           <motion.p
-            className={`text-xl ${descriptionText} mb-8 max-w-2xl font-montserrat`}
+            className={`text-xl ${themeStyles.descriptionText} mb-8 max-w-2xl font-montserrat`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -272,7 +268,7 @@ function InstagramSection() {
               variants={badgeVariants}
             >
               <BadgeCheck className="h-5 w-5 text-[#00F0FF]" />
-              <span className={`text-sm ${trustBadgeText}`}>
+              <span className={`text-sm ${themeStyles.trustBadgeText}`}>
                 Meta Business Partner
               </span>
             </motion.div>
@@ -281,7 +277,7 @@ function InstagramSection() {
               variants={badgeVariants}
             >
               <BadgeCheck className="h-5 w-5 text-[#00F0FF]" />
-              <span className={`text-sm ${trustBadgeText}`}>
+              <span className={`text-sm ${themeStyles.trustBadgeText}`}>
                 500+ creators, brands and agencies!
               </span>
             </motion.div>
@@ -308,7 +304,7 @@ function InstagramSection() {
                 variants={featureVariants}
               >
                 <Check className="h-5 w-5 text-[#FF2E9F] mr-3" />
-                <span className={`font-montserrat ${featureText}`}>
+                <span className={`font-montserrat ${themeStyles.featureText}`}>
                   {feature}
                 </span>
               </motion.div>
@@ -335,14 +331,14 @@ function InstagramSection() {
               whileHover={{ scale: 1.05 }}
               onClick={() => router.push("/web/pricing")}
               whileTap={{ scale: 0.95 }}
-              className={`border-2 ${outlineButtonBorder} ${outlineButtonText} font-semibold py-2 px-4 rounded-2xl ${outlineButtonHover} transition-all duration-300 flex items-center justify-center`}
+              className={`border-2 ${themeStyles.outlineButtonBorder} ${themeStyles.outlineButtonText} font-semibold py-2 px-4 rounded-2xl ${themeStyles.outlineButtonHover} transition-all duration-300 flex items-center justify-center`}
             >
               <Calendar className="h-5 w-5 mr-2" />
               View Pricing
             </motion.button>
           </motion.div>
           <motion.p
-            className={`text-sm ${secondaryText} font-montserrat`}
+            className={`text-sm ${themeStyles.secondaryText} font-montserrat`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -380,30 +376,26 @@ function InstagramSection() {
 // Web Chatbot Section Component
 function WebChatbotSection() {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const badgeBorder =
-    theme === "dark" ? "border-blue-400/30" : "border-blue-400/50";
-
-  const badgeText = theme === "dark" ? "text-blue-400" : "text-blue-600";
-
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-800";
-
-  const trustBadgeText = theme === "dark" ? "text-gray-300" : "text-n-800";
-
-  const featureText = theme === "dark" ? "text-gray-300" : "text-n-800";
-
-  const secondaryText = theme === "dark" ? "text-gray-400" : "text-n-800";
-
-  const outlineButtonBorder =
-    theme === "dark" ? "border-[#00F0FF]" : "border-[#00F0FF]";
-
-  const outlineButtonText = theme === "dark" ? "text-[#00F0FF]" : "text-n-800";
-
-  const outlineButtonHover =
-    theme === "dark" ? "hover:bg-[#00F0FF]/10" : "hover:bg-[#00F0FF]/5";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      badgeBorder: isDark ? "border-blue-400/30" : "border-blue-400/50",
+      badgeText: isDark ? "text-blue-400" : "text-blue-600",
+      descriptionText: isDark ? "text-gray-300" : "text-n-800",
+      trustBadgeText: isDark ? "text-gray-300" : "text-n-800",
+      featureText: isDark ? "text-gray-300" : "text-n-800",
+      secondaryText: isDark ? "text-gray-400" : "text-n-800",
+      outlineButtonBorder: isDark ? "border-[#00F0FF]" : "border-[#00F0FF]",
+      outlineButtonText: isDark ? "text-[#00F0FF]" : "text-n-800",
+      outlineButtonHover: isDark
+        ? "hover:bg-[#00F0FF]/10"
+        : "hover:bg-[#00F0FF]/5",
+    };
+  }, [currentTheme]);
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -548,7 +540,7 @@ function WebChatbotSection() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className={`inline-flex items-center ${badgeText} border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
+            className={`inline-flex items-center ${themeStyles.badgeText} border ${themeStyles.badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={badgeVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -573,7 +565,7 @@ function WebChatbotSection() {
           </motion.h1>
 
           <motion.p
-            className={`text-xl ${descriptionText} mb-8 max-w-2xl font-montserrat`}
+            className={`text-xl ${themeStyles.descriptionText} mb-8 max-w-2xl font-montserrat`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -596,7 +588,7 @@ function WebChatbotSection() {
               variants={badgeVariants}
             >
               <BadgeCheck className="h-5 w-5 text-[#00F0FF]" />
-              <span className={`text-sm ${trustBadgeText}`}>
+              <span className={`text-sm ${themeStyles.trustBadgeText}`}>
                 AI-Powered Responses
               </span>
             </motion.div>
@@ -605,7 +597,7 @@ function WebChatbotSection() {
               variants={badgeVariants}
             >
               <BadgeCheck className="h-5 w-5 text-[#00F0FF]" />
-              <p className={trustBadgeText}>
+              <p className={themeStyles.trustBadgeText}>
                 Used by 500+ businesses worldwide!
               </p>
             </motion.div>
@@ -632,7 +624,7 @@ function WebChatbotSection() {
                 variants={featureVariants}
               >
                 <Check className="h-5 w-5 text-[#FF2E9F] mr-3" />
-                <span className={`font-montserrat ${featureText}`}>
+                <span className={`font-montserrat ${themeStyles.featureText}`}>
                   {feature}
                 </span>
               </motion.div>
@@ -660,7 +652,7 @@ function WebChatbotSection() {
               whileHover={{ scale: 1.05 }}
               onClick={() => router.push("/insta/pricing")}
               whileTap={{ scale: 0.95 }}
-              className={`border-2 ${outlineButtonBorder} ${outlineButtonText} font-semibold py-2 px-4 rounded-2xl ${outlineButtonHover} transition-all duration-300 flex items-center justify-center`}
+              className={`border-2 ${themeStyles.outlineButtonBorder} ${themeStyles.outlineButtonText} font-semibold py-2 px-4 rounded-2xl ${themeStyles.outlineButtonHover} transition-all duration-300 flex items-center justify-center`}
             >
               <Calendar className="h-5 w-5 mr-2" />
               View Pricing
@@ -668,7 +660,7 @@ function WebChatbotSection() {
           </motion.div>
 
           <motion.p
-            className={`text-sm ${secondaryText} font-montserrat`}
+            className={`text-sm ${themeStyles.secondaryText} font-montserrat`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}

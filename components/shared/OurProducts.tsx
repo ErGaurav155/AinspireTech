@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FeaImg1 from "@/public/assets/img/headingimg.png";
 import FeaImg3 from "@/public/assets/img/featureImg1.png";
@@ -42,22 +42,26 @@ export function AIVoiceAgentShowcase() {
   const [agent, setImage] = useState(FeaBot3);
   const [instaImage, setInstaImage] = useState(InstaFea2);
   const [instaImage1, setInstaImage1] = useState(FeaImg4);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const sectionBg = theme === "dark" ? "bg-transparent" : "bg-transparent";
-  const tabBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-gray-100";
-  const tabBorder = theme === "dark" ? "border-gray-800" : "border-gray-300";
-  const tabText = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const activeTabBg = "bg-gradient-to-r from-cyan-600 to-blue-600 text-white";
-  const activeInstaTabBg =
-    "bg-gradient-to-r from-pink-600 to-purple-600 text-white";
-
-  const dropdownBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
-  const dropdownBorder =
-    theme === "dark" ? "border-white/10" : "border-gray-200";
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
-  const descriptionText = theme === "dark" ? "text-white" : "text-n-5";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      sectionBg: isDark ? "bg-transparent" : "bg-transparent",
+      tabBg: isDark ? "bg-[#1a1a1a]" : "bg-gray-100",
+      tabBorder: isDark ? "border-gray-800" : "border-gray-300",
+      tabText: isDark ? "text-gray-300" : "text-n-5",
+      activeTabBg: "bg-gradient-to-r from-cyan-600 to-blue-600 text-white",
+      activeInstaTabBg:
+        "bg-gradient-to-r from-pink-600 to-purple-600 text-white",
+      dropdownBg: isDark ? "bg-[#0a0a0a]/60" : "bg-white/80",
+      dropdownBorder: isDark ? "border-white/10" : "border-gray-200",
+      titleText: isDark ? "text-white" : "text-gray-900",
+      descriptionText: isDark ? "text-white" : "text-n-5",
+    };
+  }, [currentTheme]);
 
   const webChatTypes = {
     support: {
@@ -163,7 +167,7 @@ export function AIVoiceAgentShowcase() {
 
   return (
     <section
-      className={`w-full py-20 ${sectionBg} text-foreground max-w-7xl mx-auto`}
+      className={`w-full py-20 ${themeStyles.sectionBg} text-foreground max-w-7xl mx-auto`}
     >
       <div className=" mx-auto px-4">
         {/* Header */}
@@ -181,7 +185,7 @@ export function AIVoiceAgentShowcase() {
             OUR PRODUCTS
           </h2>
           <p
-            className={`text-xl ${descriptionText} max-w-2xl mx-auto font-montserrat`}
+            className={`text-xl ${themeStyles.descriptionText} max-w-2xl mx-auto font-montserrat`}
           >
             Elevate customer experience with natural voice conversations across
             all platforms
@@ -191,7 +195,7 @@ export function AIVoiceAgentShowcase() {
         {/* Platform Tabs */}
         <div className="flex justify-center mb-8">
           <div
-            className={`${tabBg} border ${tabBorder} rounded-full p-1 flex backdrop-blur-sm`}
+            className={`${themeStyles.tabBg} border ${themeStyles.tabBorder} rounded-full p-1 flex backdrop-blur-sm`}
           >
             {[
               {
@@ -211,9 +215,9 @@ export function AIVoiceAgentShowcase() {
                 className={`flex items-center px-6 py-3 rounded-full transition-all duration-300 ${
                   activePlatform === tab.id
                     ? tab.id === "web"
-                      ? activeTabBg
-                      : activeInstaTabBg
-                    : `${tabText} hover:text-white hover:bg-gray-700/50`
+                      ? themeStyles.activeTabBg
+                      : themeStyles.activeInstaTabBg
+                    : `${themeStyles.tabText} hover:text-white hover:bg-gray-700/50`
                 }`}
               >
                 {tab.icon}
@@ -239,7 +243,7 @@ export function AIVoiceAgentShowcase() {
                   {Object.entries(webChatTypes).map(([key, agent]) => (
                     <motion.div
                       key={key}
-                      className={`${dropdownBg} border ${dropdownBorder} rounded-xl overflow-hidden backdrop-blur-sm`}
+                      className={`${themeStyles.dropdownBg} border ${themeStyles.dropdownBorder} rounded-xl overflow-hidden backdrop-blur-sm`}
                     >
                       {/* Dropdown Button */}
                       <button
@@ -261,12 +265,12 @@ export function AIVoiceAgentShowcase() {
                           </div>
                           <div>
                             <h3
-                              className={`text-lg font-semibold ${titleText}`}
+                              className={`text-lg font-semibold ${themeStyles.titleText}`}
                             >
                               {agent.title}
                             </h3>
                             <p
-                              className={`text-sm ${descriptionText} font-montserrat`}
+                              className={`text-sm ${themeStyles.descriptionText} font-montserrat`}
                             >
                               {agent.description}
                             </p>
@@ -294,7 +298,7 @@ export function AIVoiceAgentShowcase() {
                                 {/* Features - Always shown */}
                                 <div className="flex-auto">
                                   <h4
-                                    className={`font-semibold ${titleText} mb-3`}
+                                    className={`font-semibold ${themeStyles.titleText} mb-3`}
                                   >
                                     Features
                                   </h4>
@@ -306,7 +310,7 @@ export function AIVoiceAgentShowcase() {
                                       >
                                         <div className="w-2 h-2 bg-cyan-500 rounded-full flex-shrink-0" />
                                         <span
-                                          className={`text-sm ${descriptionText} font-montserrat`}
+                                          className={`text-sm ${themeStyles.descriptionText} font-montserrat`}
                                         >
                                           {feature}
                                         </span>
@@ -364,7 +368,7 @@ export function AIVoiceAgentShowcase() {
                     ([key, automation]) => (
                       <motion.div
                         key={key}
-                        className={`${dropdownBg} border ${dropdownBorder} rounded-xl overflow-hidden backdrop-blur-sm`}
+                        className={`${themeStyles.dropdownBg} border ${themeStyles.dropdownBorder} rounded-xl overflow-hidden backdrop-blur-sm`}
                       >
                         {/* Dropdown Button */}
                         <button
@@ -387,12 +391,12 @@ export function AIVoiceAgentShowcase() {
                             </div>
                             <div>
                               <h3
-                                className={`text-lg font-semibold ${titleText}`}
+                                className={`text-lg font-semibold ${themeStyles.titleText}`}
                               >
                                 {automation.title}
                               </h3>
                               <p
-                                className={`text-sm ${descriptionText} font-montserrat`}
+                                className={`text-sm ${themeStyles.descriptionText} font-montserrat`}
                               >
                                 {automation.description}
                               </p>
@@ -420,7 +424,7 @@ export function AIVoiceAgentShowcase() {
                                   {/* Features - Always shown */}
                                   <div className="flex-1">
                                     <h4
-                                      className={`font-semibold ${titleText} mb-3`}
+                                      className={`font-semibold ${themeStyles.titleText} mb-3`}
                                     >
                                       Features
                                     </h4>
@@ -433,7 +437,7 @@ export function AIVoiceAgentShowcase() {
                                           >
                                             <div className="w-2 h-2 bg-pink-500 rounded-full flex-shrink-0" />
                                             <span
-                                              className={`text-sm ${descriptionText} font-montserrat`}
+                                              className={`text-sm ${themeStyles.descriptionText} font-montserrat`}
                                             >
                                               {feature}
                                             </span>

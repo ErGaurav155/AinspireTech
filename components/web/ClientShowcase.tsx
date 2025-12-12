@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Instagram,
@@ -14,41 +14,32 @@ import { useTheme } from "next-themes";
 
 export function ClientShowcase() {
   const [activeTab, setActiveTab] = useState("creators");
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const tabBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-white/80";
-
-  const tabBorder = theme === "dark" ? "border-gray-800" : "border-gray-300";
-
-  const tabText =
-    theme === "dark"
-      ? "text-gray-300 hover:text-white"
-      : "text-n-5 hover:text-gray-900";
-
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/40";
-
-  const cardBg = theme === "dark" ? "bg-[#1a1a1a]" : "bg-white/90";
-
-  const cardBorder = theme === "dark" ? "border-gray-800" : "border-gray-200";
-
-  const cardHoverBorder =
-    theme === "dark" ? "border-[#00F0FF]/50" : "border-[#00F0FF]/70";
-
-  const statsBg =
-    theme === "dark"
-      ? "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border-[#00F0FF]/30"
-      : "bg-gradient-to-r from-white/50 to-white/60 border-[#00F0FF]/50";
-
-  const statsText = theme === "dark" ? "text-gray-300" : "text-n-6";
-
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
-
-  const cardHoverEffect =
-    theme === "dark"
-      ? "borderColor: 'rgba(37, 139, 148, 0.4)', boxShadow: '0 20px 40px -10px rgba(37, 139, 148, 0.2)'"
-      : "borderColor: 'rgba(37, 139, 148, 0.2)', boxShadow: '0 20px 40px -10px rgba(37, 139, 148, 0.1)'";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      tabBg: isDark ? "bg-[#1a1a1a]" : "bg-white/80",
+      tabBorder: isDark ? "border-gray-800" : "border-gray-300",
+      tabText: isDark
+        ? "text-gray-300 hover:text-white"
+        : "text-n-5 hover:text-gray-900",
+      containerBg: isDark ? "bg-[#0a0a0a]/10" : "bg-white/40",
+      cardBg: isDark ? "bg-[#1a1a1a]" : "bg-white/90",
+      cardBorder: isDark ? "border-gray-800" : "border-gray-200",
+      cardHoverBorder: isDark ? "border-[#00F0FF]/50" : "border-[#00F0FF]/70",
+      statsBg: isDark
+        ? "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] border-[#00F0FF]/30"
+        : "bg-gradient-to-r from-white/50 to-white/60 border-[#00F0FF]/50",
+      statsText: isDark ? "text-gray-300" : "text-n-6",
+      descriptionText: isDark ? "text-gray-300" : "text-n-5",
+      cardHoverEffect: isDark
+        ? "borderColor: 'rgba(37, 139, 148, 0.4)', boxShadow: '0 20px 40px -10px rgba(37, 139, 148, 0.2)'"
+        : "borderColor: 'rgba(37, 139, 148, 0.2)', boxShadow: '0 20px 40px -10px rgba(37, 139, 148, 0.1)'",
+    };
+  }, [currentTheme]);
   // EXACT same animation variants as testimonials component
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -294,7 +285,7 @@ export function ClientShowcase() {
           </motion.h2>
 
           <motion.p
-            className={`text-xl max-w-3xl mx-auto font-montserrat ${descriptionText}`}
+            className={`text-xl max-w-3xl mx-auto font-montserrat ${themeStyles.descriptionText}`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -323,7 +314,7 @@ export function ClientShowcase() {
           viewport={{ once: false, margin: "-50px" }}
         >
           <div
-            className={`${tabBg} border ${tabBorder} rounded-full p-1 flex backdrop-blur-sm`}
+            className={`${themeStyles.tabBg} border ${themeStyles.tabBorder} rounded-full p-1 flex backdrop-blur-sm`}
           >
             {[
               {
@@ -348,7 +339,7 @@ export function ClientShowcase() {
                 className={`flex items-center px-2 py-1 md:px-6 md:py-3 rounded-full transition-all duration-300 ${
                   activeTab === tab.id
                     ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white"
-                    : `${tabText}`
+                    : `${themeStyles.tabText}`
                 }`}
                 variants={itemVariants}
                 whileHover={{ scale: 1.05 }}
@@ -365,7 +356,7 @@ export function ClientShowcase() {
 
         {/* Content */}
         <motion.div
-          className={`max-w-6xl mx-auto ${containerBg} backdrop-blur-sm p-3`}
+          className={`max-w-6xl mx-auto ${themeStyles.containerBg} backdrop-blur-sm p-3`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -392,7 +383,7 @@ export function ClientShowcase() {
                   {row.items.map((creator: string, index: number) => (
                     <motion.div
                       key={index}
-                      className={`${cardBg} border ${cardBorder} rounded-3xl p-2 hover:${cardHoverBorder} transition-all duration-300 group flex items-center justify-center flex-shrink-0 backdrop-blur-sm`}
+                      className={`${themeStyles.cardBg} border ${themeStyles.cardBorder} rounded-3xl p-2 hover:${themeStyles.cardHoverBorder} transition-all duration-300 group flex items-center justify-center flex-shrink-0 backdrop-blur-sm`}
                       variants={cardVariants}
                       whileHover="hover"
                       whileInView="visible"
@@ -441,7 +432,7 @@ export function ClientShowcase() {
                   {row.items.map((brand: string, index: number) => (
                     <motion.div
                       key={index}
-                      className={`${cardBg} border ${cardBorder} rounded-3xl overflow-hidden p-2 hover:${cardHoverBorder} transition-all duration-300 group flex items-center justify-center flex-shrink-0 backdrop-blur-sm`}
+                      className={`${themeStyles.cardBg} border ${themeStyles.cardBorder} rounded-3xl overflow-hidden p-2 hover:${themeStyles.cardHoverBorder} transition-all duration-300 group flex items-center justify-center flex-shrink-0 backdrop-blur-sm`}
                       variants={cardVariants}
                       whileHover="hover"
                       whileInView="visible"
@@ -491,7 +482,7 @@ export function ClientShowcase() {
                     (niche: { name: string; count: string }, index: number) => (
                       <motion.div
                         key={index}
-                        className={`${cardBg} border ${cardBorder} rounded-3xl p-2 md:p-4 hover:${cardHoverBorder} transition-all duration-300 group flex items-center justify-between flex-shrink-0 min-w-[200px] backdrop-blur-sm`}
+                        className={`${themeStyles.cardBg} border ${themeStyles.cardBorder} rounded-3xl p-2 md:p-4 hover:${themeStyles.cardHoverBorder} transition-all duration-300 group flex items-center justify-between flex-shrink-0 min-w-[200px] backdrop-blur-sm`}
                         variants={cardVariants}
                         whileHover="hover"
                         whileInView="visible"
@@ -525,7 +516,7 @@ export function ClientShowcase() {
 
         {/* Stats Section */}
         <motion.div
-          className={`mt-16 ${statsBg} rounded-2xl p-3 md:p-6 max-w-4xl mx-auto backdrop-blur-sm`}
+          className={`mt-16 ${themeStyles.statsBg} rounded-2xl p-3 md:p-6 max-w-4xl mx-auto backdrop-blur-sm`}
           variants={cardVariants}
           whileHover="hover"
           whileInView="visible"
@@ -567,7 +558,9 @@ export function ClientShowcase() {
                 >
                   {stat.number}
                 </div>
-                <div className={`mt-2 ${statsText}`}>{stat.label}</div>
+                <div className={`mt-2 ${themeStyles.statsText}`}>
+                  {stat.label}
+                </div>
               </motion.div>
             ))}
           </div>

@@ -7,24 +7,30 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useMemo } from "react";
 
 function InstaCTASection() {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
-  const titleText = theme === "dark" ? "text-white" : "text-n-7";
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const cardBg = theme === "dark" ? "bg-transparent" : "bg-white/50";
-
-  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const outlineButtonBorder =
-    theme === "dark" ? "border-[#B026FF]/30" : "border-[#B026FF]/50";
-  const outlineButtonHover =
-    theme === "dark" ? "hover:bg-[#B026FF]/10" : "hover:bg-[#B026FF]/5";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      badgeBorder: isDark ? "border-[#00F0FF]/30" : "border-blue-700/30",
+      titleText: isDark ? "text-white" : "text-n-7",
+      descriptionText: isDark ? "text-gray-300" : "text-n-5",
+      cardBg: isDark ? "bg-transparent" : "bg-white/50",
+      cardBorder: isDark ? "border-white/10" : "border-gray-200",
+      outlineButtonBorder: isDark
+        ? "border-[#B026FF]/30"
+        : "border-[#B026FF]/50",
+      outlineButtonHover: isDark
+        ? "hover:bg-[#B026FF]/10"
+        : "hover:bg-[#B026FF]/5",
+    };
+  }, [currentTheme]);
   // EXACT same animation variants as testimonials component
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -131,7 +137,7 @@ function InstaCTASection() {
         initial="hidden"
       >
         <Card
-          className={`max-w-4xl mx-auto bg-transparent border ${cardBg} ${cardBorder} backdrop-blur-md`}
+          className={`max-w-4xl mx-auto bg-transparent border ${themeStyles.cardBg} ${themeStyles.cardBorder} backdrop-blur-md`}
         >
           <CardContent className="py-12 px-3">
             <motion.div
@@ -142,13 +148,13 @@ function InstaCTASection() {
               initial="hidden"
             >
               <span
-                className={`text-sm font-medium uppercase tracking-widest border ${badgeBorder} rounded-full px-4 py-1`}
+                className={`text-sm font-medium uppercase tracking-widest border ${themeStyles.badgeBorder} rounded-full px-4 py-1`}
               >
                 CTA SECTION
               </span>
             </motion.div>
             <motion.h2
-              className={`text-3xl font-bold mb-4 gradient-text-main ${titleText}`}
+              className={`text-3xl font-bold mb-4 gradient-text-main ${themeStyles.titleText}`}
               variants={titleVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -157,7 +163,7 @@ function InstaCTASection() {
               Ready to Transform Your Instagram Engagement?
             </motion.h2>
             <motion.p
-              className={`mb-8 text-lg font-montserrat max-w-2xl mx-auto ${descriptionText}`}
+              className={`mb-8 text-lg font-montserrat max-w-2xl mx-auto ${themeStyles.descriptionText}`}
               variants={textVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -197,7 +203,7 @@ function InstaCTASection() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className={`text-lg px-8 ${outlineButtonBorder} bg-transparent text-[#B026FF] ${outlineButtonHover}`}
+                  className={`text-lg px-8 ${themeStyles.outlineButtonBorder} bg-transparent text-[#B026FF] ${themeStyles.outlineButtonHover}`}
                 >
                   <Link href="/insta/pricing">View Pricing </Link>
                 </Button>

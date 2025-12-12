@@ -3,28 +3,32 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
-import { useTheme } from "next-themes";
+import { useMemo } from "react";
 
 export function BreadcrumbsDefault() {
   const pathname = usePathname();
   const pathSegments = pathname.split("/").filter((segment) => segment);
-  const { theme } = useTheme();
+
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-gray-900/50" : "bg-gray-100/80";
-  const containerBorder =
-    theme === "dark" ? "border-[#B026FF]/30" : "border-[#B026FF]/50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const gradientText =
-    "bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]";
+
+  const themeStyles = useMemo(() => {
+    return {
+      containerBg: "bg-card",
+      containerBorder: "border-[#B026FF]/30 hover:border-[#B026FF]",
+      textPrimary: "text-foreground",
+      gradientText:
+        "gradientText: bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]",
+    };
+  }, []);
 
   return (
     <div className="w-full flex items-center justify-center py-4 px-4 relative z-10">
       <div
-        className={`flex flex-wrap items-center gap-2 ${containerBg} backdrop-blur-md border ${containerBorder} rounded-full px-4 md:px-6 py-1 md:py-3`}
+        className={`flex flex-wrap items-center gap-2 ${themeStyles.containerBg} backdrop-blur-md border ${themeStyles.containerBorder} rounded-full px-4 md:px-6 py-1 md:py-3`}
       >
         <Link
           href="/"
-          className={`opacity-80 hover:opacity-100 text-sm md:text-base transition-opacity ${gradientText}`}
+          className={`opacity-80 hover:opacity-100 text-sm md:text-base transition-opacity ${themeStyles.gradientText}`}
         >
           Home
         </Link>
@@ -36,17 +40,13 @@ export function BreadcrumbsDefault() {
 
           return (
             <div key={href} className="flex items-center gap-2">
-              <ChevronRightIcon
-                className={`h-4 w-4 ${
-                  theme === "dark" ? "text-[#B026FF]" : "text-[#B026FF]"
-                }`}
-              />
+              <ChevronRightIcon className={`h-4 w-4 text-[#B026FF]`} />
               <Link
                 href={href}
                 className={`text-sm md:text-base transition-all text-wrap ${
                   isLast
-                    ? `${textPrimary} font-medium`
-                    : `opacity-80 hover:opacity-100 ${gradientText}`
+                    ? `${themeStyles.textPrimary} font-medium`
+                    : `opacity-80 hover:opacity-100 ${themeStyles.gradientText}`
                 }`}
               >
                 {segmentName}

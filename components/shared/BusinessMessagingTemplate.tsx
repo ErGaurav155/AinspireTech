@@ -8,13 +8,19 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useMemo } from "react";
 
 export function BusinessMessagingTemplate() {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const featureText = theme === "dark" ? "text-white" : "text-n-5";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      featureText: isDark ? "text-white" : "text-n-5",
+    };
+  }, [currentTheme]);
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -91,7 +97,7 @@ export function BusinessMessagingTemplate() {
             Be where your customers are
           </motion.h2>
           <motion.p
-            className={`text-xl ${featureText}  font-montserrat text-center `}
+            className={`text-xl ${themeStyles.featureText}  font-montserrat text-center `}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}

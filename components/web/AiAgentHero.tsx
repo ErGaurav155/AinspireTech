@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 
@@ -416,16 +416,20 @@ const ChatDemoCarousel = () => {
   const [activeDemo, setActiveDemo] = useState(0);
   const [showUserMessage, setShowUserMessage] = useState(false);
   const [showAIResponse, setShowAIResponse] = useState(false);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-100/50";
-  const containerBorder =
-    theme === "dark" ? "border-gray-800" : "border-gray-300";
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-400" : "text-gray-600";
-  const badgeBg = theme === "dark" ? "bg-gray-600" : "bg-gray-400";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]/10" : "bg-gray-100/50",
+      containerBorder: isDark ? "border-gray-800" : "border-gray-300",
+      textPrimary: isDark ? "text-white" : "text-gray-900",
+      textSecondary: isDark ? "text-gray-400" : "text-gray-600",
+      badgeBg: isDark ? "bg-gray-600" : "bg-gray-400",
+    };
+  }, [currentTheme]);
   const demos = [
     {
       userMessage: "Can you analyze our Q3 financial report?",
@@ -491,7 +495,7 @@ const ChatDemoCarousel = () => {
             className={`w-2 h-2 rounded-full transition-all duration-300 ${
               index === activeDemo
                 ? "bg-[#00F0FF] w-6"
-                : `${badgeBg} hover:bg-gray-400`
+                : `${themeStyles.badgeBg} hover:bg-gray-400`
             }`}
           />
         ))}
@@ -499,7 +503,7 @@ const ChatDemoCarousel = () => {
 
       {/* Chat Container */}
       <div
-        className={`container ${containerBg} backdrop-blur-sm border ${containerBorder} rounded-2xl p-2 shadow-2xl w-full h-[40rem] sm:h-[33rem]`}
+        className={`container ${themeStyles.containerBg} backdrop-blur-sm border ${themeStyles.containerBorder} rounded-2xl p-2 shadow-2xl w-full h-[40rem] sm:h-[33rem]`}
       >
         {/* Chat Header */}
         <div className="flex items-center space-x-3 mb-3">
@@ -507,8 +511,10 @@ const ChatDemoCarousel = () => {
             <MessageCircle className="h-6 w-6 " />
           </div>
           <div>
-            <div className={`font-bold ${textPrimary}`}>Ainspiretech Agent</div>
-            <div className={`text-sm ${textSecondary}`}>
+            <div className={`font-bold ${themeStyles.textPrimary}`}>
+              Ainspiretech Agent
+            </div>
+            <div className={`text-sm ${themeStyles.textSecondary}`}>
               {demos[activeDemo].title} • AI-powered assistant
             </div>
           </div>
@@ -529,19 +535,23 @@ const ChatDemoCarousel = () => {
 
 export function AIAgentHero() {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
-  const textSecondary = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const badgeBg =
-    theme === "dark"
-      ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10"
-      : "bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20";
-  const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
-  const textpricing = theme === "dark" ? "text-[#00F0FF]" : "text-black";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      textSecondary: isDark ? "text-gray-400" : "text-n-5",
+      textMuted: isDark ? "text-gray-400" : "text-n-5",
+      badgeBg: isDark
+        ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10"
+        : "bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20",
+      badgeBorder: isDark ? "border-[#00F0FF]/30" : "border-blue-700/30",
+      textpricing: isDark ? "text-[#00F0FF]" : "text-black",
+    };
+  }, [currentTheme]);
 
   const FeatureItem = ({
     icon,
@@ -566,7 +576,7 @@ export function AIAgentHero() {
         {icon}
       </motion.div>
       <span
-        className={`${textSecondary} group-hover:${textPrimary} transition-colors duration-300 font-medium`}
+        className={`${themeStyles.textSecondary} group-hover:${themeStyles.textPrimary} transition-colors duration-300 font-medium`}
       >
         {text}
       </span>
@@ -574,7 +584,7 @@ export function AIAgentHero() {
   );
 
   return (
-    <section className={`w-full bg-transparent ${textPrimary}`}>
+    <section className={`w-full bg-transparent ${themeStyles.textPrimary}`}>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center max-w-7xl mx-auto">
           {/* Left Column - Content */}
@@ -590,7 +600,7 @@ export function AIAgentHero() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className={`flex justify-center items-center ${badgeBg} backdrop-blur-sm border ${badgeBorder} rounded-full px-6 py-3 mb-4 max-w-min text-nowrap`}
+                className={`flex justify-center items-center ${themeStyles.badgeBg} backdrop-blur-sm border ${themeStyles.badgeBorder} rounded-full px-6 py-3 mb-4 max-w-min text-nowrap`}
               >
                 <Sparkles className="h-5 w-5 text-blue-700 mr-2" />
                 <span className="text-sm font-medium uppercase tracking-widest text-blue-700">
@@ -602,7 +612,7 @@ export function AIAgentHero() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className={`text-3xl md:text-4xl font-semibold leading-tight ${textPrimary}`}
+                className={`text-3xl md:text-4xl font-semibold leading-tight ${themeStyles.textPrimary}`}
               >
                 Chatbot that converts website visitor
                 <br />
@@ -620,7 +630,7 @@ export function AIAgentHero() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className={`text-lg lg:text-xl ${textSecondary} leading-relaxed font-montserrat`}
+                className={`text-lg lg:text-xl ${themeStyles.textSecondary} leading-relaxed font-montserrat`}
               >
                 Train AI on your documents, websites, and data. Get instant,
                 verified answers with full citations and context awareness.
@@ -683,7 +693,7 @@ export function AIAgentHero() {
                 whileHover={{ scale: 1.05 }}
                 onClick={() => router.push("/web/pricing")}
                 whileTap={{ scale: 0.95 }}
-                className={`border-2 border-[#00F0FF] ${textpricing} font-semibold py-2 px-4 md:py-3 md:px-6 rounded-2xl hover:bg-[#00F0FF]/10 transition-all duration-300 flex items-center justify-center`}
+                className={`border-2 border-[#00F0FF] ${themeStyles.textpricing} font-semibold py-2 px-4 md:py-3 md:px-6 rounded-2xl hover:bg-[#00F0FF]/10 transition-all duration-300 flex items-center justify-center`}
               >
                 <Calendar className="h-5 w-5 mr-2" />
                 View Pricing
@@ -695,7 +705,7 @@ export function AIAgentHero() {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 1.1 }}
-              className={`flex items-center space-x-3 md:space-x-6 text-sm ${textMuted}`}
+              className={`flex items-center space-x-3 md:space-x-6 text-sm ${themeStyles.textMuted}`}
             >
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-green-400" />

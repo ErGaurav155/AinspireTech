@@ -2,13 +2,20 @@
 
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { useMemo } from "react";
 
 export default function LoginPage() {
-  const { theme } = useTheme();
-
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]" : "bg-gray-50",
+      textPrimary: isDark ? "text-white" : "text-n-7",
+    };
+  }, [currentTheme]);
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+
   const instaId = process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID;
 
   if (!instaId) {
@@ -21,10 +28,12 @@ export default function LoginPage() {
   )}&response_type=code&scope=instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_manage_insights`;
 
   return (
-    <div className={` ${textPrimary} flex items-center justify-center `}>
+    <div
+      className={` ${themeStyles.textPrimary} flex items-center justify-center `}
+    >
       <div className="max-w-md w-full p-0 md:p-6 backdrop-blur-md rounded-lg shadow-md">
         <h1
-          className={`text-xl md:text-2xl font-bold mb-6 text-center  ${textPrimary}`}
+          className={`text-xl md:text-2xl font-bold mb-6 text-center  ${themeStyles.textPrimary}`}
         >
           Instagram Business Login
         </h1>

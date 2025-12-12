@@ -9,6 +9,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { useTheme } from "next-themes";
+import { useMemo } from "react";
 
 const features = [
   {
@@ -55,17 +56,22 @@ const features = [
 ];
 
 function WebFeaturesGrid() {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-100/50";
-  const cardBg = theme === "dark" ? "bg-transparent" : "bg-white/80";
-  const iconBg = theme === "dark" ? "bg-black/20" : "bg-white/80";
-  const badgeBg =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      textSecondary: isDark ? "text-gray-300" : "text-n-5",
+      textMuted: isDark ? "text-gray-400" : "text-n-5",
+      containerBg: isDark ? "bg-[#0a0a0a]/10" : "bg-gray-100/50",
+      cardBg: isDark ? "bg-transparent" : "bg-white/80",
+      iconBg: isDark ? "bg-black/20" : "bg-white/80",
+      badgeBg: isDark ? "border-[#00F0FF]/30" : "border-blue-700/30",
+    };
+  }, [currentTheme]);
 
   // Enhanced animation variants matching FAQ section
   const containerVariants = {
@@ -188,14 +194,14 @@ function WebFeaturesGrid() {
         initial="hidden"
       >
         <span
-          className={`text-sm font-medium uppercase tracking-widest border ${badgeBg} rounded-full px-4 py-1`}
+          className={`text-sm font-medium uppercase tracking-widest border ${themeStyles.badgeBg} rounded-full px-4 py-1`}
         >
           CHATBOT FEATURE
         </span>
       </motion.div>
       <div className="text-center mb-12">
         <motion.h2
-          className={`text-3xl font-bold mb-4 gradient-text-main ${textPrimary}`}
+          className={`text-3xl font-bold mb-4 gradient-text-main ${themeStyles.textPrimary}`}
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -204,7 +210,7 @@ function WebFeaturesGrid() {
           Why Choose AinspireTech AI Chatbot for Website
         </motion.h2>
         <motion.p
-          className={`text-xl ${textSecondary} font-montserrat`}
+          className={`text-xl ${themeStyles.textSecondary} font-montserrat`}
           variants={containerVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -215,7 +221,7 @@ function WebFeaturesGrid() {
         </motion.p>
       </div>
       <motion.div
-        className={`grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 ${containerBg} backdrop-blur-sm`}
+        className={`grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 ${themeStyles.containerBg} backdrop-blur-sm`}
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -238,7 +244,7 @@ function WebFeaturesGrid() {
               <Card
                 className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${
                   colorClasses[feature.color as keyof typeof colorClasses]
-                } ${cardBg} border h-full`}
+                } ${themeStyles.cardBg} border h-full`}
               >
                 <CardHeader className="relative overflow-hidden p-6">
                   {/* Animated background effect */}
@@ -256,7 +262,7 @@ function WebFeaturesGrid() {
 
                   {/* Icon */}
                   <motion.div
-                    className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 relative z-10 ${iconBg} backdrop-blur-sm`}
+                    className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 relative z-10 ${themeStyles.iconBg} backdrop-blur-sm`}
                     variants={iconVariants}
                     whileInView="visible"
                     viewport={{ once: false }}
@@ -273,7 +279,9 @@ function WebFeaturesGrid() {
                     viewport={{ once: false }}
                     initial="hidden"
                   >
-                    <CardTitle className={`${textPrimary} mb-2 text-lg`}>
+                    <CardTitle
+                      className={`${themeStyles.textPrimary} mb-2 text-lg`}
+                    >
                       {feature.title}
                     </CardTitle>
                   </motion.div>
@@ -286,7 +294,7 @@ function WebFeaturesGrid() {
                     initial="hidden"
                   >
                     <CardDescription
-                      className={`${textSecondary} leading-relaxed font-montserrat`}
+                      className={`${themeStyles.textSecondary} leading-relaxed font-montserrat`}
                     >
                       {feature.description}
                     </CardDescription>

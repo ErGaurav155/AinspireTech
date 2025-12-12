@@ -31,7 +31,10 @@ export default async function RootLayout({
   return (
     <ClerkProvider
       appearance={{
-        variables: { colorPrimary: "#624cf5" },
+        variables: {
+          colorPrimary: "#624cf5",
+          fontFamily: "Montserrat, sans-serif",
+        },
       }}
     >
       <html suppressHydrationWarning lang="en">

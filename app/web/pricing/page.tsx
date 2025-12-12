@@ -14,7 +14,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { Checkout } from "@/components/shared/Checkout";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { Switch } from "@/components/ui/switch";
@@ -46,30 +46,31 @@ const PricingWithSearchParamsWeb = () => {
   const { userId, isLoaded } = useAuth();
   const searchParams = useSearchParams();
   const activeProductId = searchParams.get("id");
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const containerBg = theme === "dark" ? "bg-transparent" : "bg-gray-50";
-  const loadingBg = theme === "dark" ? "bg-black" : "bg-white";
-  const badgeBg =
-    theme === "dark"
-      ? "bg-blue-100/10 text-blue-400 border-blue-400/30"
-      : "bg-blue-100 text-blue-600 border-blue-300";
-  const tableHeaderBg =
-    theme === "dark"
-      ? "bg-gradient-to-r from-[#1a1a1a] to-[#2a0b45]"
-      : "bg-gradient-to-r from-gray-100 to-gray-200";
-  const tableBorder =
-    theme === "dark" ? "border-[#B026FF]/30" : "border-gray-300";
-  const tableRowHover =
-    theme === "dark" ? "hover:bg-[#1a1a1a]/50" : "hover:bg-gray-100/50";
-  const saveBadgeBg =
-    theme === "dark"
-      ? "bg-green-900/20 text-green-400 border-green-400/30"
-      : "bg-green-100 text-green-600 border-green-300";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      textSecondary: isDark ? "text-gray-300" : "text-n-5",
+      textMuted: isDark ? "text-gray-400" : "text-n-5",
+      containerBg: isDark ? "bg-transparent" : "bg-gray-50",
+      loadingBg: isDark ? "bg-black" : "bg-white",
+      badgeBg: isDark
+        ? "bg-blue-100/10 text-blue-400 border-blue-400/30"
+        : "bg-blue-100 text-blue-600 border-blue-300",
+      tableHeaderBg: isDark
+        ? "bg-gradient-to-r from-[#1a1a1a] to-[#2a0b45]"
+        : "bg-gradient-to-r from-gray-100 to-gray-200",
+      tableBorder: isDark ? "border-[#B026FF]/30" : "border-gray-300",
+      tableRowHover: isDark ? "hover:bg-[#1a1a1a]/50" : "hover:bg-gray-100/50",
+      saveBadgeBg: isDark
+        ? "bg-green-900/20 text-green-400 border-green-400/30"
+        : "bg-green-100 text-green-600 border-green-300",
+    };
+  }, [currentTheme]);
 
   const [billingMode, setBillingMode] = useState<"monthly" | "yearly">(
     "monthly"
@@ -106,17 +107,15 @@ const PricingWithSearchParamsWeb = () => {
 
   if (loading || !isLoaded) {
     return (
-      <div
-        className={`flex items-center justify-center min-h-screen ${textPrimary} font-bold text-xl ${loadingBg} relative z-10`}
-      >
-        Loading...
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div
-      className={`flex flex-col justify-center items-center min-h-screen relative z-10 max-w-7xl m-auto ${containerBg}`}
+      className={`flex flex-col justify-center items-center min-h-screen relative z-10 max-w-7xl m-auto ${themeStyles.containerBg}`}
     >
       <BreadcrumbsDefault />
 
@@ -125,7 +124,7 @@ const PricingWithSearchParamsWeb = () => {
         <section className="py-16 px-4 sm:px-6 lg:px-8 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto text-center">
             <div
-              className={`inline-flex items-center ${badgeBg} border rounded-full px-4 py-1 mb-4`}
+              className={`inline-flex items-center ${themeStyles.badgeBg} border rounded-full px-4 py-1 mb-4`}
             >
               <Zap className="h-4 w-4 mr-1" />
               <span className="text-sm font-medium">
@@ -136,7 +135,7 @@ const PricingWithSearchParamsWeb = () => {
               Transform Your Business with AI
             </h1>
             <p
-              className={`text-xl ${textSecondary} mb-8 max-w-2xl mx-auto font-montserrat`}
+              className={`text-xl ${themeStyles.textSecondary} mb-8 max-w-2xl mx-auto font-montserrat`}
             >
               Advanced AI solutions tailored to optimize operations, enhance
               customer experiences, and drive growth for businesses of all
@@ -147,7 +146,9 @@ const PricingWithSearchParamsWeb = () => {
             <div className="flex items-center justify-center gap-4 mb-12">
               <span
                 className={`text-sm font-medium ${
-                  billingMode === "monthly" ? textPrimary : textMuted
+                  billingMode === "monthly"
+                    ? themeStyles.textPrimary
+                    : themeStyles.textMuted
                 }`}
               >
                 Monthly
@@ -161,13 +162,15 @@ const PricingWithSearchParamsWeb = () => {
               />
               <span
                 className={`text-sm font-medium ${
-                  billingMode === "yearly" ? textPrimary : textMuted
+                  billingMode === "yearly"
+                    ? themeStyles.textPrimary
+                    : themeStyles.textMuted
                 }`}
               >
                 Yearly
               </span>
               <div
-                className={`${saveBadgeBg} text-xs border rounded-full px-3 py-1 ml-2`}
+                className={`${themeStyles.saveBadgeBg} text-xs border rounded-full px-3 py-1 ml-2`}
               >
                 Save 16%
               </div>
@@ -242,7 +245,7 @@ const PricingWithSearchParamsWeb = () => {
 
                   <div className="w-full flex justify-center relative">
                     <h3
-                      className={`text-2xl font-bold ${textPrimary} text-start`}
+                      className={`text-2xl font-bold ${themeStyles.textPrimary} text-start`}
                     >
                       {product.name}
                     </h3>
@@ -252,13 +255,15 @@ const PricingWithSearchParamsWeb = () => {
                 <div className=" w-full text-center">
                   <div className="flex items-center py-5 justify-center gap-3">
                     <p
-                      className={`text-xl font-bold ${textMuted} line-through`}
+                      className={`text-xl font-bold ${themeStyles.textMuted} line-through`}
                     >
                       ${originalPrice.toFixed(0)}
                     </p>
                     <p className="text-3xl font-bold text-[#B026FF]">
                       ${displayedPrice.toFixed(0)}
-                      <span className={`text-lg font-medium ${textMuted}`}>
+                      <span
+                        className={`text-lg font-medium ${themeStyles.textMuted}`}
+                      >
                         /{billingMode === "monthly" ? "mo" : "yr"}
                       </span>
                     </p>
@@ -277,7 +282,9 @@ const PricingWithSearchParamsWeb = () => {
                     <li
                       key={index}
                       className={`flex items-start gap-3 ${
-                        inclusion.isIncluded ? textPrimary : textMuted
+                        inclusion.isIncluded
+                          ? themeStyles.textPrimary
+                          : themeStyles.textMuted
                       }`}
                     >
                       <span
@@ -293,7 +300,9 @@ const PricingWithSearchParamsWeb = () => {
                       </span>
                       <span
                         className={`flex-1 font-montserrat ${
-                          inclusion.isIncluded ? textPrimary : textMuted
+                          inclusion.isIncluded
+                            ? themeStyles.textPrimary
+                            : themeStyles.textMuted
                         }`}
                       >
                         {inclusion.label}
@@ -339,10 +348,14 @@ const PricingWithSearchParamsWeb = () => {
         <section className="py-16 px-4 sm:px-6 lg:px-8">
           <div className=" mx-auto">
             <div className="text-center mb-12">
-              <h2 className={`text-3xl font-bold ${textPrimary} mb-4`}>
+              <h2
+                className={`text-3xl font-bold ${themeStyles.textPrimary} mb-4`}
+              >
                 Feature Comparison
               </h2>
-              <p className={`text-xl ${textSecondary} font-montserrat`}>
+              <p
+                className={`text-xl ${themeStyles.textSecondary} font-montserrat`}
+              >
                 See how our solutions compare
               </p>
             </div>
@@ -350,9 +363,9 @@ const PricingWithSearchParamsWeb = () => {
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className={tableHeaderBg}>
+                  <tr className={themeStyles.tableHeaderBg}>
                     <th
-                      className={`text-left py-4 px-6 font-semibold ${textPrimary} border-b ${tableBorder}`}
+                      className={`text-left py-4 px-6 font-semibold ${themeStyles.textPrimary} border-b ${themeStyles.tableBorder}`}
                     >
                       Features
                     </th>
@@ -360,7 +373,7 @@ const PricingWithSearchParamsWeb = () => {
                       (product) => (
                         <th
                           key={product.productId}
-                          className={`text-center py-4 px-6 font-semibold ${textPrimary} border-b ${tableBorder}`}
+                          className={`text-center py-4 px-6 font-semibold ${themeStyles.textPrimary} border-b ${themeStyles.tableBorder}`}
                         >
                           {product.name}
                         </th>
@@ -389,8 +402,10 @@ const PricingWithSearchParamsWeb = () => {
                     "Personalized learning",
                     "Interactive quizzes",
                   ].map((feature, index) => (
-                    <tr key={index} className={tableRowHover}>
-                      <td className={`py-4 px-6 font-medium ${textSecondary}`}>
+                    <tr key={index} className={themeStyles.tableRowHover}>
+                      <td
+                        className={`py-4 px-6 font-medium ${themeStyles.textSecondary}`}
+                      >
                         {feature}
                       </td>
                       {Object.values(productSubscriptionDetails).map(
@@ -408,7 +423,7 @@ const PricingWithSearchParamsWeb = () => {
                               {hasFeature ? (
                                 <Check className="h-5 w-5 text-[#00F0FF] mx-auto" />
                               ) : (
-                                <span className={textMuted}>—</span>
+                                <span className={themeStyles.textMuted}>—</span>
                               )}
                             </td>
                           );

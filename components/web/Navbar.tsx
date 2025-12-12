@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Logo from "@/public/assets/img/logo.png";
 import { useTheme } from "next-themes";
@@ -13,37 +13,42 @@ import { ThemeToggle } from "../theme-toggle";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const currentTheme = resolvedTheme || theme || "light";
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Theme-based styles
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      navBg: isDark ? "bg-[#0a0a0a]/80" : "bg-white/50",
+      navBorder: isDark ? "border-white/10" : "border-gray-200",
+      textPrimary: isDark ? "text-gray-300" : "text-n-5",
+      textHover: isDark ? "hover:text-[#00F0FF]" : "hover:text-[#00F0FF]",
+      mobileBg: isDark ? "bg-[#0a0a0a]/80" : "bg-white/80",
+      mobileBorder: isDark ? "border-white/10" : "border-gray-200",
+      buttonOutline: isDark
+        ? "border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/10"
+        : "border-[#00F0FF] text-[#00F0FF] hover:bg-[#00F0FF]/10",
+      mobileButtonText: isDark ? "text-white" : "text-gray-900",
+    };
+  }, [currentTheme]);
+
   if (!mounted) {
     return (
-      <button className="p-2 rounded-md bg-gray-200 dark:bg-gray-800">
-        <div className="w-5 h-5" />
-      </button>
+      <div className=" bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5  border-t-transparent  rounded-full animate-spin" />
+      </div>
     );
   }
-  // Theme-based styles
-  const navBg = theme === "dark" ? "bg-[#0a0a0a]/80" : "bg-white/50";
-  const navBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const textPrimary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textHover =
-    theme === "dark" ? "hover:text-[#00F0FF]" : "hover:text-[#00F0FF]";
-  const mobileBg = theme === "dark" ? "bg-[#0a0a0a]/80" : "bg-white/80";
-  const mobileBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const buttonOutline =
-    theme === "dark"
-      ? "border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/10"
-      : "border-[#00F0FF] text-[#00F0FF] hover:bg-[#00F0FF]/10";
-  const mobileButtonText = theme === "dark" ? "text-white" : "text-gray-900";
 
   return (
     <nav
-      className={`${navBg} backdrop-blur-md border-b ${navBorder} sticky top-0 z-50`}
+      className={`${themeStyles.navBg} backdrop-blur-md border-b ${themeStyles.navBorder} sticky top-0 z-50`}
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
@@ -74,19 +79,19 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-2 lg:space-x-8 text-sm lg:text-lg">
             <Link
               href="/web/UserDashboard"
-              className={`${textPrimary} ${textHover} transition-colors font-medium`}
+              className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium`}
             >
               Dashboard
             </Link>
             <Link
               href="/web/product"
-              className={`${textPrimary} ${textHover} transition-colors font-medium`}
+              className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium`}
             >
               Categories
             </Link>
             <Link
               href="/web/feature"
-              className={`${textPrimary} ${textHover} transition-colors font-medium`}
+              className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium`}
             >
               Feature
             </Link>
@@ -96,7 +101,11 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-2 lg:space-x-4 ">
             <ThemeToggle />
             <SignedOut>
-              <Button variant="outline" className={buttonOutline} asChild>
+              <Button
+                variant="outline"
+                className={themeStyles.buttonOutline}
+                asChild
+              >
                 <Link href="/sign-in">Sign In</Link>
               </Button>
             </SignedOut>
@@ -127,7 +136,7 @@ export default function Navbar() {
             {/* </div> */}
             <Button
               variant="ghost"
-              className={`md:hidden h-9 w-9 p-0 ${mobileButtonText}`}
+              className={`md:hidden h-9 w-9 p-0 ${themeStyles.mobileButtonText}`}
               onClick={() => setIsOpen(!isOpen)}
             >
               {isOpen ? (
@@ -141,25 +150,27 @@ export default function Navbar() {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className={`md:hidden py-4 border-t ${mobileBorder}`}>
+          <div
+            className={`md:hidden py-4 border-t ${themeStyles.mobileBorder}`}
+          >
             <div className="flex flex-col space-y-3">
               <Link
                 href="/web/UserDashboard"
-                className={`${textPrimary} ${textHover} transition-colors font-medium px-2 py-1`}
+                className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium px-2 py-1`}
                 onClick={() => setIsOpen(false)}
               >
                 Dashboard
               </Link>
               <Link
                 href="/web/product"
-                className={`${textPrimary} ${textHover} transition-colors font-medium px-2 py-1`}
+                className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium px-2 py-1`}
                 onClick={() => setIsOpen(false)}
               >
                 Categories
               </Link>
               <Link
                 href="/web/feature"
-                className={`${textPrimary} ${textHover} transition-colors font-medium px-2 py-1`}
+                className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium px-2 py-1`}
                 onClick={() => setIsOpen(false)}
               >
                 Feature
@@ -167,7 +178,11 @@ export default function Navbar() {
 
               <div className="flex flex-col space-y-2 pt-2">
                 <SignedOut>
-                  <Button variant="outline" className={buttonOutline} asChild>
+                  <Button
+                    variant="outline"
+                    className={themeStyles.buttonOutline}
+                    asChild
+                  >
                     <Link href="/sign-in">Sign In</Link>
                   </Button>
                 </SignedOut>

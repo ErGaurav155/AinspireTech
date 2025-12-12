@@ -12,8 +12,7 @@ import HeroSection from "@/components/web/Hero";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-// Create a separate client component for the main content
-function HomeContent() {
+const Home = () => {
   const [mounted, setMounted] = useState(false);
   const searchParams = useSearchParams();
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -30,8 +29,8 @@ function HomeContent() {
 
   if (!mounted) {
     return (
-      <div className="p-2 rounded-md bg-transparent w-full">
-        <div className="w-full" />
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5  border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -46,24 +45,6 @@ function HomeContent() {
       <OutProduct />
       <TestimonialSection />
     </div>
-  );
-}
-
-// Loading component for Suspense fallback
-function HomeLoading() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-transparent">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-    </div>
-  );
-}
-
-// Main Home component with Suspense boundary
-const Home = () => {
-  return (
-    <Suspense fallback={<HomeLoading />}>
-      <HomeContent />
-    </Suspense>
   );
 };
 

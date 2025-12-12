@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Logo from "@/public/assets/img/logo.png";
 import { motion } from "framer-motion";
@@ -180,11 +180,13 @@ const faqData = [
 export default function AffiliateLandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [referrals, setReferrals] = useState(10);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [link, setLink] = useState(false);
   const { userId, isLoaded } = useAuth();
   const router = useRouter();
+  const currentTheme = resolvedTheme || theme || "light";
+
   useEffect(() => {
     async function fetchAffiliateLink() {
       setLoading(true);
@@ -217,29 +219,28 @@ export default function AffiliateLandingPage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isLoaded, userId, router]);
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark
+        ? "bg-[#0a0a0a]"
+        : "bg-gradient-to-b from-gray-200 to-gray-50",
+      headerBg: isDark ? "bg-[#0a0a0a]/95" : "bg-white/95",
+      badgeBorder: isDark ? "border-[#00F0FF]/30" : "border-blue-700/30",
+      titleText: isDark ? "text-white" : "text-gray-900",
+      descriptionText: isDark ? "text-gray-300" : "text-gray-600",
+      cardBg: isDark
+        ? "bg-[#1a1a1a]/60 border-white/10"
+        : "bg-white border-gray-200",
+      gradientBg: isDark
+        ? "from-[#00F0FF]/10 via-[#B026FF]/5 to-transparent"
+        : "from-blue-50 via-purple-50 to-transparent",
+      ctaGradient: isDark
+        ? "from-[#00F0FF] via-[#B026FF] to-[#FF2E9F]"
+        : "from-blue-600 via-purple-600 to-pink-600",
+    };
+  }, [currentTheme]);
   // Theme-based styles
-  const containerBg =
-    theme === "dark"
-      ? "bg-[#0a0a0a]"
-      : "bg-gradient-to-b from-gray-200 to-gray-50";
-  const headerBg = theme === "dark" ? "bg-[#0a0a0a]/95" : "bg-white/95";
-  const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const cardBg =
-    theme === "dark"
-      ? "bg-[#1a1a1a]/60 border-white/10"
-      : "bg-white border-gray-200";
-  const gradientBg =
-    theme === "dark"
-      ? "from-[#00F0FF]/10 via-[#B026FF]/5 to-transparent"
-      : "from-blue-50 via-purple-50 to-transparent";
-  const ctaGradient =
-    theme === "dark"
-      ? "from-[#00F0FF] via-[#B026FF] to-[#FF2E9F]"
-      : "from-blue-600 via-purple-600 to-pink-600";
 
   // Animation variants
   const containerVariants = {
@@ -327,19 +328,14 @@ export default function AffiliateLandingPage() {
   const earnings = calculateEarnings(referrals);
   if (!isLoaded || loading) {
     return (
-      <div
-        className={`min-h-screen ${titleText} flex items-center justify-center ${containerBg}`}
-      >
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
-          <p className={descriptionText}>Loading account...</p>
-        </div>
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }
   return (
     <div
-      className={`min-h-screen ${containerBg} transition-colors duration-300 relative bg-transparent  z-10`}
+      className={`min-h-screen ${themeStyles.containerBg} transition-colors duration-300 relative bg-transparent  z-10`}
     >
       {/* Header */}
       <motion.header
@@ -347,7 +343,7 @@ export default function AffiliateLandingPage() {
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
         className={` fixed top-0 w-full z-50 transition-all duration-300 backdrop-blur-lg ${
-          scrolled ? `${headerBg} shadow-lg` : "bg-transparent"
+          scrolled ? `${themeStyles.headerBg} shadow-lg` : "bg-transparent"
         }`}
       >
         <div className=" wrapper2 w-full mx-auto px-4 py-4">
@@ -377,7 +373,7 @@ export default function AffiliateLandingPage() {
                   <a
                     key={item}
                     href={`#${item.toLowerCase().replace(" ", "-")}`}
-                    className={`font-medium hover:text-[#00F0FF] transition-colors duration-300 ${descriptionText}`}
+                    className={`font-medium hover:text-[#00F0FF] transition-colors duration-300 ${themeStyles.descriptionText}`}
                   >
                     {item}
                   </a>
@@ -439,7 +435,7 @@ export default function AffiliateLandingPage() {
                 Become an
               </span>
               <br />
-              <span className={titleText}>Affiliate Partner</span>
+              <span className={themeStyles.titleText}>Affiliate Partner</span>
             </motion.h1>
 
             <motion.p
@@ -449,7 +445,7 @@ export default function AffiliateLandingPage() {
               viewport={{ once: false }}
               className="text-xl mb-10 max-w-2xl mx-auto font-montserrat"
             >
-              <span className={descriptionText}>
+              <span className={themeStyles.descriptionText}>
                 Promote our powerful automation tools. Earn recurring
                 commissions for up to 3 years from every customer you refer.
               </span>
@@ -497,7 +493,7 @@ export default function AffiliateLandingPage() {
                 whileHover="hover"
                 whileInView="visible"
                 viewport={{ once: false }}
-                className={`p-6 rounded-2xl backdrop-blur-sm ${cardBg}`}
+                className={`p-6 rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
               >
                 <div className="flex items-center mb-4">
                   <div
@@ -509,10 +505,12 @@ export default function AffiliateLandingPage() {
                 <h3 className="text-3xl font-bold mb-2 text-blue-700">
                   {stat.value}
                 </h3>
-                <p className={`font-semibold mb-1 ${titleText} `}>
+                <p className={`font-semibold mb-1 ${themeStyles.titleText} `}>
                   {stat.label}
                 </p>
-                <p className={`text-sm ${descriptionText} font-montserrat`}>
+                <p
+                  className={`text-sm ${themeStyles.descriptionText} font-montserrat`}
+                >
                   {stat.description}
                 </p>
               </motion.div>
@@ -537,7 +535,7 @@ export default function AffiliateLandingPage() {
               className="flex items-center justify-center text-blue-700 mb-4"
             >
               <span
-                className={`text-sm font-medium uppercase tracking-widest border ${badgeBorder} rounded-full px-4 py-1`}
+                className={`text-sm font-medium uppercase tracking-widest border ${themeStyles.badgeBorder} rounded-full px-4 py-1`}
               >
                 Why Choose Us
               </span>
@@ -546,14 +544,16 @@ export default function AffiliateLandingPage() {
               variants={titleVariants}
               className="text-4xl font-bold mb-4"
             >
-              <span className={titleText}>Powerful Features for </span>
+              <span className={themeStyles.titleText}>
+                Powerful Features for{" "}
+              </span>
               <span className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] bg-clip-text text-transparent">
                 Maximum Earnings
               </span>
             </motion.h2>
             <motion.p
               variants={textVariants}
-              className={`text-lg max-w-2xl mx-auto ${descriptionText} font-montserrat`}
+              className={`text-lg max-w-2xl mx-auto ${themeStyles.descriptionText} font-montserrat`}
             >
               We have built one of the most rewarding affiliate programs in the
               automation space
@@ -574,7 +574,7 @@ export default function AffiliateLandingPage() {
                 whileHover="hover"
                 whileInView="visible"
                 viewport={{ once: false }}
-                className={`rounded-2xl backdrop-blur-sm ${cardBg}`}
+                className={`rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
               >
                 <div className="p-6">
                   <div
@@ -582,10 +582,16 @@ export default function AffiliateLandingPage() {
                   >
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className={`${descriptionText} text-xl font-bold mb-3`}>
+                  className=
+                  {`rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
+                  <h3
+                    className={`${themeStyles.descriptionText} text-xl font-bold mb-3`}
+                  >
                     {feature.title}
                   </h3>
-                  <p className={`${descriptionText} font-montserrat`}>
+                  <p
+                    className={`${themeStyles.descriptionText} font-montserrat`}
+                  >
                     {feature.description}
                   </p>
                 </div>
@@ -611,7 +617,7 @@ export default function AffiliateLandingPage() {
               className="flex items-center justify-center text-blue-700 mb-4"
             >
               <span
-                className={`text-sm font-medium uppercase tracking-widest border ${badgeBorder} rounded-full px-4 py-1`}
+                className={`text-sm font-medium uppercase tracking-widest border ${themeStyles.badgeBorder} rounded-full px-4 py-1`}
               >
                 Get Started
               </span>
@@ -620,7 +626,7 @@ export default function AffiliateLandingPage() {
               variants={titleVariants}
               className="text-4xl font-bold mb-4"
             >
-              <span className={titleText}>Start Earning in </span>
+              <span className={themeStyles.titleText}>Start Earning in </span>
               <span className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] bg-clip-text text-transparent">
                 4 Simple Steps
               </span>
@@ -646,7 +652,7 @@ export default function AffiliateLandingPage() {
                   className="relative"
                 >
                   <div
-                    className={`p-8 rounded-2xl backdrop-blur-sm ${cardBg} text-center relative z-10`}
+                    className={`p-8 rounded-2xl backdrop-blur-sm ${themeStyles.cardBg} text-center relative z-10`}
                   >
                     <div
                       className={`w-16 h-16 bg-gradient-to-br ${step.gradient} rounded-full flex items-center justify-center text-white font-bold text-2xl mb-6 mx-auto`}
@@ -654,10 +660,14 @@ export default function AffiliateLandingPage() {
                       {step.step}
                     </div>
                     <div className="text-4xl mb-4">{step.icon}</div>
-                    <h3 className={`${descriptionText} text-xl font-bold mb-3`}>
+                    <h3
+                      className={`${themeStyles.descriptionText} text-xl font-bold mb-3`}
+                    >
                       {step.title}
                     </h3>
-                    <p className={`${descriptionText} font-montserrat`}>
+                    <p
+                      className={`${themeStyles.descriptionText} font-montserrat`}
+                    >
                       {step.description}
                     </p>
                   </div>
@@ -670,7 +680,9 @@ export default function AffiliateLandingPage() {
 
       {/* Earnings Calculator */}
       <section id="earnings" className="py-20 relative">
-        <div className={` absolute inset-0 bg-gradient-to-br ${gradientBg}`} />
+        <div
+          className={` absolute inset-0 bg-gradient-to-br ${themeStyles.gradientBg}`}
+        />
         <div className="wrapper2 w-full mx-auto px-4 relative">
           <motion.div
             variants={containerVariants}
@@ -684,14 +696,14 @@ export default function AffiliateLandingPage() {
               className="flex items-center justify-center text-blue-700 mb-4"
             >
               <span
-                className={`text-sm font-medium uppercase tracking-widest border ${badgeBorder} rounded-full px-4 py-1`}
+                className={`text-sm font-medium uppercase tracking-widest border ${themeStyles.badgeBorder} rounded-full px-4 py-1`}
               >
                 Calculate Earnings
               </span>
             </motion.div>
             <motion.h2
               variants={titleVariants}
-              className={`${descriptionText} text-4xl font-bold mb-4`}
+              className={`${themeStyles.descriptionText} text-4xl font-bold mb-4`}
             >
               How Much{" "}
               <span className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] bg-clip-text text-transparent">
@@ -700,7 +712,7 @@ export default function AffiliateLandingPage() {
             </motion.h2>
             <motion.p
               variants={textVariants}
-              className={`text-lg max-w-2xl mx-auto ${descriptionText} font-montserrat`}
+              className={`text-lg max-w-2xl mx-auto ${themeStyles.descriptionText} font-montserrat`}
             >
               Calculate your potential monthly earnings
             </motion.p>
@@ -710,22 +722,24 @@ export default function AffiliateLandingPage() {
             variants={cardVariants}
             whileInView="visible"
             viewport={{ once: false }}
-            className={`max-w-6xl mx-auto rounded-3xl backdrop-blur-sm ${cardBg} p-8 md:p-12`}
+            className={`max-w-6xl mx-auto rounded-3xl backdrop-blur-sm ${themeStyles.cardBg} p-8 md:p-12`}
           >
             <div className="grid lg:grid-cols-2 gap-12">
               {/* Products */}
               <div>
-                <h3 className={`${descriptionText} text-2xl font-bold mb-8`}>
+                <h3
+                  className={`${themeStyles.descriptionText} text-2xl font-bold mb-8`}
+                >
                   Products You Can Promote
                 </h3>
                 <div className="space-y-6">
                   {products.map((product) => (
                     <div
                       key={product.name}
-                      className={`rounded-2xl p-6 backdrop-blur-sm ${cardBg}`}
+                      className={`rounded-2xl p-6 backdrop-blur-sm ${themeStyles.cardBg}`}
                     >
                       <h4
-                        className={`${descriptionText} font-bold text-xl mb-4`}
+                        className={`${themeStyles.descriptionText} font-bold text-xl mb-4`}
                       >
                         {product.name}
                       </h4>
@@ -738,21 +752,29 @@ export default function AffiliateLandingPage() {
                             <div
                               className={`w-2 h-2 rounded-full bg-gradient-to-r ${product.gradient} mr-3 `}
                             />
-                            <span className={descriptionText}>{type}</span>
+                            <span className={themeStyles.descriptionText}>
+                              {type}
+                            </span>
                           </div>
                         ))}
                       </div>
                       <div className="grid grid-cols-2 gap-6">
                         <div>
-                          <p className={`text-sm ${descriptionText}`}>
+                          <p
+                            className={`text-sm ${themeStyles.descriptionText}`}
+                          >
                             Monthly Price
                           </p>
-                          <p className={`font-bold text-lg ${descriptionText}`}>
+                          <p
+                            className={`font-bold text-lg ${themeStyles.descriptionText}`}
+                          >
                             {product.monthlyPrice}
                           </p>
                         </div>
                         <div>
-                          <p className={`text-sm ${descriptionText}`}>
+                          <p
+                            className={`text-sm ${themeStyles.descriptionText}`}
+                          >
                             Your Commission
                           </p>
                           <p className="font-bold text-lg text-green-400">
@@ -767,12 +789,14 @@ export default function AffiliateLandingPage() {
 
               {/* Calculator */}
               <div>
-                <h3 className={`text-2xl font-bold mb-8 ${descriptionText}`}>
+                <h3
+                  className={`text-2xl font-bold mb-8 ${themeStyles.descriptionText}`}
+                >
                   Earnings Calculator
                 </h3>
                 <div className="space-y-8">
                   <div>
-                    <label className={`block mb-4 ${titleText}`}>
+                    <label className={`block mb-4 ${themeStyles.titleText}`}>
                       Monthly Referrals:{" "}
                       <span className="text-[#00F0FF] font-bold">
                         {referrals}
@@ -787,18 +811,20 @@ export default function AffiliateLandingPage() {
                       className="w-full h-3 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-[#00F0FF]"
                     />
                     <div className="flex justify-between mt-2">
-                      <span className={descriptionText}>1</span>
-                      <span className={descriptionText}>50</span>
+                      <span className={themeStyles.descriptionText}>1</span>
+                      <span className={themeStyles.descriptionText}>50</span>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <div
-                      className={`p-6 rounded-2xl backdrop-blur-sm ${cardBg}`}
+                      className={`p-6 rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
                     >
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className={`text-sm ${descriptionText}`}>
+                          <p
+                            className={`text-sm ${themeStyles.descriptionText}`}
+                          >
                             Monthly Earnings
                           </p>
                           <p className="text-3xl font-bold text-[#00F0FF]">
@@ -810,11 +836,13 @@ export default function AffiliateLandingPage() {
                     </div>
 
                     <div
-                      className={`p-6 rounded-2xl backdrop-blur-sm ${cardBg}`}
+                      className={`p-6 rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
                     >
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className={`text-sm ${descriptionText}`}>
+                          <p
+                            className={`text-sm ${themeStyles.descriptionText}`}
+                          >
                             Yearly Earnings
                           </p>
                           <p className="text-3xl font-bold text-[#B026FF]">
@@ -826,11 +854,13 @@ export default function AffiliateLandingPage() {
                     </div>
 
                     <div
-                      className={`p-6 rounded-2xl backdrop-blur-sm ${cardBg}`}
+                      className={`p-6 rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
                     >
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className={`text-sm ${descriptionText}`}>
+                          <p
+                            className={`text-sm ${themeStyles.descriptionText}`}
+                          >
                             3-Year Earnings
                           </p>
                           <p className="text-3xl font-bold text-[#FF2E9F]">
@@ -843,7 +873,7 @@ export default function AffiliateLandingPage() {
                   </div>
 
                   <p
-                    className={`text-sm text-center ${descriptionText} font-montserrat`}
+                    className={`text-sm text-center ${themeStyles.descriptionText} font-montserrat`}
                   >
                     Based on average subscription value of $650 and 30%
                     commission
@@ -940,14 +970,14 @@ export default function AffiliateLandingPage() {
               className="flex items-center justify-center text-blue-700 mb-4"
             >
               <span
-                className={`text-sm font-medium uppercase tracking-widest border ${badgeBorder} rounded-full px-4 py-1`}
+                className={`text-sm font-medium uppercase tracking-widest border ${themeStyles.badgeBorder} rounded-full px-4 py-1`}
               >
                 FAQ
               </span>
             </motion.div>
             <motion.h2
               variants={titleVariants}
-              className={`text-4xl font-bold mb-4 ${descriptionText} `}
+              className={`text-4xl font-bold mb-4 ${themeStyles.descriptionText} `}
             >
               Frequently Asked{" "}
               <span className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] bg-clip-text text-transparent">
@@ -956,7 +986,7 @@ export default function AffiliateLandingPage() {
             </motion.h2>
             <motion.p
               variants={textVariants}
-              className={`text-lg max-w-2xl mx-auto ${descriptionText} font-montserrat`}
+              className={`text-lg max-w-2xl mx-auto ${themeStyles.descriptionText} font-montserrat`}
             >
               Get answers to common questions about our affiliate program
             </motion.p>
@@ -977,17 +1007,21 @@ export default function AffiliateLandingPage() {
                 whileInView="visible"
                 viewport={{ once: false }}
               >
-                <Card className={`backdrop-blur-sm ${cardBg}`}>
+                <Card className={`backdrop-blur-sm ${themeStyles.cardBg}`}>
                   <CardContent className="p-6">
                     <div className="flex items-start">
                       <div className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-xl p-3 mr-4">
                         <HelpCircle className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <h3 className={`font-bold text-lg mb-3 ${titleText}`}>
+                        <h3
+                          className={`font-bold text-lg mb-3 ${themeStyles.titleText}`}
+                        >
                           {faq.question}
                         </h3>
-                        <p className={`${descriptionText} font-montserrat`}>
+                        <p
+                          className={`${themeStyles.descriptionText} font-montserrat`}
+                        >
                           {faq.answer}
                         </p>
                       </div>
@@ -1003,7 +1037,9 @@ export default function AffiliateLandingPage() {
       {/* Footer CTA */}
       <footer className="py-12 relative">
         <div className="wrapper2 w-full mx-auto px-4 relative">
-          <div className={`rounded-3xl backdrop-blur-sm ${cardBg} p-8 md:p-12`}>
+          <div
+            className={`rounded-3xl backdrop-blur-sm ${themeStyles.cardBg} p-8 md:p-12`}
+          >
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="mb-8 md:mb-0 text-center md:text-left">
                 <div className="flex items-center space-x-3 justify-center md:justify-start">
@@ -1011,13 +1047,17 @@ export default function AffiliateLandingPage() {
                     <DollarSign className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <span className={`text-2xl font-bold ${titleText}`}>
+                    <span
+                      className={`text-2xl font-bold ${themeStyles.titleText}`}
+                    >
                       Start Earning
                       <span className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] bg-clip-text text-transparent">
                         Today
                       </span>
                     </span>
-                    <p className={`mt-2 ${descriptionText} font-montserrat`}>
+                    <p
+                      className={`mt-2 ${themeStyles.descriptionText} font-montserrat`}
+                    >
                       Join our growing community of successful affiliates
                     </p>
                   </div>

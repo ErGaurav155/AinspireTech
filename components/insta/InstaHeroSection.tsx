@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle,
@@ -74,30 +74,27 @@ const TypingAnimation = ({
 export function InstagramAutomationHero() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const badgeBg =
-    theme === "dark"
-      ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-blue-600"
-      : "bg-gradient-to-r from-[#00F0FF]/5 to-[#B026FF]/5 backdrop-blur-sm border border-blue-800";
-
-  const titleText = theme === "dark" ? "text-white" : "text-n-8";
-
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
-
-  const featureText =
-    theme === "dark"
-      ? "text-gray-300 group-hover:text-white"
-      : "text-n-5 group-hover:text-gray-900";
-
-  const outlineButtonBorder =
-    theme === "dark"
-      ? "border-[#00F0FF] text-[#00F0FF] hover:bg-[#00F0FF]/10"
-      : "border-[#00F0FF] text-n-8 hover:bg-[#00F0FF]/5";
-
-  const trustBadgeText = theme === "dark" ? "text-gray-400" : "text-n-4";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      badgeBg: isDark
+        ? "bg-gradient-to-r from-[#00F0FF]/10 to-[#B026FF]/10 backdrop-blur-sm border border-blue-600"
+        : "bg-gradient-to-r from-[#00F0FF]/5 to-[#B026FF]/5 backdrop-blur-sm border border-blue-800",
+      titleText: isDark ? "text-white" : "text-n-8",
+      descriptionText: isDark ? "text-gray-300" : "text-n-5",
+      featureText: isDark
+        ? "text-gray-300 group-hover:text-white"
+        : "text-n-5 group-hover:text-gray-900",
+      outlineButtonBorder: isDark
+        ? "border-[#00F0FF] text-[#00F0FF] hover:bg-[#00F0FF]/10"
+        : "border-[#00F0FF] text-n-8 hover:bg-[#00F0FF]/5",
+      trustBadgeText: isDark ? "text-gray-400" : "text-n-4",
+    };
+  }, [currentTheme]);
   const FeatureItem = ({
     icon,
     text,
@@ -121,7 +118,7 @@ export function InstagramAutomationHero() {
         {icon}
       </motion.div>
       <span
-        className={`transition-colors duration-300 font-medium ${featureText}`}
+        className={`transition-colors duration-300 font-medium ${themeStyles.featureText}`}
       >
         {text}
       </span>
@@ -145,7 +142,7 @@ export function InstagramAutomationHero() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className={`inline-flex items-center ${badgeBg} rounded-full px-6 py-3`}
+                className={`inline-flex items-center ${themeStyles.badgeBg} rounded-full px-6 py-3`}
               >
                 <Zap className="h-5 w-5 text-blue-800 mr-2" />
                 <span className="text-xs md:text-sm font-medium text-nowrap uppercase tracking-widest text-blue-800">
@@ -157,7 +154,7 @@ export function InstagramAutomationHero() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className={`text-3xl md:text-4xl font-semibold leading-tight ${titleText}`}
+                className={`text-3xl md:text-4xl font-semibold leading-tight ${themeStyles.titleText}`}
               >
                 Turn Comments Into
                 <br />
@@ -175,7 +172,7 @@ export function InstagramAutomationHero() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className={`text-base md:text-lg lg:text-xl leading-relaxed font-montserrat ${descriptionText}`}
+                className={`text-base md:text-lg lg:text-xl leading-relaxed font-montserrat ${themeStyles.descriptionText}`}
               >
                 Automatically reply to Instagram comments with personalized DMs
                 that convert followers into subscribers and customers. No coding
@@ -239,7 +236,7 @@ export function InstagramAutomationHero() {
                 whileHover={{ scale: 1.05 }}
                 onClick={() => router.push("/insta/pricing")}
                 whileTap={{ scale: 0.95 }}
-                className={`border-2 font-semibold py-2 px-4 md:py-3 md:px-6 rounded-2xl transition-all duration-300 flex items-center justify-center ${outlineButtonBorder}`}
+                className={`border-2 font-semibold py-2 px-4 md:py-3 md:px-6 rounded-2xl transition-all duration-300 flex items-center justify-center ${themeStyles.outlineButtonBorder}`}
               >
                 <Calendar className="h-5 w-5 mr-2" />
                 View Pricing
@@ -251,7 +248,7 @@ export function InstagramAutomationHero() {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 1.1 }}
-              className={`flex flex-wrap items-center gap-3 md:gap-6 text-sm ${trustBadgeText}`}
+              className={`flex flex-wrap items-center gap-3 md:gap-6 text-sm ${themeStyles.trustBadgeText}`}
             >
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-green-400" />

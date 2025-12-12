@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Logo from "@/public/assets/img/logo.png";
@@ -58,26 +58,31 @@ export default function AffiliateDashboard() {
     "overview" | "referrals" | "earnings" | "payouts"
   >("overview");
   const [copied, setCopied] = useState(false);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg =
-    theme === "dark"
-      ? "bg-[#0a0a0a]"
-      : "bg-gradient-to-b from-gray-200 to-gray-50";
-  const cardBg =
-    theme === "dark"
-      ? "bg-[#1a1a1a]/60 border-white/10"
-      : "bg-white border-gray-200";
-  const titleText = theme === "dark" ? "text-white" : "text-gray-900";
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
-  const gradientBg =
-    theme === "dark"
-      ? "from-[#00F0FF]/10 via-[#B026FF]/5 to-transparent"
-      : "from-blue-50 via-purple-50 to-transparent";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark
+        ? "bg-[#0a0a0a]"
+        : "bg-gradient-to-b from-gray-200 to-gray-50",
+      headerBg: isDark ? "bg-[#0a0a0a]/95" : "bg-white/95",
+      badgeBorder: isDark ? "border-[#00F0FF]/30" : "border-blue-700/30",
+      titleText: isDark ? "text-white" : "text-gray-900",
+      descriptionText: isDark ? "text-gray-300" : "text-gray-600",
+      cardBg: isDark
+        ? "bg-[#1a1a1a]/60 border-white/10"
+        : "bg-white border-gray-200",
+      gradientBg: isDark
+        ? "from-[#00F0FF]/10 via-[#B026FF]/5 to-transparent"
+        : "from-blue-50 via-purple-50 to-transparent",
+      ctaGradient: isDark
+        ? "from-[#00F0FF] via-[#B026FF] to-[#FF2E9F]"
+        : "from-blue-600 via-purple-600 to-pink-600",
+    };
+  }, [currentTheme]);
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -184,28 +189,28 @@ export default function AffiliateDashboard() {
     {
       icon: Users,
       label: "Total Referrals",
-      value: data?.stats.totalReferrals || 0,
+      value: data?.stats?.totalReferrals || 0,
       gradient: "from-blue-400 to-cyan-500",
       change: "+12%",
     },
     {
       icon: DollarSign,
       label: "Total Earnings",
-      value: formatCurrency(data?.stats.totalEarnings || 0),
+      value: formatCurrency(data?.stats?.totalEarnings || 0),
       gradient: "from-green-400 to-emerald-500",
       change: "+24%",
     },
     {
       icon: Clock,
       label: "Pending Payout",
-      value: formatCurrency(data?.stats.pendingEarnings || 0),
+      value: formatCurrency(data?.stats?.pendingEarnings || 0),
       gradient: "from-purple-400 to-pink-500",
       change: "Ready",
     },
     {
       icon: TrendingUp,
       label: "This Month",
-      value: formatCurrency(data?.stats.monthlyEarnings || 0),
+      value: formatCurrency(data?.stats?.monthlyEarnings || 0),
       gradient: "from-orange-400 to-red-500",
       change: "+18%",
     },
@@ -213,13 +218,8 @@ export default function AffiliateDashboard() {
 
   if (loading) {
     return (
-      <div
-        className={`min-h-screen ${containerBg} flex items-center justify-center`}
-      >
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#00F0FF] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className={descriptionText}>Loading your dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }
@@ -228,7 +228,7 @@ export default function AffiliateDashboard() {
 
   return (
     <div
-      className={`min-h-screen ${containerBg} transition-colors duration-300 relative bg-transparent  z-10`}
+      className={`min-h-screen ${themeStyles.containerBg} transition-colors duration-300 relative bg-transparent  z-10`}
     >
       <motion.header
         initial={{ y: -100 }}
@@ -309,18 +309,22 @@ export default function AffiliateDashboard() {
                 className="flex items-center text-blue-700 mb-2"
               >
                 <span
-                  className={`text-sm font-medium uppercase tracking-widest border ${badgeBorder} rounded-full px-4 py-1`}
+                  className={`text-sm font-medium uppercase tracking-widest border ${themeStyles.badgeBorder} rounded-full px-4 py-1`}
                 >
                   Affiliate Dashboard
                 </span>
               </motion.div>
-              <h1 className={`text-3xl md:text-4xl font-bold ${titleText}`}>
+              <h1
+                className={`text-3xl md:text-4xl font-bold ${themeStyles.titleText}`}
+              >
                 Welcome back,{" "}
                 <span className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] bg-clip-text text-transparent">
                   {data.affiliate?.user?.firstName}
                 </span>
               </h1>
-              <p className={`text-lg mt-2 ${descriptionText}`}>
+              <p
+                className={`text-lg mt-2 font-montserrat ${themeStyles.descriptionText}`}
+              >
                 Track your referrals and earnings in real-time
               </p>
             </div>
@@ -360,12 +364,12 @@ export default function AffiliateDashboard() {
           viewport={{ once: false, margin: "-100px" }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
-          {stats.map((stat, index) => (
+          {stats?.map((stat, index) => (
             <motion.div
               key={stat.label}
               variants={cardVariants}
               whileHover="hover"
-              className={`rounded-2xl backdrop-blur-sm ${cardBg}`}
+              className={`rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -384,10 +388,12 @@ export default function AffiliateDashboard() {
                     {stat.change}
                   </span>
                 </div>
-                <p className={`text-2xl font-bold mb-2 ${titleText}`}>
+                <p
+                  className={`text-2xl font-bold mb-2 ${themeStyles.titleText}`}
+                >
                   {stat.value}
                 </p>
-                <p className={descriptionText}>{stat.label}</p>
+                <p className={themeStyles.descriptionText}>{stat.label}</p>
               </CardContent>
             </motion.div>
           ))}
@@ -401,7 +407,7 @@ export default function AffiliateDashboard() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: false }}
-          className={`rounded-3xl backdrop-blur-sm ${cardBg} overflow-hidden`}
+          className={`rounded-3xl backdrop-blur-sm ${themeStyles.cardBg} overflow-hidden`}
         >
           {/* Tabs */}
           <div
@@ -416,7 +422,7 @@ export default function AffiliateDashboard() {
                   id: "referrals",
                   label: "Referrals",
                   icon: Users,
-                  count: data.referrals.length,
+                  count: data?.referrals?.length,
                 },
                 { id: "earnings", label: "Earnings", icon: DollarSign },
                 { id: "payouts", label: "Payouts", icon: CreditCard },
@@ -428,7 +434,7 @@ export default function AffiliateDashboard() {
                   className={`flex items-center py-2 px-0  md:py-4 md:px-6 font-light md:font-medium text-xs md:text-sm border-b-2 gap-1 w-full transition-all ${
                     activeTab === tab.id
                       ? "border-[#00F0FF] text-[#00F0FF]"
-                      : `border-transparent ${descriptionText} hover:text-[#00F0FF]`
+                      : `border-transparent ${themeStyles.descriptionText} hover:text-[#00F0FF]`
                   }`}
                 >
                   <tab.icon className="w-4 h-4 mr-1 hidden md:mr-2" />
@@ -456,7 +462,7 @@ export default function AffiliateDashboard() {
                 <div>
                   <div className="flex flex-col sm:flex-row  items-center justify-between mb-4">
                     <h3
-                      className={`text-lg font-semibold ${titleText} pb-2 sm:pb-0`}
+                      className={`text-lg font-semibold ${themeStyles.titleText} pb-2 sm:pb-0`}
                     >
                       Your Affiliate Link
                     </h3>
@@ -489,7 +495,9 @@ export default function AffiliateDashboard() {
                       {data.affiliateLink}
                     </div>
                   </div>
-                  <p className={`text-sm mt-2 ${descriptionText}`}>
+                  <p
+                    className={`text-sm mt-2 ${themeStyles.descriptionText} font-montserrat`}
+                  >
                     Share this link on social media, websites, or with friends
                     to earn commissions!
                   </p>
@@ -500,11 +508,13 @@ export default function AffiliateDashboard() {
                   <motion.div
                     variants={cardVariants}
                     whileHover="hover"
-                    className={`rounded-2xl backdrop-blur-sm ${cardBg}`}
+                    className={`rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
                   >
                     <CardContent className="p-2 md:p-6">
                       <div className="flex items-center justify-between mb-6">
-                        <h3 className={`font-semibold ${titleText}`}>
+                        <h3
+                          className={`font-semibold ${themeStyles.titleText}`}
+                        >
                           Top Performing Referrals
                         </h3>
                         <Button
@@ -516,7 +526,7 @@ export default function AffiliateDashboard() {
                         </Button>
                       </div>
                       <div className="space-y-4">
-                        {data.referrals.slice(0, 5).map((referral) => (
+                        {data?.referrals?.slice(0, 5).map((referral) => (
                           <div
                             key={referral._id}
                             className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors"
@@ -528,20 +538,28 @@ export default function AffiliateDashboard() {
                                 </span>
                               </div>
                               <div>
-                                <p className={`font-medium ${titleText}`}>
+                                <p
+                                  className={`font-medium ${themeStyles.titleText}`}
+                                >
                                   {referral.referredUserId?.firstName}{" "}
                                   {referral.referredUserId?.lastName}
                                 </p>
-                                <p className={`text-xs ${descriptionText}`}>
+                                <p
+                                  className={`text-xs ${themeStyles.descriptionText}`}
+                                >
                                   {referral.referredUserId?.email}
                                 </p>
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className={`font-bold ${titleText}`}>
+                              <p
+                                className={`font-bold ${themeStyles.titleText}`}
+                              >
                                 {formatCurrency(referral.totalCommissionEarned)}
                               </p>
-                              <span className={`text-xs ${descriptionText}`}>
+                              <span
+                                className={`text-xs ${themeStyles.descriptionText}`}
+                              >
                                 {referral.subscriptionType}
                               </span>
                             </div>
@@ -555,11 +573,13 @@ export default function AffiliateDashboard() {
                   <motion.div
                     variants={cardVariants}
                     whileHover="hover"
-                    className={`rounded-2xl backdrop-blur-sm ${cardBg}`}
+                    className={`rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
                   >
                     <CardContent className="p-2 md:p-6">
                       <div className="flex items-center justify-between mb-6">
-                        <h3 className={`font-semibold ${titleText}`}>
+                        <h3
+                          className={`font-semibold ${themeStyles.titleText}`}
+                        >
                           Recent Commissions
                         </h3>
                         <Button
@@ -570,55 +590,63 @@ export default function AffiliateDashboard() {
                           View All <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
                       </div>
-                      <div className="space-y-4">
-                        {data.monthlyCommissions
-                          .slice(0, 5)
-                          .map((commission) => (
-                            <div
-                              key={commission._id}
-                              className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors"
-                            >
-                              <div className="flex items-center">
-                                <div
-                                  className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${
-                                    commission.status === "paid"
-                                      ? "bg-gradient-to-r from-green-400 to-emerald-500"
-                                      : "bg-gradient-to-r from-yellow-400 to-amber-500"
-                                  }`}
-                                >
-                                  <span className="text-lg">
-                                    {commission.productType === "web-chatbot"
-                                      ? "💬"
-                                      : "📱"}
-                                  </span>
-                                </div>
-                                <div>
-                                  <p className={`font-medium ${titleText}`}>
-                                    {commission.productName}
-                                  </p>
-                                  <div className="flex items-center gap-2 text-xs">
-                                    <span className={descriptionText}>
-                                      {commission.period}
-                                    </span>
-                                    <span className="text-gray-400">•</span>
-                                    <span
-                                      className={`capitalize ${
-                                        commission.status === "paid"
-                                          ? "text-green-400"
-                                          : "text-yellow-400"
-                                      }`}
-                                    >
-                                      {commission.status}
+                      {data?.monthlyCommissions && (
+                        <div className="space-y-4">
+                          {data?.monthlyCommissions
+                            .slice(0, 5)
+                            .map((commission) => (
+                              <div
+                                key={commission._id}
+                                className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors"
+                              >
+                                <div className="flex items-center">
+                                  <div
+                                    className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${
+                                      commission.status === "paid"
+                                        ? "bg-gradient-to-r from-green-400 to-emerald-500"
+                                        : "bg-gradient-to-r from-yellow-400 to-amber-500"
+                                    }`}
+                                  >
+                                    <span className="text-lg">
+                                      {commission.productType === "web-chatbot"
+                                        ? "💬"
+                                        : "📱"}
                                     </span>
                                   </div>
+                                  <div>
+                                    <p
+                                      className={`font-medium ${themeStyles.titleText}`}
+                                    >
+                                      {commission.productName}
+                                    </p>
+                                    <div className="flex items-center gap-2 text-xs">
+                                      <span
+                                        className={themeStyles.descriptionText}
+                                      >
+                                        {commission.period}
+                                      </span>
+                                      <span className="text-gray-400">•</span>
+                                      <span
+                                        className={`capitalize ${
+                                          commission.status === "paid"
+                                            ? "text-green-400"
+                                            : "text-yellow-400"
+                                        }`}
+                                      >
+                                        {commission.status}
+                                      </span>
+                                    </div>
+                                  </div>
                                 </div>
+                                <p
+                                  className={`font-bold text-lg ${themeStyles.titleText}`}
+                                >
+                                  {formatCurrency(commission.amount)}
+                                </p>
                               </div>
-                              <p className={`font-bold text-lg ${titleText}`}>
-                                {formatCurrency(commission.amount)}
-                              </p>
-                            </div>
-                          ))}
-                      </div>
+                            ))}
+                        </div>
+                      )}
                     </CardContent>
                   </motion.div>
                 </div>
@@ -627,10 +655,12 @@ export default function AffiliateDashboard() {
                 <motion.div
                   variants={cardVariants}
                   whileHover="hover"
-                  className={`rounded-2xl backdrop-blur-sm ${cardBg}`}
+                  className={`rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
                 >
                   <CardContent className="p-2 md:p-6">
-                    <h3 className={`font-semibold mb-6 ${titleText}`}>
+                    <h3
+                      className={`font-semibold mb-6 ${themeStyles.titleText}`}
+                    >
                       How It Works
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -667,10 +697,14 @@ export default function AffiliateDashboard() {
                           >
                             <item.icon className="w-6 h-6 text-white" />
                           </div>
-                          <h4 className={`font-medium mb-2 ${titleText}`}>
+                          <h4
+                            className={`font-medium mb-2 ${themeStyles.titleText}`}
+                          >
                             {item.title}
                           </h4>
-                          <p className={`text-sm ${descriptionText}`}>
+                          <p
+                            className={`text-sm ${themeStyles.descriptionText} font-montserrat`}
+                          >
                             {item.desc}
                           </p>
                         </motion.div>
@@ -689,11 +723,13 @@ export default function AffiliateDashboard() {
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 w-full">
                   <div>
-                    <h3 className={`text-lg font-semibold ${titleText}`}>
+                    <h3
+                      className={`text-lg font-semibold ${themeStyles.titleText}`}
+                    >
                       All Referrals
                     </h3>
-                    <p className={`text-sm ${descriptionText}`}>
-                      Showing {data.referrals.length} referrals
+                    <p className={`text-sm ${themeStyles.descriptionText}`}>
+                      Showing {data?.referrals?.length} referrals
                     </p>
                   </div>
                   <div className="flex items-center justify-between gap-3 mt-4 md:mt-0 w-full">
@@ -706,7 +742,7 @@ export default function AffiliateDashboard() {
                       <input
                         type="text"
                         placeholder="Search referrals..."
-                        className={`bg-transparent border-none outline-none text-sm ${titleText} max-w-max md:max-w-full w-full`}
+                        className={`bg-transparent border-none outline-none text-sm ${themeStyles.titleText} max-w-max md:max-w-full w-full`}
                       />
                     </div>
                     <Button variant="outline" className="rounded-lg">
@@ -736,13 +772,15 @@ export default function AffiliateDashboard() {
                             key={header}
                             className=" px-2 md:px-6 py-3 text-left text-xs font-normal md:font-medium uppercase tracking-wider "
                           >
-                            <span className={descriptionText}>{header}</span>
+                            <span className={themeStyles.descriptionText}>
+                              {header}
+                            </span>
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/10">
-                      {data.referrals.map((referral) => (
+                    <tbody className="divide-y divide-white/10 font-montserrat">
+                      {data?.referrals?.map((referral) => (
                         <tr
                           key={referral._id}
                           className="hover:bg-white/5 transition-colors"
@@ -761,7 +799,9 @@ export default function AffiliateDashboard() {
                                 </span>
                               </div>
                               <div>
-                                <div className={`font-medium ${titleText}`}>
+                                <div
+                                  className={`font-medium ${themeStyles.titleText}`}
+                                >
                                   {referral.referredUserId?.firstName}{" "}
                                   {referral.referredUserId?.lastName}
                                 </div>
@@ -772,22 +812,26 @@ export default function AffiliateDashboard() {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className={titleText}>
+                            <div className={themeStyles.titleText}>
                               {referral.productType === "web-chatbot"
                                 ? `Web Chatbot`
                                 : `Instagram Automation`}
                             </div>
-                            <div className={`text-sm ${descriptionText}`}>
+                            <div
+                              className={`text-sm ${themeStyles.descriptionText}`}
+                            >
                               {referral.productType === "web-chatbot"
                                 ? referral.chatbotType
                                 : referral.instaPlan}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className={titleText}>
+                            <div className={themeStyles.titleText}>
                               {formatCurrency(referral.subscriptionPrice)}
                             </div>
-                            <div className={`text-sm ${descriptionText}`}>
+                            <div
+                              className={`text-sm ${themeStyles.descriptionText}`}
+                            >
                               per {referral.subscriptionType}
                             </div>
                           </td>
@@ -803,12 +847,16 @@ export default function AffiliateDashboard() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className={`font-bold ${titleText}`}>
+                            <div
+                              className={`font-bold ${themeStyles.titleText}`}
+                            >
                               {formatCurrency(referral.totalCommissionEarned)}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className={`text-sm ${descriptionText}`}>
+                            <div
+                              className={`text-sm ${themeStyles.descriptionText}`}
+                            >
                               {referral.subscriptionType === "monthly"
                                 ? `${referral.monthsRemaining} months`
                                 : `${referral.yearsRemaining} years`}
@@ -832,31 +880,31 @@ export default function AffiliateDashboard() {
                   {[
                     {
                       title: "Total Earnings",
-                      value: formatCurrency(data.stats.totalEarnings),
+                      value: formatCurrency(data?.stats?.totalEarnings),
                       gradient: "from-green-400 to-emerald-500",
                       icon: DollarSign,
                       description: "Lifetime earnings",
                     },
                     {
                       title: "Pending Payout",
-                      value: formatCurrency(data.stats.pendingEarnings),
+                      value: formatCurrency(data?.stats?.pendingEarnings),
                       gradient: "from-yellow-400 to-amber-500",
                       icon: Clock,
                       description: "Available for payout",
                     },
                     {
                       title: "This Month",
-                      value: formatCurrency(data.stats.monthlyEarnings),
+                      value: formatCurrency(data?.stats?.monthlyEarnings),
                       gradient: "from-blue-400 to-cyan-500",
                       icon: TrendingUp,
                       description: "Current month earnings",
                     },
-                  ].map((stat) => (
+                  ]?.map((stat) => (
                     <motion.div
                       key={stat.title}
                       variants={cardVariants}
                       whileHover="hover"
-                      className={`rounded-2xl backdrop-blur-sm ${cardBg}`}
+                      className={`rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
                     >
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between">
@@ -866,11 +914,15 @@ export default function AffiliateDashboard() {
                             <stat.icon className="w-6 h-6 text-white" />
                           </div>
                         </div>
-                        <p className={`text-2xl font-bold mb-2 ${titleText}`}>
+                        <p
+                          className={`text-2xl font-bold mb-2 ${themeStyles.titleText}`}
+                        >
                           {stat.value}
                         </p>
                         <p className="font-medium">{stat.title}</p>
-                        <p className={`text-sm mt-2 ${descriptionText}`}>
+                        <p
+                          className={`text-sm mt-2 font-montserrat ${themeStyles.descriptionText}`}
+                        >
                           {stat.description}
                         </p>
                       </CardContent>
@@ -878,16 +930,18 @@ export default function AffiliateDashboard() {
                   ))}
                 </div>
 
-                <h3 className={`text-lg font-semibold mb-4 ${titleText}`}>
+                <h3
+                  className={`text-lg font-semibold mb-4 ${themeStyles.titleText}`}
+                >
                   Commission History
                 </h3>
                 <div className="space-y-4">
-                  {data.monthlyCommissions.map((commission) => (
+                  {data?.monthlyCommissions?.map((commission) => (
                     <motion.div
                       key={commission._id}
                       variants={cardVariants}
                       whileHover="hover"
-                      className={`rounded-xl backdrop-blur-sm ${cardBg}`}
+                      className={`rounded-xl backdrop-blur-sm ${themeStyles.cardBg}`}
                     >
                       <div className="p-4">
                         <div className="flex items-center justify-between">
@@ -906,22 +960,26 @@ export default function AffiliateDashboard() {
                               </span>
                             </div>
                             <div>
-                              <p className={`font-medium ${titleText}`}>
+                              <p
+                                className={`font-medium ${themeStyles.titleText}`}
+                              >
                                 {commission.productName}
                               </p>
                               <div className="flex items-center gap-2 text-sm">
-                                <span className={descriptionText}>
+                                <span className={themeStyles.descriptionText}>
                                   Period: {commission.period}
                                 </span>
                                 <span className="text-gray-400">•</span>
-                                <span className={descriptionText}>
+                                <span className={themeStyles.descriptionText}>
                                   Type: {commission.subscriptionType}
                                 </span>
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className={`font-bold text-xl ${titleText}`}>
+                            <p
+                              className={`font-bold text-xl ${themeStyles.titleText}`}
+                            >
                               {formatCurrency(commission.amount)}
                             </p>
                             <span
@@ -952,10 +1010,14 @@ export default function AffiliateDashboard() {
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
                   <div>
-                    <h3 className={`text-lg font-semibold ${titleText}`}>
+                    <h3
+                      className={`text-lg font-semibold ${themeStyles.titleText}`}
+                    >
                       Payout History
                     </h3>
-                    <p className={`text-sm ${descriptionText}`}>
+                    <p
+                      className={`text-sm ${themeStyles.descriptionText} font-montserrat`}
+                    >
                       Track your payout requests and status
                     </p>
                   </div>
@@ -968,27 +1030,31 @@ export default function AffiliateDashboard() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`rounded-2xl backdrop-blur-sm ${cardBg} text-center py-12`}
+                    className={`rounded-2xl backdrop-blur-sm ${themeStyles.cardBg} text-center py-12`}
                   >
                     <div className="w-16 h-16 bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20 rounded-full flex items-center justify-center mx-auto mb-4">
                       <DollarSign className="w-8 h-8 text-[#00F0FF]" />
                     </div>
-                    <h4 className={`text-lg font-semibold mb-2 ${titleText}`}>
+                    <h4
+                      className={`text-lg font-semibold mb-2 ${themeStyles.titleText}`}
+                    >
                       No Payouts Yet
                     </h4>
-                    <p className={`max-w-md mx-auto ${descriptionText}`}>
+                    <p
+                      className={`max-w-md mx-auto ${themeStyles.descriptionText}`}
+                    >
                       Your pending earnings will be automatically paid at the
                       end of each month
                     </p>
                   </motion.div>
                 ) : (
                   <div className="space-y-4">
-                    {data.payoutHistory.map((payout) => (
+                    {data?.payoutHistory?.map((payout) => (
                       <motion.div
                         key={payout._id}
                         variants={cardVariants}
                         whileHover="hover"
-                        className={`rounded-xl backdrop-blur-sm ${cardBg}`}
+                        className={`rounded-xl backdrop-blur-sm ${themeStyles.cardBg}`}
                       >
                         <div className="p-6">
                           <div className="flex flex-col md:flex-row md:items-start justify-between">
@@ -1005,21 +1071,23 @@ export default function AffiliateDashboard() {
                                 >
                                   {payout.status}
                                 </span>
-                                <span className={`text-sm ${descriptionText}`}>
+                                <span
+                                  className={`text-sm ${themeStyles.descriptionText}`}
+                                >
                                   Period: {payout.period}
                                 </span>
                               </div>
                               <p
-                                className={`font-bold text-2xl mb-2 ${titleText}`}
+                                className={`font-bold text-2xl mb-2 ${themeStyles.titleText}`}
                               >
                                 {formatCurrency(payout.amount)}
                               </p>
                               <div className="flex items-center gap-4 text-sm">
-                                <span className={descriptionText}>
+                                <span className={themeStyles.descriptionText}>
                                   Method: {payout.paymentMethod}
                                 </span>
                                 <span className="text-gray-400">•</span>
-                                <span className={descriptionText}>
+                                <span className={themeStyles.descriptionText}>
                                   Date:{" "}
                                   {new Date(
                                     payout.createdAt
@@ -1029,10 +1097,14 @@ export default function AffiliateDashboard() {
                             </div>
                             {payout.transactionId && (
                               <div className="mt-4 md:mt-0 text-left md:text-right">
-                                <p className={`text-sm ${descriptionText}`}>
+                                <p
+                                  className={`text-sm ${themeStyles.descriptionText}`}
+                                >
                                   Transaction ID
                                 </p>
-                                <p className={`font-mono text-sm ${titleText}`}>
+                                <p
+                                  className={`font-mono text-sm ${themeStyles.titleText}`}
+                                >
                                   {payout.transactionId}
                                 </p>
                               </div>
@@ -1047,30 +1119,36 @@ export default function AffiliateDashboard() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`rounded-2xl backdrop-blur-sm ${cardBg} mt-8`}
+                  className={`rounded-2xl backdrop-blur-sm ${themeStyles.cardBg} mt-8`}
                 >
                   <CardContent className="p-6">
-                    <h4 className={`font-semibold mb-4 ${titleText}`}>
+                    <h4
+                      className={`font-semibold mb-4 ${themeStyles.titleText}`}
+                    >
                       Payout Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <p className={`text-sm mb-2 ${descriptionText}`}>
+                        <p
+                          className={`text-sm mb-2 ${themeStyles.descriptionText}`}
+                        >
                           Payment Method
                         </p>
                         <div className="flex items-center">
                           <div
                             className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${
-                              data.affiliate.paymentDetails.method === "bank"
+                              data?.affiliate?.paymentDetails?.method === "bank"
                                 ? "bg-gradient-to-r from-blue-400 to-cyan-500"
-                                : data.affiliate.paymentDetails.method === "upi"
+                                : data?.affiliate?.paymentDetails?.method ===
+                                  "upi"
                                 ? "bg-gradient-to-r from-purple-400 to-pink-500"
                                 : "bg-gradient-to-r from-yellow-400 to-amber-500"
                             }`}
                           >
-                            {data.affiliate.paymentDetails.method === "bank" ? (
+                            {data?.affiliate?.paymentDetails?.method ===
+                            "bank" ? (
                               <Building className="w-5 h-5 text-white" />
-                            ) : data.affiliate.paymentDetails.method ===
+                            ) : data?.affiliate?.paymentDetails?.method ===
                               "upi" ? (
                               <Smartphone className="w-5 h-5 text-white" />
                             ) : (
@@ -1078,20 +1156,26 @@ export default function AffiliateDashboard() {
                             )}
                           </div>
                           <div>
-                            <p className={`font-medium ${titleText}`}>
-                              {data.affiliate.paymentDetails.method.toUpperCase()}
+                            <p
+                              className={`font-medium ${themeStyles.titleText}`}
+                            >
+                              {data?.affiliate?.paymentDetails?.method.toUpperCase()}
                             </p>
-                            {data.affiliate.paymentDetails.method ===
+                            {data?.affiliate?.paymentDetails?.method ===
                               "bank" && (
-                              <p className={`text-sm ${descriptionText}`}>
-                                {data.affiliate.paymentDetails.bankName}
+                              <p
+                                className={`text-sm ${themeStyles.descriptionText}`}
+                              >
+                                {data?.affiliate?.paymentDetails?.bankName}
                               </p>
                             )}
                           </div>
                         </div>
                       </div>
                       <div>
-                        <p className={`text-sm mb-2 ${descriptionText}`}>
+                        <p
+                          className={`text-sm mb-2 ${themeStyles.descriptionText}`}
+                        >
                           Next Payout Date
                         </p>
                         <div className="flex items-center">
@@ -1099,7 +1183,9 @@ export default function AffiliateDashboard() {
                             <Calendar className="w-5 h-5 text-white" />
                           </div>
                           <div>
-                            <p className={`font-medium ${titleText}`}>
+                            <p
+                              className={`font-medium ${themeStyles.titleText}`}
+                            >
                               {new Date().getDate() <= 25
                                 ? `25th ${new Date().toLocaleString("default", {
                                     month: "long",
@@ -1112,7 +1198,9 @@ export default function AffiliateDashboard() {
                                     month: "long",
                                   })}`}
                             </p>
-                            <p className={`text-sm ${descriptionText}`}>
+                            <p
+                              className={`text-sm ${themeStyles.descriptionText}`}
+                            >
                               Minimum payout: ₹1000
                             </p>
                           </div>

@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTheme } from "next-themes";
+import { useMemo } from "react";
 
 const testimonials = [
   {
@@ -28,22 +29,25 @@ const testimonials = [
 ];
 
 export function WebTestimonialsSection() {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-100/50";
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/80";
-  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-300";
-  const cardHoverBorder =
-    theme === "dark"
-      ? "hover:border-[#258b94]/40"
-      : "hover:border-[#00F0FF]/60";
-  const badgeBg =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      textSecondary: isDark ? "text-gray-300" : "text-n-5",
+      textMuted: isDark ? "text-gray-400" : "text-n-5",
+      containerBg: isDark ? "bg-[#0a0a0a]/10" : "bg-gray-100/50",
+      cardBg: isDark ? "bg-[#0a0a0a]/10" : "bg-white/80",
+      cardBorder: isDark ? "border-white/10" : "border-gray-300",
+      cardHoverBorder: isDark
+        ? "hover:border-[#258b94]/40"
+        : "hover:border-[#00F0FF]/60",
+      badgeBg: isDark ? "border-[#00F0FF]/30" : "border-blue-700/30",
+    };
+  }, [currentTheme]);
   // Enhanced animation variants matching FAQ section
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -141,7 +145,7 @@ export function WebTestimonialsSection() {
 
   return (
     <motion.section
-      className={`py-16 ${textPrimary}`}
+      className={`py-16 ${themeStyles.textPrimary}`}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: false, margin: "-100px" }}
@@ -155,14 +159,14 @@ export function WebTestimonialsSection() {
         initial="hidden"
       >
         <span
-          className={`text-sm font-medium uppercase tracking-widest border ${badgeBg} rounded-full px-4 py-1`}
+          className={`text-sm font-medium uppercase tracking-widest border ${themeStyles.badgeBg} rounded-full px-4 py-1`}
         >
           CUSTOMER REVIEW
         </span>
       </motion.div>
       <div className="text-center mb-12">
         <motion.h2
-          className={`text-3xl font-bold mb-4 gradient-text-main ${textPrimary}`}
+          className={`text-3xl font-bold mb-4 gradient-text-main ${themeStyles.textPrimary}`}
           variants={titleVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -171,7 +175,7 @@ export function WebTestimonialsSection() {
           What Our Customers Say
         </motion.h2>
         <motion.p
-          className={`text-xl ${textSecondary} font-montserrat`}
+          className={`text-xl ${themeStyles.textSecondary} font-montserrat`}
           variants={itemVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -183,7 +187,7 @@ export function WebTestimonialsSection() {
       </div>
 
       <motion.div
-        className={`grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 ${containerBg} backdrop-blur-sm`}
+        className={`grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 ${themeStyles.containerBg} backdrop-blur-sm`}
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -197,7 +201,7 @@ export function WebTestimonialsSection() {
             whileInView="visible"
             viewport={{ once: false, margin: "-50px" }}
             initial="hidden"
-            className={`h-full border ${cardBorder} rounded-lg ${cardBg}  ${cardHoverBorder} transition-colors duration-300`}
+            className={`h-full border ${themeStyles.cardBorder} rounded-lg ${themeStyles.cardBg}  ${themeStyles.cardHoverBorder} transition-colors duration-300`}
           >
             <Card className={`border-0 bg-transparent shadow-none h-full`}>
               <CardContent className="p-3 md:p-6">
@@ -219,7 +223,7 @@ export function WebTestimonialsSection() {
                 </motion.div>
 
                 <motion.p
-                  className={`${textSecondary} mb-4 font-montserrat`}
+                  className={`${themeStyles.textSecondary} mb-4 font-montserrat`}
                   variants={contentVariants}
                   whileInView="visible"
                   viewport={{ once: false }}
@@ -234,10 +238,10 @@ export function WebTestimonialsSection() {
                   viewport={{ once: false }}
                   initial="hidden"
                 >
-                  <p className={`font-semibold ${textPrimary}`}>
+                  <p className={`font-semibold ${themeStyles.textPrimary}`}>
                     {testimonial.name}
                   </p>
-                  <p className={`text-sm ${textMuted}`}>
+                  <p className={`text-sm ${themeStyles.textMuted}`}>
                     {testimonial.company}
                   </p>
                 </motion.div>

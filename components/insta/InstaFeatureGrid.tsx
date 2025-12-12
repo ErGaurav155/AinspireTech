@@ -9,6 +9,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { useTheme } from "next-themes";
+import { useMemo } from "react";
 
 const features = [
   {
@@ -56,27 +57,25 @@ const features = [
 ];
 
 export function InstaFeaturesGrid() {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-50/50";
-
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/50";
-
-  const titleText = theme === "dark" ? "text-white" : "text-n-7";
-
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
-
-  const iconBg =
-    theme === "dark"
-      ? "bg-gradient-to-br from-white/10 to-white/5"
-      : "bg-gradient-to-br from-gray-100 to-gray-50";
-
-  const cardHoverBorder =
-    theme === "dark"
-      ? "borderColor: 'rgba(37, 139, 148, 0.4)', boxShadow: '0 20px 40px -10px rgba(37, 139, 148, 0.2)'"
-      : "borderColor: 'rgba(37, 139, 148, 0.2)', boxShadow: '0 20px 40px -10px rgba(37, 139, 148, 0.1)'";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]/10" : "bg-gray-50/50",
+      cardBg: isDark ? "bg-[#0a0a0a]/10" : "bg-white/50",
+      titleText: isDark ? "text-white" : "text-n-7",
+      descriptionText: isDark ? "text-gray-300" : "text-n-5",
+      iconBg: isDark
+        ? "bg-gradient-to-br from-white/10 to-white/5"
+        : "bg-gradient-to-br from-gray-100 to-gray-50",
+      cardHoverBorder: isDark
+        ? "borderColor: 'rgba(37, 139, 148, 0.4)', boxShadow: '0 20px 40px -10px rgba(37, 139, 148, 0.2)'"
+        : "borderColor: 'rgba(37, 139, 148, 0.2)', boxShadow: '0 20px 40px -10px rgba(37, 139, 148, 0.1)'",
+    };
+  }, [currentTheme]);
   const colorClasses = {
     cyan:
       theme === "dark"
@@ -206,7 +205,7 @@ export function InstaFeaturesGrid() {
           Why Choose AinspireTech Automation for Instagram
         </motion.h2>
         <motion.p
-          className={`text-xl font-montserrat ${descriptionText}`}
+          className={`text-xl font-montserrat ${themeStyles.descriptionText}`}
           variants={containerVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -217,7 +216,7 @@ export function InstaFeaturesGrid() {
         </motion.p>
       </div>
       <motion.div
-        className={`grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 ${containerBg} backdrop-blur-sm`}
+        className={`grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 ${themeStyles.containerBg} backdrop-blur-sm`}
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -237,13 +236,15 @@ export function InstaFeaturesGrid() {
               initial="hidden"
             >
               <Card
-                className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${cardBg} ${
+                className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${
+                  themeStyles.cardBg
+                } ${
                   colorClasses[feature.color as keyof typeof colorClasses]
                 } border h-full`}
               >
                 <CardHeader className="p-3 md:p-6">
                   <motion.div
-                    className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 ${iconBg}`}
+                    className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 ${themeStyles.iconBg}`}
                     variants={iconVariants}
                     whileInView="visible"
                     viewport={{ once: false }}
@@ -258,7 +259,9 @@ export function InstaFeaturesGrid() {
                     viewport={{ once: false }}
                     initial="hidden"
                   >
-                    <CardTitle className={`text-xl mb-2 ${titleText}`}>
+                    <CardTitle
+                      className={`text-xl mb-2 ${themeStyles.titleText}`}
+                    >
                       {feature.title}
                     </CardTitle>
                   </motion.div>
@@ -270,7 +273,7 @@ export function InstaFeaturesGrid() {
                     initial="hidden"
                   >
                     <CardDescription
-                      className={`font-montserrat ${descriptionText}`}
+                      className={`font-montserrat ${themeStyles.descriptionText}`}
                     >
                       {feature.description}
                     </CardDescription>

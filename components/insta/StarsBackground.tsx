@@ -4,7 +4,8 @@ import { useEffect } from "react";
 import { useTheme } from "next-themes";
 
 export default function StarsBackground() {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   useEffect(() => {
     const createStarParticles = () => {

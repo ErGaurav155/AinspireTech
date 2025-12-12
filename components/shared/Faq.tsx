@@ -1,29 +1,32 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTheme } from "next-themes";
 
 const Faq = () => {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/50";
-  const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
-  const titleText = theme === "dark" ? "text-white" : "text-n-7";
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
-  const cardBorder = theme === "dark" ? "border-[#333]" : "border-gray-200";
-  const cardHoverBorder =
-    theme === "dark"
-      ? "hover:border-[#258b94]/40"
-      : "hover:border-[#258b94]/60";
-  const questionText = theme === "dark" ? "text-[#258b94]" : "text-[#1a6b72]";
-  const answerText = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const cardShadow =
-    theme === "dark"
-      ? "0 20px 40px -10px rgba(37, 139, 148, 0.2)"
-      : "0 20px 40px -10px rgba(37, 139, 148, 0.1)";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]/10" : "bg-white/50",
+      badgeBorder: isDark ? "border-[#00F0FF]/30" : "border-blue-700/30",
+      titleText: isDark ? "text-white" : "text-n-7",
+      cardBg: isDark ? "bg-[#0a0a0a]/60" : "bg-white/80",
+      cardBorder: isDark ? "border-[#333]" : "border-gray-200",
+      cardHoverBorder: isDark
+        ? "hover:border-[#258b94]/40"
+        : "hover:border-[#258b94]/60",
+      questionText: isDark ? "text-[#258b94]" : "text-[#1a6b72]",
+      answerText: isDark ? "text-gray-300" : "text-n-5",
+      cardShadow: isDark
+        ? "0 20px 40px -10px rgba(37, 139, 148, 0.2)"
+        : "0 20px 40px -10px rgba(37, 139, 148, 0.1)",
+    };
+  }, [currentTheme]);
 
   // Animation variants - remove 'once: true' to replay on every scroll
   const containerVariants = {
@@ -71,7 +74,7 @@ const Faq = () => {
         theme === "dark"
           ? "rgba(37, 139, 148, 0.4)"
           : "rgba(37, 139, 148, 0.2)",
-      boxShadow: cardShadow,
+      boxShadow: themeStyles.cardShadow,
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -163,21 +166,21 @@ const Faq = () => {
             initial="hidden"
           >
             <span
-              className={`text-sm font-medium uppercase tracking-widest border ${badgeBorder} rounded-full px-4 py-1`}
+              className={`text-sm font-medium uppercase tracking-widest border ${themeStyles.badgeBorder} rounded-full px-4 py-1`}
             >
               FAQ SECTION
             </span>
           </motion.div>
           <motion.div variants={itemVariants} className="mb-4">
             <h2
-              className={`text-3xl font-bold mb-4 gradient-text-main text-center ${titleText}`}
+              className={`text-3xl font-bold mb-4 gradient-text-main text-center ${themeStyles.titleText}`}
             >
               Frequently Asked Questions
             </h2>
           </motion.div>
 
           <div
-            className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${containerBg} p-5 backdrop-blur-sm`}
+            className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${themeStyles.containerBg} md:p-5 backdrop-blur-sm`}
           >
             {faqData.map((faq, index) => (
               <motion.div
@@ -189,11 +192,11 @@ const Faq = () => {
                 initial="hidden"
               >
                 <Card
-                  className={`${cardBg} border ${cardBorder} ${cardHoverBorder} transition-colors duration-300`}
+                  className={`${themeStyles.cardBg} border ${themeStyles.cardBorder} ${themeStyles.cardHoverBorder} transition-colors duration-300`}
                 >
                   <CardContent className="p-3 md:p-6">
                     <motion.h3
-                      className={`font-semibold mb-2 ${questionText}`}
+                      className={`font-semibold mb-2 ${themeStyles.questionText}`}
                       variants={questionVariants}
                       whileInView="visible"
                       viewport={{ once: false }}
@@ -202,7 +205,7 @@ const Faq = () => {
                       {faq.question}
                     </motion.h3>
                     <motion.p
-                      className={`font-montserrat ${answerText}`}
+                      className={`font-montserrat ${themeStyles.answerText}`}
                       variants={answerVariants}
                       whileInView="visible"
                       viewport={{ once: false }}

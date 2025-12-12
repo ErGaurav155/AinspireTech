@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { instagramFeatures, webChatFeatures } from "@/constant";
@@ -11,9 +11,17 @@ function StickyFeaturesSection() {
   const [activeTab, setActiveTab] = useState<"webchat" | "instagram">(
     "webchat"
   );
-  const { theme } = useTheme();
-  const tabBorder = theme === "dark" ? "border-gray-800" : "border-gray-300";
-  const featureText = theme === "dark" ? "text-white" : "text-n-5";
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
+  // Theme-based styles
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      tabBorder: isDark ? "border-gray-800" : "border-gray-300",
+      featureText: isDark ? "text-white" : "text-n-5",
+    };
+  }, [currentTheme]);
+
   // EXACT same animation variants as testimonials component
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -154,7 +162,7 @@ function StickyFeaturesSection() {
           Why Choose AinspireTech{" "}
         </motion.h2>
         <motion.p
-          className={`text-lg ${featureText} max-w-2xl mx-auto font-montserrat `}
+          className={`text-lg ${themeStyles.featureText} max-w-2xl mx-auto font-montserrat `}
           variants={textVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -174,7 +182,7 @@ function StickyFeaturesSection() {
         viewport={{ once: false, margin: "-50px" }}
       >
         <div
-          className={`${tabBorder} backdrop-blur-lg rounded-full p-1 border border-gray-500/80`}
+          className={`${themeStyles.tabBorder} backdrop-blur-lg rounded-full p-1 border border-gray-500/80`}
         >
           <div className="flex md:space-x-1">
             <motion.button

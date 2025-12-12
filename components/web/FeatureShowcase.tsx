@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   MessageCircle,
@@ -32,48 +32,37 @@ import { useTheme } from "next-themes";
 export function FeatureShowcase() {
   const [activeCategory, setActiveCategory] = useState("all");
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/40";
-
-  const badgeBorder =
-    theme === "dark" ? "border-[#00F0FF]/30" : "border-blue-700/30";
-
-  const titleText = theme === "dark" ? "text-white" : "text-n-8";
-
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
-
-  const cardBg = theme === "dark" ? "bg-white/10" : "bg-white/90";
-
-  const cardHoverBorder =
-    theme === "dark" ? "border-[#258b94]/40" : "border-[#258b94]/60";
-
-  const gradientBg =
-    theme === "dark"
-      ? "from-[#00F0FF]/5 to-[#B026FF]/5"
-      : "from-[#00F0FF]/10 to-[#B026FF]/10";
-
-  const filterButtonBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/80";
-
-  const filterButtonBorder =
-    theme === "dark"
-      ? "border-[#00F0FF]/30 text-gray-300 hover:border-[#00F0FF] hover:text-white"
-      : "border-[#00F0FF]/50 text-gray-600 hover:border-[#00F0FF] hover:text-gray-900";
-
-  const categoryBadgeBg =
-    theme === "dark" ? "bg-gray-800 text-gray-300" : "bg-gray-200 text-n-5";
-
-  const ctaText =
-    theme === "dark"
-      ? "text-[#00F0FF] hover:text-[#B026FF]"
-      : "text-[#00F0FF] hover:text-[#B026FF]";
-
-  const cardHoverEffect =
-    theme === "dark"
-      ? "borderColor: 'rgba(37, 139, 148, 0.4)'"
-      : "borderColor: 'rgba(37, 139, 148, 0.2)'";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]/10" : "bg-white/40",
+      badgeBorder: isDark ? "border-[#00F0FF]/30" : "border-blue-700/30",
+      titleText: isDark ? "text-white" : "text-n-8",
+      descriptionText: isDark ? "text-gray-300" : "text-n-5",
+      cardBg: isDark ? "bg-white/10" : "bg-white/90",
+      cardHoverBorder: isDark ? "border-[#258b94]/40" : "border-[#258b94]/60",
+      gradientBg: isDark
+        ? "from-[#00F0FF]/5 to-[#B026FF]/5"
+        : "from-[#00F0FF]/10 to-[#B026FF]/10",
+      filterButtonBg: isDark ? "bg-[#0a0a0a]/10" : "bg-white/80",
+      filterButtonBorder: isDark
+        ? "border-[#00F0FF]/30 text-gray-300 hover:border-[#00F0FF] hover:text-white"
+        : "border-[#00F0FF]/50 text-gray-600 hover:border-[#00F0FF] hover:text-gray-900",
+      categoryBadgeBg: isDark
+        ? "bg-gray-800 text-gray-300"
+        : "bg-gray-200 text-n-5",
+      ctaText: isDark
+        ? "text-[#00F0FF] hover:text-[#B026FF]"
+        : "text-[#00F0FF] hover:text-[#B026FF]",
+      cardHoverEffect: isDark
+        ? "borderColor: 'rgba(37, 139, 148, 0.4)'"
+        : "borderColor: 'rgba(37, 139, 148, 0.2)'",
+    };
+  }, [currentTheme]);
   // EXACT same animation variants as FeatureSection component
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -304,7 +293,7 @@ export function FeatureShowcase() {
           viewport={{ once: false, margin: "-100px" }}
         >
           <motion.div
-            className={`inline-flex items-center text-blue-700 border ${badgeBorder} rounded-full px-4 py-1 mb-4`}
+            className={`inline-flex items-center text-blue-700 border ${themeStyles.badgeBorder} rounded-full px-4 py-1 mb-4`}
             variants={titleVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -324,7 +313,7 @@ export function FeatureShowcase() {
             Unlock The Full Potential
           </motion.h2>
           <motion.p
-            className={`text-lg p-2 max-w-3xl mx-auto font-montserrat ${descriptionText}`}
+            className={`text-lg p-2 max-w-3xl mx-auto font-montserrat ${themeStyles.descriptionText}`}
             variants={textVariants}
             whileInView="visible"
             viewport={{ once: false }}
@@ -347,7 +336,7 @@ export function FeatureShowcase() {
 
         {/* Category Filters */}
         <motion.div
-          className={`flex flex-wrap justify-center gap-1 md:gap-4 mb-4 md:mb-12 ${containerBg} backdrop-blur-sm p-3 rounded`}
+          className={`flex flex-wrap justify-center gap-1 md:gap-4 mb-4 md:mb-12 ${themeStyles.containerBg} backdrop-blur-sm p-3 rounded`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -357,10 +346,12 @@ export function FeatureShowcase() {
             <motion.button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`px-2 py-1 md:px-6 md:py-3 rounded-full border transition-all ${filterButtonBg} backdrop-blur-sm duration-300 ${
+              className={`px-2 py-1 md:px-6 md:py-3 rounded-full border transition-all ${
+                themeStyles.filterButtonBg
+              } backdrop-blur-sm duration-300 ${
                 activeCategory === category.id
                   ? "bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white border-transparent"
-                  : `${filterButtonBorder}`
+                  : `${themeStyles.filterButtonBorder}`
               }`}
               variants={cardVariants}
               whileInView="visible"
@@ -381,7 +372,7 @@ export function FeatureShowcase() {
 
         {/* Features Grid */}
         <motion.div
-          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto ${containerBg} backdrop-blur-sm p-5 rounded`}
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto ${themeStyles.containerBg} backdrop-blur-sm md:p-5 rounded`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -390,7 +381,7 @@ export function FeatureShowcase() {
           {filteredFeatures.map((feature, index) => (
             <motion.div
               key={index}
-              className={`border ${cardBg} rounded-2xl p-3 group relative overflow-hidden flex flex-col items-start justify-center gap-2 hover:${cardHoverBorder} transition-colors duration-300`}
+              className={`border ${themeStyles.cardBg} rounded-2xl p-3 group relative overflow-hidden flex flex-col items-start justify-center gap-2 hover:${themeStyles.cardHoverBorder} transition-colors duration-300`}
               variants={cardVariants}
               whileHover="hover"
               whileInView="visible"
@@ -399,7 +390,7 @@ export function FeatureShowcase() {
             >
               {/* Background Gradient Effect */}
               <div
-                className={`absolute inset-0 bg-gradient-to-br ${gradientBg} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                className={`absolute inset-0 bg-gradient-to-br ${themeStyles.gradientBg} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
               ></div>
 
               <div className="flex items-start justify-center gap-2 relative z-10">
@@ -418,7 +409,7 @@ export function FeatureShowcase() {
                 <div className="flex-1">
                   {/* Title */}
                   <motion.h3
-                    className={`text-lg font-medium group-hover:text-[#00F0FF] transition-colors duration-300 mb-2 ${titleText}`}
+                    className={`text-lg font-medium group-hover:text-[#00F0FF] transition-colors duration-300 mb-2 ${themeStyles.titleText}`}
                     variants={titleVariants}
                     whileInView="visible"
                     viewport={{ once: false }}
@@ -429,7 +420,7 @@ export function FeatureShowcase() {
 
                   {/* Description */}
                   <motion.p
-                    className={`text-sm font-montserrat ${descriptionText}`}
+                    className={`text-sm font-montserrat ${themeStyles.descriptionText}`}
                     variants={textVariants}
                     whileInView="visible"
                     viewport={{ once: false }}
@@ -445,7 +436,7 @@ export function FeatureShowcase() {
                   onClick={() => {
                     router.push("/insta/dashboard");
                   }}
-                  className={`inline-flex items-center transition-colors duration-300 ${ctaText}`}
+                  className={`inline-flex items-center transition-colors duration-300 ${themeStyles.ctaText}`}
                   variants={textVariants}
                   whileInView="visible"
                   viewport={{ once: false }}
@@ -477,7 +468,7 @@ export function FeatureShowcase() {
                   initial="hidden"
                 >
                   <span
-                    className={`text-xs px-2 py-1 rounded-full ${categoryBadgeBg} capitalize`}
+                    className={`text-xs px-2 py-1 rounded-full ${themeStyles.categoryBadgeBg} capitalize`}
                   >
                     {feature.category}
                   </span>

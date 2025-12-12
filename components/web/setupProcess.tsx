@@ -8,32 +8,35 @@ import {
   CheckCircle,
   ArrowRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 
 export function SetupProcess() {
   const [activeStep, setActiveStep] = useState(1);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-100/50";
-  const containerBorder =
-    theme === "dark" ? "border-gray-800" : "border-gray-300";
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/80";
-  const cardBorder = theme === "dark" ? "border-gray-800" : "border-gray-200";
-  const inputBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
-  const inputBorder = theme === "dark" ? "border-gray-700" : "border-gray-300";
-  const gradientBg =
-    theme === "dark"
-      ? "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a]"
-      : "bg-gradient-to-r from-gray-50 to-gray-100";
-  const tabsListBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-gray-100/80";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      textSecondary: isDark ? "text-gray-300" : "text-n-5",
+      textMuted: isDark ? "text-gray-400" : "text-n-5",
+      containerBg: isDark ? "bg-[#0a0a0a]/10" : "bg-gray-100/50",
+      containerBorder: isDark ? "border-gray-800" : "border-gray-300",
+      cardBg: isDark ? "bg-[#0a0a0a]/10" : "bg-white/80",
+      cardBorder: isDark ? "border-gray-800" : "border-gray-200",
+      inputBg: isDark ? "bg-[#0a0a0a]" : "bg-white",
+      inputBorder: isDark ? "border-gray-700" : "border-gray-300",
+      gradientBg: isDark
+        ? "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a]"
+        : "bg-gradient-to-r from-gray-50 to-gray-100",
+      tabsListBg: isDark ? "bg-[#0a0a0a]/10" : "bg-gray-100/80",
+    };
+  }, [currentTheme]);
   const steps = [
     {
       number: 1,
@@ -150,7 +153,7 @@ export function SetupProcess() {
 
   return (
     <motion.section
-      className={`w-full py-20 bg-transparent ${textPrimary}`}
+      className={`w-full py-20 bg-transparent ${themeStyles.textPrimary}`}
       initial={{ opacity: 0, scale: 0.9 }}
       whileInView={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, delay: 0.2 }}
@@ -170,7 +173,7 @@ export function SetupProcess() {
         {/* Header */}
         <motion.div className="text-center mb-16" variants={itemVariants}>
           <h2
-            className={`text-3xl font-bold mb-4 gradient-text-main text-center ${textPrimary}`}
+            className={`text-3xl font-bold mb-4 gradient-text-main text-center ${themeStyles.textPrimary}`}
           >
             How to Add AI Chatbot to Your Website
           </h2>
@@ -190,7 +193,7 @@ export function SetupProcess() {
         >
           <motion.div variants={itemVariants}>
             <TabsList
-              className={`${tabsListBg} backdrop-blur-sm border min-h-max flex flex-wrap items-center justify-center max-w-max gap-1 md:gap-3 ${textPrimary} w-full grid-cols-3 ${containerBorder}`}
+              className={`${themeStyles.tabsListBg} backdrop-blur-sm border min-h-max flex flex-wrap items-center justify-center max-w-max gap-1 md:gap-3 ${themeStyles.textPrimary} w-full grid-cols-3 ${themeStyles.containerBorder}`}
             >
               {steps.map((step) => (
                 <motion.div
@@ -234,7 +237,7 @@ export function SetupProcess() {
                 >
                   <div className="max-w-4xl mx-auto">
                     <motion.div
-                      className={`${cardBg} backdrop-blur-sm border ${cardBorder} rounded-2xl p-2 md:p-8`}
+                      className={`${themeStyles.cardBg} backdrop-blur-sm border ${themeStyles.cardBorder} rounded-2xl p-2 md:p-8`}
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: 0.1 }}
@@ -259,7 +262,9 @@ export function SetupProcess() {
                           <div className="text-sm text-[#00F0FF] font-semibold uppercase tracking-wide">
                             Step {step.number} • {step.subtitle}
                           </div>
-                          <h3 className={`text-2xl font-bold ${textPrimary}`}>
+                          <h3
+                            className={`text-2xl font-bold ${themeStyles.textPrimary}`}
+                          >
                             {step.title}
                           </h3>
                         </div>
@@ -267,7 +272,7 @@ export function SetupProcess() {
 
                       {/* Description */}
                       <motion.p
-                        className={`${textSecondary} leading-relaxed font-montserrat mb-6`}
+                        className={`${themeStyles.textSecondary} leading-relaxed font-montserrat mb-6`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5, delay: 0.3 }}
@@ -296,7 +301,9 @@ export function SetupProcess() {
                                 variants={itemVariants}
                               >
                                 <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>
-                                <span className={textMuted}>FILES</span>
+                                <span className={themeStyles.textMuted}>
+                                  FILES
+                                </span>
                               </motion.div>
                               <motion.div
                                 className="flex items-center space-x-2"
@@ -309,7 +316,7 @@ export function SetupProcess() {
                                   <CheckCircle className="h-3 w-3 text-white" />
                                 </motion.div>
                                 <span
-                                  className={`${textPrimary} font-semibold`}
+                                  className={`${themeStyles.textPrimary} font-semibold`}
                                 >
                                   WEB
                                 </span>
@@ -325,13 +332,13 @@ export function SetupProcess() {
                               transition={{ staggerChildren: 0.1 }}
                             >
                               <motion.label
-                                className={`block text-sm font-semibold ${textPrimary}`}
+                                className={`block text-sm font-semibold ${themeStyles.textPrimary}`}
                                 variants={itemVariants}
                               >
                                 Website
                               </motion.label>
                               <motion.p
-                                className={`text-sm ${textMuted}`}
+                                className={`text-sm ${themeStyles.textMuted}`}
                                 variants={itemVariants}
                               >
                                 Enter the URL of the website you want to build a
@@ -343,12 +350,12 @@ export function SetupProcess() {
                                 variants={itemVariants}
                               >
                                 <label
-                                  className={`block text-sm font-medium ${textSecondary}`}
+                                  className={`block text-sm font-medium ${themeStyles.textSecondary}`}
                                 >
                                   Url
                                 </label>
                                 <motion.div
-                                  className={`${inputBg} border ${inputBorder} rounded-lg p-3`}
+                                  className={`${themeStyles.inputBg} border ${themeStyles.inputBorder} rounded-lg p-3`}
                                   whileHover={{ borderColor: "#00F0FF" }}
                                   transition={{ duration: 0.3 }}
                                 >
@@ -363,18 +370,22 @@ export function SetupProcess() {
                                 variants={itemVariants}
                               >
                                 <label
-                                  className={`block text-sm font-medium ${textSecondary}`}
+                                  className={`block text-sm font-medium ${themeStyles.textSecondary}`}
                                 >
                                   Language
                                 </label>
                                 <motion.div
-                                  className={`${inputBg} border ${inputBorder} rounded-lg p-3`}
+                                  className={`${themeStyles.inputBg} border ${themeStyles.inputBorder} rounded-lg p-3`}
                                   whileHover={{ borderColor: "#00F0FF" }}
                                   transition={{ duration: 0.3 }}
                                 >
-                                  <span className={textPrimary}>English</span>
+                                  <span className={themeStyles.textPrimary}>
+                                    English
+                                  </span>
                                 </motion.div>
-                                <p className={`text-sm ${textMuted}`}>
+                                <p
+                                  className={`text-sm ${themeStyles.textMuted}`}
+                                >
                                   Select language of source website
                                 </p>
                               </motion.div>
@@ -399,7 +410,7 @@ export function SetupProcess() {
                             transition={{ duration: 0.4, delay: 0.4 }}
                           >
                             <motion.div
-                              className={`${gradientBg} border border-[#00F0FF]/30 rounded-lg p-6`}
+                              className={`${themeStyles.gradientBg} border border-[#00F0FF]/30 rounded-lg p-6`}
                               whileHover={{
                                 borderColor: "#00F0FF",
                                 transition: { duration: 0.3 },
@@ -420,7 +431,7 @@ export function SetupProcess() {
                                   <Zap className="h-6 w-6 text-[#00F0FF]" />
                                 </motion.div>
                                 <h4
-                                  className={`text-lg font-bold ${textPrimary}`}
+                                  className={`text-lg font-bold ${themeStyles.textPrimary}`}
                                 >
                                   Crawling & Indexing Process
                                 </h4>
@@ -434,7 +445,7 @@ export function SetupProcess() {
                                 ].map((item, index) => (
                                   <motion.div
                                     key={item}
-                                    className={`flex items-center space-x-2 text-sm ${textSecondary}`}
+                                    className={`flex items-center space-x-2 text-sm ${themeStyles.textSecondary}`}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{
@@ -471,7 +482,7 @@ export function SetupProcess() {
                           >
                             {/* Chat Preview */}
                             <motion.div
-                              className={`${gradientBg} border border-[#00F0FF]/30 rounded-lg p-4`}
+                              className={`${themeStyles.gradientBg} border border-[#00F0FF]/30 rounded-lg p-4`}
                               whileHover={{ borderColor: "#00F0FF" }}
                               transition={{ duration: 0.3 }}
                             >
@@ -489,10 +500,14 @@ export function SetupProcess() {
                                   <MessageCircle className="h-4 w-4 text-white" />
                                 </motion.div>
                                 <div>
-                                  <div className={`font-bold ${textPrimary}`}>
+                                  <div
+                                    className={`font-bold ${themeStyles.textPrimary}`}
+                                  >
                                     Ainspiretech
                                   </div>
-                                  <div className={`text-xs ${textMuted}`}>
+                                  <div
+                                    className={`text-xs ${themeStyles.textMuted}`}
+                                  >
                                     Online
                                   </div>
                                 </div>
@@ -507,7 +522,7 @@ export function SetupProcess() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: 0.6 }}
                               >
-                                <p className={textPrimary}>
+                                <p className={themeStyles.textPrimary}>
                                   {step.chatPreview}
                                 </p>
                               </motion.div>
@@ -520,7 +535,7 @@ export function SetupProcess() {
                             ].map((item, index) => (
                               <motion.div
                                 key={item}
-                                className={`flex items-center space-x-2 text-sm ${textSecondary}`}
+                                className={`flex items-center space-x-2 text-sm ${themeStyles.textSecondary}`}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{

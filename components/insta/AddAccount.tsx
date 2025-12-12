@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,11 +48,18 @@ const AddAccount = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialog, setDialog] = useState(false);
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]" : "bg-gray-50",
+      textPrimary: isDark ? "text-white" : "text-n-7",
+    };
+  }, [currentTheme]);
+
   // const handleSubmit = async (e: React.FormEvent) => {
   //   e.preventDefault();
   //   setIsSubmitting(true);
@@ -65,7 +72,9 @@ const AddAccount = ({
   //   }, 2000);
   // };
   return (
-    <div className={`space-y-6 ${textPrimary} ${containerBg}`}>
+    <div
+      className={`space-y-6 ${themeStyles.textPrimary} ${themeStyles.containerBg}`}
+    >
       <div className="text-center mb-8">
         <div className="flex justify-center mb-4">
           <div className="h-16 w-16 bg-pink-100 rounded-full flex items-center justify-center">
@@ -100,7 +109,7 @@ const AddAccount = ({
         <CardContent className="p-2">
           <Dialog open={isLoad} onOpenChange={() => setIsLoad(false)}>
             <DialogContent
-              className={`max-w-md ${containerBg} backdrop-blur-lg border border-[#333] rounded-xl`}
+              className={`max-w-md ${themeStyles.containerBg} backdrop-blur-lg border border-[#333] rounded-xl`}
             >
               <DialogHeader>
                 <DialogTitle className="text-start text-white font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">

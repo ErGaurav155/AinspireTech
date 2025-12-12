@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
+import { useMemo } from "react";
 
 interface ConfirmSubscriptionChangeDialogProps {
   isOpen: boolean;
@@ -29,35 +30,40 @@ export function ConfirmSubscriptionChangeDialog({
   newPlan,
   isLoading = false,
 }: ConfirmSubscriptionChangeDialogProps) {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const dialogBg = theme === "dark" ? "bg-[#0a0a0a]/95" : "bg-white/95";
-  const dialogBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
-  const buttonOutlineBorder =
-    theme === "dark" ? "border-white/20" : "border-gray-300";
-  const buttonOutlineText =
-    theme === "dark" ? "text-gray-300" : "text-gray-700";
-
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      dialogBg: isDark ? "bg-[#0a0a0a]/95" : "bg-white/95",
+      dialogBorder: isDark ? "border-white/10" : "border-gray-200",
+      textPrimary: isDark ? "text-white" : "text-gray-900",
+      textSecondary: isDark ? "text-gray-300" : "text-gray-600",
+      textMuted: isDark ? "text-gray-400" : "text-gray-500",
+      buttonOutlineBorder: isDark ? "border-white/20" : "border-gray-300",
+      buttonOutlineText: isDark ? "text-gray-300" : "text-gray-700",
+    };
+  }, [currentTheme]);
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className={`${dialogBg} backdrop-blur-lg border ${dialogBorder} rounded-xl`}
+        className={`${themeStyles.dialogBg} backdrop-blur-lg border ${themeStyles.dialogBorder} rounded-xl`}
       >
         <DialogHeader>
-          <DialogTitle className={textPrimary}>
+          <DialogTitle className={themeStyles.textPrimary}>
             Confirm Subscription Change
           </DialogTitle>
-          <DialogDescription className={`${textSecondary} font-montserrat`}>
+          <DialogDescription
+            className={`${themeStyles.textSecondary} font-montserrat`}
+          >
             Are you sure you want to change your subscription from{" "}
             {currentPlan?.name} to {newPlan?.name}?
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <p className={`text-sm ${textSecondary} font-montserrat`}>
+          <p className={`text-sm ${themeStyles.textSecondary} font-montserrat`}>
             Your current subscription will be cancelled immediately and you will
             be charged for the new plan.
           </p>
@@ -67,7 +73,7 @@ export function ConfirmSubscriptionChangeDialog({
             variant="outline"
             onClick={onClose}
             disabled={isLoading}
-            className={`${buttonOutlineBorder} ${buttonOutlineText}`}
+            className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText}`}
           >
             Cancel
           </Button>

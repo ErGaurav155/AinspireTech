@@ -10,7 +10,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { tailwindHexColors } from "@/constant";
 import { useAuth } from "@clerk/nextjs";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   LineChart,
   Line,
@@ -62,22 +62,29 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
   const { userId, isLoaded } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
+
   const router = useRouter();
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
-  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const tabBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/60";
-  const tabBorder = theme === "dark" ? "border-gray-900" : "border-gray-300";
-  const chartGridColor = theme === "dark" ? "#374151" : "#E5E7EB";
-  const chartAxisColor = theme === "dark" ? "#9CA3AF" : "#6B7280";
-  const tooltipBg = theme === "dark" ? "#1F2937" : "#FFFFFF";
-  const tooltipBorder = theme === "dark" ? "#374151" : "#E5E7EB";
-  const tooltipText = theme === "dark" ? "#FFFFFF" : "#111827";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]" : "bg-gray-50",
+      textPrimary: isDark ? "text-white" : "text-gray-900",
+      textSecondary: isDark ? "text-gray-300" : "text-gray-600",
+      textMuted: isDark ? "text-gray-400" : "text-gray-500",
+      cardBg: isDark ? "bg-[#0a0a0a]/60" : "bg-white/80",
+      cardBorder: isDark ? "border-white/10" : "border-gray-200",
+      tabBg: isDark ? "bg-[#0a0a0a]/60" : "bg-white/60",
+      tabBorder: isDark ? "border-gray-900" : "border-gray-300",
+      chartGridColor: isDark ? "#374151" : "#E5E7EB",
+      chartAxisColor: isDark ? "#9CA3AF" : "#6B7280",
+      tooltipBg: isDark ? "#1F2937" : "#FFFFFF",
+      tooltipBorder: isDark ? "#374151" : "#E5E7EB",
+      tooltipText: isDark ? "#FFFFFF" : "#111827",
+    };
+  }, [currentTheme]);
 
   const [templateData, setTemplateData] = useState<
     { name: string; value: number; color: string }[]
@@ -170,11 +177,11 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
   if (isLoading || !isLoaded) {
     return (
       <div
-        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
+        className={`min-h-screen ${themeStyles.textPrimary} flex items-center justify-center ${themeStyles.containerBg}`}
       >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
-          <p className={textSecondary}>Loading accounts...</p>
+          <p className={themeStyles.textSecondary}>Loading accounts...</p>
         </div>
       </div>
     );
@@ -182,17 +189,17 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
   return (
     <div className="space-y-8 mb-10">
       <div>
-        <h2 className={`text-3xl font-bold mb-2 ${textPrimary}`}>
+        <h2 className={`text-3xl font-bold mb-2 ${themeStyles.textPrimary}`}>
           Analytics Dashboard
         </h2>
-        <p className={`${textSecondary} font-montserrat`}>
+        <p className={`${themeStyles.textSecondary} font-montserrat`}>
           Track your automation performance and engagement metrics
         </p>
       </div>
 
       <Tabs defaultValue="templates" className="space-y-6">
         <TabsList
-          className={`${tabBg} ${tabBorder} border min-h-max flex flex-wrap items-center justify-start max-w-max gap-1 md:gap-3 w-full grid-cols-4`}
+          className={`${themeStyles.tabBg} ${themeStyles.tabBorder} border min-h-max flex flex-wrap items-center justify-start max-w-max gap-1 md:gap-3 w-full grid-cols-4`}
         >
           {/* <TabsTrigger
             value="overview"
@@ -221,7 +228,7 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
         </TabsList>
 
         {/* <TabsContent value="overview" className="space-y-6">
-          <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
+          <Card className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}>
             <CardHeader className="p-2">
               <CardTitle className={textPrimary}>Daily Activity</CardTitle>
               <CardDescription className={textSecondary}>
@@ -261,7 +268,7 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
         </TabsContent> */}
 
         {/* <TabsContent value="engagement" className="space-y-6">
-          <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
+          <Card className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}>
             <CardHeader className="p-2">
               <CardTitle className={textPrimary}>
                 Engagement Rate Trend
@@ -297,10 +304,16 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
         </TabsContent> */}
 
         <TabsContent value="templates" className="space-y-6">
-          <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
+          <Card
+            className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
+          >
             <CardHeader>
-              <CardTitle className={textPrimary}>Template Usage</CardTitle>
-              <CardDescription className={`${textSecondary} font-montserrat`}>
+              <CardTitle className={themeStyles.textPrimary}>
+                Template Usage
+              </CardTitle>
+              <CardDescription
+                className={`${themeStyles.textSecondary} font-montserrat`}
+              >
                 Which templates are used most frequently
               </CardDescription>
             </CardHeader>
@@ -329,10 +342,10 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: tooltipBg,
-                        border: `1px solid ${tooltipBorder}`,
+                        backgroundColor: themeStyles.tooltipBg,
+                        border: `1px solid ${themeStyles.tooltipBorder}`,
                         borderRadius: "6px",
-                        color: tooltipText,
+                        color: themeStyles.tooltipText,
                       }}
                     />
                   </PieChart>
@@ -357,11 +370,13 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
                             backgroundColor: item.color, // Use the color from the item
                           }}
                         />
-                        <span className={`${textPrimary} font-medium`}>
+                        <span
+                          className={`${themeStyles.textPrimary} font-medium`}
+                        >
                           {item.name}
                         </span>
                       </div>
-                      <span className={textSecondary}>
+                      <span className={themeStyles.textSecondary}>
                         {item.value} uses{" "}
                         {/* Use item.value instead of item.usageCount */}
                       </span>
@@ -374,12 +389,14 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
         </TabsContent>
 
         <TabsContent value="sentiment" className="space-y-6">
-          <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
+          <Card
+            className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
+          >
             <CardHeader>
-              <CardTitle className={textPrimary}>
+              <CardTitle className={themeStyles.textPrimary}>
                 Comment Sentiment Analysis
               </CardTitle>
-              <CardDescription className={textSecondary}>
+              <CardDescription className={themeStyles.textSecondary}>
                 Understanding the tone of incoming comments
               </CardDescription>
             </CardHeader>
@@ -405,10 +422,10 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: tooltipBg,
-                        border: `1px solid ${tooltipBorder}`,
+                        backgroundColor: themeStyles.tooltipBg,
+                        border: `1px solid ${themeStyles.tooltipBorder}`,
                         borderRadius: "6px",
-                        color: tooltipText,
+                        color: themeStyles.tooltipText,
                       }}
                     />
                   </PieChart>
@@ -437,11 +454,15 @@ export function AnalyticsDashboard({ templates }: { templates: any }) {
                               ],
                           }}
                         />
-                        <span className={`${textPrimary} font-medium`}>
+                        <span
+                          className={`${themeStyles.textPrimary} font-medium`}
+                        >
                           {item.category}
                         </span>
                       </div>
-                      <span className={textSecondary}>{item.value}%</span>
+                      <span className={themeStyles.textSecondary}>
+                        {item.value}%
+                      </span>
                     </div>
                   ))}
                 </div>

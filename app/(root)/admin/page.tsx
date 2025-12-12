@@ -495,15 +495,8 @@ export default function AdminDashboard() {
   // Clerk still loading
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-transparent flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <RefreshCw className="h-12 w-12 text-cyan-500 animate-spin mx-auto mb-4" />
-          <p className="text-white text-lg">Loading authentication...</p>
-        </motion.div>
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }

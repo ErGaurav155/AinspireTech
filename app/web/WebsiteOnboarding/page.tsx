@@ -29,8 +29,8 @@ const WebsiteOnboardWithSearchParamsWeb = () => {
 
   if (!userId || !agentId || !subscriptionId) {
     return (
-      <div className="flex items-center justify-center text-black text-2xl font-bold">
-        Loading...
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }

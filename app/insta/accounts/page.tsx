@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Plus,
   Instagram,
@@ -49,20 +49,25 @@ export default function AccountsPage() {
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [userInfo, setUserInfo] = useState<any>();
   const [dialog, setDialog] = useState(false);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-transperant" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
-  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const badgeBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
-  const alertBg = theme === "dark" ? "bg-[#6d1717]/5" : "bg-red-50/80";
-  const buttonOutlineBorder =
-    theme === "dark" ? "border-white/20" : "border-gray-300";
-  const buttonOutlineText = theme === "dark" ? "text-gray-300" : "text-n-5";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-transperant" : "bg-gray-50",
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      textSecondary: isDark ? "text-gray-300" : "text-n-5",
+      textMuted: isDark ? "text-gray-400" : "text-n-5",
+      cardBg: isDark ? "bg-[#0a0a0a]/60" : "bg-white/80",
+      cardBorder: isDark ? "border-white/10" : "border-gray-200",
+      badgeBg: isDark ? "bg-[#0a0a0a]" : "bg-white",
+      alertBg: isDark ? "bg-[#6d1717]/5" : "bg-red-50/80",
+      buttonOutlineBorder: isDark ? "border-white/20" : "border-gray-300",
+      buttonOutlineText: isDark ? "text-gray-300" : "text-n-5",
+    };
+  }, [currentTheme]);
 
   // Fetch accounts with caching
   const fetchAccounts = useCallback(async () => {
@@ -265,35 +270,6 @@ export default function AccountsPage() {
     await localStorage.removeItem(ACCOUNTS_CACHE_KEY);
     await fetchAccounts();
   };
-  if (!isLoaded || isLoading) {
-    return (
-      <div
-        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
-      >
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
-          <p className={textSecondary}>Loading accounts...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div
-        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
-      >
-        <div className="text-center p-6 bg-red-900/20 rounded-lg max-w-md">
-          <h2 className="text-xl font-bold mb-4">Error Loading Accounts</h2>
-          <p className={`mb-6 ${textSecondary}`}>{error}</p>
-          <Button onClick={fetchAccounts} className="btn-gradient-cyan">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Try Again
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   const displayedAccounts = accounts.length > 0 ? accounts : [];
   const activeAccounts = displayedAccounts?.filter(
@@ -317,8 +293,35 @@ export default function AccountsPage() {
   const handleError = (id: string) => {
     setHasError((prev) => [...prev, id]); // Add the ID to the error array
   };
+  if (!isLoaded || isLoading) {
+    return (
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className={`min-h-screen ${themeStyles.textPrimary} flex items-center justify-center ${themeStyles.containerBg}`}
+      >
+        <div className="text-center p-6 bg-red-900/20 rounded-lg max-w-md">
+          <h2 className="text-xl font-bold mb-4">Error Loading Accounts</h2>
+          <p className={`mb-6 ${themeStyles.textSecondary}`}>{error}</p>
+          <Button onClick={fetchAccounts} className="btn-gradient-cyan">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`min-h-screen ${textPrimary} ${containerBg}`}>
+    <div
+      className={`min-h-screen ${themeStyles.textPrimary} ${themeStyles.containerBg}`}
+    >
       <BreadcrumbsDefault />
 
       <div className="container mx-auto px-4 py-8">
@@ -335,11 +338,13 @@ export default function AccountsPage() {
               <span className="text-sm font-medium">Account Management</span>
             </div>
             <h1
-              className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-2 gradient-text-main ${textPrimary}`}
+              className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-2 gradient-text-main ${themeStyles.textPrimary}`}
             >
               Instagram Accounts
             </h1>
-            <p className={`${textSecondary} font-montserrat text-xl`}>
+            <p
+              className={`${themeStyles.textSecondary} font-montserrat text-xl`}
+            >
               Manage all your connected Instagram accounts and their auto-reply
               settings
             </p>
@@ -348,7 +353,7 @@ export default function AccountsPage() {
             <Button
               onClick={() => refresh()}
               variant="outline"
-              className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#05a957]/80  hover:bg-white/10`}
+              className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#05a957]/80  hover:bg-white/10`}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
@@ -374,9 +379,13 @@ export default function AccountsPage() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Total Accounts
               </CardTitle>
               <Instagram className="h-4 w-4 text-[#00F0FF]" />
@@ -388,15 +397,19 @@ export default function AccountsPage() {
                   ? userInfo?.accountLimit
                   : 1}
               </div>
-              <p className={`text-xs ${textMuted} font-montserrat`}>
+              <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 {activeAccounts || 0} active
               </p>
             </CardContent>
           </Card>
 
-          <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Total Followers
               </CardTitle>
               <Users className="h-4 w-4 text-[#B026FF]" />
@@ -405,15 +418,19 @@ export default function AccountsPage() {
               <div className="text-2xl font-bold text-[#B026FF]">
                 {totalFollowers || 0}
               </div>
-              <p className={`text-xs ${textMuted} font-montserrat`}>
+              <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 Across all accounts
               </p>
             </CardContent>
           </Card>
 
-          <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Auto Replies
               </CardTitle>
               <Zap className="h-4 w-4 text-[#FF2E9F]" />
@@ -423,15 +440,19 @@ export default function AccountsPage() {
                 {totalReplies || userInfo?.totalReplies || 0} /{" "}
                 {subscriptions.length > 0 ? userInfo?.replyLimit : 500}
               </div>
-              <p className={`text-xs ${textMuted} font-montserrat`}>
+              <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 Total sent
               </p>
             </CardContent>
           </Card>
 
-          <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+          <Card
+            className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={`text-sm font-medium ${textSecondary}`}>
+              <CardTitle
+                className={`text-sm font-medium ${themeStyles.textSecondary}`}
+              >
                 Avg Engagement
               </CardTitle>
               <BarChart3 className="h-4 w-4 text-[#00F0FF]" />
@@ -440,7 +461,7 @@ export default function AccountsPage() {
               <div className="text-2xl font-bold text-[#00F0FF]">
                 {avgEngagement || 0}%
               </div>
-              <p className={`text-xs ${textMuted} font-montserrat`}>
+              <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 Engagement rate
               </p>
             </CardContent>
@@ -454,7 +475,9 @@ export default function AccountsPage() {
             displayedAccounts?.map((account: any) => (
               <Card
                 key={account?.id}
-                className={`card-hover transition-all duration-300 ${cardBg} ${cardBorder} ${
+                className={`card-hover transition-all duration-300 ${
+                  themeStyles.cardBg
+                } ${themeStyles.cardBorder} ${
                   account?.isActive
                     ? "border-[#00F0FF]/30 bg-gradient-to-r from-[#00F0FF]/5 to-transparent"
                     : ""
@@ -484,7 +507,9 @@ export default function AccountsPage() {
                       </div>
                       <div className="flex flex-col items-center text-center">
                         <div className="flex items-center gap-2 ">
-                          <h3 className={`text-lg font-bold ${textPrimary}`}>
+                          <h3
+                            className={`text-lg font-bold ${themeStyles.textPrimary}`}
+                          >
                             @{account?.username || "unknown"}
                           </h3>
                           <Badge
@@ -504,17 +529,17 @@ export default function AccountsPage() {
                             {account?.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </div>
-                        <p className={textMuted}>
+                        <p className={themeStyles.textMuted}>
                           {account?.displayName || "unknown"}
                         </p>
                         <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
-                          <span className={`text-sm ${textMuted}`}>
+                          <span className={`text-sm ${themeStyles.textMuted}`}>
                             {account?.followersCount || 0} followers
                           </span>
-                          <span className={`text-sm ${textMuted}`}>
+                          <span className={`text-sm ${themeStyles.textMuted}`}>
                             {account?.postsCount || 0} posts
                           </span>
-                          <span className={`text-sm ${textMuted}`}>
+                          <span className={`text-sm ${themeStyles.textMuted}`}>
                             {account?.engagementRate || 0}% engagement
                           </span>
                         </div>
@@ -524,32 +549,42 @@ export default function AccountsPage() {
                     <div className="flex flex-col md:flex-row items-center gap-4 mt-4 md:mt-0">
                       <div className="flex items-center gap-4">
                         <div className="flex flex-col items-center">
-                          <span className={`font-bold ${textPrimary}`}>
+                          <span
+                            className={`font-bold ${themeStyles.textPrimary}`}
+                          >
                             {account?.templatesCount || 0}
                           </span>
-                          <span className={`text-xs ${textMuted}`}>
+                          <span className={`text-xs ${themeStyles.textMuted}`}>
                             Templates
                           </span>
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className={`font-bold ${textPrimary}`}>
+                          <span
+                            className={`font-bold ${themeStyles.textPrimary}`}
+                          >
                             {account?.accountReply || 0}
                           </span>
-                          <span className={`text-xs ${textMuted}`}>
+                          <span className={`text-xs ${themeStyles.textMuted}`}>
                             Replies
                           </span>
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className={`font-bold ${textPrimary}`}>
+                          <span
+                            className={`font-bold ${themeStyles.textPrimary}`}
+                          >
                             {formatLastActivity(account?.lastActivity) || "N/A"}
                           </span>
-                          <span className={`text-xs ${textMuted}`}>Active</span>
+                          <span className={`text-xs ${themeStyles.textMuted}`}>
+                            Active
+                          </span>
                         </div>
                       </div>
 
                       <div className="flex flex-col lg:flex-row items-center gap-3 w-full">
                         <div className="flex items-center justify-center gap-2">
-                          <Label className={`text-sm ${textSecondary} mr-2`}>
+                          <Label
+                            className={`text-sm ${themeStyles.textSecondary} mr-2`}
+                          >
                             Auto-replies
                           </Label>
                           <Switch
@@ -569,7 +604,7 @@ export default function AccountsPage() {
                                 onClick={() => refreshInstagramToken(userId)}
                                 variant="outline"
                                 size="sm"
-                                className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
+                                className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
                               >
                                 <RefreshCw className="mr-2 h-4 w-4" />
                                 Refresh Token
@@ -579,7 +614,7 @@ export default function AccountsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className={`${buttonOutlineBorder} ${buttonOutlineText} p-2 bg-[#B026FF]/10 hover:bg-[#B026FF]/15 transition-colors`}
+                            className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText} p-2 bg-[#B026FF]/10 hover:bg-[#B026FF]/15 transition-colors`}
                             asChild
                           >
                             <Link href={`/insta/accounts/${account?.id}`}>
@@ -595,7 +630,9 @@ export default function AccountsPage() {
             ))}
 
           {displayedAccounts?.length === 0 && (
-            <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+            <Card
+              className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+            >
               <CardContent className="text-center py-12">
                 <div
                   className={`mx-auto w-24 h-24 ${
@@ -604,10 +641,12 @@ export default function AccountsPage() {
                 >
                   <Instagram className="h-8 w-8 text-gray-500" />
                 </div>
-                <h3 className={`text-lg font-semibold mb-2 ${textPrimary}`}>
+                <h3
+                  className={`text-lg font-semibold mb-2 ${themeStyles.textPrimary}`}
+                >
                   No accounts connected
                 </h3>
-                <p className={`${textMuted} mb-4 font-mono`}>
+                <p className={`${themeStyles.textMuted} mb-4 font-mono`}>
                   Connect your first Instagram account to start automating
                   replies
                 </p>
@@ -623,12 +662,14 @@ export default function AccountsPage() {
         </div>
       </div>
       <AlertDialog open={dialog} onOpenChange={setDialog}>
-        <AlertDialogContent className={`${alertBg} backdrop-blur-md`}>
+        <AlertDialogContent
+          className={`${themeStyles.alertBg} backdrop-blur-md`}
+        >
           <AlertDialogHeader>
-            <AlertDialogTitle className={textPrimary}>
+            <AlertDialogTitle className={themeStyles.textPrimary}>
               Your Account Limit Reached
             </AlertDialogTitle>
-            <AlertDialogDescription className={textSecondary}>
+            <AlertDialogDescription className={themeStyles.textSecondary}>
               To add more account you need to update your subscription.
             </AlertDialogDescription>
           </AlertDialogHeader>

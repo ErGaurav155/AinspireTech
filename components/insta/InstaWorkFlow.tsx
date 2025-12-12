@@ -6,23 +6,25 @@ import instatemp from "@/public/assets/Feature/instatemp.png";
 import instalogin from "@/public/assets/Feature/lnstalogin.png";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import { useMemo } from "react";
 
 function InstaHowItWorksSection() {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-[#0a0a0a]/10" : "bg-white/50";
-
-  const titleText = theme === "dark" ? "text-white" : "text-n-7";
-
-  const descriptionText = theme === "dark" ? "text-gray-300" : "text-n-5";
-
-  const stepText = theme === "dark" ? "text-cyan-400" : "text-cyan-600";
-
-  const cardHoverBorder =
-    theme === "dark"
-      ? "borderColor: 'rgba(37, 139, 148, 0.4)'"
-      : "borderColor: 'rgba(37, 139, 148, 0.2)'";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]/10" : "bg-white/50",
+      titleText: isDark ? "text-white" : "text-n-7",
+      descriptionText: isDark ? "text-gray-300" : "text-n-5",
+      stepText: isDark ? "text-cyan-400" : "text-cyan-600",
+      cardHoverBorder: isDark
+        ? "borderColor: 'rgba(37, 139, 148, 0.4)'"
+        : "borderColor: 'rgba(37, 139, 148, 0.2)'",
+    };
+  }, [currentTheme]);
 
   // EXACT same animation variants as testimonials component
   const containerVariants = {
@@ -146,7 +148,7 @@ function InstaHowItWorksSection() {
           How CommentFlow Works
         </motion.h2>
         <motion.p
-          className={`text-lg max-w-2xl mx-auto font-montserrat ${descriptionText}`}
+          className={`text-lg max-w-2xl mx-auto font-montserrat ${themeStyles.descriptionText}`}
           variants={textVariants}
           whileInView="visible"
           viewport={{ once: false }}
@@ -157,7 +159,7 @@ function InstaHowItWorksSection() {
       </motion.div>
 
       <motion.div
-        className={` w-full mx-auto ${containerBg} backdrop-blur-sm p-3 md:p-10 lg:p-20`}
+        className={` w-full mx-auto ${themeStyles.containerBg} backdrop-blur-sm p-3 md:p-10 lg:p-20`}
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -174,7 +176,7 @@ function InstaHowItWorksSection() {
         >
           <div className="md:w-2/3">
             <motion.div
-              className={`font-bold text-lg mb-2 ${stepText}`}
+              className={`font-bold text-lg mb-2 ${themeStyles.stepText}`}
               variants={stepVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -183,7 +185,7 @@ function InstaHowItWorksSection() {
               Step 1
             </motion.div>
             <motion.h3
-              className={`text-2xl font-semibold mb-4 ${titleText}`}
+              className={`text-2xl font-semibold mb-4 ${themeStyles.titleText}`}
               variants={titleVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -192,7 +194,7 @@ function InstaHowItWorksSection() {
               Connect Your Instagram Account
             </motion.h3>
             <motion.p
-              className={`font-montserrat ${descriptionText}`}
+              className={`font-montserrat ${themeStyles.descriptionText}`}
               variants={textVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -248,7 +250,7 @@ function InstaHowItWorksSection() {
         >
           <div className="md:w-2/3">
             <motion.div
-              className={`font-bold text-lg mb-2 ${stepText}`}
+              className={`font-bold text-lg mb-2 ${themeStyles.stepText}`}
               variants={stepVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -257,7 +259,7 @@ function InstaHowItWorksSection() {
               Step 2
             </motion.div>
             <motion.h3
-              className={`text-2xl font-semibold mb-4 ${titleText}`}
+              className={`text-2xl font-semibold mb-4 ${themeStyles.titleText}`}
               variants={titleVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -266,7 +268,7 @@ function InstaHowItWorksSection() {
               Set Up Response Rules
             </motion.h3>
             <motion.p
-              className={`font-montserrat ${descriptionText}`}
+              className={`font-montserrat ${themeStyles.descriptionText}`}
               variants={textVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -322,7 +324,7 @@ function InstaHowItWorksSection() {
         >
           <div className="md:w-2/3">
             <motion.div
-              className={`font-bold text-lg mb-2 ${stepText}`}
+              className={`font-bold text-lg mb-2 ${themeStyles.stepText}`}
               variants={stepVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -331,7 +333,7 @@ function InstaHowItWorksSection() {
               Step 3
             </motion.div>
             <motion.h3
-              className={`text-2xl font-semibold mb-4 ${titleText}`}
+              className={`text-2xl font-semibold mb-4 ${themeStyles.titleText}`}
               variants={titleVariants}
               whileInView="visible"
               viewport={{ once: false }}
@@ -340,7 +342,7 @@ function InstaHowItWorksSection() {
               Monitor & Improve
             </motion.h3>
             <motion.p
-              className={`font-montserrat ${descriptionText}`}
+              className={`font-montserrat ${themeStyles.descriptionText}`}
               variants={textVariants}
               whileInView="visible"
               viewport={{ once: false }}

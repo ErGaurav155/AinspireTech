@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useEffect, useRef, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Settings,
@@ -121,29 +121,33 @@ export default function AccountPage({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const loadMoreCountRef = useRef(0);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-transperant" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
-  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const cardHoverBorder =
-    theme === "dark"
-      ? "hover:border-[#258b94]/40"
-      : "hover:border-[#258b94]/60";
-  const badgeBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
-  const inputBg = theme === "dark" ? "bg-white/5" : "bg-white";
-  const inputBorder = theme === "dark" ? "border-white/20" : "border-gray-300";
-  const inputText = theme === "dark" ? "text-white" : "text-n-5";
-  const textCount = theme === "dark" ? "text-white" : "text-n-5";
-  const buttonOutlineBorder =
-    theme === "dark" ? "border-white/20" : "border-gray-300";
-  const buttonOutlineText = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const alertBg = theme === "dark" ? "bg-[#6d1717]/5" : "bg-red-50/80";
-  const dialogBg = theme === "dark" ? "bg-[#0a0a0a]/95" : "bg-white/95";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-transperant" : "bg-gray-50",
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      textSecondary: isDark ? "text-gray-300" : "text-n-5",
+      textMuted: isDark ? "text-gray-400" : "text-n-5",
+      cardBg: isDark ? "bg-[#0a0a0a]/60" : "bg-white/80",
+      cardBorder: isDark ? "border-white/10" : "border-gray-200",
+      cardHoverBorder: isDark
+        ? "hover:border-[#258b94]/40"
+        : "hover:border-[#258b94]/60",
+      badgeBg: isDark ? "bg-[#0a0a0a]" : "bg-white",
+      inputBg: isDark ? "bg-white/5" : "bg-white",
+      inputBorder: isDark ? "border-white/20" : "border-gray-300",
+      inputText: isDark ? "text-white" : "text-n-5",
+      textCount: isDark ? "text-white" : "text-n-5",
+      buttonOutlineBorder: isDark ? "border-white/20" : "border-gray-300",
+      buttonOutlineText: isDark ? "text-gray-300" : "text-n-5",
+      alertBg: isDark ? "bg-[#6d1717]/5" : "bg-red-50/80",
+      dialogBg: isDark ? "bg-[#0a0a0a]/95" : "bg-white/95",
+    };
+  }, [currentTheme]);
 
   // New state for template functionality
   const [searchTerm, setSearchTerm] = useState("");
@@ -823,24 +827,26 @@ export default function AccountPage({
 
   if (isLoading || !isLoaded) {
     return (
-      <div
-        className={`min-h-screen ${textPrimary} flex items-center justify-center ${containerBg}`}
-      >
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00F0FF] mx-auto mb-4"></div>
-          <p className={textSecondary}>Loading account...</p>
-        </div>
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen ${containerBg} ${textPrimary}`}>
+    <div
+      className={`min-h-screen ${themeStyles.containerBg} ${themeStyles.textPrimary}`}
+    >
       <div className="container mx-auto px-4 py-8">
         <BreadcrumbsDefault />
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="sm" asChild className={textPrimary}>
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className={themeStyles.textPrimary}
+          >
             <Link href="/insta/dashboard">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
@@ -849,7 +855,7 @@ export default function AccountPage({
         </div>
         {/* Account Header */}
         <Card
-          className={`mb-8 overflow-hidden hover:-translate-y-1 transition-all shadow hover:shadow-[#FF2E9F] ${cardBg} ${cardBorder}`}
+          className={`mb-8 overflow-hidden hover:-translate-y-1 transition-all shadow hover:shadow-[#FF2E9F] ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
         >
           <CardContent className="pt-6 group hover:shadow-xl duration-300 bg-gradient-to-br from-[#FF2E9F]/20 to-[#FF2E9F]/5 border-[#FF2E9F]/10 hover:border-[#FF2E9F]/20 backdrop-blur-sm">
             <div className="flex flex-col md:flex-row gap-3 md:gap-0 items-center justify-between">
@@ -876,7 +882,7 @@ export default function AccountPage({
                 <div>
                   <div className="flex items-center justify-start w-full gap-1 md:gap-3">
                     <h1
-                      className={`text-2xl md:text-4xl font-bold gradient-text-main ${textPrimary}`}
+                      className={`text-2xl md:text-4xl font-bold gradient-text-main ${themeStyles.textPrimary}`}
                     >
                       @{account?.username || "unknown"}
                     </h1>
@@ -884,11 +890,11 @@ export default function AccountPage({
                       {account.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </div>
-                  <p className={`text-xl ${textSecondary} mb-2`}>
+                  <p className={`text-xl ${themeStyles.textSecondary} mb-2`}>
                     {account.displayName || "Instagram User"}
                   </p>
                   <div
-                    className={`flex items-center gap-2 md:gap-6 text-n-5 ${textCount}`}
+                    className={`flex items-center gap-2 md:gap-6 text-n-5 ${themeStyles.textCount}`}
                   >
                     <span>{account.followersCount || 0} followers</span>
                     <span>{account.postsCount || 0} posts</span>
@@ -899,7 +905,10 @@ export default function AccountPage({
               <div className="flex-[35%] flex flex-col items-center justify-center w-full gap-3">
                 <div className="">
                   <div className="flex items-center space-x-2">
-                    <Label htmlFor="account-toggle" className={textSecondary}>
+                    <Label
+                      htmlFor="account-toggle"
+                      className={themeStyles.textSecondary}
+                    >
                       Auto-replies
                     </Label>
                     <Switch
@@ -916,7 +925,7 @@ export default function AccountPage({
                           onClick={() => refreshInstagramToken(userId)}
                           variant="outline"
                           size="sm"
-                          className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
+                          className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
                         >
                           <RefreshCw className="mr-2 h-4 w-4" />
                           Refresh Token
@@ -931,7 +940,7 @@ export default function AccountPage({
                       variant="outline"
                       size="sm"
                       disabled={Object.keys(account).length <= 1 ? true : false}
-                      className={`${buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#0baf5d]/80  hover:bg-white/10`}
+                      className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#0baf5d]/80  hover:bg-white/10`}
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Refresh Data
@@ -957,7 +966,7 @@ export default function AccountPage({
         {/* Main Content */}
         <Tabs defaultValue="templates" className="space-y-6">
           <TabsList
-            className={`${cardBg} ${cardBorder} min-h-max flex flex-wrap items-center justify-start max-w-max gap-1 md:gap-3 w-full grid-cols-4 border-[0.5px] `}
+            className={`${themeStyles.cardBg} ${themeStyles.cardBorder} min-h-max flex flex-wrap items-center justify-start max-w-max gap-1 md:gap-3 w-full grid-cols-4 border-[0.5px] `}
           >
             <TabsTrigger
               className="data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]"
@@ -982,11 +991,11 @@ export default function AccountPage({
           <TabsContent value="templates" className="space-y-6">
             <div className="flex flex-wrap gap-3 md:gap-0 justify-between items-center">
               <div>
-                <h2 className={`text-2xl font-bold ${textPrimary}`}>
+                <h2 className={`text-2xl font-bold ${themeStyles.textPrimary}`}>
                   Reply Templates
                 </h2>
                 <p
-                  className={`${textSecondary} text-lg font-medium font-montserrat`}
+                  className={`${themeStyles.textSecondary} text-lg font-medium font-montserrat`}
                 >
                   Create and manage automated reply templates for this account
                 </p>
@@ -1013,16 +1022,16 @@ export default function AccountPage({
                   </Button>
                 </DialogTrigger>
                 <DialogContent
-                  className={`sm:max-w-[800px] bg-gradient-to-br border-[#B026FF]/20 hover:border-[#B026FF]/40 backdrop-blur-md border max-h-[95vh] overflow-y-auto ${dialogBg}`}
+                  className={`sm:max-w-[800px] bg-gradient-to-br border-[#B026FF]/20 hover:border-[#B026FF]/40 backdrop-blur-md border max-h-[95vh] overflow-y-auto ${themeStyles.dialogBg}`}
                 >
                   <DialogHeader>
-                    <DialogTitle className={textPrimary}>
+                    <DialogTitle className={themeStyles.textPrimary}>
                       {editingTemplate
                         ? "Edit Template"
                         : "Create New Template"}
                     </DialogTitle>
                     <DialogDescription
-                      className={`${textSecondary} font-montserrat text-base font-medium`}
+                      className={`${themeStyles.textSecondary} font-montserrat text-base font-medium`}
                     >
                       {editingTemplate
                         ? "Update your automated replies and triggers"
@@ -1033,12 +1042,15 @@ export default function AccountPage({
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="name" className={textSecondary}>
+                        <Label
+                          htmlFor="name"
+                          className={themeStyles.textSecondary}
+                        >
                           Template Name
                         </Label>
                         {editingTemplate ? (
                           <div
-                            className={`px-3 py-2 ${inputBg} ${inputBorder} rounded-md ${textMuted} font-montserrat`}
+                            className={`px-3 py-2 ${themeStyles.inputBg} ${themeStyles.inputBorder} rounded-md ${themeStyles.textMuted} font-montserrat`}
                           >
                             {editingTemplate.name}
                           </div>
@@ -1054,16 +1066,19 @@ export default function AccountPage({
                               })
                             }
                             placeholder="e.g., Welcome Message"
-                            className={`${inputBg} ${inputBorder} ${inputText}`}
+                            className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText}`}
                           />
                         )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="account" className={textSecondary}>
+                        <Label
+                          htmlFor="account"
+                          className={themeStyles.textSecondary}
+                        >
                           Account
                         </Label>
                         <div
-                          className={`px-3 py-2 ${inputBg} ${inputBorder} rounded-md ${textMuted} font-montserrat`}
+                          className={`px-3 py-2 ${themeStyles.inputBg} ${themeStyles.inputBorder} rounded-md ${themeStyles.textMuted} font-montserrat`}
                         >
                           {account.username}
                         </div>
@@ -1074,7 +1089,7 @@ export default function AccountPage({
                     {!editingTemplate && (
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <Label className={textSecondary}>
+                          <Label className={themeStyles.textSecondary}>
                             Select Post or Reel
                           </Label>
                           <Button
@@ -1104,7 +1119,7 @@ export default function AccountPage({
                                 className={`relative cursor-pointer rounded-md overflow-hidden border-2 ${
                                   selectedMedia === media.id
                                     ? "border-[#00F0FF]"
-                                    : `${inputBorder}`
+                                    : `${themeStyles.inputBorder}`
                                 } transition-all`}
                                 onClick={() => {
                                   setSelectedMedia(media.id);
@@ -1143,7 +1158,7 @@ export default function AccountPage({
                           </div>
                         ) : (
                           <div
-                            className={`text-center py-8 ${textMuted} font-montserrat`}
+                            className={`text-center py-8 ${themeStyles.textMuted} font-montserrat`}
                           >
                             <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
                             <p>No posts or reels found for this account</p>
@@ -1158,7 +1173,7 @@ export default function AccountPage({
                     {/*Multi-Comment Reply Section*/}
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <Label className={textSecondary}>
+                        <Label className={themeStyles.textSecondary}>
                           reply to their comments under the post
                         </Label>
                         {(!editingTemplate ||
@@ -1196,7 +1211,7 @@ export default function AccountPage({
                           <div className="flex justify-between">
                             <Label
                               htmlFor={`Dm reply-${index}`}
-                              className={textSecondary}
+                              className={themeStyles.textSecondary}
                             >
                               Reply {index + 1}
                             </Label>
@@ -1256,7 +1271,7 @@ export default function AccountPage({
                               }
                             }}
                             placeholder="Eg.Sent you a message! Check it out!"
-                            className={` ${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                            className={` ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
                           />
                         </div>
                       ))}
@@ -1264,7 +1279,7 @@ export default function AccountPage({
                     {/* Multi-DmReply Section */}
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <Label className={textSecondary}>
+                        <Label className={themeStyles.textSecondary}>
                           Get reply in Direct Dm{" "}
                         </Label>
                         {(!editingTemplate ||
@@ -1300,7 +1315,10 @@ export default function AccountPage({
                         )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="priority" className={textSecondary}>
+                        <Label
+                          htmlFor="priority"
+                          className={themeStyles.textSecondary}
+                        >
                           An opening DM
                         </Label>
                         <Textarea
@@ -1324,7 +1342,7 @@ export default function AccountPage({
                             }
                           }}
                           placeholder="Hey there! I’m so happy you’re here, thanks so much for your interest 😊 Click below and I’ll send you the link in just a sec ✨"
-                          className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                          className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
                         />
                       </div>
                       {(editingTemplate
@@ -1333,12 +1351,12 @@ export default function AccountPage({
                       )?.map((contentItem: ContentItem, index: number) => (
                         <div
                           key={index}
-                          className={`space-y-2 p-3 border ${inputBorder} rounded-lg`}
+                          className={`space-y-2 p-3 border ${themeStyles.inputBorder} rounded-lg`}
                         >
                           <div className="flex justify-between">
                             <Label
                               htmlFor={`content-${index}`}
-                              className={textSecondary}
+                              className={themeStyles.textSecondary}
                             >
                               Sent Dm {index + 1}
                             </Label>
@@ -1401,7 +1419,7 @@ export default function AccountPage({
                               }
                             }}
                             placeholder="This Is the link you want,Click the button below."
-                            className={`min-h-[80px] ${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                            className={`min-h-[80px] ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
                           />
 
                           <div className="flex items-center gap-2">
@@ -1432,14 +1450,14 @@ export default function AccountPage({
                                 }
                               }}
                               placeholder="Eg.www.productLink.com"
-                              className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                              className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
                             />
                           </div>
                         </div>
                       ))}
                     </div>
                     <div
-                      className={` flex items-center justify-between gap-8 p-3 border rounded-md ${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                      className={` flex items-center justify-between gap-8 p-3 border rounded-md ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
                     >
                       <p> a DM asking to follow you before they get the link</p>
                       <div className="flex items-center justify-center gap-2">
@@ -1471,7 +1489,10 @@ export default function AccountPage({
                     {/* Triggers Section */}
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <Label htmlFor="triggers" className={textSecondary}>
+                        <Label
+                          htmlFor="triggers"
+                          className={themeStyles.textSecondary}
+                        >
                           Set triggers (up to 3)
                         </Label>
                         {(!editingTemplate ||
@@ -1516,7 +1537,7 @@ export default function AccountPage({
                             <div className="flex justify-between">
                               <Label
                                 htmlFor={`trigger-${index}`}
-                                className={textSecondary}
+                                className={themeStyles.textSecondary}
                               >
                                 Trigger {index + 1}
                               </Label>
@@ -1576,7 +1597,7 @@ export default function AccountPage({
                                 }
                               }}
                               placeholder="Enter trigger keyword Like Link,Product,etc."
-                              className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                              className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
                             />
                           </div>
                         ))}
@@ -1584,7 +1605,10 @@ export default function AccountPage({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="priority" className={textSecondary}>
+                      <Label
+                        htmlFor="priority"
+                        className={themeStyles.textSecondary}
+                      >
                         Priority (1-10)
                       </Label>
                       <Input
@@ -1615,7 +1639,7 @@ export default function AccountPage({
                             });
                           }
                         }}
-                        className={`${inputBg} ${inputBorder} ${inputText} font-montserrat`}
+                        className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
                       />
                     </div>
                   </div>
@@ -1629,7 +1653,7 @@ export default function AccountPage({
                         setSelectedAccountMedia([]);
                         setSelectedMedia(null);
                       }}
-                      className={`${buttonOutlineBorder} ${buttonOutlineText}`}
+                      className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText}`}
                     >
                       Cancel
                     </Button>
@@ -1689,14 +1713,14 @@ export default function AccountPage({
                   placeholder="Search templates, content, or keywords..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`pl-10 ${inputBg} ${inputBorder} ${inputText}`}
+                  className={`pl-10 ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText}`}
                 />
               </div>
             </div>
 
             {/* Templates Count */}
             <div className="mb-6">
-              <p className={textMuted}>
+              <p className={themeStyles.textMuted}>
                 Showing {templates.length} of {totalTemplates} templates
               </p>
             </div>
@@ -1708,14 +1732,16 @@ export default function AccountPage({
                     template.isActive
                       ? "from-[#B026FF]/20 to-[#B026FF]/5 border-[#B026FF]/20 hover:border-[#B026FF]/40"
                       : "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:border-[#00F0FF]/40"
-                  } ${cardBg} backdrop-blur-sm ${cardBorder}`}
+                  } ${themeStyles.cardBg} backdrop-blur-sm ${
+                    themeStyles.cardBorder
+                  }`}
                 >
                   <CardHeader className="p-2">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <CardTitle
-                            className={`text-base font-normal ${textPrimary}`}
+                            className={`text-base font-normal ${themeStyles.textPrimary}`}
                           >
                             {template.name}
                           </CardTitle>
@@ -1726,7 +1752,7 @@ export default function AccountPage({
                           )}
                           <Badge
                             variant="outline"
-                            className={`text-xs ${inputBorder} ${textMuted}`}
+                            className={`text-xs ${themeStyles.inputBorder} ${themeStyles.textMuted}`}
                           >
                             Priority {template.priority}
                           </Badge>
@@ -1743,7 +1769,7 @@ export default function AccountPage({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className={`${textMuted} hover:${textPrimary}`}
+                          className={`${themeStyles.textMuted} hover:${themeStyles.textPrimary}`}
                           onClick={() => handleEditClick(template)}
                         >
                           <Edit2 className="h-4 w-4" />
@@ -1759,20 +1785,24 @@ export default function AccountPage({
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent
-                            className={`${dialogBg} ${inputBorder}`}
+                            className={`${themeStyles.dialogBg} ${themeStyles.inputBorder}`}
                           >
                             <AlertDialogHeader>
-                              <AlertDialogTitle className={textPrimary}>
+                              <AlertDialogTitle
+                                className={themeStyles.textPrimary}
+                              >
                                 Delete Template
                               </AlertDialogTitle>
-                              <AlertDialogDescription className={textSecondary}>
+                              <AlertDialogDescription
+                                className={themeStyles.textSecondary}
+                              >
                                 Are you sure you want to delete {template.name}?
                                 This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel
-                                className={`${inputBorder} ${textMuted}`}
+                                className={`${themeStyles.inputBorder} ${themeStyles.textMuted}`}
                               >
                                 Cancel
                               </AlertDialogCancel>
@@ -1795,11 +1825,13 @@ export default function AccountPage({
                     <div className="flex flex-col md:flex-row-reverse items-start justify-between gap-3 w-full">
                       {template.mediaUrl && (
                         <div className="w-full flex-1">
-                          <p className={`text-sm ${textMuted} mb-2`}>
+                          <p
+                            className={`text-sm ${themeStyles.textMuted} mb-2`}
+                          >
                             Linked Media:
                           </p>
                           <div
-                            className={`relative w-40 h-40 rounded-md overflow-hidden border ${inputBorder} mb-2`}
+                            className={`relative w-40 h-40 rounded-md overflow-hidden border ${themeStyles.inputBorder} mb-2`}
                           >
                             <Image
                               src={template?.mediaUrl || defaultImg}
@@ -1817,7 +1849,7 @@ export default function AccountPage({
                         </div>
                       )}
                       <div className="flex-1">
-                        <p className={`text-sm ${textMuted} mb-2`}>
+                        <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
                           reply to their comments:
                         </p>
                         <div className="flex flex-wrap items-center justify-start w-full gap-2">
@@ -1825,7 +1857,7 @@ export default function AccountPage({
                             <Badge
                               key={index}
                               variant="outline"
-                              className={`${inputBg} p-3 rounded-md ${textMuted} text-wrap text-base font-light font-montserrat`}
+                              className={`${themeStyles.inputBg} p-3 rounded-md ${themeStyles.textMuted} text-wrap text-base font-light font-montserrat`}
                             >
                               {reply}
                             </Badge>
@@ -1834,13 +1866,15 @@ export default function AccountPage({
                       </div>
                       <div className="space-y-4 flex-1">
                         <div className="w-full">
-                          <p className={`text-sm ${textMuted} mb-2`}>
+                          <p
+                            className={`text-sm ${themeStyles.textMuted} mb-2`}
+                          >
                             An opening DM
                           </p>
                           <div className="flex flex-col gap-2">
                             <Badge
                               variant="outline"
-                              className={`flex flex-col items-start justify-center ${textMuted} ${inputBg} p-3 rounded-md mb-1`}
+                              className={`flex flex-col items-start justify-center ${themeStyles.textMuted} ${themeStyles.inputBg} p-3 rounded-md mb-1`}
                             >
                               <p className="text-base font-light font-montserrat">
                                 {template.openDm}
@@ -1851,7 +1885,9 @@ export default function AccountPage({
                       </div>
                       <div className="space-y-4 flex-1">
                         <div className="w-full">
-                          <p className={`text-sm ${textMuted} mb-2`}>
+                          <p
+                            className={`text-sm ${themeStyles.textMuted} mb-2`}
+                          >
                             Reply send in Dm:
                           </p>
                           <div className="flex flex-col gap-2">
@@ -1860,7 +1896,7 @@ export default function AccountPage({
                                 <Badge
                                   key={index}
                                   variant="outline"
-                                  className={`flex flex-col items-start justify-center ${textMuted} ${inputBg} p-3 rounded-md mb-1`}
+                                  className={`flex flex-col items-start justify-center ${themeStyles.textMuted} ${themeStyles.inputBg} p-3 rounded-md mb-1`}
                                 >
                                   <p className="text-base font-light font-montserrat">
                                     {contentItem.text}
@@ -1888,7 +1924,9 @@ export default function AccountPage({
                           </div>
                         </div>
                         <div className="pb-2 w-full">
-                          <p className={`text-sm ${textMuted} mb-2`}>
+                          <p
+                            className={`text-sm ${themeStyles.textMuted} mb-2`}
+                          >
                             Trigger Keywords:
                           </p>
                           <div className="flex flex-wrap gap-1">
@@ -1897,7 +1935,7 @@ export default function AccountPage({
                                 <Badge
                                   key={index}
                                   variant="outline"
-                                  className={`text-base font-light font-montserrat ${inputBorder} ${textMuted}`}
+                                  className={`text-base font-light font-montserrat ${themeStyles.inputBorder} ${themeStyles.textMuted}`}
                                 >
                                   {trigger}
                                 </Badge>
@@ -1906,21 +1944,23 @@ export default function AccountPage({
                           </div>
                         </div>
                         <div className="pb-2 w-full">
-                          <p className={`text-sm ${textMuted} mb-2`}>
+                          <p
+                            className={`text-sm ${themeStyles.textMuted} mb-2`}
+                          >
                             Content For:
                           </p>
                           <div className="flex flex-wrap gap-1">
                             {template.isFollow ? (
                               <Badge
                                 variant="outline"
-                                className={`text-base font-light font-montserrat ${inputBorder} ${textMuted}`}
+                                className={`text-base font-light font-montserrat ${themeStyles.inputBorder} ${themeStyles.textMuted}`}
                               >
                                 Followers Only
                               </Badge>
                             ) : (
                               <Badge
                                 variant="outline"
-                                className={`text-base font-light font-montserrat ${inputBorder} ${textMuted}`}
+                                className={`text-base font-light font-montserrat ${themeStyles.inputBorder} ${themeStyles.textMuted}`}
                               >
                                 Everyone
                               </Badge>
@@ -1969,7 +2009,9 @@ export default function AccountPage({
               )}
 
               {templates.length === 0 && (
-                <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+                <Card
+                  className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+                >
                   <CardContent className="text-center py-12">
                     <div
                       className={`mx-auto w-24 h-24 ${
@@ -1978,10 +2020,12 @@ export default function AccountPage({
                     >
                       <Plus className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <h3 className={`text-lg font-semibold mb-2 ${textPrimary}`}>
+                    <h3
+                      className={`text-lg font-semibold mb-2 ${themeStyles.textPrimary}`}
+                    >
                       No templates yet
                     </h3>
-                    <p className={`${textMuted} mb-4`}>
+                    <p className={`${themeStyles.textMuted} mb-4`}>
                       Create your first reply template to start automating
                       responses
                     </p>
@@ -2000,24 +2044,26 @@ export default function AccountPage({
 
           <TabsContent value="analytics" className="space-y-6">
             <Card
-              className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#3a8477]/10 to-[#1f918b]/5 border-[#177474]/15 hover:bg-[#177474]/10 ${cardBg} backdrop-blur-sm ${cardBorder}`}
+              className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#3a8477]/10 to-[#1f918b]/5 border-[#177474]/15 hover:bg-[#177474]/10 ${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
             >
               <CardHeader className="p-3">
-                <CardTitle className={textPrimary}>
+                <CardTitle className={themeStyles.textPrimary}>
                   Performance Analytics
                 </CardTitle>
                 <CardDescription
-                  className={`font-montserrat text-base ${textSecondary}`}
+                  className={`font-montserrat text-base ${themeStyles.textSecondary}`}
                 >
                   Track the performance of your auto-replies for this account
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+                  <Card
+                    className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+                  >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle
-                        className={`text-sm font-medium ${textSecondary}`}
+                        className={`text-sm font-medium ${themeStyles.textSecondary}`}
                       >
                         Templates
                       </CardTitle>
@@ -2027,16 +2073,20 @@ export default function AccountPage({
                       <div className="text-3xl font-bold text-[#FF2E9F]">
                         {account.templatesCount || 0}
                       </div>
-                      <p className={`text-xs ${textMuted} font-montserrat`}>
+                      <p
+                        className={`text-xs ${themeStyles.textMuted} font-montserrat`}
+                      >
                         Active reply templates
                       </p>
                     </CardContent>
                   </Card>
 
-                  <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+                  <Card
+                    className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+                  >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle
-                        className={`text-sm font-medium ${textSecondary}`}
+                        className={`text-sm font-medium ${themeStyles.textSecondary}`}
                       >
                         Replies Sent
                       </CardTitle>
@@ -2046,16 +2096,20 @@ export default function AccountPage({
                       <div className="text-3xl font-bold text-green-600">
                         {account.accountReply || 0}
                       </div>
-                      <p className={`text-xs ${textMuted} font-montserrat`}>
+                      <p
+                        className={`text-xs ${themeStyles.textMuted} font-montserrat`}
+                      >
                         Total automated replies
                       </p>
                     </CardContent>
                   </Card>
 
-                  <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+                  <Card
+                    className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+                  >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle
-                        className={`text-sm font-medium ${textSecondary}`}
+                        className={`text-sm font-medium ${themeStyles.textSecondary}`}
                       >
                         Response Time
                       </CardTitle>
@@ -2067,16 +2121,20 @@ export default function AccountPage({
                           ? formatResponseTimeSmart(account.avgResponseTime)
                           : 0}{" "}
                       </div>
-                      <p className={`text-xs ${textMuted} font-montserrat`}>
+                      <p
+                        className={`text-xs ${themeStyles.textMuted} font-montserrat`}
+                      >
                         Average response time
                       </p>
                     </CardContent>
                   </Card>
 
-                  <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+                  <Card
+                    className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+                  >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle
-                        className={`text-sm font-medium ${textSecondary}`}
+                        className={`text-sm font-medium ${themeStyles.textSecondary}`}
                       >
                         Engagement
                       </CardTitle>
@@ -2086,7 +2144,9 @@ export default function AccountPage({
                       <div className="text-3xl font-bold text-blue-600">
                         {account.engagementRate || 0}%
                       </div>
-                      <p className={`text-xs ${textMuted} font-montserrat`}>
+                      <p
+                        className={`text-xs ${themeStyles.textMuted} font-montserrat`}
+                      >
                         Engagement rate
                       </p>
                     </CardContent>
@@ -2095,16 +2155,18 @@ export default function AccountPage({
 
                 {/* Account Management */}
                 <div className="grid lg:grid-cols-2 gap-8 mb-8">
-                  <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+                  <Card
+                    className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+                  >
                     <CardHeader className="p-3">
                       <CardTitle
-                        className={`flex items-center gap-2 ${textPrimary}`}
+                        className={`flex items-center gap-2 ${themeStyles.textPrimary}`}
                       >
                         <Settings className="h-5 w-5 text-[#00F0FF]" />
                         Account Settings
                       </CardTitle>
                       <CardDescription
-                        className={`${textSecondary} font-montserrat text-base`}
+                        className={`${themeStyles.textSecondary} font-montserrat text-base`}
                       >
                         Manage your Instagram account settings and automation
                         preferences
@@ -2113,11 +2175,13 @@ export default function AccountPage({
                     <CardContent className="space-y-6 p-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className={`font-medium ${textPrimary}`}>
+                          <h4
+                            className={`font-medium ${themeStyles.textPrimary}`}
+                          >
                             Auto-Reply System
                           </h4>
                           <p
-                            className={`text-base ${textSecondary} font-montserrat`}
+                            className={`text-base ${themeStyles.textSecondary} font-montserrat`}
                           >
                             Automatically respond to comments using templates
                           </p>
@@ -2134,8 +2198,10 @@ export default function AccountPage({
 
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className={textSecondary}>Template Usage</span>
-                          <span className={textMuted}>
+                          <span className={themeStyles.textSecondary}>
+                            Template Usage
+                          </span>
+                          <span className={themeStyles.textMuted}>
                             {account?.repliesCount || 0}%
                           </span>
                         </div>
@@ -2147,8 +2213,10 @@ export default function AccountPage({
 
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className={textSecondary}>Response Time</span>
-                          <span className={textMuted}>
+                          <span className={themeStyles.textSecondary}>
+                            Response Time
+                          </span>
+                          <span className={themeStyles.textMuted}>
                             {account?.avgResponseTime
                               ? formatResponseTimeSmart(account.avgResponseTime)
                               : 0}
@@ -2159,14 +2227,18 @@ export default function AccountPage({
 
                       <div className="pt-4 border-t border-white/10">
                         <div className="flex justify-between items-center text-sm">
-                          <span className={textSecondary}>Last Activity</span>
-                          <span className={textMuted}>
+                          <span className={themeStyles.textSecondary}>
+                            Last Activity
+                          </span>
+                          <span className={themeStyles.textMuted}>
                             {formatLastActivity(account.lastActivity) || 0}
                           </span>
                         </div>
                         <div className="flex justify-between items-center text-sm mt-2">
-                          <span className={textSecondary}>Last Sync</span>
-                          <span className={textMuted}>
+                          <span className={themeStyles.textSecondary}>
+                            Last Sync
+                          </span>
+                          <span className={themeStyles.textMuted}>
                             {formatLastActivity(account.lastActivity) || 0}
                           </span>
                         </div>
@@ -2174,16 +2246,18 @@ export default function AccountPage({
                     </CardContent>
                   </Card>
 
-                  <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+                  <Card
+                    className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+                  >
                     <CardHeader className="p-3">
                       <CardTitle
-                        className={`flex items-center gap-2 ${textPrimary}`}
+                        className={`flex items-center gap-2 ${themeStyles.textPrimary}`}
                       >
                         <BarChart3 className="h-5 w-5 text-[#B026FF]" />
                         Performance Metrics
                       </CardTitle>
                       <CardDescription
-                        className={`${textSecondary} font-montserrat text-base`}
+                        className={`${themeStyles.textSecondary} font-montserrat text-base`}
                       >
                         Track your accounts automation performance and
                         engagement
@@ -2192,22 +2266,22 @@ export default function AccountPage({
                     <CardContent className="space-y-6 p-3">
                       <div className="grid grid-cols-2 gap-4">
                         <div
-                          className={`text-center p-4 ${inputBg} rounded-lg`}
+                          className={`text-center p-4 ${themeStyles.inputBg} rounded-lg`}
                         >
                           <div className="text-2xl font-bold text-[#00F0FF] mb-1">
                             {account.templatesCount || 0}
                           </div>
-                          <div className={`text-xs ${textMuted}`}>
+                          <div className={`text-xs ${themeStyles.textMuted}`}>
                             Active Templates
                           </div>
                         </div>
                         <div
-                          className={`text-center p-4 ${inputBg} rounded-lg`}
+                          className={`text-center p-4 ${themeStyles.inputBg} rounded-lg`}
                         >
                           <div className="text-2xl font-bold text-[#B026FF] mb-1">
                             {account.repliesCount || 0}
                           </div>
-                          <div className={`text-xs ${textMuted}`}>
+                          <div className={`text-xs ${themeStyles.textMuted}`}>
                             Total Replies
                           </div>
                         </div>
@@ -2216,34 +2290,36 @@ export default function AccountPage({
                       <div className="space-y-4">
                         <div>
                           <div className="flex justify-between text-sm mb-2">
-                            <span className={textSecondary}>
+                            <span className={themeStyles.textSecondary}>
                               Comment Response Rate
                             </span>
-                            <span className={textMuted}>78%</span>
+                            <span className={themeStyles.textMuted}>78%</span>
                           </div>
                           <Progress value={78} className="h-2 bg-white/10" />
                         </div>
 
                         <div>
                           <div className="flex justify-between text-sm mb-2">
-                            <span className={textSecondary}>
+                            <span className={themeStyles.textSecondary}>
                               Engagement Growth
                             </span>
-                            <span className={textMuted}>+23%</span>
+                            <span className={themeStyles.textMuted}>+23%</span>
                           </div>
                           <Progress value={23} className="h-2 bg-white/10" />
                         </div>
                       </div>
 
                       <div className="pt-4 border-t border-white/10">
-                        <h4 className={`font-medium mb-3 ${textPrimary}`}>
+                        <h4
+                          className={`font-medium mb-3 ${themeStyles.textPrimary}`}
+                        >
                           Quick Actions
                         </h4>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                           <Button
                             variant="outline"
                             size="sm"
-                            className={`w-full sm:w-1/2 bg-[#FF2E9F]/40 hover:bg-[#FF2E9F]/50 ${inputBorder} ${textMuted}`}
+                            className={`w-full sm:w-1/2 bg-[#FF2E9F]/40 hover:bg-[#FF2E9F]/50 ${themeStyles.inputBorder} ${themeStyles.textMuted}`}
                             asChild
                           >
                             <Link href="/templates">
@@ -2254,7 +2330,7 @@ export default function AccountPage({
                           <Button
                             variant="outline"
                             size="sm"
-                            className={`w-full sm:w-1/2 bg-[#B026FF]/40 ${inputBorder} ${textMuted} hover:bg-[#B026FF]/50`}
+                            className={`w-full sm:w-1/2 bg-[#B026FF]/40 ${themeStyles.inputBorder} ${themeStyles.textMuted} hover:bg-[#B026FF]/50`}
                             asChild
                           >
                             <Link href="/analytics">
@@ -2269,16 +2345,18 @@ export default function AccountPage({
                 </div>
 
                 {/* Recent Activity */}
-                <Card className={`card-hover ${cardBg} ${cardBorder}`}>
+                <Card
+                  className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+                >
                   <CardHeader className="p-3">
                     <CardTitle
-                      className={`flex items-center gap-2 ${textPrimary}`}
+                      className={`flex items-center gap-2 ${themeStyles.textPrimary}`}
                     >
                       <Zap className="h-5 w-5 text-[#FF2E9F]" />
                       Recent Activity
                     </CardTitle>
                     <CardDescription
-                      className={`${textSecondary} font-montserrat text-base`}
+                      className={`${themeStyles.textSecondary} font-montserrat text-base`}
                     >
                       Latest automated replies and system activities for this
                       account
@@ -2292,7 +2370,7 @@ export default function AccountPage({
                           account?.recentActivity?.map((activity: any) => (
                             <div
                               key={activity.id}
-                              className={`flex items-center justify-between p-3 border ${inputBorder} rounded-lg`}
+                              className={`flex items-center justify-between p-3 border ${themeStyles.inputBorder} rounded-lg`}
                             >
                               <div className="flex items-center space-x-3">
                                 <div
@@ -2300,17 +2378,19 @@ export default function AccountPage({
                                 />
                                 <div>
                                   <p
-                                    className={`text-sm font-medium ${textPrimary}`}
+                                    className={`text-sm font-medium ${themeStyles.textPrimary}`}
                                   >
                                     {activity.type === "reply_sent"
                                       ? "Reply sent"
                                       : "Reply failed"}
-                                    <span className={textSecondary}>
+                                    <span className={themeStyles.textSecondary}>
                                       {" "}
                                       to @{activity.account}
                                     </span>
                                   </p>
-                                  <p className={`text-xs ${textMuted}`}>
+                                  <p
+                                    className={`text-xs ${themeStyles.textMuted}`}
+                                  >
                                     Template: {activity.template}
                                   </p>
                                 </div>
@@ -2324,13 +2404,17 @@ export default function AccountPage({
                                 >
                                   Success
                                 </Badge>
-                                <p className={`text-xs ${textMuted} mt-1`}>
+                                <p
+                                  className={`text-xs ${themeStyles.textMuted} mt-1`}
+                                >
                                   {formatLastActivity(activity.timestamp)}
                                 </p>
                               </div>
                             </div>
                           ))) || (
-                          <p className={textMuted}>No recent activity</p>
+                          <p className={themeStyles.textMuted}>
+                            No recent activity
+                          </p>
                         )}
                       </div>
                     </div>
@@ -2342,12 +2426,14 @@ export default function AccountPage({
 
           <TabsContent value="settings" className="space-y-6">
             <Card
-              className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#d61a1a]/10 to-[#d61a1a]/5 border-[#d61a1a]/15 hover:bg-[#d61a1a]/10 ${cardBg} backdrop-blur-sm ${cardBorder}`}
+              className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-[#d61a1a]/10 to-[#d61a1a]/5 border-[#d61a1a]/15 hover:bg-[#d61a1a]/10 ${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
             >
               <CardHeader className="p-3">
-                <CardTitle className={textPrimary}>Account Settings</CardTitle>
+                <CardTitle className={themeStyles.textPrimary}>
+                  Account Settings
+                </CardTitle>
                 <CardDescription
-                  className={`font-montserrat text-base ${textSecondary}`}
+                  className={`font-montserrat text-base ${themeStyles.textSecondary}`}
                 >
                   Configure how auto-replies work for this Instagram account
                 </CardDescription>
@@ -2355,8 +2441,12 @@ export default function AccountPage({
               <CardContent className="space-y-6 p-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className={textPrimary}>Enable Auto-Replies</Label>
-                    <p className={`text-base ${textSecondary} font-montserrat`}>
+                    <Label className={themeStyles.textPrimary}>
+                      Enable Auto-Replies
+                    </Label>
+                    <p
+                      className={`text-base ${themeStyles.textSecondary} font-montserrat`}
+                    >
                       Turn on/off automated replies for this account
                     </p>
                   </div>
@@ -2368,8 +2458,12 @@ export default function AccountPage({
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className={textPrimary}>Rate Limiting</Label>
-                    <p className={`text-base ${textSecondary} font-montserrat`}>
+                    <Label className={themeStyles.textPrimary}>
+                      Rate Limiting
+                    </Label>
+                    <p
+                      className={`text-base ${themeStyles.textSecondary} font-montserrat`}
+                    >
                       Limit 1 reply per comment, 10 replies per hour
                     </p>
                   </div>
@@ -2380,8 +2474,12 @@ export default function AccountPage({
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className={textPrimary}>Smart Filtering</Label>
-                    <p className={`text-base ${textSecondary} font-montserrat`}>
+                    <Label className={themeStyles.textPrimary}>
+                      Smart Filtering
+                    </Label>
+                    <p
+                      className={`text-base ${themeStyles.textSecondary} font-montserrat`}
+                    >
                       Skip replies to spam or inappropriate comments
                     </p>
                   </div>
@@ -2397,7 +2495,7 @@ export default function AccountPage({
                       <div className="flex items-center justify-center gap-3">
                         <p className="font-medium">Delete Account</p>
                         <p
-                          className={`text-base ${textSecondary} font-montserrat`}
+                          className={`text-base ${themeStyles.textSecondary} font-montserrat`}
                         >
                           Permanently delete this Instagram account
                         </p>
@@ -2420,13 +2518,15 @@ export default function AccountPage({
           </TabsContent>
         </Tabs>
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <AlertDialogContent className={`${alertBg} backdrop-blur-md`}>
+          <AlertDialogContent
+            className={`${themeStyles.alertBg} backdrop-blur-md`}
+          >
             <AlertDialogHeader>
-              <AlertDialogTitle className={textPrimary}>
+              <AlertDialogTitle className={themeStyles.textPrimary}>
                 Are you absolutely sure?
               </AlertDialogTitle>
               <AlertDialogDescription
-                className={`font-montserrat ${textSecondary}`}
+                className={`font-montserrat ${themeStyles.textSecondary}`}
               >
                 This action cannot be undone. This will permanently delete the
                 Instagram account data from our database and all associated

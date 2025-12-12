@@ -1,6 +1,6 @@
 "use client";
 import { toast } from "@/components/ui/use-toast";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Check, Zap, X, Loader2, BadgeCheck } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
@@ -60,24 +60,30 @@ function PricingWithSearchParams() {
   const [isgettingAcc, setIsGettingAcc] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
   // Theme-based styles
-  const containerBg = theme === "dark" ? "bg-transperant" : "bg-gray-50";
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const cardBg = theme === "dark" ? "bg-[#0a0a0a]/60" : "bg-white/80";
-  const cardBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const badgeBg = theme === "dark" ? "bg-[#0a0a0a]" : "bg-white";
-  const alertBg = theme === "dark" ? "bg-[#6d1717]/5" : "bg-red-50/80";
-  const buttonOutlineBorder =
-    theme === "dark" ? "border-white/20" : "border-gray-300";
-  const buttonOutlineText = theme === "dark" ? "text-gray-300" : "text-n-6";
-  const dialogBg = theme === "dark" ? "bg-[#0a0a0a]/95" : "bg-white/95";
-  const inputBg = theme === "dark" ? "bg-white/5" : "bg-white";
-  const inputBorder = theme === "dark" ? "border-white/20" : "border-gray-300";
-  const inputText = theme === "dark" ? "text-white" : "text-n-7";
 
+  const currentTheme = resolvedTheme || theme || "light";
+
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-transperant" : "bg-gray-50",
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      textSecondary: isDark ? "text-gray-300" : "text-n-5",
+      textMuted: isDark ? "text-gray-400" : "text-n-5",
+      cardBg: isDark ? "bg-[#0a0a0a]/60" : "bg-white/80",
+      cardBorder: isDark ? "border-white/10" : "border-gray-200",
+      badgeBg: isDark ? "bg-[#0a0a0a]" : "bg-white",
+      alertBg: isDark ? "bg-[#6d1717]/5" : "bg-red-50/80",
+      buttonOutlineBorder: isDark ? "border-white/20" : "border-gray-300",
+      buttonOutlineText: isDark ? "text-gray-300" : "text-n-6",
+      dialogBg: isDark ? "bg-[#0a0a0a]/95" : "bg-white/95",
+      inputBg: isDark ? "bg-white/5" : "bg-white",
+      inputBorder: isDark ? "border-white/20" : "border-gray-300",
+      inputText: isDark ? "text-white" : "text-n-7",
+    };
+  }, [currentTheme]);
   // New states for dialogs
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showAccountDialog, setShowAccountDialog] = useState(false);
@@ -522,19 +528,14 @@ function PricingWithSearchParams() {
 
   if (isLoading || !isLoaded) {
     return (
-      <div
-        className={`min-h-screen flex items-center justify-center bg-transparent`}
-      >
-        <div className="flex flex-col items-center">
-          <Loader2 className="h-12 w-12 animate-spin text-[#00F0FF]" />
-          <p className={`mt-4 ${textMuted}`}>Loading subscription data...</p>
-        </div>
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen ${textPrimary} bg-transparent`}>
+    <div className={`min-h-screen ${themeStyles.textPrimary} bg-transparent`}>
       <BreadcrumbsDefault />
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -556,7 +557,7 @@ function PricingWithSearchParams() {
             Instagram Comment Automation
           </h1>
           <p
-            className={`text-xl ${textSecondary} mb-8 max-w-2xl mx-auto font-montserrat`}
+            className={`text-xl ${themeStyles.textSecondary} mb-8 max-w-2xl mx-auto font-montserrat`}
           >
             Reply instantly to every comment. No setup fees. Cancel anytime.
           </p>
@@ -564,7 +565,9 @@ function PricingWithSearchParams() {
           <div className="flex items-center justify-center gap-4 mb-12">
             <span
               className={`text-sm font-medium ${
-                billingCycle === "monthly" ? textPrimary : textMuted
+                billingCycle === "monthly"
+                  ? themeStyles.textPrimary
+                  : themeStyles.textMuted
               }`}
             >
               Monthly
@@ -578,7 +581,9 @@ function PricingWithSearchParams() {
             />
             <span
               className={`text-sm font-medium ${
-                billingCycle === "yearly" ? textPrimary : textMuted
+                billingCycle === "yearly"
+                  ? themeStyles.textPrimary
+                  : themeStyles.textMuted
               }`}
             >
               Yearly
@@ -599,18 +604,20 @@ function PricingWithSearchParams() {
       <section className="px-4 sm:px-6 lg:px-8 pb-16">
         <div className="max-w-6xl mx-auto">
           <div
-            className={`relative mb-10 group rounded-lg backdrop-blur-sm border transition-all duration-300 ${cardBorder} ${cardBg} hover:border-[#00F0FF] bg-transparent`}
+            className={`relative mb-10 group rounded-lg backdrop-blur-sm border transition-all duration-300 ${themeStyles.cardBorder} ${themeStyles.cardBg} hover:border-[#00F0FF] bg-transparent`}
           >
             <div
               className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity from-[#FF2E9F]/10 to-transparent`}
             ></div>
             <div className=" relative z-10 h-full flex flex-col md:flex-row items-center justify-between p-6">
               <div className="flex-[10%] flex flex-col  justify-between items-center md:items-start ">
-                <h3 className={`text-xl font-bold mb-2 ${textPrimary}`}>
+                <h3
+                  className={`text-xl font-bold mb-2 ${themeStyles.textPrimary}`}
+                >
                   Free
                 </h3>
                 <p
-                  className={`text-center md:text-start ${textMuted} mb-6 font-montserrat text-lg`}
+                  className={`text-center md:text-start ${themeStyles.textMuted} mb-6 font-montserrat text-lg`}
                 >
                   Default plan for new users
                 </p>
@@ -633,7 +640,7 @@ function PricingWithSearchParams() {
                     <Check
                       className={`h-5 w-5 mt-1 mr-3 ${"text-[#FF2E9F]"}`}
                     />
-                    <span className={textSecondary}>{feature}</span>
+                    <span className={themeStyles.textSecondary}>{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -671,7 +678,9 @@ function PricingWithSearchParams() {
               return (
                 <div
                   key={plan.id}
-                  className={`relative group rounded-lg backdrop-blur-sm border transition-all duration-300 ${cardBg} ${
+                  className={`relative group rounded-lg backdrop-blur-sm border transition-all duration-300 ${
+                    themeStyles.cardBg
+                  } ${
                     plan.popular
                       ? "scale-105 z-10 border-[#B026FF]/30 hover:border-[#B026FF]"
                       : plan.id === "Insta-Automation-Starter"
@@ -706,14 +715,18 @@ function PricingWithSearchParams() {
                   ></div>
                   <div className="relative z-10 h-full flex flex-col items-center justify-between p-6">
                     <div className="flex justify-between items-start">
-                      <h3 className={`text-xl font-bold mb-2 ${textPrimary}`}>
+                      <h3
+                        className={`text-xl font-bold mb-2 ${themeStyles.textPrimary}`}
+                      >
                         {plan.name}
                       </h3>
                       {isCurrentPlan && (
                         <BadgeCheck className=" ml-1 h-6 w-6 text-[#00F0FF]" />
                       )}
                     </div>
-                    <p className={`${textMuted} mb-6 font-montserrat text-lg`}>
+                    <p
+                      className={`${themeStyles.textMuted} mb-6 font-montserrat text-lg`}
+                    >
                       {plan.description}
                     </p>
                     <div className="flex items-end mb-6">
@@ -731,7 +744,7 @@ function PricingWithSearchParams() {
                           ? plan.monthlyPrice.toFixed(0)
                           : plan.yearlyPrice.toFixed(0)}
                       </span>
-                      <span className={textMuted}>
+                      <span className={themeStyles.textMuted}>
                         /{billingCycle === "monthly" ? "month" : "year"}
                       </span>
                     </div>
@@ -753,7 +766,7 @@ function PricingWithSearchParams() {
                             }`}
                           />
                           <span
-                            className={`${textSecondary} font-montserrat text-base`}
+                            className={`${themeStyles.textSecondary} font-montserrat text-base`}
                           >
                             {feature}
                           </span>
@@ -827,7 +840,9 @@ function PricingWithSearchParams() {
             <h2 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] mb-4">
               Feature Comparison
             </h2>
-            <p className={`text-xl ${textSecondary} font-montserrat`}>
+            <p
+              className={`text-xl ${themeStyles.textSecondary} font-montserrat`}
+            >
               Everything you get with each plan
             </p>
           </div>
@@ -836,12 +851,12 @@ function PricingWithSearchParams() {
             <table className="w-full border-collapse">
               <thead>
                 <tr
-                  className={`border-b-2 ${cardBg} ${
+                  className={`border-b-2 ${themeStyles.cardBg} ${
                     theme === "dark" ? "border-[#333]" : "border-gray-300"
                   }`}
                 >
                   <th
-                    className={`text-left py-4 px-6 font-semibold ${textPrimary}`}
+                    className={`text-left py-4 px-6 font-semibold ${themeStyles.textPrimary}`}
                   >
                     Features
                   </th>
@@ -857,7 +872,7 @@ function PricingWithSearchParams() {
                 </tr>
               </thead>
               <tbody
-                className={`divide-y ${cardBg} ${
+                className={`divide-y ${themeStyles.cardBg} ${
                   theme === "dark" ? "divide-[#333]" : "divide-gray-300"
                 }`}
               >
@@ -947,34 +962,42 @@ function PricingWithSearchParams() {
                       theme === "dark" ? "bg-[#1a1a1a]/50" : "bg-gray-100/50"
                     } font-montserrat text-base`}
                   >
-                    <td className={`py-4 px-6 font-medium ${textSecondary}`}>
+                    <td
+                      className={`py-4 px-6 font-medium ${themeStyles.textSecondary}`}
+                    >
                       {row.feature}
                     </td>
                     <td className="py-4 px-6 text-center">
                       {row.starter === "✓" ? (
                         <Check className="h-5 w-5 text-[#00F0FF] mx-auto" />
                       ) : row.starter === "✗" ? (
-                        <span className={textMuted}>—</span>
+                        <span className={themeStyles.textMuted}>—</span>
                       ) : (
-                        <span className={textSecondary}>{row.starter}</span>
+                        <span className={themeStyles.textSecondary}>
+                          {row.starter}
+                        </span>
                       )}
                     </td>
                     <td className="py-4 px-6 text-center">
                       {row.growth === "✓" ? (
                         <Check className="h-5 w-5 text-[#B026FF] mx-auto" />
                       ) : row.growth === "✗" ? (
-                        <span className={textMuted}>—</span>
+                        <span className={themeStyles.textMuted}>—</span>
                       ) : (
-                        <span className={textSecondary}>{row.growth}</span>
+                        <span className={themeStyles.textSecondary}>
+                          {row.growth}
+                        </span>
                       )}
                     </td>
                     <td className="py-4 px-6 text-center">
                       {row.pro === "✓" ? (
                         <Check className="h-5 w-5 text-[#FF2E9F] mx-auto" />
                       ) : row.pro === "✗" ? (
-                        <span className={textMuted}>—</span>
+                        <span className={themeStyles.textMuted}>—</span>
                       ) : (
-                        <span className={textSecondary}>{row.pro}</span>
+                        <span className={themeStyles.textSecondary}>
+                          {row.pro}
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -987,7 +1010,7 @@ function PricingWithSearchParams() {
       {showCancelDialog && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div
-            className={`p-3 md:p-8 rounded-xl max-w-md w-full ${dialogBg} backdrop-blur-lg border ${cardBorder}`}
+            className={`p-3 md:p-8 rounded-xl max-w-md w-full ${themeStyles.dialogBg} backdrop-blur-lg border ${themeStyles.cardBorder}`}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]">
@@ -998,26 +1021,30 @@ function PricingWithSearchParams() {
                 size="icon"
                 onClick={() => setShowCancelDialog(false)}
               >
-                <X className={`${textMuted} h-5 w-5 hover:${textPrimary}`} />
+                <X
+                  className={`${themeStyles.textMuted} h-5 w-5 hover:${themeStyles.textPrimary}`}
+                />
               </Button>
             </div>
             <div className="space-y-6">
               <div>
                 <label
-                  className={`block text-lg font-semibold ${textSecondary} mb-2`}
+                  className={`block text-lg font-semibold ${themeStyles.textSecondary} mb-2`}
                 >
                   Please Provide Reason
                 </label>
                 <Textarea
                   value={cancellationReason}
                   onChange={(e) => setCancellationReason(e.target.value)}
-                  className={`w-full ${inputBg} ${inputBorder} rounded-lg p-3 ${inputText} focus:outline-none focus:ring-2 focus:ring-[#B026FF] font-montserrat`}
+                  className={`w-full ${themeStyles.inputBg} ${themeStyles.inputBorder} rounded-lg p-3 ${themeStyles.inputText} focus:outline-none focus:ring-2 focus:ring-[#B026FF] font-montserrat`}
                   placeholder="Cancellation reason"
                   required
                 />
               </div>
 
-              <div className={`text-xs ${textMuted} font-montserrat`}>
+              <div
+                className={`text-xs ${themeStyles.textMuted} font-montserrat`}
+              >
                 <p className="mb-2">
                   <strong>Immediate Cancellation:</strong> Service ends
                   immediately
@@ -1103,13 +1130,15 @@ function PricingWithSearchParams() {
         open={showCancelConfirmDialog}
         onOpenChange={setShowCancelConfirmDialog}
       >
-        <AlertDialogContent className={`${alertBg} backdrop-blur-md`}>
+        <AlertDialogContent
+          className={`${themeStyles.alertBg} backdrop-blur-md`}
+        >
           <AlertDialogHeader>
-            <AlertDialogTitle className={textPrimary}>
+            <AlertDialogTitle className={themeStyles.textPrimary}>
               Confirm Cancellation
             </AlertDialogTitle>
             <AlertDialogDescription
-              className={`font-montserrat ${textSecondary}`}
+              className={`font-montserrat ${themeStyles.textSecondary}`}
             >
               Are you sure you want to cancel your subscription? Your plan will
               revert to the Free plan which only allows 1 Instagram account.
@@ -1117,7 +1146,7 @@ function PricingWithSearchParams() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel
-              className={`${buttonOutlineBorder} ${buttonOutlineText}`}
+              className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText}`}
             >
               Cancel
             </AlertDialogCancel>

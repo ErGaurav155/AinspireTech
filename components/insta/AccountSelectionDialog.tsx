@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -34,18 +34,22 @@ export function AccountSelectionDialog({
   isLoading = false,
 }: AccountSelectionDialogProps) {
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const dialogBg = theme === "dark" ? "bg-[#0a0a0a]/95" : "bg-white/95";
-  const dialogBorder = theme === "dark" ? "border-white/10" : "border-gray-200";
-  const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-gray-500";
-  const buttonOutlineBorder =
-    theme === "dark" ? "border-white/20" : "border-gray-300";
-  const buttonOutlineText =
-    theme === "dark" ? "text-gray-300" : "text-gray-700";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      dialogBg: isDark ? "bg-[#0a0a0a]/95" : "bg-white/95",
+      dialogBorder: isDark ? "border-white/10" : "border-gray-200",
+      textPrimary: isDark ? "text-white" : "text-gray-900",
+      textSecondary: isDark ? "text-gray-300" : "text-gray-600",
+      textMuted: isDark ? "text-gray-400" : "text-gray-500",
+      buttonOutlineBorder: isDark ? "border-white/20" : "border-gray-300",
+      buttonOutlineText: isDark ? "text-gray-300" : "text-gray-700",
+    };
+  }, [currentTheme]);
 
   const getAccountLimit = (plan: PricingPlan | null) => {
     if (!plan) return 1;
@@ -83,13 +87,15 @@ export function AccountSelectionDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className={`${dialogBg} backdrop-blur-lg border ${dialogBorder} rounded-xl max-w-md`}
+        className={`${themeStyles.dialogBg} backdrop-blur-lg border ${themeStyles.dialogBorder} rounded-xl max-w-md`}
       >
         <DialogHeader>
-          <DialogTitle className={textPrimary}>
+          <DialogTitle className={themeStyles.textPrimary}>
             Account Limit Exceeded
           </DialogTitle>
-          <DialogDescription className={`${textSecondary} font-montserrat`}>
+          <DialogDescription
+            className={`${themeStyles.textSecondary} font-montserrat`}
+          >
             The {newPlan?.name} plan allows only {accountLimit} Instagram
             account(s). Please select {accountsToDelete} account(s) to delete.
           </DialogDescription>
@@ -114,7 +120,7 @@ export function AccountSelectionDialog({
                 />
                 <Label
                   htmlFor={account.username}
-                  className={`${textPrimary} cursor-pointer`}
+                  className={`${themeStyles.textPrimary} cursor-pointer`}
                 >
                   {account.username}
                 </Label>
@@ -133,7 +139,7 @@ export function AccountSelectionDialog({
             variant="outline"
             onClick={onClose}
             disabled={isLoading}
-            className={`${buttonOutlineBorder} ${buttonOutlineText}`}
+            className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText}`}
           >
             Cancel
           </Button>

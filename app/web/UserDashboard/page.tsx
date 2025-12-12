@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -286,43 +286,43 @@ export default function DashboardPage() {
     },
   ]);
   const { userId, isLoaded } = useAuth();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
-  const textPrimary = theme === "dark" ? "text-white" : "text-n-7";
-  const textSecondary = theme === "dark" ? "text-gray-300" : "text-n-5";
-  const textMuted = theme === "dark" ? "text-gray-400" : "text-n-5";
-  const containerBg = theme === "dark" ? "bg-transparent" : "bg-gray-50";
-  const loadingBg = theme === "dark" ? "bg-black" : "bg-white";
-  const cardBg = theme === "dark" ? "bg-gray-900/30" : "bg-white";
-  const cardBorder =
-    theme === "dark" ? "border-gray-800/50" : "border-gray-200";
-  const hoverBorder =
-    theme === "dark" ? "hover:border-gray-700/50" : "hover:border-gray-300";
-  const activeBorder =
-    theme === "dark" ? "border-[#00F0FF]/50" : "border-[#00F0FF]";
-  const badgeActiveBg =
-    theme === "dark"
-      ? "bg-green-500/20 text-green-400 border-green-500/30"
-      : "bg-green-100 text-green-600 border-green-300";
-  const badgeInactiveBg =
-    theme === "dark"
-      ? "bg-gray-700/50 text-gray-400"
-      : "bg-gray-100 text-gray-600 border-gray-300";
-  const tableHeaderBg = theme === "dark" ? "bg-gray-800/50" : "bg-gray-100";
-  const tableBorder = theme === "dark" ? "border-gray-700" : "border-gray-300";
-  const tableRowHover =
-    theme === "dark" ? "hover:bg-gray-800/20" : "hover:bg-gray-50";
-  const inputBg = theme === "dark" ? "bg-transparent" : "bg-white";
-  const inputBorder = theme === "dark" ? "border-gray-700" : "border-gray-300";
-  const dialogBg =
-    theme === "dark"
-      ? "bg-gray-900/95 backdrop-blur-md"
-      : "bg-white backdrop-blur-md";
-  const alertBg =
-    theme === "dark"
-      ? "bg-gray-900/95 backdrop-blur-md"
-      : "bg-white backdrop-blur-md";
+  const themeStyles = useMemo(() => {
+    const isDark = currentTheme === "dark";
+    return {
+      textPrimary: isDark ? "text-white" : "text-n-7",
+      textSecondary: isDark ? "text-gray-300" : "text-n-5",
+      textMuted: isDark ? "text-gray-400" : "text-n-5",
+      containerBg: isDark ? "bg-transparent" : "bg-gray-50",
+      loadingBg: isDark ? "bg-black" : "bg-white",
+      cardBg: isDark ? "bg-gray-900/30" : "bg-white",
+      cardBorder: isDark ? "border-gray-800/50" : "border-gray-200",
+      hoverBorder: isDark
+        ? "hover:border-gray-700/50"
+        : "hover:border-gray-300",
+      activeBorder: isDark ? "border-[#00F0FF]/50" : "border-[#00F0FF]",
+      badgeActiveBg: isDark
+        ? "bg-green-500/20 text-green-400 border-green-500/30"
+        : "bg-green-100 text-green-600 border-green-300",
+      badgeInactiveBg: isDark
+        ? "bg-gray-700/50 text-gray-400"
+        : "bg-gray-100 text-gray-600 border-gray-300",
+      tableHeaderBg: isDark ? "bg-gray-800/50" : "bg-gray-100",
+      tableBorder: isDark ? "border-gray-700" : "border-gray-300",
+      tableRowHover: isDark ? "hover:bg-gray-800/20" : "hover:bg-gray-50",
+      inputBg: isDark ? "bg-transparent" : "bg-white",
+      inputBorder: isDark ? "border-gray-700" : "border-gray-300",
+      dialogBg: isDark
+        ? "bg-gray-900/95 backdrop-blur-md"
+        : "bg-white backdrop-blur-md",
+      alertBg: isDark
+        ? "bg-gray-900/95 backdrop-blur-md"
+        : "bg-white backdrop-blur-md",
+    };
+  }, [currentTheme]);
   const {
     handleSubmit: handlePhoneSubmit,
     register: registerPhone,
@@ -719,13 +719,8 @@ export default function DashboardPage() {
   };
   if (loading || !isLoaded) {
     return (
-      <div
-        className={`min-h-screen ${containerBg} ${textPrimary} flex items-center justify-center`}
-      >
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#00F0FF] mx-auto mb-4" />
-          <p className={textSecondary}>Loading dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+        <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
       </div>
     );
   }
@@ -869,7 +864,9 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className={`min-h-screen ${containerBg} ${textPrimary}`}>
+    <div
+      className={`min-h-screen ${themeStyles.containerBg} ${themeStyles.textPrimary}`}
+    >
       {/* Header */}
       {error && (
         <div className="mb-6 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center">
@@ -888,7 +885,7 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Chatbot Selection Tabs */}
         <div className="mb-8">
-          <h2 className={`text-2xl font-bold ${textPrimary} mb-6`}>
+          <h2 className={`text-2xl font-bold ${themeStyles.textPrimary} mb-6`}>
             Your AI Chatbots
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -900,14 +897,16 @@ export default function DashboardPage() {
               return (
                 <Card
                   key={chatbot.id}
-                  className={`cursor-pointer transition-all duration-300 ${cardBg} ${cardBorder} ${
+                  className={`cursor-pointer transition-all duration-300 ${
+                    themeStyles.cardBg
+                  } ${themeStyles.cardBorder} ${
                     isActive
                       ? `bg-gradient-to-br ${
                           theme === "dark"
                             ? "from-gray-800/50 to-gray-900/50"
                             : "from-blue-50 to-purple-50"
-                        } ${activeBorder}`
-                      : `${hoverBorder}`
+                        } ${themeStyles.activeBorder}`
+                      : `${themeStyles.hoverBorder}`
                   }`}
                   onClick={() => {
                     setSelectedChatbot(chatbot.id);
@@ -921,22 +920,27 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mb-3">
                       <chatbot.icon className={`h-8 w-8 ${chatbot.color}`} />
                       {hasSubscription ? (
-                        <Badge className={badgeActiveBg}>
+                        <Badge className={themeStyles.badgeActiveBg}>
                           <Crown className="h-3 w-3 mr-1" />
                           Active
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className={badgeInactiveBg}>
+                        <Badge
+                          variant="secondary"
+                          className={themeStyles.badgeInactiveBg}
+                        >
                           <Lock className="h-3 w-3 mr-1" />
                           Inactive
                         </Badge>
                       )}
                     </div>
-                    <h3 className={`font-semibold ${textPrimary} mb-1`}>
+                    <h3
+                      className={`font-semibold ${themeStyles.textPrimary} mb-1`}
+                    >
                       {chatbot.name}
                     </h3>
                     <p
-                      className={`text-xs ${textSecondary} mb-3 font-montserrat`}
+                      className={`text-xs ${themeStyles.textSecondary} mb-3 font-montserrat`}
                     >
                       {chatbot.description}
                     </p>
@@ -984,15 +988,19 @@ export default function DashboardPage() {
               {getStatsForChatbot(selectedChatbot).map((stat, index) => (
                 <Card
                   key={index}
-                  className={`${cardBg} backdrop-blur-sm ${cardBorder}`}
+                  className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className={`text-sm ${textSecondary} mb-1`}>
+                        <p
+                          className={`text-sm ${themeStyles.textSecondary} mb-1`}
+                        >
                           {stat.title}
                         </p>
-                        <p className={`text-2xl font-bold ${textPrimary}`}>
+                        <p
+                          className={`text-2xl font-bold ${themeStyles.textPrimary}`}
+                        >
                           {stat.value}
                         </p>
                         <p className="text-xs text-green-400 mt-1 font-montserrat">
@@ -1015,13 +1023,15 @@ export default function DashboardPage() {
                 theme === "dark"
                   ? "bg-[#0a0a0a]/60 border-gray-800"
                   : "bg-gray-100 border-gray-300"
-              } border min-h-max flex flex-wrap max-w-max gap-1 md:gap-3 ${textPrimary}`}
+              } border min-h-max flex flex-wrap max-w-max gap-1 md:gap-3 ${
+                themeStyles.textPrimary
+              }`}
             >
               {(selectedChatbot === "chatbot-lead-generation" ||
                 selectedChatbot === "chatbot-customer-support") && (
                 <TabsTrigger
                   value="overview"
-                  className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
+                  className={`${themeStyles.textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
                 >
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Overview
@@ -1031,7 +1041,7 @@ export default function DashboardPage() {
                 selectedChatbot === "chatbot-customer-support") && (
                 <TabsTrigger
                   value="conversations"
-                  className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
+                  className={`${themeStyles.textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Chatting
@@ -1039,14 +1049,14 @@ export default function DashboardPage() {
               )}
               <TabsTrigger
                 value="integration"
-                className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
+                className={`${themeStyles.textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
               >
                 <Code className="h-4 w-4 mr-2" />
                 Integration
               </TabsTrigger>
               <TabsTrigger
                 value="settings"
-                className={`${textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
+                className={`${themeStyles.textSecondary} data-[state=active]:text-black data-[state=active]:bg-[#2d8a55]`}
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
@@ -1059,13 +1069,13 @@ export default function DashboardPage() {
                 {analytics &&
                   currentChatbot?.id === "chatbot-lead-generation" && (
                     <Card
-                      className={`${cardBg} backdrop-blur-sm ${cardBorder}`}
+                      className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
                     >
                       <CardHeader>
-                        <CardTitle className={textPrimary}>
+                        <CardTitle className={themeStyles.textPrimary}>
                           Conversation Trends
                         </CardTitle>
-                        <CardDescription className={textSecondary}>
+                        <CardDescription className={themeStyles.textSecondary}>
                           Daily conversation volume for {currentChatbot?.name}
                         </CardDescription>
                       </CardHeader>
@@ -1081,12 +1091,12 @@ export default function DashboardPage() {
                               />
                               <XAxis
                                 dataKey="name"
-                                stroke={textSecondary}
-                                tick={{ fill: textSecondary }}
+                                stroke={themeStyles.textSecondary}
+                                tick={{ fill: themeStyles.textSecondary }}
                               />
                               <YAxis
-                                stroke={textSecondary}
-                                tick={{ fill: textSecondary }}
+                                stroke={themeStyles.textSecondary}
+                                tick={{ fill: themeStyles.textSecondary }}
                               />
                               <Tooltip
                                 contentStyle={{
@@ -1126,13 +1136,13 @@ export default function DashboardPage() {
                 {analytics &&
                   currentChatbot?.id === "chatbot-lead-generation" && (
                     <Card
-                      className={`${cardBg} backdrop-blur-sm ${cardBorder}`}
+                      className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
                     >
                       <CardHeader>
-                        <CardTitle className={textPrimary}>
+                        <CardTitle className={themeStyles.textPrimary}>
                           Response Time Distribution
                         </CardTitle>
-                        <CardDescription className={textSecondary}>
+                        <CardDescription className={themeStyles.textSecondary}>
                           How quickly your {currentChatbot?.name.toLowerCase()}{" "}
                           responds
                         </CardDescription>
@@ -1149,12 +1159,12 @@ export default function DashboardPage() {
                               />
                               <XAxis
                                 dataKey="time"
-                                stroke={textSecondary}
-                                tick={{ fill: textSecondary }}
+                                stroke={themeStyles.textSecondary}
+                                tick={{ fill: themeStyles.textSecondary }}
                               />
                               <YAxis
-                                stroke={textSecondary}
-                                tick={{ fill: textSecondary }}
+                                stroke={themeStyles.textSecondary}
+                                tick={{ fill: themeStyles.textSecondary }}
                               />
                               <Tooltip
                                 contentStyle={{
@@ -1185,13 +1195,13 @@ export default function DashboardPage() {
                 {analytics &&
                   currentChatbot?.id === "chatbot-lead-generation" && (
                     <Card
-                      className={`${cardBg} backdrop-blur-sm ${cardBorder}`}
+                      className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
                     >
                       <CardHeader className="p-2">
-                        <CardTitle className={textPrimary}>
+                        <CardTitle className={themeStyles.textPrimary}>
                           Customer Satisfaction
                         </CardTitle>
-                        <CardDescription className={textSecondary}>
+                        <CardDescription className={themeStyles.textSecondary}>
                           Feedback ratings from{" "}
                           {currentChatbot?.name.toLowerCase()} users
                         </CardDescription>
@@ -1230,12 +1240,14 @@ export default function DashboardPage() {
                 {/* Recent Conversations */}
                 {(selectedChatbot === "chatbot-lead-generation" ||
                   selectedChatbot === "chatbot-customer-support") && (
-                  <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
+                  <Card
+                    className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
+                  >
                     <CardHeader className="p-2">
-                      <CardTitle className={textPrimary}>
+                      <CardTitle className={themeStyles.textPrimary}>
                         Recent Conversations
                       </CardTitle>
-                      <CardDescription className={textSecondary}>
+                      <CardDescription className={themeStyles.textSecondary}>
                         Latest {currentChatbot?.name.toLowerCase()} interactions
                       </CardDescription>
                     </CardHeader>
@@ -1273,13 +1285,13 @@ export default function DashboardPage() {
                                   </Badge>
                                 </div>
                                 <p
-                                  className={`text-sm ${textSecondary} truncate font-montserrat`}
+                                  className={`text-sm ${themeStyles.textSecondary} truncate font-montserrat`}
                                 >
                                   {conversation.messages[0]?.content ||
                                     "No message"}{" "}
                                 </p>
                                 <p
-                                  className={`text-xs ${textMuted} mt-1 font-montserrat`}
+                                  className={`text-xs ${themeStyles.textMuted} mt-1 font-montserrat`}
                                 >
                                   {new Date(
                                     conversation.createdAt
@@ -1296,12 +1308,14 @@ export default function DashboardPage() {
             </TabsContent>
 
             <TabsContent value="conversations" className="space-y-6">
-              <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
+              <Card
+                className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
+              >
                 <CardHeader className="p-2">
-                  <CardTitle className={textPrimary}>
+                  <CardTitle className={themeStyles.textPrimary}>
                     All Conversations - {currentChatbot?.name}
                   </CardTitle>
-                  <CardDescription className={textSecondary}>
+                  <CardDescription className={themeStyles.textSecondary}>
                     Manage and respond to {currentChatbot?.name.toLowerCase()}{" "}
                     conversations
                   </CardDescription>
@@ -1349,14 +1363,14 @@ export default function DashboardPage() {
                                   </Button>
                                 </DialogTrigger>
                                 <DialogContent
-                                  className={`${dialogBg} border-gray-800  max-w-2xl p-2 font-montserrat`}
+                                  className={`${themeStyles.dialogBg} border-gray-800  max-w-2xl p-2 font-montserrat`}
                                 >
                                   <DialogHeader>
                                     <DialogTitle>
                                       Conversation Details
                                     </DialogTitle>
                                     <DialogDescription
-                                      className={textSecondary}
+                                      className={themeStyles.textSecondary}
                                     >
                                       Customer:{" "}
                                       {conversation.customerName || "Anonymous"}{" "}
@@ -1390,7 +1404,7 @@ export default function DashboardPage() {
                                                     : "Bot"}
                                                 </span>
                                                 <span
-                                                  className={`text-xs ${textMuted}`}
+                                                  className={`text-xs ${themeStyles.textMuted}`}
                                                 >
                                                   {new Date(
                                                     message.timestamp
@@ -1398,7 +1412,7 @@ export default function DashboardPage() {
                                                 </span>
                                               </div>
                                               <p
-                                                className={`text-sm ${textSecondary}`}
+                                                className={`text-sm ${themeStyles.textSecondary}`}
                                               >
                                                 {message.content}
                                               </p>
@@ -1408,7 +1422,7 @@ export default function DashboardPage() {
                                       </div>
                                     </div>
                                     <div
-                                      className={`bg-[#b71b86]/10 p-4 rounded ${textMuted} space-y-2 `}
+                                      className={`bg-[#b71b86]/10 p-4 rounded ${themeStyles.textMuted} space-y-2 `}
                                     >
                                       <h4 className="font-medium mb-2">
                                         Form Data
@@ -1556,12 +1570,12 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           <p
-                            className={`text-sm ${textSecondary} font-montserrat`}
+                            className={`text-sm ${themeStyles.textSecondary} font-montserrat`}
                           >
                             {conversation.messages[0]?.content || "No message"}
                           </p>
                           <p
-                            className={`text-xs ${textMuted} mt-1 font-montserrat`}
+                            className={`text-xs ${themeStyles.textMuted} mt-1 font-montserrat`}
                           >
                             {new Date(conversation.createdAt).toLocaleString()}
                           </p>
@@ -1575,13 +1589,17 @@ export default function DashboardPage() {
 
             <TabsContent value="integration" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
+                <Card
+                  className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
+                >
                   <CardHeader className="p-4">
-                    <CardTitle className={`${textPrimary} flex items-center`}>
+                    <CardTitle
+                      className={`${themeStyles.textPrimary} flex items-center`}
+                    >
                       <Code className="h-5 w-5 mr-2" />
                       {currentChatbot?.name} Widget Integration
                     </CardTitle>
-                    <CardDescription className={textSecondary}>
+                    <CardDescription className={themeStyles.textSecondary}>
                       Copy and paste the code below to integrate{" "}
                       {currentChatbot?.name} into your website
                     </CardDescription>
@@ -1595,7 +1613,7 @@ export default function DashboardPage() {
                             Universal Integration
                           </h4>
                           <p
-                            className={`text-sm ${textSecondary} mt-1 font-montserrat`}
+                            className={`text-sm ${themeStyles.textSecondary} mt-1 font-montserrat`}
                           >
                             This code works on any website platform. Simply copy
                             and paste it before the closing &lt;/body&gt; tag.
@@ -1607,7 +1625,9 @@ export default function DashboardPage() {
                         <pre
                           className={`${
                             theme === "dark" ? "bg-gray-900/80" : "bg-gray-100"
-                          } p-4 rounded-lg text-sm ${textSecondary} overflow-x-auto min-h-max`}
+                          } p-4 rounded-lg text-sm ${
+                            themeStyles.textSecondary
+                          } overflow-x-auto min-h-max`}
                         >
                           <code className="min-h-max block overflow-hidden text-wrap h-20">
                             {`<script src="https://ainspiretech.com/chatbotembed.js" data-chatbot-config='{"userId":"${userId}","isAuthorized":${isSubscribed},"filename":"${
@@ -1655,7 +1675,7 @@ export default function DashboardPage() {
                             Important Notes
                           </h4>
                           <ul
-                            className={`text-sm ${textSecondary} mt-1 list-disc list-inside space-y-1 font-montserrat`}
+                            className={`text-sm ${themeStyles.textSecondary} mt-1 list-disc list-inside space-y-1 font-montserrat`}
                           >
                             <li>
                               Works on WordPress, React, Angular, Vue, plain
@@ -1680,10 +1700,12 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
 
-                <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
+                <Card
+                  className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
+                >
                   <CardHeader className="p-4">
                     <CardTitle
-                      className={`${textPrimary} flex items-center justify-between`}
+                      className={`${themeStyles.textPrimary} flex items-center justify-between`}
                     >
                       <span className="flex items-center">
                         <MessageCircle className="h-5 w-5 mr-2" />
@@ -1698,7 +1720,7 @@ export default function DashboardPage() {
                         Add FAQ
                       </Button>
                     </CardTitle>
-                    <CardDescription className={textSecondary}>
+                    <CardDescription className={themeStyles.textSecondary}>
                       Add frequently asked questions and answers for your
                       chatbot
                     </CardDescription>
@@ -1723,7 +1745,7 @@ export default function DashboardPage() {
                                     e.target.value
                                   )
                                 }
-                                className={`${inputBg} ${inputBorder} ${textPrimary} text-sm font-montserrat mb-2`}
+                                className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} text-sm font-montserrat mb-2`}
                                 placeholder="FAQ Question"
                               />
                               {!faq.question.trim() && (
@@ -1756,7 +1778,9 @@ export default function DashboardPage() {
                                 theme === "dark"
                                   ? "bg-[#2d5a8c]/40 border-gray-600"
                                   : "bg-white border-gray-300"
-                              } border rounded px-2 py-1 ${textPrimary} text-sm`}
+                              } border rounded px-2 py-1 ${
+                                themeStyles.textPrimary
+                              } text-sm`}
                             >
                               <option value="General">General</option>
                               <option value="Support">Support</option>
@@ -1776,7 +1800,7 @@ export default function DashboardPage() {
                                   e.target.value
                                 )
                               }
-                              className={`${inputBg} ${inputBorder} ${textPrimary} text-sm font-montserrat min-h-[80px]`}
+                              className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} text-sm font-montserrat min-h-[80px]`}
                               placeholder="FAQ Answer"
                             />
                             {!faq.answer.trim() && (
@@ -1792,10 +1816,10 @@ export default function DashboardPage() {
                     {faqQuestions.length === 0 && (
                       <div className="text-center py-8 font-montserrat">
                         <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <p className={textSecondary}>
+                        <p className={themeStyles.textSecondary}>
                           No FAQ questions added yet
                         </p>
-                        <p className={`text-sm ${textMuted} mt-1`}>
+                        <p className={`text-sm ${themeStyles.textMuted} mt-1`}>
                           Add some frequently asked questions to help your users
                         </p>
                       </div>
@@ -1838,12 +1862,14 @@ export default function DashboardPage() {
             <TabsContent value="settings" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Chatbot Settings */}
-                <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
+                <Card
+                  className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
+                >
                   <CardHeader className="p-2">
-                    <CardTitle className={textPrimary}>
+                    <CardTitle className={themeStyles.textPrimary}>
                       {currentChatbot?.name} Settings
                     </CardTitle>
-                    <CardDescription className={textSecondary}>
+                    <CardDescription className={themeStyles.textSecondary}>
                       Configure your chatbot behavior and appearance
                     </CardDescription>
                   </CardHeader>
@@ -1853,7 +1879,7 @@ export default function DashboardPage() {
                         <div>
                           <Label
                             htmlFor="chatbotName"
-                            className={textSecondary}
+                            className={themeStyles.textSecondary}
                           >
                             Chatbot Name
                           </Label>
@@ -1865,7 +1891,7 @@ export default function DashboardPage() {
                             onChange={(event) =>
                               setChatbotNamed(event?.target.value)
                             }
-                            className={`mt-2 ${inputBg} ${inputBorder} ${textPrimary} font-montserrat`}
+                            className={`mt-2 ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat`}
                             placeholder={
                               chatbotNamed ? chatbotNamed : currentChatbot?.name
                             }
@@ -1874,7 +1900,7 @@ export default function DashboardPage() {
                         <div>
                           <Label
                             htmlFor="welcomeMessage"
-                            className={textSecondary}
+                            className={themeStyles.textSecondary}
                           >
                             Welcome Message
                           </Label>
@@ -1888,7 +1914,7 @@ export default function DashboardPage() {
                             onChange={(event) =>
                               setChatbotMessaged(event?.target.value)
                             }
-                            className={`mt-2 ${inputBg} ${inputBorder} ${textPrimary} font-montserrat`}
+                            className={`mt-2 ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat`}
                             placeholder={
                               chatbotMessaged
                                 ? chatbotMessaged
@@ -1910,7 +1936,10 @@ export default function DashboardPage() {
                         </Button>
                       </div>
                       <div className="">
-                        <Label htmlFor="websiteUrl" className={textSecondary}>
+                        <Label
+                          htmlFor="websiteUrl"
+                          className={themeStyles.textSecondary}
+                        >
                           Website URL
                         </Label>
                         <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
@@ -1920,12 +1949,12 @@ export default function DashboardPage() {
                               id="websiteUrl"
                               value={websiteUrl!}
                               onChange={(e) => setWebsiteUrl(e.target.value)}
-                              className={`${inputBg} ${inputBorder} ${textPrimary} font-montserrat`}
+                              className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat`}
                               placeholder="https://yourwebsite.com"
                             />
                           ) : (
                             <p
-                              className={`flex items-center justify-center border ${inputBorder} ${textPrimary} font-montserrat p-2 rounded-lg w-full`}
+                              className={`flex items-center justify-center border ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat p-2 rounded-lg w-full`}
                             >
                               {websiteUrl}
                             </p>
@@ -1961,20 +1990,20 @@ export default function DashboardPage() {
                             <div className="pt-4">
                               <Label
                                 htmlFor="websiteUrl"
-                                className={textSecondary}
+                                className={themeStyles.textSecondary}
                               >
                                 Whatsapp Number
                               </Label>
                               <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
                                 {phone === null ? (
                                   <p
-                                    className={`flex items-center justify-center border ${inputBorder} ${textPrimary} font-montserrat p-2 rounded-lg w-full`}
+                                    className={`flex items-center justify-center border ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat p-2 rounded-lg w-full`}
                                   >
                                     Please Add Whatsapp Number.
                                   </p>
                                 ) : (
                                   <p
-                                    className={`flex items-center justify-center border ${inputBorder} ${textPrimary} font-montserrat p-2 rounded-lg w-full`}
+                                    className={`flex items-center justify-center border ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat p-2 rounded-lg w-full`}
                                   >
                                     {phone}
                                   </p>
@@ -2027,7 +2056,7 @@ export default function DashboardPage() {
                         {webError && (
                           <div className=" border border-red-200 rounded-lg p-4 mt-8">
                             <p
-                              className={`text-red-700 ${textPrimary} font-montserrat`}
+                              className={`text-red-700 ${themeStyles.textPrimary} font-montserrat`}
                             >
                               {webError}
                             </p>
@@ -2036,7 +2065,7 @@ export default function DashboardPage() {
                         {(webLoading || processing) && (
                           <div className=" border border-green-200 rounded-lg p-4 mt-8">
                             <p
-                              className={`text-green-700 ${textPrimary}font-montserrat`}
+                              className={`text-green-700 ${themeStyles.textPrimary}font-montserrat`}
                             >
                               This might take 1-2 min so please wait,Dont do
                               anything.
@@ -2050,10 +2079,12 @@ export default function DashboardPage() {
 
                 {/* Appointment Form Questions */}
                 {currentChatbot?.id === "chatbot-lead-generation" && (
-                  <Card className={`${cardBg} backdrop-blur-sm ${cardBorder}`}>
+                  <Card
+                    className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
+                  >
                     <CardHeader className="p-2">
                       <CardTitle
-                        className={`${textPrimary} flex flex-wrap gap-2 p-0 items-center justify-between`}
+                        className={`${themeStyles.textPrimary} flex flex-wrap gap-2 p-0 items-center justify-between`}
                       >
                         <span className="flex items-center">
                           <Calendar className="h-5 w-5 mr-2" />
@@ -2068,7 +2099,7 @@ export default function DashboardPage() {
                           Add Question
                         </Button>
                       </CardTitle>
-                      <CardDescription className={textSecondary}>
+                      <CardDescription className={themeStyles.textSecondary}>
                         Configure questions for appointment booking
                       </CardDescription>
                     </CardHeader>
@@ -2093,11 +2124,13 @@ export default function DashboardPage() {
                                     e.target.value
                                   )
                                 }
-                                className={`${inputBg} ${
+                                className={`${themeStyles.inputBg} ${
                                   theme === "dark"
                                     ? "border-gray-600"
                                     : "border-gray-300"
-                                } ${textPrimary} text-sm font-montserrat`}
+                                } ${
+                                  themeStyles.textPrimary
+                                } text-sm font-montserrat`}
                               />
                               <Button
                                 size="sm"
@@ -2124,7 +2157,9 @@ export default function DashboardPage() {
                                   theme === "dark"
                                     ? "bg-[#805283]/40 border-gray-600"
                                     : "bg-white border-gray-300"
-                                } border rounded px-2 py-1 ${textPrimary} text-sm`}
+                                } border rounded px-2 py-1 ${
+                                  themeStyles.textPrimary
+                                } text-sm`}
                               >
                                 <option value="text">Text</option>
                                 <option value="email">Email</option>
@@ -2133,7 +2168,7 @@ export default function DashboardPage() {
                                 <option value="select">Select</option>
                               </select>
                               <label
-                                className={`flex items-center text-sm ${textSecondary}`}
+                                className={`flex items-center text-sm ${themeStyles.textSecondary}`}
                               >
                                 <input
                                   type="checkbox"
@@ -2171,10 +2206,12 @@ export default function DashboardPage() {
         ) : (
           <div className="text-center py-16">
             <Lock className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-            <h3 className={`text-xl font-semibold ${textSecondary} mb-2`}>
+            <h3
+              className={`text-xl font-semibold ${themeStyles.textSecondary} mb-2`}
+            >
               Subscription Required
             </h3>
-            <p className={`${textMuted} mb-6 font-montserrat`}>
+            <p className={`${themeStyles.textMuted} mb-6 font-montserrat`}>
               Subscribe to access dashboard features for {currentChatbot?.name}
             </p>
             <Button
@@ -2194,13 +2231,15 @@ export default function DashboardPage() {
         open={showCancelSubDialog}
         onOpenChange={setShowCancelSubDialog}
       >
-        <AlertDialogContent className={`${alertBg}`}>
-          <AlertDialogDescription className={`${textSecondary} mb-4`}>
+        <AlertDialogContent className={`${themeStyles.alertBg}`}>
+          <AlertDialogDescription
+            className={`${themeStyles.textSecondary} mb-4`}
+          >
             Cancelling your subscription will result in the loss of access to
             premium features. You can choose to cancel immediately or at the end
             of your current billing cycle.
           </AlertDialogDescription>
-          <AlertDialogTitle className={textPrimary}>
+          <AlertDialogTitle className={themeStyles.textPrimary}>
             Are you sure you want to cancel your subscription?
           </AlertDialogTitle>
           <div className="space-y-6">
@@ -2212,11 +2251,13 @@ export default function DashboardPage() {
               </h2>
               <XMarkIcon
                 onClick={() => setShowCancelSubDialog(false)}
-                className={`${textSecondary} size-6 cursor-pointer hover:${textPrimary}`}
+                className={`${themeStyles.textSecondary} size-6 cursor-pointer hover:${themeStyles.textPrimary}`}
               />
             </div>
             <form onSubmit={handleCancelSubscription} className="space-y-6">
-              <label className={`block text-lg font-semibold ${textSecondary}`}>
+              <label
+                className={`block text-lg font-semibold ${themeStyles.textSecondary}`}
+              >
                 Please Provide Reason
               </label>
               <textarea
@@ -2225,7 +2266,9 @@ export default function DashboardPage() {
                   theme === "dark"
                     ? "bg-gray-800/50 border-gray-700"
                     : "bg-gray-100 border-gray-300"
-                } border rounded-lg p-3 ${textPrimary} focus:outline-none focus:ring-2 focus:ring-[#B026FF]`}
+                } border rounded-lg p-3 ${
+                  themeStyles.textPrimary
+                } focus:outline-none focus:ring-2 focus:ring-[#B026FF]`}
                 placeholder="Cancellation reason"
                 required
               />
