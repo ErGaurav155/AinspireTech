@@ -111,7 +111,7 @@ export function Toaster() {
           </Toast>
         );
       })}
-      <ToastViewport className="top-6 right-6 gap-3" />
+      <ToastViewport className="top-6 left-6 gap-3" />
     </ToastProvider>
   );
 }
