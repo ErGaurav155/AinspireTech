@@ -138,7 +138,7 @@ export const Checkout = ({
       const options = {
         key_id: process.env.RAZORPAY_KEY_ID!,
         amount: amount * 100,
-        currency: "USD",
+        currency: "IND",
         name: "GK Services",
         description: `${razorpayplanId.current} Plan - ${billingCycle}`,
         subscription_id: subscriptionCreate.subsId,
