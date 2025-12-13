@@ -113,7 +113,7 @@ export default function PaymentModal({
       const options = {
         key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
         amount: price * 100,
-        currency: "USD",
+        currency: "IND",
         name: "GK Services",
         description: `${plan.name} Plan - ${billingCycle}`,
         subscription_id: subscriptionCreate.subsId,
