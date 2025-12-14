@@ -69,8 +69,8 @@ export function Toaster() {
             key={id}
             {...props}
             className={`
-              group relative overflow-hidden border-0 shadow-2xl backdrop-blur-md
-              before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:to-transparent
+              group relative overflow-hidden border-0 shadow-2xl backdrop-blur-md  
+              before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:to-transparent 
               before:content-[''] after:absolute after:inset-0 after:bg-gradient-to-tl 
               after:from-white/10 after:to-transparent after:content-['']
               ${getRingClass(className)} 
@@ -90,12 +90,12 @@ export function Toaster() {
               <div className="flex-shrink-0 mt-0.5">{getIcon(className)}</div>
               <div className="grid gap-1 flex-1">
                 {title && (
-                  <ToastTitle className="text-white font-semibold text-base">
+                  <ToastTitle className="text-white font-light md:font-semibold text-sm md:text-base">
                     {title}
                   </ToastTitle>
                 )}
                 {description && (
-                  <ToastDescription className="text-white/90 text-sm">
+                  <ToastDescription className="text-white/90 text-xs md:text-sm">
                     {description}
                   </ToastDescription>
                 )}
@@ -111,7 +111,7 @@ export function Toaster() {
           </Toast>
         );
       })}
-      <ToastViewport className="top-6 left-6 gap-3" />
+      <ToastViewport className="top-6 left-6 gap-0 md:gap-3 max-w-max w-auto " />
     </ToastProvider>
   );
 }

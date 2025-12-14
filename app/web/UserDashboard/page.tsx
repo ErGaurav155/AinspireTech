@@ -352,7 +352,6 @@ export default function DashboardPage() {
         {}
       );
       setSubscriptions(subscriptionsMap);
-
       if (selectedChatbot === "chatbot-education") {
         setDefaultValue("integration");
       } else {
@@ -402,9 +401,10 @@ export default function DashboardPage() {
 
     loadDashboardData();
   }, [userId, loadDashboardData, router, isLoaded]);
+
   const handleCopyCode = () => {
     const code =
-      subscriptions[selectedChatbot]?.chatbotName === "chatbot-education"
+      selectedChatbot === "chatbot-education"
         ? `<script 
 src="https://ainspiretech.com/mcqchatbotembed.js" 
 data-mcq-chatbot='{
@@ -423,7 +423,7 @@ src="https://ainspiretech.com/chatbotembed.js"
 data-chatbot-config='{
   "userId":"${userId}",
   "isAuthorized":${isSubscribed},
-  "filename":"${subscriptions[selectedChatbot]?.filename}",
+  "filename":"${fileLink}",
   "chatbotType":"${selectedChatbot}",
   "apiUrl":"https://ainspiretech.com",
   "primaryColor":"#00F0FF",
@@ -1657,8 +1657,7 @@ data-chatbot-config='{
                           } overflow-x-auto min-h-max`}
                         >
                           <code className="min-h-max block overflow-hidden text-wrap h-20">
-                            {subscriptions[selectedChatbot]?.chatbotName ===
-                            "chatbot-education"
+                            {selectedChatbot === "chatbot-education"
                               ? `<script 
 src="https://ainspiretech.com/mcqchatbotembed.js" 
 data-mcq-chatbot='{
@@ -1677,7 +1676,7 @@ src="https://ainspiretech.com/chatbotembed.js"
 data-chatbot-config='{
   "userId":"${userId}",
   "isAuthorized":${isSubscribed},
-  "filename":"${subscriptions[selectedChatbot]?.filename}",
+  "filename":"${fileLink}",
   "chatbotType":"${selectedChatbot}",
   "apiUrl":"https://ainspiretech.com",
   "primaryColor":"#00F0FF",

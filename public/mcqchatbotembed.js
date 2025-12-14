@@ -1301,7 +1301,7 @@
 
       try {
         const response = await this.generateMCQResponse(userMessage, true);
-        console.log("MCQ Generation Response:", response);
+
         // Hide typing indicator
         this.hideTyping();
 
