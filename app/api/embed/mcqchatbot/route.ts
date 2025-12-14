@@ -32,9 +32,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const { userInput, userId, agentId, isMCQRequest } = await request.json();
+    const { userInput, userId, chatbotType, isMCQRequest } =
+      await request.json();
 
-    if (!userInput || !userId || !agentId) {
+    if (!userInput || !userId || !chatbotType) {
       return NextResponse.json(
         { error: "Message is required" },
         {
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
 
     const subscriptions = await WebSubscription.find({
       clerkId: userId,
-      chatbotType: agentId,
+      chatbotType: chatbotType,
       status: "active",
     });
 
