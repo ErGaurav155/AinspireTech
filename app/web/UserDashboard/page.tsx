@@ -1991,48 +1991,50 @@ data-chatbot-config='{
                         >
                           Website URL
                         </Label>
-                        <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
-                          {websiteUrl === null || !isWebScrapped ? (
-                            <Input
-                              disabled={websiteUrl === null ? true : false}
-                              id="websiteUrl"
-                              value={websiteUrl!}
-                              onChange={(e) => setWebsiteUrl(e.target.value)}
-                              className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat`}
-                              placeholder="https://yourwebsite.com"
-                            />
-                          ) : (
-                            <p
-                              className={`flex items-center justify-center border ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat p-2 rounded-lg w-full`}
+                        {currentChatbot?.id !== "chatbot-education" && (
+                          <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
+                            {websiteUrl === null || !isWebScrapped ? (
+                              <Input
+                                disabled={websiteUrl === null ? true : false}
+                                id="websiteUrl"
+                                value={websiteUrl!}
+                                onChange={(e) => setWebsiteUrl(e.target.value)}
+                                className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat`}
+                                placeholder="https://yourwebsite.com"
+                              />
+                            ) : (
+                              <p
+                                className={`flex items-center justify-center border ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat p-2 rounded-lg w-full`}
+                              >
+                                {websiteUrl}
+                              </p>
+                            )}
+                            <Button
+                              disabled={
+                                (websiteUrl === null
+                                  ? false
+                                  : isWebScrapped
+                                  ? true
+                                  : false) ||
+                                loading ||
+                                processing
+                              }
+                              onClick={() => handleScrape()}
+                              className={` hover:opacity-90 text-black ${
+                                websiteUrl === null || isWebScrapped === false
+                                  ? "bg-gradient-to-r from-[#00F0FF] to-[#0080FF]"
+                                  : "bg-gray-500"
+                              }`}
                             >
-                              {websiteUrl}
-                            </p>
-                          )}
-                          <Button
-                            disabled={
-                              (websiteUrl === null
-                                ? false
-                                : isWebScrapped
-                                ? true
-                                : false) ||
-                              loading ||
-                              processing
-                            }
-                            onClick={() => handleScrape()}
-                            className={` hover:opacity-90 text-black ${
-                              websiteUrl === null || isWebScrapped === false
-                                ? "bg-gradient-to-r from-[#00F0FF] to-[#0080FF]"
-                                : "bg-gray-500"
-                            }`}
-                          >
-                            <Upload className="h-4 w-4 mr-1" />
-                            {webLoading
-                              ? "Scraping..."
-                              : processing
-                              ? "Processing..."
-                              : "Start Scraping"}
-                          </Button>
-                        </div>
+                              <Upload className="h-4 w-4 mr-1" />
+                              {webLoading
+                                ? "Scraping..."
+                                : processing
+                                ? "Processing..."
+                                : "Start Scraping"}
+                            </Button>
+                          </div>
+                        )}
                         {currentChatbot?.id === "chatbot-lead-generation" && (
                           <>
                             {" "}

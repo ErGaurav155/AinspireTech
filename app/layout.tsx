@@ -54,20 +54,6 @@ export default async function RootLayout({
             src="/mcqchatbotembed.js"
             data-mcq-chatbot='{"userId":"user_32gfPkz04sXmH5xzFQKyZvqib4Q","isAuthorized":true,"filename":"https://res.cloudinary.com/dr6yywiz8/raw/upload/v1764154827/scraped-data/ainspiretech.com_1764154824955","chatbotType":"chatbot-education","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi,How May i help you?","chatbotName":"AI Assistance"}'
           ></Script>
-          <Script
-            src="https://ainspiretech.com/chatbotembed.js"
-            data-chatbot-config='{
-  "userId":"user_328V3WlNVA2BBN4beOvOAS9FxHV",
-  "isAuthorized":true,
-  "filename":"undefined",
-  "chatbotType":"chatbot-lead-generation",
-  "apiUrl":"https://ainspiretech.com",
-  "primaryColor":"#00F0FF",
-  "position":"bottom-right",
-  "welcomeMessage":"Hi,How May i help you?",
-  "chatbotName":"AI Assistance"
-}'
-          ></Script>
         </body>
       </html>
     </ClerkProvider>
