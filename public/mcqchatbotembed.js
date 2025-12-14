@@ -762,7 +762,9 @@
         /* Responsive */
         @media (max-width: 480px) {
           .mcq-window {
-             width:calc(100vw - 12px); height: calc(100vh - 75px); right: 0px !important; bottom:50px
+            width: calc(100vw - 10px);
+            height: 85vh;
+            right: 0px !important;
           }
           
           .mcq-chatbot-widget {
@@ -1299,7 +1301,7 @@
 
       try {
         const response = await this.generateMCQResponse(userMessage, true);
-
+        console.log("MCQ Generation Response:", response);
         // Hide typing indicator
         this.hideTyping();
 

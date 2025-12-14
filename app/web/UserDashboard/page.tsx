@@ -403,17 +403,35 @@ export default function DashboardPage() {
     loadDashboardData();
   }, [userId, loadDashboardData, router, isLoaded]);
   const handleCopyCode = () => {
-    const code = `<script src="https://ainspiretech.com/chatbotembed.js" data-chatbot-config='{"userId":"${userId}","isAuthorized":${isSubscribed},${
-      subscriptions[selectedChatbot]?.chatbotName !== "chatbot-education" &&
-      `"filename":"${
-        subscriptions[selectedChatbot]?.filename || "your-data-file"
-      }",`
-    },"chatbotType":"${selectedChatbot}","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"${
-      subscriptions[selectedChatbot]?.chatbotMessage
-    }","chatbotName":"${
-      subscriptions[selectedChatbot]?.chatbotName
-    }"}'></script>`;
-
+    const code =
+      subscriptions[selectedChatbot]?.chatbotName === "chatbot-education"
+        ? `<script 
+src="https://ainspiretech.com/mcqchatbotembed.js" 
+data-chatbot-config='{
+  "userId":"${userId}",
+  "isAuthorized":${isSubscribed},
+  "chatbotType":"${selectedChatbot}",
+  "apiUrl":"https://ainspiretech.com",
+  "primaryColor":"#00F0FF",
+  "position":"bottom-right",
+  "welcomeMessage":"${subscriptions[selectedChatbot]?.chatbotMessage}",
+  "chatbotName":"${subscriptions[selectedChatbot]?.chatbotName}"
+}'>
+</script>`
+        : `<script 
+src="https://ainspiretech.com/chatbotembed.js" 
+data-chatbot-config='{
+  "userId":"${userId}",
+  "isAuthorized":${isSubscribed},
+  "filename":"${subscriptions[selectedChatbot]?.filename}",
+  "chatbotType":"${selectedChatbot}",
+  "apiUrl":"https://ainspiretech.com",
+  "primaryColor":"#00F0FF",
+  "position":"bottom-right",
+  "welcomeMessage":"${subscriptions[selectedChatbot]?.chatbotMessage}",
+  "chatbotName":"${subscriptions[selectedChatbot]?.chatbotName}"
+}'>
+</script>`;
     navigator.clipboard.writeText(code);
     setCopied(true);
 
@@ -1639,30 +1657,41 @@ export default function DashboardPage() {
                           } overflow-x-auto min-h-max`}
                         >
                           <code className="min-h-max block overflow-hidden text-wrap h-20">
-                            {`<script 
-    src="https://ainspiretech.com/chatbotembed.js" 
-    data-chatbot-config='{
-      "userId":"${userId}",
-      "isAuthorized":${isSubscribed},
-      ${
-        subscriptions[selectedChatbot]?.chatbotName !== "chatbot-education" &&
-        `"filename":"${
-          subscriptions[selectedChatbot]?.filename || "your-data-file"
-        }",`
-      }
-      "chatbotType":"${selectedChatbot}",
-      "apiUrl":"https://ainspiretech.com",
-      "primaryColor":"#00F0FF",
-      "position":"bottom-right",
-      "welcomeMessage":"${subscriptions[selectedChatbot]?.chatbotMessage}",
-      "chatbotName":"${subscriptions[selectedChatbot]?.chatbotName}"
-    }'>
-  </script>`}
+                            {subscriptions[selectedChatbot]?.chatbotName ===
+                            "chatbot-education"
+                              ? `<script 
+src="https://ainspiretech.com/mcqchatbotembed.js" 
+data-chatbot-config='{
+  "userId":"${userId}",
+  "isAuthorized":${isSubscribed},
+  "chatbotType":"${selectedChatbot}",
+  "apiUrl":"https://ainspiretech.com",
+  "primaryColor":"#00F0FF",
+  "position":"bottom-right",
+  "welcomeMessage":"${subscriptions[selectedChatbot]?.chatbotMessage}",
+  "chatbotName":"${subscriptions[selectedChatbot]?.chatbotName}"
+}'>
+</script>`
+                              : `<script 
+src="https://ainspiretech.com/chatbotembed.js" 
+data-chatbot-config='{
+  "userId":"${userId}",
+  "isAuthorized":${isSubscribed},
+  "filename":"${subscriptions[selectedChatbot]?.filename}",
+  "chatbotType":"${selectedChatbot}",
+  "apiUrl":"https://ainspiretech.com",
+  "primaryColor":"#00F0FF",
+  "position":"bottom-right",
+  "welcomeMessage":"${subscriptions[selectedChatbot]?.chatbotMessage}",
+  "chatbotName":"${subscriptions[selectedChatbot]?.chatbotName}"
+}'>
+</script>`}
                           </code>
                         </pre>
+
                         <Button
                           size="sm"
-                          className=" absolute top-2 right-2 bg-green-600 hover:bg-green-700"
+                          className="absolute top-2 right-2 bg-green-600 hover:bg-green-700"
                           onClick={handleCopyCode}
                           disabled={copied}
                         >
