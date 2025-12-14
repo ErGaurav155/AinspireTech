@@ -407,7 +407,7 @@ export default function DashboardPage() {
       subscriptions[selectedChatbot]?.chatbotName === "chatbot-education"
         ? `<script 
 src="https://ainspiretech.com/mcqchatbotembed.js" 
-data-chatbot-config='{
+data-mcq-chatbot='{
   "userId":"${userId}",
   "isAuthorized":${isSubscribed},
   "chatbotType":"${selectedChatbot}",
@@ -1661,7 +1661,7 @@ data-chatbot-config='{
                             "chatbot-education"
                               ? `<script 
 src="https://ainspiretech.com/mcqchatbotembed.js" 
-data-chatbot-config='{
+data-mcq-chatbot='{
   "userId":"${userId}",
   "isAuthorized":${isSubscribed},
   "chatbotType":"${selectedChatbot}",
