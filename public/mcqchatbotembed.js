@@ -92,8 +92,8 @@
         }
 
         .mcq-toggle {
-          width: 60px;
-          height: 60px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
           background: linear-gradient(to right, ${
             this.config.primaryColor
@@ -132,7 +132,7 @@
         .mcq-window {
           position: absolute;
           right: 0;
-          bottom: 40px;
+          bottom: 45px;
           width: 400px;
           height:  calc(100vh - 90px) ;
           background: rgba(10, 10, 10, 0.95);
@@ -765,6 +765,7 @@
             width: calc(100vw - 10px);
             height: 85vh;
             right: 0px !important;
+            bottom:45px;
           }
           
           .mcq-chatbot-widget {
@@ -783,7 +784,7 @@
 
         @media (max-width: 768px) and (min-width: 481px) {
           .mcq-window {
-            width: calc(100vw - 150px); height: calc(100vh - 90px); right: -10px !important; bottom:60px 
+            width: calc(100vw - 150px); height: calc(100vh - 90px); right: -10px !important; bottom:45px 
           }
         }
       `;
@@ -1572,7 +1573,6 @@
 
       if (this.isOpen) {
         window.classList.add("open");
-        toggle.style.display = "none";
         // Load FAQ when opening
         if (this.faqQuestions.length === 0) {
           this.loadFAQ();

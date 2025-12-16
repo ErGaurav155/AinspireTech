@@ -165,7 +165,9 @@ export default function Home() {
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-20">
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+        <div
+          className={`grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 ${themeStyles.containerBg} p-6 rounded-lg`}
+        >
           {features.map((feature, index) => {
             const Icon = feature.icon;
 

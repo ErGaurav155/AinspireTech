@@ -28,6 +28,7 @@ import { createTransaction } from "@/lib/action/transaction.action";
 
 // Utils
 import { apiClient } from "@/lib/utils";
+import { sendSubscriptionEmailToUser } from "@/lib/action/sendEmail.action";
 
 // Types
 interface CheckoutProps {
@@ -64,6 +65,7 @@ export const Checkout = ({
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("weblink");
   const [showModal, setShowModal] = useState(false);
   const [srcolling, setSrcolling] = useState<boolean>(false);
+  const userEmailRef = useRef<string>("");
 
   const buyerIdRef = useRef<string | null>(null);
   const razorpayPlanRef = useRef<{
@@ -127,11 +129,12 @@ export const Checkout = ({
       }
 
       const user = await getUserById(userId);
+
       if (!user) {
         redirectToSignIn();
         throw new Error("User not found");
       }
-
+      userEmailRef.current = user.email;
       buyerIdRef.current = user._id;
       return true;
     } catch (error) {
@@ -261,6 +264,16 @@ export const Checkout = ({
         showSuccessToast("Payment successful! Code added to your Dashboard");
 
         // Redirect to onboarding
+        if (productId === "chatbot-education") {
+          await sendSubscriptionEmailToUser({
+            email: userEmailRef.current,
+            userDbId: userId,
+            agentId: productId,
+            subscriptionId: subscriptionId,
+          });
+          router.push("/web/UserDashboard");
+          return;
+        }
         router.push(
           `/web/WebsiteOnboarding?userId=${userId}&agentId=${productId}&subscriptionId=${subscriptionId}`
         );

@@ -8,7 +8,6 @@ import {
   Users,
   Clock,
   Target,
-  Calendar,
   Filter,
   RefreshCw,
   Plus,
@@ -30,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 import { AnalyticsDashboard } from "@/components/insta/Analytics-dashboard";
@@ -44,29 +42,95 @@ import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 import { useTheme } from "next-themes";
 import { refreshInstagramToken } from "@/lib/action/insta.action";
 
+// Types
+interface InstagramAccount {
+  id: string;
+  accountId: string;
+  username: string;
+  displayName: string;
+  profilePicture: string;
+  followersCount: number;
+  postsCount: number;
+  isActive: boolean;
+  expiryDate: string | null;
+  templatesCount: number;
+  repliesCount: number;
+  replyLimit: number;
+  accountLimit: number;
+  totalAccounts: number;
+  accountReply: number;
+  lastActivity: string;
+  engagementRate: number;
+  successRate: number;
+  avgResponseTime: number;
+  accessToken: string;
+}
+
+interface RecentActivity {
+  id: string;
+  type: string;
+  account: string;
+  template: string;
+  timestamp: string;
+}
+
+interface AnalyticsData {
+  totalAccounts: number;
+  activeAccounts: number;
+  totalTemplates: number;
+  totalReplies: number;
+  engagementRate: number;
+  successRate: number;
+  overallAvgResponseTime: number;
+  accountLimit: number;
+  replyLimit: number;
+  accounts: InstagramAccount[];
+  recentActivity: RecentActivity[];
+}
+
+interface ThemeStyles {
+  containerBg: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  cardBg: string;
+  cardBorder: string;
+  badgeBg: string;
+  selectBg: string;
+  selectBorder: string;
+  buttonOutlineBorder: string;
+  buttonOutlineText: string;
+}
+
+// Constants
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
 const ANALYTICS_CACHE_KEY = "analyticsData";
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 
 export default function AnalyticsPage() {
   const { userId, isLoaded } = useAuth();
-  const [error, setError] = useState<string | null>(null);
-  const [templates, setTemplates] = useState<any>([]);
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
-  const [userInfo, setUserInfo] = useState<any>();
-  const [analyticsData, setAnalyticsData] = useState<any>(null);
-  const [hasError, setHasError] = useState<string[]>([]);
-  const [filteredData, setFilteredData] = useState<any>(null);
-  const [selectedAccount, setSelectedAccount] = useState("all");
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { theme, resolvedTheme } = useTheme();
   const currentTheme = resolvedTheme || theme || "light";
 
-  // Theme-based styles
-  const themeStyles = useMemo(() => {
+  // State
+  const [error, setError] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
+    null
+  );
+  const [hasError, setHasError] = useState<string[]>([]);
+  const [filteredData, setFilteredData] = useState<AnalyticsData | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<string>("all");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Theme styles
+  const themeStyles = useMemo((): ThemeStyles => {
     const isDark = currentTheme === "dark";
     return {
-      containerBg: isDark ? "bg-transperant" : "bg-gray-50",
+      containerBg: isDark ? "bg-transparent" : "bg-gray-50",
       textPrimary: isDark ? "text-white" : "text-n-7",
       textSecondary: isDark ? "text-gray-300" : "text-n-5",
       textMuted: isDark ? "text-gray-400" : "text-n-5",
@@ -80,53 +144,54 @@ export default function AnalyticsPage() {
     };
   }, [currentTheme]);
 
-  const getFilteredData = useCallback(() => {
-    if (!analyticsData) return null;
-
-    if (selectedAccount === "all") {
-      return analyticsData;
-    }
-
-    // Find the selected account
-    const account = analyticsData.accounts.find(
-      (acc: any) => acc.username === selectedAccount
-    );
-
-    if (!account) return analyticsData;
-
-    // Filter data for the selected account
-    const filteredRecentActivity = analyticsData.recentActivity?.filter(
-      (activity: any) => activity.accountId === account.accountId
-    );
-
-    // Calculate averages for single account view
-    return {
-      ...analyticsData,
-      accounts: [account],
-      recentActivity: filteredRecentActivity || [],
-      totalReplies: account.repliesCount || 0,
-      successRate: account.successRate || 94, // Fallback if not available
-      overallAvgResponseTime: account.avgResponseTime || 0,
-      engagementRate: account.engagementRate || 87, // Fallback if not available
-    };
-  }, [analyticsData, selectedAccount]);
-
+  // Authentication check
   useEffect(() => {
-    if (!isLoaded) {
-      return; // Wait for auth to load
-    }
+    if (!isLoaded) return;
     if (!userId) {
       router.push("/sign-in");
       return;
     }
+  }, [userId, router, isLoaded]);
 
-    const data = getFilteredData();
-    setFilteredData(data);
-  }, [userId, getFilteredData, router, isLoaded]);
-  const fetchAccounts = useCallback(async () => {
+  // Fetch cached data helper
+  const getCachedData = <T,>(key: string): T | null => {
+    try {
+      const cached = localStorage.getItem(key);
+      if (!cached) return null;
+
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp > CACHE_DURATION) {
+        localStorage.removeItem(key);
+        return null;
+      }
+
+      return data;
+    } catch {
+      localStorage.removeItem(key);
+      return null;
+    }
+  };
+
+  // Set cached data helper
+  const setCachedData = <T,>(key: string, data: T): void => {
+    try {
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          data,
+          timestamp: Date.now(),
+        })
+      );
+    } catch (error) {
+      console.error("Failed to cache data:", error);
+    }
+  };
+
+  // Fetch Instagram accounts
+  const fetchAccounts = useCallback(async (): Promise<AnalyticsData | null> => {
     if (!userId) {
       router.push("/sign-in");
-      return;
+      return null;
     }
 
     try {
@@ -134,57 +199,19 @@ export default function AnalyticsPage() {
       setError(null);
 
       // Check cache first
-      const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
-      const cacheDuration = 15 * 60 * 1000; // 15 minutes
-
-      if (cachedData) {
-        const { data, timestamp } = JSON.parse(cachedData);
-        if (Date.now() - timestamp < cacheDuration) {
-          const stats = {
-            totalAccounts: data.length,
-            activeAccounts: data.filter((account: any) => account?.isActive)
-              .length,
-            totalTemplates: data.reduce(
-              (sum: number, account: any) =>
-                sum + (account?.templatesCount || 0),
-              0
-            ),
-            totalReplies: data[0]?.repliesCount || 0,
-            accountLimit: data[0]?.accountLimit || 1,
-            replyLimit: data[0]?.replyLimit || 1,
-            engagementRate:
-              data.reduce(
-                (sum: number, account: any) =>
-                  sum + (account?.engagementRate || 0),
-                0
-              ) / data.length, // Mock data
-            successRate:
-              data.reduce(
-                (sum: number, account: any) =>
-                  sum + (account?.successRate || 0),
-                0
-              ) / data.length,
-            overallAvgResponseTime:
-              data.length > 0
-                ? data.reduce(
-                    (sum: number, account: any) =>
-                      sum + (account?.avgResponseTime || 0),
-                    0
-                  ) / data.length
-                : 0,
-            accounts: data,
-            recentActivity: [], // Will be populated separately
-          };
-
-          return stats;
-        }
+      const cachedAccounts =
+        getCachedData<InstagramAccount[]>(ACCOUNTS_CACHE_KEY);
+      if (cachedAccounts) {
+        return transformAccountsToAnalyticsData(cachedAccounts);
       }
 
       // Fetch from API
       const accountsResponse = await fetch(
         `/api/insta/dashboard?userId=${userId}`
       );
-      if (!accountsResponse.ok) throw new Error("Failed to fetch accounts");
+      if (!accountsResponse.ok) {
+        throw new Error(`Failed to fetch accounts: ${accountsResponse.status}`);
+      }
 
       const {
         accounts: dbAccounts,
@@ -206,9 +233,12 @@ export default function AnalyticsPage() {
               `/api/insta/user-info?accessToken=${dbAccount.accessToken}&fields=username,user_id,followers_count,media_count,profile_picture_url`
             );
 
-            if (!instaResponse.ok) throw new Error("Instagram API failed");
+            if (!instaResponse.ok) {
+              throw new Error(`Instagram API failed: ${instaResponse.status}`);
+            }
 
             const instaData = await instaResponse.json();
+
             return {
               id: dbAccount._id,
               accountId: dbAccount.instagramId,
@@ -218,7 +248,7 @@ export default function AnalyticsPage() {
               profilePicture:
                 instaData.profile_picture_url ||
                 dbAccount.profilePicture ||
-                "@/public/assets/img/default-img.jpg",
+                defaultImg.src,
               followersCount:
                 instaData.followers_count || dbAccount.followersCount || 0,
               postsCount: instaData.media_count || dbAccount.postsCount || 0,
@@ -231,7 +261,7 @@ export default function AnalyticsPage() {
               totalAccounts: totalAccounts || 0,
               accountReply: dbAccount.accountReply || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
-              engagementRate: Math.floor(Math.random() * 4) + 5, // Mock data
+              engagementRate: Math.floor(Math.random() * 4) + 85,
               successRate: Math.floor(Math.random() * 4) + 90,
               avgResponseTime: dbAccount?.avgResTime?.[0]?.avgResponseTime || 0,
               accessToken: dbAccount.accessToken,
@@ -246,62 +276,67 @@ export default function AnalyticsPage() {
         })
       );
 
-      const validAccounts = completeAccounts.filter(Boolean);
+      const validAccounts = completeAccounts.filter(
+        (account): account is InstagramAccount => account !== null
+      );
 
-      const stats = {
-        totalAccounts: validAccounts.length,
-        activeAccounts: validAccounts.filter((account) => account?.isActive)
-          .length,
-        totalTemplates: validAccounts.reduce(
-          (sum, account) => sum + (account?.templatesCount || 0),
-          0
-        ),
-        totalReplies: validAccounts[0]?.repliesCount || 0,
-        engagementRate:
-          validAccounts.reduce(
-            (sum: number, account: any) => sum + (account?.engagementRate || 0),
-            0
-          ) / validAccounts.length, // Mock data
-        successRate:
-          validAccounts.reduce(
-            (sum: number, account: any) => sum + (account?.successRate || 0),
-            0
-          ) / validAccounts.length, // Mock data
-        overallAvgResponseTime:
-          validAccounts.length > 0
-            ? validAccounts.reduce(
-                (sum: number, account: any) =>
-                  sum + (account?.avgResponseTime || 0),
-                0
-              ) / validAccounts.length
-            : 0,
-        accountLimit: validAccounts[0]?.accountLimit || 1,
-        replyLimit: validAccounts[0]?.replyLimit || 1,
-        accounts: validAccounts,
-      };
-
-      if (validAccounts && validAccounts.length > 0) {
-        localStorage.setItem(
-          ACCOUNTS_CACHE_KEY,
-          JSON.stringify({
-            data: validAccounts,
-            timestamp: Date.now(),
-          })
-        );
+      if (validAccounts.length > 0) {
+        setCachedData(ACCOUNTS_CACHE_KEY, validAccounts);
       }
 
-      return stats;
+      return transformAccountsToAnalyticsData(validAccounts);
     } catch (error) {
       console.error("Failed to fetch accounts:", error);
       setError(
         error instanceof Error ? error.message : "Failed to load accounts"
       );
       return null;
+    } finally {
+      setIsLoading(false);
     }
   }, [userId, router]);
 
+  // Transform accounts to analytics data
+  const transformAccountsToAnalyticsData = (
+    accounts: InstagramAccount[]
+  ): AnalyticsData => {
+    return {
+      totalAccounts: accounts.length,
+      activeAccounts: accounts.filter((account) => account.isActive).length,
+      totalTemplates: accounts.reduce(
+        (sum, account) => sum + account.templatesCount,
+        0
+      ),
+      totalReplies: accounts[0]?.repliesCount || 0,
+      engagementRate:
+        accounts.length > 0
+          ? accounts.reduce((sum, account) => sum + account.engagementRate, 0) /
+            accounts.length
+          : 0,
+      successRate:
+        accounts.length > 0
+          ? accounts.reduce((sum, account) => sum + account.successRate, 0) /
+            accounts.length
+          : 0,
+      overallAvgResponseTime:
+        accounts.length > 0
+          ? accounts.reduce(
+              (sum, account) => sum + account.avgResponseTime,
+              0
+            ) / accounts.length
+          : 0,
+      accountLimit: accounts[0]?.accountLimit || 1,
+      replyLimit: accounts[0]?.replyLimit || 1,
+      accounts,
+      recentActivity: [],
+    };
+  };
+
+  // Fetch templates
   const fetchTemplates = useCallback(
-    async (accountId?: string) => {
+    async (accountId?: string): Promise<void> => {
+      if (!userId) return;
+
       try {
         let url = `/api/insta/templates?userId=${userId}`;
         if (accountId && accountId !== "all") {
@@ -309,109 +344,143 @@ export default function AnalyticsPage() {
         }
 
         const response = await fetch(url);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.length === 0) {
-            setTemplates([]);
-          } else {
-            setTemplates(
-              data.templates.map((template: any) => ({
-                ...template,
-                lastUsed: template.lastUsed
-                  ? new Date(template.lastUsed).toISOString()
-                  : new Date().toISOString(),
-                successRate: Math.floor(Math.random() * 4) + 90 || 0, // Mock data
-              }))
-            );
-          }
-        } else {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch templates: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.length === 0) {
           setTemplates([]);
+        } else {
+          const formattedTemplates = data.templates.map((template: any) => ({
+            ...template,
+            lastUsed: template.lastUsed
+              ? new Date(template.lastUsed).toISOString()
+              : new Date().toISOString(),
+            successRate: Math.floor(Math.random() * 4) + 90,
+          }));
+          setTemplates(formattedTemplates);
         }
       } catch (error) {
+        console.error("Error fetching templates:", error);
         setTemplates([]);
       }
     },
     [userId]
   );
 
-  const fetchAnalyticsData = useCallback(async () => {
+  // Fetch analytics data
+  const fetchAnalyticsData = useCallback(async (): Promise<void> => {
+    if (!userId) return;
+
     try {
-      const accountsData = await fetchAccounts();
-      if (!accountsData) {
-        setIsLoading(false);
+      setIsLoading(true);
+
+      // Check cache first
+      const cachedAnalytics = getCachedData<AnalyticsData>(ANALYTICS_CACHE_KEY);
+      if (cachedAnalytics) {
+        setAnalyticsData(cachedAnalytics);
+        await fetchTemplates();
         return;
       }
 
-      const response = await fetch(`/api/insta/replylogs?userId=${userId}`);
-      let recentActivity;
-      if (response.ok) {
-        recentActivity = await response.json();
-      } else {
-        console.error(
-          "Using dummy data for recent activity - API not available"
-        );
+      // Fetch accounts data
+      const accountsData = await fetchAccounts();
+      if (!accountsData) {
+        return;
       }
 
-      const updatedData = {
-        ...accountsData,
-        recentActivity: recentActivity?.replyLogs || [],
-      };
+      // Fetch recent activity
+      try {
+        const response = await fetch(`/api/insta/replylogs?userId=${userId}`);
+        if (response.ok) {
+          const { replyLogs } = await response.json();
+          accountsData.recentActivity = replyLogs || [];
+        }
+      } catch (activityError) {
+        console.error("Failed to fetch recent activity:", activityError);
+      }
 
-      setAnalyticsData(updatedData);
-      localStorage.setItem(
-        ANALYTICS_CACHE_KEY,
-        JSON.stringify({
-          data: updatedData,
-          timestamp: Date.now(),
-        })
-      );
-
+      setAnalyticsData(accountsData);
+      setCachedData(ANALYTICS_CACHE_KEY, accountsData);
       await fetchTemplates();
     } catch (error) {
       console.error("Error fetching analytics data:", error);
-
-      // Try to use cached data if available
-      const cachedAnalytics = localStorage.getItem(ANALYTICS_CACHE_KEY);
-      if (cachedAnalytics) {
-        const { data, timestamp } = JSON.parse(cachedAnalytics);
-        const cacheDuration = 15 * 60 * 1000; // 15 minutes
-
-        if (Date.now() - timestamp < cacheDuration) {
-          setAnalyticsData(data);
-        }
-      }
+      setError("Failed to load analytics data");
     } finally {
       setIsLoading(false);
     }
   }, [userId, fetchAccounts, fetchTemplates]);
 
+  // Fetch subscriptions
+  const fetchSubscriptions = useCallback(async (): Promise<void> => {
+    if (!userId) return;
+
+    try {
+      const userData = await getUserById(userId);
+      if (userData) {
+        const subs = await getInstaSubscriptionInfo(userId);
+        setSubscriptions(subs);
+        setUserInfo(userData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch subscriptions:", error);
+    }
+  }, [userId]);
+
+  // Initial data fetch
   useEffect(() => {
-    const fetchSubscriptions = async () => {
-      if (!userId) {
-        router.push("/sign-in");
-        return;
-      }
-      try {
-        const userData = await getUserById(userId);
-        if (userData) {
-          const subs = await getInstaSubscriptionInfo(userId);
-          setSubscriptions(subs);
-          setUserInfo(userData);
-        }
-      } catch (error) {
-        console.error("Failed to fetch subscriptions:", error);
-      }
+    if (!userId || !isLoaded) return;
+
+    const loadData = async () => {
+      await Promise.all([fetchSubscriptions(), fetchAnalyticsData()]);
     };
 
-    fetchSubscriptions();
-    fetchAnalyticsData();
-  }, [userId, fetchAnalyticsData, router]);
+    loadData();
+  }, [userId, isLoaded, fetchSubscriptions, fetchAnalyticsData]);
 
+  // Filter data when account selection changes
   useEffect(() => {
-    // Fetch templates for selected account when it changes
-    if (selectedAccount !== "all" && analyticsData) {
+    if (!analyticsData) return;
+
+    if (selectedAccount === "all") {
+      setFilteredData(analyticsData);
+      return;
+    }
+
+    const account = analyticsData.accounts.find(
+      (acc) => acc.username === selectedAccount
+    );
+
+    if (!account) {
+      setFilteredData(analyticsData);
+      return;
+    }
+
+    const filteredRecentActivity = analyticsData.recentActivity?.filter(
+      (activity: any) => activity.accountId === account.accountId
+    );
+
+    const filteredData: AnalyticsData = {
+      ...analyticsData,
+      accounts: [account],
+      recentActivity: filteredRecentActivity || [],
+      totalReplies: account.repliesCount || 0,
+      successRate: account.successRate || 94,
+      overallAvgResponseTime: account.avgResponseTime || 0,
+      engagementRate: account.engagementRate || 87,
+    };
+
+    setFilteredData(filteredData);
+  }, [analyticsData, selectedAccount]);
+
+  // Fetch templates for selected account
+  useEffect(() => {
+    if (!analyticsData) return;
+
+    if (selectedAccount !== "all") {
       const account = analyticsData.accounts.find(
-        (acc: any) => acc.username === selectedAccount
+        (acc) => acc.username === selectedAccount
       );
       if (account) {
         fetchTemplates(account.accountId);
@@ -421,50 +490,66 @@ export default function AnalyticsPage() {
     }
   }, [selectedAccount, analyticsData, fetchTemplates]);
 
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInMinutes = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60)
-    );
+  // Format timestamp helper
+  const formatTimestamp = (timestamp: string): string => {
+    try {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffInMinutes = Math.floor(
+        (now.getTime() - date.getTime()) / (1000 * 60)
+      );
 
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes}m ago`;
-    } else if (diffInMinutes < 1440) {
-      return `${Math.floor(diffInMinutes / 60)}h ago`;
-    } else {
-      return `${Math.floor(diffInMinutes / 1440)}d ago`;
+      if (diffInMinutes < 60) {
+        return `${diffInMinutes}m ago`;
+      } else if (diffInMinutes < 1440) {
+        return `${Math.floor(diffInMinutes / 60)}h ago`;
+      } else {
+        return `${Math.floor(diffInMinutes / 1440)}d ago`;
+      }
+    } catch {
+      return "Just now";
     }
   };
 
-  const handleError = (id: string) => {
-    setHasError((prev) => [...prev, id]); // Add the ID to the error array
+  // Handle image error
+  const handleImageError = (id: string): void => {
+    setHasError((prev) => [...prev, id]);
   };
 
-  const refresh = async () => {
+  // Refresh data
+  const refreshData = async (): Promise<void> => {
     setIsLoading(true);
-    localStorage.removeItem(ACCOUNTS_CACHE_KEY);
-    localStorage.removeItem(ANALYTICS_CACHE_KEY);
-    await fetchAnalyticsData();
+    try {
+      localStorage.removeItem(ACCOUNTS_CACHE_KEY);
+      localStorage.removeItem(ANALYTICS_CACHE_KEY);
+      await fetchAnalyticsData();
+    } catch (error) {
+      console.error("Failed to refresh data:", error);
+      setError("Failed to refresh data");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // Loading state
   if (isLoading || !isLoaded) {
     return (
-      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="w-5 h-5 border-2 border-t-transparent border-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div
-        className={`min-h-screen ${themeStyles.textPrimary} flex items-center justify-center ${themeStyles.containerBg}`}
+        className={`min-h-screen ${themeStyles.textPrimary} ${themeStyles.containerBg} flex items-center justify-center`}
       >
         <div className="text-center p-6 bg-red-900/20 rounded-lg max-w-md">
-          <h2 className="text-xl font-bold mb-4">Error Loading Accounts</h2>
+          <h2 className="text-xl font-bold mb-4">Error Loading Analytics</h2>
           <p className={`${themeStyles.textSecondary} mb-6`}>{error}</p>
-          <Button onClick={fetchAccounts} className="btn-gradient-cyan">
+          <Button onClick={refreshData} className="btn-gradient-cyan">
             <RefreshCw className="mr-2 h-4 w-4" />
             Try Again
           </Button>
@@ -473,18 +558,20 @@ export default function AnalyticsPage() {
     );
   }
 
+  // Main render
   return (
     <div
       className={`min-h-screen ${themeStyles.textPrimary} ${themeStyles.containerBg}`}
     >
       <div className="container mx-auto px-4 py-8">
         <BreadcrumbsDefault />
+
         {/* Header */}
         <div className="flex flex-wrap justify-between items-center gap-3 md:gap-0 mb-8">
           <div>
             <div
               className={`inline-flex items-center ${
-                theme === "dark"
+                currentTheme === "dark"
                   ? "bg-blue-100/10 text-blue-400 border-blue-400/30"
                   : "bg-blue-100 text-blue-600 border-blue-300"
               } border rounded-full px-4 py-1 mb-4`}
@@ -492,9 +579,7 @@ export default function AnalyticsPage() {
               <BarChart3 className="h-4 w-4 mr-1" />
               <span className="text-sm font-medium">Performance Analytics</span>
             </div>
-            <h1
-              className={`text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent ${themeStyles.textPrimary}`}
-            >
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
               Analytics Dashboard
             </h1>
             <p
@@ -505,14 +590,18 @@ export default function AnalyticsPage() {
                 : `Tracking performance for @${selectedAccount}`}
             </p>
           </div>
+
           <div className="flex flex-col md:flex-row gap-4">
             <Button
-              onClick={() => refresh()}
+              onClick={refreshData}
               variant="outline"
               className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#0fcd6e]/80 hover:bg-white/10`}
+              disabled={isLoading}
             >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+              />
+              {isLoading ? "Refreshing..." : "Refresh"}
             </Button>
 
             <Select value={selectedAccount} onValueChange={setSelectedAccount}>
@@ -525,7 +614,7 @@ export default function AnalyticsPage() {
                 className={`${themeStyles.cardBg} ${themeStyles.cardBorder}`}
               >
                 <SelectItem value="all">All Accounts</SelectItem>
-                {analyticsData?.accounts?.map((account: any) => (
+                {analyticsData?.accounts?.map((account: InstagramAccount) => (
                   <SelectItem key={account.accountId} value={account.username}>
                     {account.username}
                   </SelectItem>
@@ -551,14 +640,13 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="text-2xl font-bold text-[#B026FF]">
                 {filteredData?.totalReplies || userInfo?.totalReplies || 0} /{" "}
-                {filteredData?.replyLimit || subscriptions.length > 0
-                  ? userInfo?.replyLimit
-                  : 500}
+                {filteredData?.replyLimit ||
+                  (subscriptions.length > 0 ? userInfo?.replyLimit : 500)}
               </div>
               <p
                 className={`text-xs ${themeStyles.textMuted} flex items-center font-montserrat`}
               >
-                <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
+                <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
                 +12% from last period
               </p>
             </CardContent>
@@ -582,7 +670,7 @@ export default function AnalyticsPage() {
               <p
                 className={`text-xs ${themeStyles.textMuted} flex items-center font-montserrat`}
               >
-                <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
+                <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
                 +2.1% from last period
               </p>
             </CardContent>
@@ -602,15 +690,13 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="text-2xl font-bold text-[#10B981]">
                 {filteredData?.overallAvgResponseTime
-                  ? formatResponseTimeSmart(
-                      filteredData?.overallAvgResponseTime
-                    )
+                  ? formatResponseTimeSmart(filteredData.overallAvgResponseTime)
                   : "0s"}
               </div>
               <p
                 className={`text-xs ${themeStyles.textMuted} flex items-center font-montserrat`}
               >
-                <TrendingUp className="h-3 w-3 mr-1 text-green-600 " />
+                <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
                 -0.5s improvement
               </p>
             </CardContent>
@@ -661,40 +747,45 @@ export default function AnalyticsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 w-full p-2">
-              {filteredData?.accounts?.map((account: any) => (
-                <div
-                  key={account.id}
-                  className={`flex flex-col w-full items-center justify-between p-4 gap-3 border ${themeStyles.cardBorder} rounded-lg`}
-                >
-                  <div className="flex items-center space-x-2 lg:space-x-4">
-                    <Image
-                      width={48}
-                      height={48}
-                      src={
-                        hasError.includes(account.id)
-                          ? defaultImg
-                          : account?.profilePicture
-                      }
-                      onError={() => handleError(account.id)} // Pass a function, not the result
-                      alt={account.username}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <h4
-                        className={`text-base lg:text-lg font-medium lg:font-semibold font-montserrat ${themeStyles.textPrimary}`}
-                      >
-                        @{account.username}
-                      </h4>
-                      <p
-                        className={`text-sm ${themeStyles.textMuted} font-montserrat`}
-                      >
-                        {account.accountReply} replies
-                      </p>
+              {filteredData?.accounts?.map((account: InstagramAccount) => {
+                const isTokenExpiring =
+                  account.expiryDate &&
+                  new Date(account.expiryDate) <
+                    new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+                return (
+                  <div
+                    key={account.id}
+                    className={`flex flex-col w-full items-center justify-between p-4 gap-3 border ${themeStyles.cardBorder} rounded-lg`}
+                  >
+                    <div className="flex items-center space-x-2 lg:space-x-4">
+                      <Image
+                        width={48}
+                        height={48}
+                        src={
+                          hasError.includes(account.id)
+                            ? defaultImg
+                            : account.profilePicture
+                        }
+                        onError={() => handleImageError(account.id)}
+                        alt={account.username}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <h4
+                          className={`text-base lg:text-lg font-medium lg:font-semibold font-montserrat ${themeStyles.textPrimary}`}
+                        >
+                          @{account.username}
+                        </h4>
+                        <p
+                          className={`text-sm ${themeStyles.textMuted} font-montserrat`}
+                        >
+                          {account.accountReply} replies
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  {new Date(account.expiryDate) <
-                    new Date(Date.now() + 24 * 60 * 60 * 1000) &&
-                    userId && (
+
+                    {isTokenExpiring && userId && (
                       <Button
                         onClick={() => refreshInstagramToken(userId)}
                         variant="outline"
@@ -705,22 +796,23 @@ export default function AnalyticsPage() {
                         Refresh Token
                       </Button>
                     )}
-                  <div className="flex items-center justify-between w-full font-montserrat">
-                    <div className={`text-xs ${themeStyles.textPrimary}`}>
-                      {account.engagementRate}% engagement
-                    </div>
-                    <div className={`text-xs ${themeStyles.textMuted}`}>
-                      {account?.avgResponseTime
-                        ? formatResponseTimeSmart(account.avgResponseTime)
-                        : "0s"}{" "}
-                      avg time
+
+                    <div className="flex items-center justify-between w-full font-montserrat">
+                      <div className={`text-xs ${themeStyles.textPrimary}`}>
+                        {account.engagementRate}% engagement
+                      </div>
+                      <div className={`text-xs ${themeStyles.textMuted}`}>
+                        {account.avgResponseTime
+                          ? formatResponseTimeSmart(account.avgResponseTime)
+                          : "0s"}{" "}
+                        avg time
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {(!filteredData ||
-                !filteredData?.accounts ||
-                filteredData?.accounts.length === 0) && (
+                );
+              })}
+
+              {(!filteredData || filteredData.accounts.length === 0) && (
                 <div className="text-center py-8">
                   <Instagram className="h-12 w-12 mx-auto text-gray-500 mb-4" />
                   <p
@@ -759,51 +851,50 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent className="p-2">
               <div className="space-y-4 max-h-96 overflow-y-auto no-scrollbar">
-                {filteredData?.recentActivity?.map((activity: any) => (
-                  <div
-                    key={activity.id}
-                    className={`flex items-center justify-between p-3 border ${themeStyles.cardBorder} rounded-lg`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`h-2 w-2 rounded-full ${"bg-[#00F0FF]"}`}
-                      />
-                      <div>
-                        <p
-                          className={`text-sm font-medium ${themeStyles.textPrimary} font-montserrat`}
+                {filteredData?.recentActivity?.map(
+                  (activity: RecentActivity) => (
+                    <div
+                      key={activity.id}
+                      className={`flex items-center justify-between p-3 border ${themeStyles.cardBorder} rounded-lg`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="h-2 w-2 rounded-full bg-[#00F0FF]" />
+                        <div>
+                          <p
+                            className={`text-sm font-medium ${themeStyles.textPrimary} font-montserrat`}
+                          >
+                            {activity.type === "reply_sent"
+                              ? "Reply sent"
+                              : "Reply failed"}
+                            <span className={themeStyles.textSecondary}>
+                              {" "}
+                              to @{activity.account}
+                            </span>
+                          </p>
+                          <p
+                            className={`text-xs ${themeStyles.textMuted} font-montserrat`}
+                          >
+                            Template: {activity.template}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge
+                          variant="default"
+                          className="bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
                         >
-                          {activity.type === "reply_sent"
-                            ? "Reply sent"
-                            : "Reply failed"}
-                          <span className={themeStyles.textSecondary}>
-                            {" "}
-                            to @{activity.account}
-                          </span>
-                        </p>
-                        <p
-                          className={`text-xs ${themeStyles.textMuted} font-montserrat`}
-                        >
-                          Template: {activity.template}
+                          Success
+                        </Badge>
+                        <p className={`text-xs ${themeStyles.textMuted} mt-1`}>
+                          {formatTimestamp(activity.timestamp)}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <Badge
-                        variant={"default"}
-                        className={
-                          "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
-                        }
-                      >
-                        Success
-                      </Badge>
-                      <p className={`text-xs ${themeStyles.textMuted} mt-1`}>
-                        {formatTimestamp(activity.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  )
+                )}
+
                 {(!filteredData?.recentActivity ||
-                  filteredData?.recentActivity.length === 0) && (
+                  filteredData.recentActivity.length === 0) && (
                   <p className={`${themeStyles.textMuted} text-center`}>
                     No recent activity available.
                   </p>

@@ -180,7 +180,7 @@ const Faq = () => {
           </motion.div>
 
           <div
-            className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${themeStyles.containerBg} md:p-5 backdrop-blur-sm`}
+            className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${themeStyles.containerBg} md:p-5 backdrop-blur-sm rounded-lg`}
           >
             {faqData.map((faq, index) => (
               <motion.div
@@ -192,7 +192,7 @@ const Faq = () => {
                 initial="hidden"
               >
                 <Card
-                  className={`${themeStyles.cardBg} border ${themeStyles.cardBorder} ${themeStyles.cardHoverBorder} transition-colors duration-300`}
+                  className={`${themeStyles.cardBg} border ${themeStyles.cardBorder} ${themeStyles.cardHoverBorder} transition-colors duration-300 `}
                 >
                   <CardContent className="p-3 md:p-6">
                     <motion.h3

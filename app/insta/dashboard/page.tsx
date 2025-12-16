@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import defaultImg from "@/public/assets/img/default-img.jpg";
-
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import Image from "next/image";
@@ -51,22 +50,113 @@ import {
   deleteInstaAccount,
   refreshInstagramToken,
 } from "@/lib/action/insta.action";
-import { instagramPricingPlans } from "@/constant";
 import { useTheme } from "next-themes";
+
+// Types
+interface InstagramAccount {
+  id: string;
+  accountId: string;
+  username: string;
+  displayName: string;
+  profilePicture: string;
+  followersCount: number;
+  postsCount: number;
+  isActive: boolean;
+  expiryDate: string | null;
+  templatesCount: number;
+  repliesCount: number;
+  replyLimit: number;
+  accountLimit: number;
+  totalAccounts: number;
+  accountReply: number;
+  lastActivity: string;
+  engagementRate: number;
+  successRate: number;
+  avgResponseTime: number;
+  accessToken: string;
+}
+
+interface DashboardData {
+  totalAccounts: number;
+  activeAccounts: number;
+  totalTemplates: number;
+  totalReplies: number;
+  accountLimit: number;
+  replyLimit: number;
+  engagementRate: number;
+  successRate: number;
+  overallAvgResponseTime: number;
+  accounts: InstagramAccount[];
+  recentActivity?: any[];
+}
+
+interface ThemeStyles {
+  containerBg: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  cardBg: string;
+  cardBorder: string;
+  badgeBg: string;
+  alertBg: string;
+  buttonOutlineBorder: string;
+  buttonOutlineText: string;
+}
+
+interface RecentActivity {
+  id: string;
+  message: string;
+  timestamp: string;
+}
+
+// Constants
+const ACCOUNTS_CACHE_KEY = "instagramAccounts";
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+const FREE_PLAN_ACCOUNT_LIMIT = 1;
+const CANCELLATION_REASON_PLACEHOLDER = "User requested cancellation";
 
 export default function Dashboard() {
   const { userId, isLoaded } = useAuth();
   const router = useRouter();
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
-  const [userInfo, setUserInfo] = useState<any>();
   const { theme, resolvedTheme } = useTheme();
   const currentTheme = resolvedTheme || theme || "light";
 
+  // State
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hasError, setHasError] = useState<string[]>([]);
+  const [userAccounts, setUserAccounts] = useState<InstagramAccount[]>([]);
+
+  // Dialog states
+  const [showAccountLimitDialog, setShowAccountLimitDialog] =
+    useState<boolean>(false);
+  const [showCancelDialog, setShowCancelDialog] = useState<boolean>(false);
+  const [showCancelConfirmDialog, setShowCancelConfirmDialog] =
+    useState<boolean>(false);
+  const [showCancelAccountDialog, setShowCancelAccountDialog] =
+    useState<boolean>(false);
+
+  // Cancellation states
+  const [selectedSubscriptionId, setSelectedSubscriptionId] =
+    useState<string>("");
+  const [cancellationMode, setCancellationMode] = useState<
+    "Immediate" | "End-of-term"
+  >("End-of-term");
+  const [cancellationReason, setCancellationReason] = useState<string>("");
+  const [isCancelling, setIsCancelling] = useState<boolean>(false);
+  const [isProcessingCancellation, setIsProcessingCancellation] =
+    useState<boolean>(false);
+
   // Theme-based styles
-  const themeStyles = useMemo(() => {
+  const themeStyles = useMemo((): ThemeStyles => {
     const isDark = currentTheme === "dark";
     return {
-      containerBg: isDark ? "bg-transperant" : "bg-gray-50",
+      containerBg: isDark ? "bg-transparent" : "bg-gray-50",
       textPrimary: isDark ? "text-white" : "text-n-7",
       textSecondary: isDark ? "text-gray-300" : "text-n-5",
       textMuted: isDark ? "text-gray-400" : "text-n-5",
@@ -78,83 +168,97 @@ export default function Dashboard() {
       buttonOutlineText: isDark ? "text-gray-300" : "text-n-5",
     };
   }, [currentTheme]);
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [selectedSubscriptionId, setSelectedSubscriptionId] = useState("");
-  const [cancellationMode, setCancellationMode] = useState<
-    "Immediate" | "End-of-term"
-  >("End-of-term");
-  const [isCancelling, setIsCancelling] = useState(false);
-  const [cancellationReason, setCancellationReason] = useState("");
-  const [dashboardData, setDashboardData] = useState<any>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [hasError, setHasError] = useState<string[]>([]);
-  const [dialog, setDialog] = useState(false);
 
-  // New states for cancellation flow
-  const [showCancelConfirmDialog, setShowCancelConfirmDialog] = useState(false);
-  const [showCancelAccountDialog, setShowCancelAccountDialog] = useState(false);
-  const [userAccounts, setUserAccounts] = useState<any[]>([]);
-  const [isProcessingCancellation, setIsProcessingCancellation] =
-    useState(false);
+  // Helper: Get cached data
+  const getCachedData = <T,>(key: string): T | null => {
+    try {
+      const cached = localStorage.getItem(key);
+      if (!cached) return null;
 
-  const ACCOUNTS_CACHE_KEY = "instagramAccounts";
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp > CACHE_DURATION) {
+        localStorage.removeItem(key);
+        return null;
+      }
 
-  const fetchAccounts = useCallback(async () => {
+      return data;
+    } catch {
+      localStorage.removeItem(key);
+      return null;
+    }
+  };
+
+  // Helper: Set cached data
+  const setCachedData = <T,>(key: string, data: T): void => {
+    try {
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          data,
+          timestamp: Date.now(),
+        })
+      );
+    } catch (error) {
+      console.error("Failed to cache data:", error);
+    }
+  };
+
+  // Helper: Show toast notifications
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "success"
+  ) => {
+    if (type === "success") {
+      toast.success(message);
+    } else {
+      toast.error(message);
+    }
+  };
+
+  // Helper: Format timestamp
+  const formatTimestamp = (timestamp: string): string => {
+    try {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffInMinutes = Math.floor(
+        (now.getTime() - date.getTime()) / (1000 * 60)
+      );
+
+      if (diffInMinutes < 60) {
+        return `${diffInMinutes}m ago`;
+      } else if (diffInMinutes < 1440) {
+        return `${Math.floor(diffInMinutes / 60)}h ago`;
+      } else {
+        return `${Math.floor(diffInMinutes / 1440)}d ago`;
+      }
+    } catch {
+      return "Just now";
+    }
+  };
+
+  // Helper: Handle image error
+  const handleImageError = (id: string): void => {
+    setHasError((prev) => [...prev, id]);
+  };
+
+  // Fetch Instagram accounts with caching
+  const fetchAccounts = useCallback(async (): Promise<DashboardData | null> => {
     if (!userId) {
       router.push("/sign-in");
-      return;
+      return null;
     }
 
     try {
       setIsLoading(true);
       setError(null);
-      // Check cache first
-      const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
-      const cacheDuration = 15 * 60 * 1000; // 15 minutes
 
-      if (cachedData) {
-        const { data, timestamp } = JSON.parse(cachedData);
-        if (Date.now() - timestamp < cacheDuration) {
-          const stats = {
-            totalAccounts: data.length,
-            activeAccounts: data.filter((account: any) => account?.isActive)
-              .length,
-            totalTemplates: data.reduce(
-              (sum: number, account: any) =>
-                sum + (account?.templatesCount || 0),
-              0
-            ),
-            totalReplies: data[0]?.repliesCount || 0,
-            accountLimit: data[0]?.accountLimit || 1,
-            replyLimit: data[0]?.replyLimit || 1,
-            engagementRate:
-              data.reduce(
-                (sum: number, account: any) =>
-                  sum + (account?.engagementRate || 0),
-                0
-              ) / data.length, // Mock data
-            successRate:
-              data.reduce(
-                (sum: number, account: any) =>
-                  sum + (account?.successRate || 0),
-                0
-              ) / data.length,
-            overallAvgResponseTime:
-              data.reduce(
-                (sum: number, account: any) =>
-                  sum + (account?.avgResponseTime || 0),
-                0
-              ) / data.length,
-            accounts: data,
-            recentActivity: [], // No recent activity in cache
-          };
-          if (stats) {
-            setDashboardData(stats);
-            setUserAccounts(data);
-          }
-          return stats;
-        }
+      // Check cache first
+      const cachedAccounts =
+        getCachedData<InstagramAccount[]>(ACCOUNTS_CACHE_KEY);
+      if (cachedAccounts) {
+        const dashboardStats = transformAccountsToDashboardData(cachedAccounts);
+        setUserAccounts(cachedAccounts);
+        return dashboardStats;
       }
 
       // Fetch from API
@@ -162,7 +266,7 @@ export default function Dashboard() {
         `/api/insta/dashboard?userId=${userId}`
       );
       if (!accountsResponse.ok) {
-        throw new Error("Failed to fetch accounts");
+        throw new Error(`Failed to fetch accounts: ${accountsResponse.status}`);
       }
 
       const {
@@ -172,9 +276,11 @@ export default function Dashboard() {
         replyLimit,
         totalAccounts,
       } = await accountsResponse.json();
+
       if (!dbAccounts?.length) {
         return null;
       }
+
       // Fetch Instagram data for each account
       const completeAccounts = await Promise.all(
         dbAccounts.map(async (dbAccount: any) => {
@@ -183,7 +289,9 @@ export default function Dashboard() {
               `/api/insta/user-info?accessToken=${dbAccount.accessToken}&fields=username,user_id,followers_count,media_count,profile_picture_url`
             );
 
-            if (!instaResponse.ok) throw new Error("Instagram API failed");
+            if (!instaResponse.ok) {
+              throw new Error(`Instagram API failed: ${instaResponse.status}`);
+            }
 
             const instaData = await instaResponse.json();
 
@@ -196,7 +304,7 @@ export default function Dashboard() {
               profilePicture:
                 instaData.profile_picture_url ||
                 dbAccount.profilePicture ||
-                defaultImg,
+                defaultImg.src,
               followersCount:
                 instaData.followers_count || dbAccount.followersCount || 0,
               postsCount: instaData.media_count || dbAccount.postsCount || 0,
@@ -209,9 +317,9 @@ export default function Dashboard() {
               totalAccounts: totalAccounts || 0,
               accountReply: dbAccount.accountReply || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
-              engagementRate: Math.floor(Math.random() * 4) + 5, // Mock data
-              successRate: Math.floor(Math.random() * 4) + 90, // Mock data
-              avgResponseTime: dbAccount?.avgResTime[0]?.avgResponseTime || 0,
+              engagementRate: Math.floor(Math.random() * 4) + 85,
+              successRate: Math.floor(Math.random() * 4) + 90,
+              avgResponseTime: dbAccount?.avgResTime?.[0]?.avgResponseTime || 0,
               accessToken: dbAccount.accessToken,
             };
           } catch (instaError) {
@@ -223,121 +331,131 @@ export default function Dashboard() {
           }
         })
       );
-      const validAccounts = completeAccounts.filter(Boolean);
 
-      const stats = {
-        totalAccounts: validAccounts.length,
-        activeAccounts: validAccounts.filter((account) => account?.isActive)
-          .length,
-        totalTemplates: validAccounts.reduce(
-          (sum, account) => sum + (account?.templatesCount || 0),
-          0
-        ),
-        totalReplies: validAccounts[0]?.repliesCount || 0,
-        accountLimit: validAccounts[0]?.accountLimit || 1,
-        replyLimit: validAccounts[0]?.replyLimit || 1,
-        engagementRate:
-          validAccounts.reduce(
-            (sum: number, account: any) => sum + (account?.engagementRate || 0),
-            0
-          ) / validAccounts.length, // Mock data
-        successRate:
-          validAccounts.reduce(
-            (sum: number, account: any) => sum + (account?.successRate || 0),
-            0
-          ) / validAccounts.length,
-        overallAvgResponseTime:
-          validAccounts?.reduce(
-            (sum: number, account: any) =>
-              sum + (account?.avgResponseTime || 0),
-            0
-          ) / validAccounts.length,
-        accounts: validAccounts,
-      };
-      if (validAccounts && validAccounts?.length > 0) {
-        localStorage.setItem(
-          ACCOUNTS_CACHE_KEY,
-          JSON.stringify({
-            data: validAccounts,
-            timestamp: Date.now(),
-          })
-        );
+      const validAccounts = completeAccounts.filter(
+        (account): account is InstagramAccount => account !== null
+      );
+
+      if (validAccounts.length > 0) {
+        setCachedData(ACCOUNTS_CACHE_KEY, validAccounts);
         setUserAccounts(validAccounts);
       }
-      return stats;
+
+      return transformAccountsToDashboardData(validAccounts);
     } catch (error) {
       console.error("Failed to fetch accounts:", error);
       setError(
         error instanceof Error ? error.message : "Failed to load accounts"
       );
+      showToast("Failed to load accounts", "error");
+      return null;
     }
   }, [userId, router]);
 
+  // Transform accounts to dashboard data
+  const transformAccountsToDashboardData = (
+    accounts: InstagramAccount[]
+  ): DashboardData => {
+    return {
+      totalAccounts: accounts.length,
+      activeAccounts: accounts.filter((account) => account.isActive).length,
+      totalTemplates: accounts.reduce(
+        (sum, account) => sum + account.templatesCount,
+        0
+      ),
+      totalReplies: accounts[0]?.repliesCount || 0,
+      accountLimit: accounts[0]?.accountLimit || 1,
+      replyLimit: accounts[0]?.replyLimit || 1,
+      engagementRate:
+        accounts.length > 0
+          ? accounts.reduce((sum, account) => sum + account.engagementRate, 0) /
+            accounts.length
+          : 0,
+      successRate:
+        accounts.length > 0
+          ? accounts.reduce((sum, account) => sum + account.successRate, 0) /
+            accounts.length
+          : 0,
+      overallAvgResponseTime:
+        accounts.length > 0
+          ? accounts.reduce(
+              (sum, account) => sum + account.avgResponseTime,
+              0
+            ) / accounts.length
+          : 0,
+      accounts,
+    };
+  };
+
+  // Fetch dashboard data
   const fetchDashboardData = useCallback(async () => {
     try {
       const accountsData = await fetchAccounts();
-      const response = await fetch(`/api/insta/replylogs?userId=${userId}`);
-      let recentActivity;
-      if (response.ok) {
-        recentActivity = await response.json();
-      } else {
-        console.error(
-          "Using dummy data for recent activity - API not available"
-        );
+
+      if (!accountsData) {
+        setDashboardData(null);
+        return;
       }
 
-      const updatedData = {
-        ...accountsData,
-        recentActivity: recentActivity?.replyLogs,
-      };
-      setDashboardData(updatedData);
+      // Fetch recent activity
+      try {
+        const response = await fetch(`/api/insta/replylogs?userId=${userId}`);
+        if (response.ok) {
+          const { replyLogs } = await response.json();
+          accountsData.recentActivity = replyLogs || [];
+        } else {
+          console.warn("Failed to fetch recent activity");
+          accountsData.recentActivity = [];
+        }
+      } catch (activityError) {
+        console.error("Error fetching recent activity:", activityError);
+        accountsData.recentActivity = [];
+      }
+
+      setDashboardData(accountsData);
     } catch (error) {
-      console.error("Using dummy data - API error:", error);
+      console.error("Error fetching dashboard data:", error);
+      setError("Failed to load dashboard data");
+      showToast("Failed to load dashboard data", "error");
     } finally {
       setIsLoading(false);
     }
   }, [userId, fetchAccounts]);
 
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInMinutes = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60)
-    );
+  // Fetch user subscriptions
+  const fetchSubscriptions = useCallback(async () => {
+    if (!userId) return;
 
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes}m ago`;
-    } else if (diffInMinutes < 1440) {
-      return `${Math.floor(diffInMinutes / 60)}h ago`;
-    } else {
-      return `${Math.floor(diffInMinutes / 1440)}d ago`;
-    }
-  };
-  useEffect(() => {
-    const fetchSubscriptions = async () => {
-      if (!userId) return;
-      try {
-        const userData = await getUserById(userId);
-        if (userData) {
-          const subs = await getInstaSubscriptionInfo(userId);
-          setSubscriptions(subs);
-          setUserInfo(userData);
-        }
-      } catch (error) {
-        console.error("Failed to fetch subscriptions:", error);
+    try {
+      const userData = await getUserById(userId);
+      if (userData) {
+        const subs = await getInstaSubscriptionInfo(userId);
+        setSubscriptions(subs);
+        setUserInfo(userData);
       }
-    };
-    if (!isLoaded) {
-      return; // Wait for auth to load
+    } catch (error) {
+      console.error("Failed to fetch subscriptions:", error);
+      showToast("Failed to load subscription information", "error");
     }
-    fetchSubscriptions();
-    fetchDashboardData();
-  }, [userId, fetchDashboardData, isLoaded]);
+  }, [userId]);
+
+  // Initialize dashboard
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const initializeDashboard = async () => {
+      await Promise.all([fetchSubscriptions(), fetchDashboardData()]);
+    };
+
+    initializeDashboard();
+  }, [userId, isLoaded, fetchSubscriptions, fetchDashboardData]);
 
   // Handle cancellation initiation
   const handleCancelInitiation = () => {
-    setShowCancelDialog(false);
-    setShowCancelConfirmDialog(true);
+    if (subscriptions.length > 0) {
+      setSelectedSubscriptionId(subscriptions[0].subscriptionId);
+      setShowCancelConfirmDialog(true);
+    }
   };
 
   // Handle confirmed cancellation
@@ -345,11 +463,9 @@ export default function Dashboard() {
     setShowCancelConfirmDialog(false);
 
     // Check if we need to delete accounts (free plan only allows 1 account)
-    const freePlanAccountLimit = 1;
-    if (userAccounts.length > freePlanAccountLimit) {
+    if (userAccounts.length > FREE_PLAN_ACCOUNT_LIMIT) {
       setShowCancelAccountDialog(true);
     } else {
-      // No need to delete accounts, show the cancellation options dialog
       setShowCancelDialog(true);
     }
   };
@@ -358,19 +474,19 @@ export default function Dashboard() {
   const handleCancelAccountDeletion = async (selectedAccountIds: string[]) => {
     setIsProcessingCancellation(true);
     setShowCancelAccountDialog(false);
+
     try {
       // Delete selected accounts
       for (const accountId of selectedAccountIds) {
-        // const result = await deleteInstaAccount(accountId, userId!);
-        // if (!result.success) {
-        //   toast.error(`Failed to delete account: ${result.error}`);
-        //   setIsProcessingCancellation(false);
-        //   return;
-        // }
-        console.log("accountId:", accountId);
+        const result = await deleteInstaAccount(accountId, userId!);
+        if (!result.success) {
+          showToast(`Failed to delete account: ${result.error}`, "error");
+          setIsProcessingCancellation(false);
+          return;
+        }
       }
 
-      toast.success("Accounts deleted successfully");
+      showToast("Accounts deleted successfully", "success");
 
       // Update user accounts list
       const updatedAccounts = userAccounts.filter(
@@ -379,62 +495,61 @@ export default function Dashboard() {
       setUserAccounts(updatedAccounts);
 
       // Update dashboard data
-      setDashboardData((prev: any) => ({
-        ...prev,
-        accounts: updatedAccounts,
-        totalAccounts: updatedAccounts.length,
-        activeAccounts: updatedAccounts.filter(
-          (account: any) => account?.isActive
-        ).length,
-      }));
+      if (dashboardData) {
+        setDashboardData({
+          ...dashboardData,
+          accounts: updatedAccounts,
+          totalAccounts: updatedAccounts.length,
+          activeAccounts: updatedAccounts.filter((account) => account.isActive)
+            .length,
+        });
+      }
 
       // Clear cache
       localStorage.removeItem(ACCOUNTS_CACHE_KEY);
 
-      // Show the cancellation options dialog
+      // Show cancellation options
       setShowCancelDialog(true);
     } catch (error) {
       console.error("Error deleting accounts:", error);
-      toast.error("Failed to delete accounts");
+      showToast("Failed to delete accounts", "error");
       setIsProcessingCancellation(false);
     }
   };
 
   // Process the actual cancellation
   const handleCancelSubscription = async () => {
-    if (!selectedSubscriptionId) return;
+    if (!selectedSubscriptionId) {
+      showToast("No subscription selected", "error");
+      return;
+    }
 
     setIsCancelling(true);
     try {
-      console.log("Cancelled the subcription");
+      // Mock cancellation - replace with actual API call
+      console.log("Cancelling subscription:", selectedSubscriptionId);
+
       // const cancelResult = await cancelRazorPaySubscription(
       //   selectedSubscriptionId,
-      //   cancellationReason || "User requested cancellation",
+      //   cancellationReason || CANCELLATION_REASON_PLACEHOLDER,
       //   cancellationMode
       // );
 
       // if (!cancelResult.success) {
-      //   toast.error("Failed to cancel subscription", {
-      //     description: cancelResult.message,
-      //   });
+      //   showToast("Failed to cancel subscription", "error");
       //   return;
       // }
 
-      // Update database status
       // await setSubsciptionCanceled(
       //   selectedSubscriptionId,
-      //   cancellationReason || "User requested cancellation"
+      //   cancellationReason || CANCELLATION_REASON_PLACEHOLDER
       // );
 
-      toast.success("Subscription cancelled successfully", {
-        description: "Your plan has been cancelled",
-      });
-
-      // Clear current subscription
+      showToast("Subscription cancelled successfully", "success");
       setSubscriptions([]);
     } catch (error) {
       console.error("Error cancelling subscription:", error);
-      toast.error("Failed to cancel subscription");
+      showToast("Failed to cancel subscription", "error");
     } finally {
       setIsCancelling(false);
       setShowCancelDialog(false);
@@ -442,32 +557,154 @@ export default function Dashboard() {
     }
   };
 
-  const handleError = (id: string) => {
-    setHasError((prev) => [...prev, id]); // Add the ID to the error array
-  };
+  // Handle refresh
   const refresh = async () => {
-    await localStorage.removeItem(ACCOUNTS_CACHE_KEY);
+    setIsLoading(true);
+    localStorage.removeItem(ACCOUNTS_CACHE_KEY);
     await fetchDashboardData();
   };
 
+  // Handle add account click
+  const handleAddAccountClick = () => {
+    const accountLimit = dashboardData?.accountLimit || 1;
+    const currentAccounts = dashboardData?.totalAccounts || 0;
+
+    if (currentAccounts >= accountLimit) {
+      setShowAccountLimitDialog(true);
+    } else {
+      router.push("/insta/accounts/add");
+    }
+  };
+
+  // Loading state
   if (isLoading || !isLoaded) {
     return (
-      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+      <div className="min-h-screen bg-transparent flex items-center justify-center h-full w-full">
         <div className="w-5 h-5 border-2 border-t-transparent border-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
+
+  // Render account card
+  const renderAccountCard = (account: InstagramAccount) => {
+    const isTokenExpiring =
+      account.expiryDate &&
+      new Date(account.expiryDate) < new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    return (
+      <div
+        key={account.id}
+        className={`flex flex-wrap gap-3 md:gap-0 items-center justify-between p-2 md:p-4 border ${themeStyles.cardBorder} rounded-lg hover:bg-white/5 transition-colors`}
+      >
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="relative">
+            <Image
+              width={48}
+              height={48}
+              src={
+                hasError.includes(account.id)
+                  ? defaultImg.src
+                  : account.profilePicture
+              }
+              alt={account.displayName}
+              onError={() => handleImageError(account.id)}
+              className="h-12 w-12 rounded-full object-cover"
+            />
+            <div
+              className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 ${
+                account.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
+              }`}
+            />
+          </div>
+          <div>
+            <h3
+              className={`font-semibold text-sm md:text-base ${themeStyles.textPrimary}`}
+            >
+              @{account.username}
+            </h3>
+            <p className={`text-sm ${themeStyles.textSecondary}`}>
+              {account.followersCount.toLocaleString()} followers
+            </p>
+          </div>
+          <Badge
+            variant={account.isActive ? "default" : "secondary"}
+            className={
+              account.isActive
+                ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
+                : `${
+                    currentTheme === "dark"
+                      ? "bg-gray-800 text-gray-400"
+                      : "bg-gray-200 text-gray-600"
+                  }`
+            }
+          >
+            {account.isActive ? "Active" : "Inactive"}
+          </Badge>
+        </div>
+        <div className="flex items-center space-x-2">
+          {isTokenExpiring && userId && (
+            <Button
+              onClick={() => refreshInstagramToken(userId)}
+              variant="outline"
+              size="sm"
+              className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh Token
+            </Button>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText} bg-[#B026FF]/70 hover:bg-[#B026FF]/15 transition-colors`}
+            asChild
+          >
+            <Link href={`/insta/accounts/${account.id}`}>
+              <Settings className="h-4 w-4" /> Manage
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Render recent activity
+  const renderRecentActivity = () => {
+    if (!dashboardData?.recentActivity?.length) {
+      return <p className={themeStyles.textMuted}>No recent activity</p>;
+    }
+
+    return dashboardData.recentActivity
+      .slice(0, 3)
+      .map((activity: RecentActivity) => (
+        <div
+          key={activity.id}
+          className="flex items-center justify-between text-sm"
+        >
+          <span
+            className={`${themeStyles.textSecondary} font-montserrat text-lg`}
+          >
+            {activity.message}
+          </span>
+          <span className={themeStyles.textMuted}>
+            {formatTimestamp(activity.timestamp)}
+          </span>
+        </div>
+      ));
+  };
+
   return (
     <div
       className={`min-h-screen ${themeStyles.textPrimary} ${themeStyles.containerBg}`}
     >
-      <BreadcrumbsDefault />{" "}
+      <BreadcrumbsDefault />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex  flex-wrap justify-between items-center gap-3 lg:gap-0 mb-8">
+        <div className="flex flex-wrap justify-between items-center gap-3 lg:gap-0 mb-8">
           <div>
             <h1
-              className={`text-3xl lg:text-5xl font-bold mb-2 gradient-text-main ${themeStyles.textPrimary}`}
+              className={`text-3xl lg:text-5xl font-bold mb-2 ${themeStyles.textPrimary}`}
             >
               Dashboard
             </h1>
@@ -479,13 +716,17 @@ export default function Dashboard() {
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
             <Button
-              onClick={() => refresh()}
+              onClick={refresh}
               variant="outline"
-              className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#09ab5a]/80  hover:bg-white/10`}
+              className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#09ab5a]/80 hover:bg-white/10`}
+              disabled={isLoading}
             >
-              <RefreshCw className="mr-2 h-4 w-4" />
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
+
             {subscriptions.length === 0 && (
               <Button
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 transition-opacity"
@@ -499,15 +740,7 @@ export default function Dashboard() {
             )}
 
             <Button
-              onClick={() => {
-                if (
-                  dashboardData?.totalAccounts >= dashboardData?.accountLimit
-                ) {
-                  setDialog(true);
-                } else {
-                  router.push("/insta/accounts/add");
-                }
-              }}
+              onClick={handleAddAccountClick}
               className="btn-gradient-cyan hover:opacity-90 transition-opacity"
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -515,23 +748,25 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
+
+        {/* Active Subscription */}
         {subscriptions.length > 0 && (
           <Card
-            className={`bg-gradient-to-r from-purple-900/30 to-pink-900/30 backdrop-blur-sm border border-purple-500/30 mb-8 flex flex-col flex-wrap items-center justify-center ${themeStyles.cardBg}`}
+            className={`bg-gradient-to-r from-purple-900/30 to-pink-900/30 backdrop-blur-sm border border-purple-500/30 mb-8 ${themeStyles.cardBg}`}
           >
-            <CardHeader className="flex flex-wrap flex-col items-center justify-center gap-3">
-              <Badge className="max-w-min bg-green-900/20 text-green-700 border-green-400/20">
+            <CardHeader className="text-center">
+              <Badge className="max-w-min mx-auto bg-green-900/20 text-green-700 border-green-400/20">
                 Active
               </Badge>
               <CardTitle
-                className={`flex items-center gap-2 ${themeStyles.textPrimary}`}
+                className={`flex text-start md:items-center justify-center gap-2 ${themeStyles.textPrimary}`}
               >
                 <Zap className="h-5 w-5 text-yellow-400" />
                 Your Subscription
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col md:flex-row justify-start items-center gap-4">
-              <div className="flex flex-wrap items-center justify-center gap-2">
+            <CardContent className="flex flex-col md:flex-row justify-center items-center gap-4">
+              <div className="flex  flex-wrap text-start md:items-center justify-center gap-4">
                 <h3 className={`text-xl font-bold ${themeStyles.textPrimary}`}>
                   {subscriptions[0].chatbotType}
                 </h3>
@@ -541,15 +776,13 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap  gap-1 items-center justify-center">
+              <div className="flex flex-wrap gap-2 items-center">
                 <Button
                   variant="destructive"
-                  onClick={() => {
-                    setSelectedSubscriptionId(subscriptions[0].subscriptionId);
-                    handleCancelInitiation();
-                  }}
+                  onClick={handleCancelInitiation}
+                  disabled={isCancelling || isProcessingCancellation}
                 >
-                  Cancel Subscription
+                  {isCancelling ? "Cancelling..." : "Cancel Subscription"}
                 </Button>
 
                 <Button
@@ -565,6 +798,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card
@@ -581,24 +815,13 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-2xl font-bold text-[#00F0FF]">
                 {dashboardData?.activeAccounts || 0} /{" "}
-                {dashboardData?.accountLimit || subscriptions.length > 0
-                  ? userInfo?.accountLimit
-                  : 1}
+                {dashboardData?.accountLimit || 1}
               </div>
-              {dashboardData?.totalAccounts ? (
-                <p
-                  className={`text-xs ${themeStyles.textMuted} font-montserrat`}
-                >
-                  {dashboardData?.totalAccounts - dashboardData?.activeAccounts}{" "}
-                  inactive
-                </p>
-              ) : (
-                <p
-                  className={`text-xs ${themeStyles.textMuted} font-montserrat`}
-                >
-                  0 inactive
-                </p>
-              )}
+              <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
+                {(dashboardData?.totalAccounts || 0) -
+                  (dashboardData?.activeAccounts || 0)}{" "}
+                inactive
+              </p>
             </CardContent>
           </Card>
 
@@ -615,7 +838,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#B026FF]">
-                {dashboardData.totalTemplates || 0}
+                {dashboardData?.totalTemplates || 0}
               </div>
               <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 Across all accounts
@@ -636,10 +859,8 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#FF2E9F]">
-                {dashboardData?.totalReplies || userInfo?.totalReplies || 0} /{" "}
-                {dashboardData?.replyLimit || subscriptions.length > 0
-                  ? userInfo?.replyLimit
-                  : 500}
+                {dashboardData?.totalReplies || 0} /{" "}
+                {dashboardData?.replyLimit || 500}
               </div>
               <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 +23% from last month
@@ -660,7 +881,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#00F0FF]">
-                {dashboardData.engagementRate || 0}%
+                {dashboardData?.engagementRate || 0}%
               </div>
               <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 +5% from last week
@@ -689,89 +910,10 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 p-2">
-              {dashboardData?.accounts &&
-                dashboardData?.accounts?.map((account: any) => (
-                  <div
-                    key={account?.id}
-                    className={`flex flex-wrap gap-3 md:gap-0 items-center justify-between p-2 md:p-4 border ${themeStyles.cardBorder} rounded-lg hover:bg-white/5 transition-colors`}
-                  >
-                    <div className="flex items-center space-x-2 md:space-x-4">
-                      <div className="relative">
-                        <Image
-                          width={48}
-                          height={48}
-                          src={
-                            hasError.includes(account.id)
-                              ? defaultImg
-                              : account?.profilePicture
-                          }
-                          alt={account?.displayName}
-                          onError={() => handleError(account.id)} // Pass a function, not the result
-                          className="h-12 w-12 rounded-full object-cover"
-                        />
-                        <div
-                          className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 $ ${
-                            account?.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
-                          }`}
-                        />
-                      </div>
-                      <div>
-                        <h3
-                          className={`font-semibold text-sm md:text-base ${themeStyles.textPrimary}`}
-                        >
-                          @{account?.username || "Unknown"}
-                        </h3>
-                        <p className={`text-sm ${themeStyles.textSecondary}`}>
-                          {account?.followersCount || 0} followers
-                        </p>
-                      </div>
-                      <Badge
-                        variant={account?.isActive ? "default" : "secondary"}
-                        className={
-                          account?.isActive
-                            ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
-                            : `${
-                                theme === "dark"
-                                  ? "bg-gray-800 text-gray-400"
-                                  : "bg-gray-200 text-gray-600"
-                              }`
-                        }
-                      >
-                        {account?.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {new Date(account?.expiryDate) <
-                        new Date(Date.now() + 24 * 60 * 60 * 1000) &&
-                        userId && (
-                          <Button
-                            onClick={() => refreshInstagramToken(userId)}
-                            variant="outline"
-                            size="sm"
-                            className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
-                          >
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                            Refresh Token
-                          </Button>
-                        )}
+              {dashboardData?.accounts?.map(renderAccountCard)}
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText} bg-[#B026FF]/70 hover:bg-[#B026FF]/15 transition-colors`}
-                        asChild
-                      >
-                        <Link href={`/insta/accounts/${account?.id}`}>
-                          <Settings className="h-4 w-4 " /> Manage
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-
-              {(!dashboardData ||
-                !dashboardData?.accounts ||
-                dashboardData?.accounts?.length === 0) && (
+              {(!dashboardData?.accounts ||
+                dashboardData.accounts.length === 0) && (
                 <div className="text-center py-8">
                   <Instagram className="h-12 w-12 mx-auto text-gray-500 mb-4" />
                   <p
@@ -815,11 +957,11 @@ export default function Dashboard() {
                     Reply Success Rate
                   </span>
                   <span className={`text-sm ${themeStyles.textMuted}`}>
-                    {dashboardData.successRate || 0}%
+                    {dashboardData?.successRate || 0}%
                   </span>
                 </div>
                 <Progress
-                  value={dashboardData.successRate || 0}
+                  value={dashboardData?.successRate || 0}
                   className="h-2 bg-white/10"
                 />
               </div>
@@ -853,7 +995,7 @@ export default function Dashboard() {
                       ? formatResponseTimeSmart(
                           dashboardData.overallAvgResponseTime
                         )
-                      : 0}{" "}
+                      : "0s"}
                   </span>
                 </div>
                 <Progress value={85} className="h-2 bg-white/10" />
@@ -863,29 +1005,7 @@ export default function Dashboard() {
                 <h4 className={`font-semibold mb-3 ${themeStyles.textPrimary}`}>
                   Recent Activity
                 </h4>
-                <div className="space-y-2">
-                  {dashboardData?.recentActivity?.length > 0 ? (
-                    dashboardData?.recentActivity
-                      ?.slice(0, 3)
-                      .map((activity: any) => (
-                        <div
-                          key={activity.id}
-                          className="flex items-center justify-between text-sm"
-                        >
-                          <span
-                            className={`${themeStyles.textSecondary} font-montserrat text-lg`}
-                          >
-                            {activity.message}
-                          </span>
-                          <span className={themeStyles.textMuted}>
-                            {formatTimestamp(activity.timestamp)}
-                          </span>
-                        </div>
-                      ))
-                  ) : (
-                    <p className={themeStyles.textMuted}>No recent activity</p>
-                  )}
-                </div>
+                <div className="space-y-2">{renderRecentActivity()}</div>
               </div>
             </CardContent>
           </Card>
@@ -930,15 +1050,7 @@ export default function Dashboard() {
               </Button>
 
               <Button
-                onClick={() => {
-                  if (
-                    dashboardData?.totalAccounts >= dashboardData?.accountLimit
-                  ) {
-                    setDialog(true);
-                  } else {
-                    router.push("/insta/accounts/add");
-                  }
-                }}
+                onClick={handleAddAccountClick}
                 variant="outline"
                 className={`h-auto p-6 flex flex-col items-center gap-3 border-[#FF2E9F]/20 bg-[#FF2E9F]/10 hover:bg-[#FF2E9F]/15 hover:border-[#FF2E9F]/40 transition-all ${themeStyles.textPrimary}`}
               >
@@ -948,113 +1060,123 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        {showCancelDialog && (
-          <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div
-              className={`p-3 md:p-8 rounded-xl max-w-md w-full ${
-                theme === "dark" ? "bg-[#0a0a0a]/90" : "bg-white/90"
-              } backdrop-blur-lg border ${themeStyles.cardBorder}`}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2
-                  className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF] ${themeStyles.textPrimary}`}
-                >
-                  Cancel Subscription
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowCancelDialog(false)}
-                >
-                  <X
-                    className={`${themeStyles.textMuted} h-5 w-5 hover:${themeStyles.textPrimary}`}
-                  />
-                </Button>
-              </div>
-              <div className="space-y-6">
-                <div>
-                  <label
-                    className={`block text-lg font-semibold ${themeStyles.textSecondary} mb-2`}
-                  >
-                    Please Provide Reason
-                  </label>
-                  <Textarea
-                    value={cancellationReason}
-                    onChange={(e) => setCancellationReason(e.target.value)}
-                    className={`w-full ${
-                      theme === "dark" ? "bg-gray-800/50" : "bg-gray-100"
-                    } border ${themeStyles.cardBorder} rounded-lg p-3 ${
-                      themeStyles.textPrimary
-                    } focus:outline-none focus:ring-2 focus:ring-[#B026FF] font-montserrat`}
-                    placeholder="Cancellation reason"
-                    required
-                  />
-                </div>
-
-                <div
-                  className={`text-xs ${themeStyles.textMuted} font-montserrat`}
-                >
-                  <p className="mb-2">
-                    <strong>Immediate Cancellation:</strong> Service ends
-                    immediately
-                  </p>
-                  <p>
-                    <strong>End-of-term Cancellation:</strong> Service continues
-                    until the end of billing period
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap justify-center gap-4">
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      setCancellationMode("Immediate");
-                      handleCancelSubscription();
-                    }}
-                    disabled={isCancelling}
-                    className="px-6 py-2"
-                  >
-                    {isCancelling ? "Cancelling..." : "Cancel Immediately"}
-                  </Button>
-                  <Button
-                    className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF]"
-                    onClick={() => {
-                      setCancellationMode("End-of-term");
-                      handleCancelSubscription();
-                    }}
-                    disabled={isCancelling}
-                  >
-                    {isCancelling ? "Cancelling..." : "Cancel at End of Term"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-      <AlertDialog open={dialog} onOpenChange={setDialog}>
+
+      {/* Account Limit Dialog */}
+      <AlertDialog
+        open={showAccountLimitDialog}
+        onOpenChange={setShowAccountLimitDialog}
+      >
         <AlertDialogContent
           className={`${themeStyles.alertBg} backdrop-blur-md`}
         >
           <AlertDialogHeader>
             <AlertDialogTitle className={themeStyles.textPrimary}>
-              Your Account Limit Reached
+              Account Limit Reached
             </AlertDialogTitle>
             <AlertDialogDescription className={themeStyles.textSecondary}>
-              To add more account you need to update your subscription.
+              To add more accounts, you need to upgrade your subscription.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className={themeStyles.buttonOutlineBorder}>
+              Cancel
+            </AlertDialogCancel>
             <Button
               onClick={() => router.push("/insta/pricing")}
-              className="flex-1"
+              className="bg-gradient-to-r from-purple-600 to-pink-600"
             >
-              Upgrade
+              Upgrade Now
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Cancel Subscription Dialog */}
+      {showCancelDialog && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div
+            className={`p-3 md:p-8 rounded-xl max-w-md w-full ${
+              currentTheme === "dark" ? "bg-[#0a0a0a]/90" : "bg-white/90"
+            } backdrop-blur-lg border ${themeStyles.cardBorder}`}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]">
+                Cancel Subscription
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowCancelDialog(false)}
+                disabled={isCancelling}
+              >
+                <X
+                  className={`${themeStyles.textMuted} h-5 w-5 hover:${themeStyles.textPrimary}`}
+                />
+              </Button>
+            </div>
+            <div className="space-y-6">
+              <div>
+                <label
+                  className={`block text-lg font-semibold ${themeStyles.textSecondary} mb-2`}
+                >
+                  Please Provide Reason
+                </label>
+                <Textarea
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  className={`w-full ${
+                    currentTheme === "dark" ? "bg-gray-800/50" : "bg-gray-100"
+                  } border ${themeStyles.cardBorder} rounded-lg p-3 ${
+                    themeStyles.textPrimary
+                  } focus:outline-none focus:ring-2 focus:ring-[#B026FF] font-montserrat`}
+                  placeholder="Cancellation reason"
+                  required
+                  disabled={isCancelling}
+                />
+              </div>
+
+              <div
+                className={`text-xs ${themeStyles.textMuted} font-montserrat`}
+              >
+                <p className="mb-2">
+                  <strong>Immediate Cancellation:</strong> Service ends
+                  immediately
+                </p>
+                <p>
+                  <strong>End-of-term Cancellation:</strong> Service continues
+                  until the end of billing period
+                </p>
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-4">
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setCancellationMode("Immediate");
+                    handleCancelSubscription();
+                  }}
+                  disabled={isCancelling}
+                  className="px-6 py-2"
+                >
+                  {isCancelling ? "Cancelling..." : "Cancel Immediately"}
+                </Button>
+                <Button
+                  className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF]"
+                  onClick={() => {
+                    setCancellationMode("End-of-term");
+                    handleCancelSubscription();
+                  }}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? "Cancelling..." : "Cancel at End of Term"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Confirm Cancellation Dialog */}
       <AlertDialog
         open={showCancelConfirmDialog}
@@ -1073,7 +1195,9 @@ export default function Dashboard() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className={themeStyles.buttonOutlineBorder}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmedCancellation}
               disabled={isCancelling}
@@ -1091,6 +1215,7 @@ export default function Dashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
       {/* Account Selection Dialog for Cancellation */}
       <AccountSelectionDialog
         isOpen={showCancelAccountDialog}

@@ -55,7 +55,7 @@ export const sendSubscriptionEmailToUser = async ({
     from: process.env.EMAIL_USER,
     to: email,
     subject: "New Subscription Alert",
-    text: `Congratulations! You has subscribed To AgentID:${agentId}, UserID: ${userDbId}, SubscriptionID: ${subscriptionId}. Please Wait 24 hours To Work Your AI Smartly.Our Ai Scrapped Your Website Data.Provides Best Response To Your Users`,
+    text: `Congratulations! You has subscribed To AgentID:${agentId}, UserID: ${userDbId}, SubscriptionID: ${subscriptionId}. Please add code widget provided on webchatbot dashboard to your website code so it easily appears on your website.`,
   };
 
   await transporter.sendMail(mailOptions);

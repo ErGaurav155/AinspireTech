@@ -1,6 +1,6 @@
 "use client";
 import { toast } from "@/components/ui/use-toast";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Check, Zap, X, Loader2, BadgeCheck } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
@@ -35,12 +35,46 @@ import { AccountSelectionDialog } from "@/components/insta/AccountSelectionDialo
 import { ConfirmSubscriptionChangeDialog } from "@/components/insta/CancelSubcriptionChangeDialog";
 import { Textarea } from "@/components/ui/textarea";
 
+// Types
+interface Subscription {
+  productId: string;
+  billingCycle: "monthly" | "yearly";
+  subscriptionId?: string;
+  chatbotType?: string;
+}
+
+interface ThemeStyles {
+  containerBg: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  cardBg: string;
+  cardBorder: string;
+  badgeBg: string;
+  alertBg: string;
+  buttonOutlineBorder: string;
+  buttonOutlineText: string;
+  dialogBg: string;
+  inputBg: string;
+  inputBorder: string;
+  inputText: string;
+}
+
+// Constants
+const FREE_PLAN_ACCOUNT_LIMIT = 1;
+const CANCELLATION_REASON_PLACEHOLDER = "User requested cancellation";
+const CHANGE_TO_NEW_PLAN_REASON = "Changing to new plan";
+
 // Main Pricing Component
 function PricingWithSearchParams() {
   const { userId, isLoaded } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeProductId = searchParams.get("code");
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
+
+  // State
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
     "monthly"
   );
@@ -49,26 +83,37 @@ function PricingWithSearchParams() {
   const [buyerId, setBuyerId] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isInstaAccount, setIsInstaAccount] = useState(false);
-  const [showSubCancelDialog, setShowSubCancelDialog] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
   const [cancellationMode, setCancellationMode] = useState<
     "Immediate" | "End-of-term"
   >("End-of-term");
-  const [islogged, setIslogged] = useState(false);
-  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
+  const [currentSubscription, setCurrentSubscription] =
+    useState<Subscription | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [isgettingAcc, setIsGettingAcc] = useState(false);
+  const [isGettingAcc, setIsGettingAcc] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { theme, resolvedTheme } = useTheme();
+
+  // Dialog states
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showAccountDialog, setShowAccountDialog] = useState(false);
+  const [showCancelConfirmDialog, setShowCancelConfirmDialog] = useState(false);
+  const [showCancelAccountDialog, setShowCancelAccountDialog] = useState(false);
+
+  // Pending actions
+  const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null);
+  const [pendingBillingCycle, setPendingBillingCycle] = useState<
+    "monthly" | "yearly"
+  >("monthly");
+  const [userAccounts, setUserAccounts] = useState<any[]>([]);
+  const [isProcessingChange, setIsProcessingChange] = useState(false);
+
   // Theme-based styles
-
-  const currentTheme = resolvedTheme || theme || "light";
-
-  const themeStyles = useMemo(() => {
+  const themeStyles = useMemo((): ThemeStyles => {
     const isDark = currentTheme === "dark";
     return {
-      containerBg: isDark ? "bg-transperant" : "bg-gray-50",
+      containerBg: isDark ? "bg-transparent" : "bg-gray-50",
       textPrimary: isDark ? "text-white" : "text-n-7",
       textSecondary: isDark ? "text-gray-300" : "text-n-5",
       textMuted: isDark ? "text-gray-400" : "text-n-5",
@@ -84,28 +129,105 @@ function PricingWithSearchParams() {
       inputText: isDark ? "text-white" : "text-n-7",
     };
   }, [currentTheme]);
-  // New states for dialogs
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showAccountDialog, setShowAccountDialog] = useState(false);
-  const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null);
-  const [pendingBillingCycle, setPendingBillingCycle] = useState<
-    "monthly" | "yearly"
-  >("monthly");
-  const [userAccounts, setUserAccounts] = useState<any[]>([]);
-  const [isProcessingChange, setIsProcessingChange] = useState(false);
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
-  // New states for cancellation flow
-  const [showCancelConfirmDialog, setShowCancelConfirmDialog] = useState(false);
-  const [showCancelAccountDialog, setShowCancelAccountDialog] = useState(false);
+  // Helper: Show toast notifications
+  const showToast = useCallback(
+    (title: string, description: string, isError: boolean = false) => {
+      toast({
+        title,
+        description,
+        duration: 3000,
+        variant: isError ? "destructive" : "default",
+      });
+    },
+    []
+  );
+
+  // Helper: Fetch user accounts
+  const fetchUserAccounts = async (userId: string): Promise<any[]> => {
+    try {
+      const accountsResponse = await getInstaAccounts(userId);
+      if (
+        accountsResponse.success &&
+        Array.isArray(accountsResponse.accounts)
+      ) {
+        return accountsResponse.accounts;
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching user accounts:", error);
+      return [];
+    }
+  };
+
+  // Helper: Connect Instagram account
+  const connectInstagramAccount = useCallback(
+    async (code: string, userId: string): Promise<boolean> => {
+      try {
+        const response = await fetch(
+          `/api/insta/callback?code=${code}&userId=${userId}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showToast(
+            "Success!",
+            "Affiliate account created successfully",
+            false
+          );
+          return true;
+        } else {
+          showToast(
+            "Failed!",
+            data.error?.message || "Failed to connect account",
+            true
+          );
+          return false;
+        }
+      } catch (error) {
+        console.error("Error connecting account:", error);
+        showToast("Failed!", "Failed to connect Instagram account", true);
+        return false;
+      }
+    },
+    [showToast]
+  );
+
+  // Helper: Fetch subscription data
+  const fetchSubscriptionData = async (): Promise<Subscription | null> => {
+    try {
+      const response = await fetch(`/api/insta/subscription/list`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch subscription data");
+      }
+
+      const data = await response.json();
+      return data.length > 0 ? data[0] : null;
+    } catch (error) {
+      console.error("Error fetching subscription data:", error);
+      return null;
+    }
+  };
 
   // Fetch user data and subscription info
   useEffect(() => {
     const fetchUserData = async () => {
+      if (!isLoaded) return;
+
       setIsLoading(true);
 
       if (!userId) {
-        setIslogged(false);
         setIsLoading(false);
         return;
       }
@@ -118,125 +240,57 @@ function PricingWithSearchParams() {
         }
 
         setBuyerId(buyer._id);
-        setIslogged(true);
 
-        // Fetch user's Instagram accounts
-        const accountsResponse = await getInstaAccounts(userId);
+        // Fetch user accounts
+        const accounts = await fetchUserAccounts(userId);
+        setUserAccounts(accounts);
 
-        if (
-          accountsResponse.success &&
-          Array.isArray(accountsResponse.accounts)
-        ) {
-          setUserAccounts(accountsResponse.accounts);
+        // Check if user has accounts
+        const hasAccounts = accounts.length > 0;
+        const needsAccountConnection =
+          !hasAccounts ||
+          (buyer.accountLimit && accounts.length < buyer.accountLimit);
 
-          // Check if user has accounts or needs to connect one
-          const hasAccounts = accountsResponse.accounts.length > 0;
-          const needsAccountConnection =
-            !hasAccounts ||
-            (buyer.accountLimit &&
-              accountsResponse.accounts.length < buyer.accountLimit);
-
-          if (needsAccountConnection && activeProductId) {
-            setIsGettingAcc(true);
-            try {
-              const response = await fetch(
-                `/api/insta/callback?code=${activeProductId}&userId=${userId}`,
-                {
-                  method: "GET",
-                  headers: { "Content-Type": "application/json" },
-                }
-              );
-              const data = await response.json();
-
-              if (response.ok) {
-                toast({
-                  title: "Success!",
-                  description: "Affiliate account created successfully",
-                  duration: 3000,
-                });
-                setIsInstaAccount(true);
-              } else {
-                toast({
-                  title: "Falied!",
-                  description: `${
-                    data.error.message || "Failed to connect account"
-                  }`,
-                  duration: 3000,
-                });
-                throw new Error(data.error || "Failed to connect account");
-              }
-            } catch (error) {
-              console.error("Error connecting account:", error);
-              setIsInstaAccount(false);
-            } finally {
-              setIsGettingAcc(false);
-            }
-          } else {
-            setIsInstaAccount(hasAccounts);
-          }
+        // Handle account connection if needed
+        if (needsAccountConnection && activeProductId) {
+          setIsGettingAcc(true);
+          const connected = await connectInstagramAccount(
+            activeProductId,
+            userId
+          );
+          setIsInstaAccount(connected);
+          setIsGettingAcc(false);
         } else {
-          setIsInstaAccount(false);
-
-          // Try to connect account if we have an active product ID
-          if (activeProductId) {
-            setIsGettingAcc(true);
-            try {
-              const response = await fetch(
-                `/api/insta/callback?code=${activeProductId}&userId=${userId}`,
-                {
-                  method: "GET",
-                  headers: { "Content-Type": "application/json" },
-                }
-              );
-              const data = await response.json();
-
-              if (response.ok) {
-                setIsInstaAccount(true);
-              } else {
-                throw new Error(data.error || "Failed to connect account");
-              }
-            } catch (error) {
-              console.error("Error connecting account:", error);
-            } finally {
-              setIsGettingAcc(false);
-            }
-          }
+          setIsInstaAccount(hasAccounts);
         }
+
         // Fetch subscription info
-        const response = await fetch(`/api/insta/subscription/list`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        const data = await response.json();
-        if (response.ok) {
-          if (data.length > 0) {
-            setIsSubscribed(true);
-            setCurrentSubscription(data[0]);
-          } else {
-            setIsSubscribed(false);
-            setCurrentSubscription(null);
-          }
+        const subscription = await fetchSubscriptionData();
+        if (subscription) {
+          setIsSubscribed(true);
+          setCurrentSubscription(subscription);
         } else {
-          throw new Error(data.error || "Failed to fetch subscription data");
+          setIsSubscribed(false);
+          setCurrentSubscription(null);
         }
       } catch (error) {
         console.error("Error fetching user info:", error);
-        toast({
-          title: "Falied!",
-          description: "Failed to load subscription data",
-          duration: 3000,
-        });
+        showToast("Failed!", "Failed to load subscription data", true);
       } finally {
         setIsLoading(false);
       }
     };
-    if (!isLoaded) {
-      return; // Wait for auth to load
-    }
+
     fetchUserData();
-  }, [userId, router, activeProductId, isLoaded]);
+  }, [
+    userId,
+    router,
+    activeProductId,
+    isLoaded,
+    connectInstagramAccount,
+    showToast,
+  ]);
+
   // Get account limit for a plan
   // const getAccountLimit = (plan: PricingPlan) => {
   //   switch (plan.id) {
@@ -252,13 +306,11 @@ function PricingWithSearchParams() {
   //       return 1;
   //   }
   // };
+
+  // Handle cancel subscription
   const handleCancelSubscription = async () => {
     if (!currentSubscription) {
-      toast({
-        title: "Falied!",
-        description: "No subscription selected for cancellation",
-        duration: 3000,
-      });
+      showToast("Failed!", "No subscription selected for cancellation", true);
       return;
     }
 
@@ -283,26 +335,15 @@ function PricingWithSearchParams() {
       //   cancellationReason || "User requested cancellation"
       // );
 
-      toast({
-        title: "Subscription cancelled successfully!",
-        description: "Your plan has been cancelled",
-        duration: 3000,
-      });
-
-      // Clear current subscription
-      setCurrentSubscription([]);
+      showToast("Success!", "Subscription cancelled successfully", false);
+      setCurrentSubscription(null);
     } catch (error) {
       console.error("Error cancelling subscription:", error);
-      toast({
-        title: "Falied!",
-        description: "Failed to cancel subscription",
-        duration: 3000,
-      });
+      showToast("Failed!", "Failed to cancel subscription", true);
     } finally {
       setIsCancelling(false);
       setShowCancelDialog(false);
       setCancellationReason("");
-      setIsPaymentModalOpen(true);
     }
   };
 
@@ -311,6 +352,7 @@ function PricingWithSearchParams() {
     plan: PricingPlan,
     cycle: "monthly" | "yearly"
   ) => {
+    // Check if it's the same plan
     if (
       currentSubscription &&
       currentSubscription.productId === plan.id &&
@@ -339,16 +381,17 @@ function PricingWithSearchParams() {
     setShowConfirmDialog(false);
 
     try {
-      const accountLimit = 1;
+      const accountLimit = 1; // Get from plan
       if (userAccounts.length > accountLimit) {
         // Show account selection dialog
         setPendingPlan(pendingPlan);
         setShowAccountDialog(true);
       } else {
-        // No need to delete accounts, proceed to payment
+        // No need to delete accounts, show cancel dialog
         setSelectedPlan(pendingPlan);
         setShowCancelDialog(true);
       }
+
       // First, cancel current subscription
       // const cancelResult = await cancelRazorPaySubscription(
       //   currentSubscription.subscriptionId,
@@ -369,18 +412,11 @@ function PricingWithSearchParams() {
       //   currentSubscription.subscriptionId,
       //   "Changed to new plan"
       // );
-
-      // Check if we need to delete accounts
     } catch (error) {
       console.error("Error changing subscription:", error);
-      toast({
-        title: "Falied!",
-        description: "Failed to change subscription",
-        duration: 3000,
-      });
+      showToast("Failed!", "Failed to change subscription", true);
     } finally {
       setIsProcessingChange(false);
-      setIsSubscribed(false);
     }
   };
 
@@ -401,11 +437,8 @@ function PricingWithSearchParams() {
         // }
       }
 
-      toast({
-        title: "success!",
-        description: "Accounts deleted successfully",
-        duration: 3000,
-      });
+      showToast("Success!", "Accounts deleted successfully", false);
+
       // Update user accounts list
       const updatedAccounts = userAccounts.filter(
         (account) => !selectedAccountIds.includes(account._id)
@@ -417,11 +450,7 @@ function PricingWithSearchParams() {
       setShowCancelDialog(true);
     } catch (error) {
       console.error("Error deleting accounts:", error);
-      toast({
-        title: "Falied!",
-        description: "Failed to delete accounts",
-        duration: 3000,
-      });
+      showToast("Failed!", "Failed to delete accounts", true);
     } finally {
       setIsProcessingChange(false);
       setPendingPlan(null);
@@ -433,8 +462,7 @@ function PricingWithSearchParams() {
     setShowCancelConfirmDialog(false);
 
     // Check if we need to delete accounts (free plan only allows 1 account)
-    const freePlanAccountLimit = 1;
-    if (userAccounts.length > freePlanAccountLimit) {
+    if (userAccounts.length > FREE_PLAN_ACCOUNT_LIMIT) {
       setShowCancelAccountDialog(true);
     } else {
       await processCancellation();
@@ -458,11 +486,8 @@ function PricingWithSearchParams() {
         // }
       }
 
-      toast({
-        title: "success!",
-        description: "Accounts deleted successfully",
-        duration: 3000,
-      });
+      showToast("Success!", "Accounts deleted successfully", false);
+
       // Update user accounts list
       const updatedAccounts = userAccounts.filter(
         (account) => !selectedAccountIds.includes(account._id)
@@ -473,11 +498,7 @@ function PricingWithSearchParams() {
       await processCancellation();
     } catch (error) {
       console.error("Error deleting accounts:", error);
-      toast({
-        title: "Falied!",
-        description: "Failed to delete accounts",
-        duration: 3000,
-      });
+      showToast("Failed!", "Failed to delete accounts", true);
       setIsCancelling(false);
     }
   };
@@ -489,50 +510,78 @@ function PricingWithSearchParams() {
     try {
       // const cancelResult = await cancelRazorPaySubscription(
       //   currentSubscription.subscriptionId,
-      //   "User requested cancellation",
+      //   CANCELLATION_REASON_PLACEHOLDER,
       //   "Immediate"
       // );
 
       // if (!cancelResult.success) {
-      //   toast.error("Failed to cancel subscription", {
-      //     description: cancelResult.message,
-      //   });
+      //   showToast("Failed!", "Failed to cancel subscription", true);
       //   return;
       // }
 
       // Update database status
       // await setSubsciptionCanceled(
       //   currentSubscription.subscriptionId,
-      //   "User requested cancellation"
+      //   CANCELLATION_REASON_PLACEHOLDER
       // );
 
-      toast({
-        title: "Subscription cancelled successfully",
-        description: "Your plan has been cancelled",
-        duration: 3000,
-      });
-      // Clear current subscription
+      showToast("Success!", "Subscription cancelled successfully", false);
       setCurrentSubscription(null);
       setIsSubscribed(false);
     } catch (error) {
       console.error("Error cancelling subscription:", error);
-      toast({
-        title: "Falied!",
-        description: "Failed to cancel subscription",
-        duration: 3000,
-      });
+      showToast("Failed!", "Failed to cancel subscription", true);
     } finally {
       setIsCancelling(false);
     }
   };
 
+  // Loading state
   if (isLoading || !isLoaded) {
     return (
-      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+      <div className="min-h-screen bg-transparent flex items-center justify-center h-full w-full">
         <div className="w-5 h-5 border-2 border-t-transparent border-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
+
+  // Render feature comparison row
+  const renderFeatureRow = (
+    feature: string,
+    starter: string,
+    growth: string,
+    pro: string
+  ) => {
+    const renderCell = (value: string, color: string) => {
+      if (value === "✓") {
+        return <Check className={`h-5 w-5 ${color} mx-auto`} />;
+      } else if (value === "✗") {
+        return <span className={themeStyles.textMuted}>—</span>;
+      }
+      return <span className={themeStyles.textSecondary}>{value}</span>;
+    };
+
+    return (
+      <tr
+        className={`hover:${
+          theme === "dark" ? "bg-[#1a1a1a]/50" : "bg-gray-100/50"
+        } font-montserrat text-base`}
+      >
+        <td className={`py-4 px-6 font-medium ${themeStyles.textSecondary}`}>
+          {feature}
+        </td>
+        <td className="py-4 px-6 text-center">
+          {renderCell(starter, "text-[#00F0FF]")}
+        </td>
+        <td className="py-4 px-6 text-center">
+          {renderCell(growth, "text-[#B026FF]")}
+        </td>
+        <td className="py-4 px-6 text-center">
+          {renderCell(pro, "text-[#FF2E9F]")}
+        </td>
+      </tr>
+    );
+  };
 
   return (
     <div className={`min-h-screen ${themeStyles.textPrimary} bg-transparent`}>
@@ -551,9 +600,7 @@ function PricingWithSearchParams() {
               Never Miss a Customer Comment
             </span>
           </div>
-          <h1
-            className={`text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]`}
-          >
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
             Instagram Comment Automation
           </h1>
           <p
@@ -603,14 +650,13 @@ function PricingWithSearchParams() {
 
       <section className="px-4 sm:px-6 lg:px-8 pb-16">
         <div className="max-w-6xl mx-auto">
+          {/* Free Plan Card */}
           <div
             className={`relative mb-10 group rounded-lg backdrop-blur-sm border transition-all duration-300 ${themeStyles.cardBorder} ${themeStyles.cardBg} hover:border-[#00F0FF] bg-transparent`}
           >
-            <div
-              className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity from-[#FF2E9F]/10 to-transparent`}
-            ></div>
-            <div className=" relative z-10 h-full flex flex-col md:flex-row items-center justify-between p-6">
-              <div className="flex-[10%] flex flex-col  justify-between items-center md:items-start ">
+            <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity from-[#FF2E9F]/10 to-transparent"></div>
+            <div className="relative z-10 h-full flex flex-col md:flex-row items-center justify-between p-6">
+              <div className="flex-[10%] flex flex-col justify-between items-center md:items-start">
                 <h3
                   className={`text-xl font-bold mb-2 ${themeStyles.textPrimary}`}
                 >
@@ -637,9 +683,7 @@ function PricingWithSearchParams() {
                   "Spam detection",
                 ].map((feature, idx) => (
                   <li key={idx} className="flex items-start">
-                    <Check
-                      className={`h-5 w-5 mt-1 mr-3 ${"text-[#FF2E9F]"}`}
-                    />
+                    <Check className="h-5 w-5 mt-1 mr-3 text-[#FF2E9F]" />
                     <span className={themeStyles.textSecondary}>{feature}</span>
                   </li>
                 ))}
@@ -648,7 +692,7 @@ function PricingWithSearchParams() {
                 <Button
                   variant="outline"
                   onClick={() => router.push("/sign-in")}
-                  className={`flex-[20%] w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${"bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"} text-black`}
+                  className="flex-[20%] w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F] text-black"
                 >
                   Get Started
                 </Button>
@@ -659,7 +703,7 @@ function PricingWithSearchParams() {
                   className={`flex-[20%] w-full py-3 rounded-full font-medium hover:opacity-90 transition-opacity whitespace-nowrap ${
                     currentSubscription
                       ? "bg-gradient-to-r from-[#FF2E9F]/80 to-[#FF2E9F]"
-                      : " bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] cursor-not-allowed"
+                      : "bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] cursor-not-allowed"
                   } text-black disabled:opacity-70 disabled:cursor-not-allowed`}
                 >
                   {currentSubscription ? "Start Automating" : "Current Plan"}
@@ -667,13 +711,14 @@ function PricingWithSearchParams() {
               </SignedIn>
             </div>
           </div>
+
+          {/* Paid Plans Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {instagramPricingPlans.map((plan) => {
               const isCurrentPlan =
                 currentSubscription &&
                 currentSubscription.chatbotType === plan.id &&
                 currentSubscription.billingCycle === billingCycle;
-              const isUpgradeOption = currentSubscription;
 
               return (
                 <div
@@ -721,7 +766,7 @@ function PricingWithSearchParams() {
                         {plan.name}
                       </h3>
                       {isCurrentPlan && (
-                        <BadgeCheck className=" ml-1 h-6 w-6 text-[#00F0FF]" />
+                        <BadgeCheck className="ml-1 h-6 w-6 text-[#00F0FF]" />
                       )}
                     </div>
                     <p
@@ -753,7 +798,7 @@ function PricingWithSearchParams() {
                         Two Months Free Subscription On Yearly Plan.
                       </p>
                     )}
-                    <ul className="space-y-3 mb-8 ">
+                    <ul className="space-y-3 mb-8">
                       {plan.features.map((feature, idx) => (
                         <li key={idx} className="flex items-start">
                           <Check
@@ -810,7 +855,7 @@ function PricingWithSearchParams() {
                           </div>
                         ) : isCurrentPlan ? (
                           "Current Plan"
-                        ) : isUpgradeOption ? (
+                        ) : currentSubscription ? (
                           "Change Plan"
                         ) : (
                           "Start Automating"
@@ -834,6 +879,8 @@ function PricingWithSearchParams() {
           </div>
         </div>
       </section>
+
+      {/* Feature Comparison Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -876,137 +923,41 @@ function PricingWithSearchParams() {
                   theme === "dark" ? "divide-[#333]" : "divide-gray-300"
                 }`}
               >
-                {[
-                  {
-                    feature: "Comments per month",
-                    starter: "500",
-                    growth: "2,000",
-                    pro: "10,000",
-                  },
-                  {
-                    feature: "Reply templates",
-                    starter: "3",
-                    growth: "10",
-                    pro: "Unlimited",
-                  },
-                  {
-                    feature: "Keyword triggers",
-                    starter: "Basic",
-                    growth: "Advanced",
-                    pro: "Advanced+",
-                  },
-                  {
-                    feature: "AI spam filter",
-                    starter: "✓",
-                    growth: "✓",
-                    pro: "✓",
-                  },
-                  {
-                    feature: "Sentiment analysis",
-                    starter: "✗",
-                    growth: "✗",
-                    pro: "✓",
-                  },
-                  {
-                    feature: "Custom workflows",
-                    starter: "✗",
-                    growth: "Basic",
-                    pro: "Advanced",
-                  },
-                  {
-                    feature: "Email support",
-                    starter: "✓",
-                    growth: "✓",
-                    pro: "✓",
-                  },
-                  {
-                    feature: "Priority support",
-                    starter: "✗",
-                    growth: "✓",
-                    pro: "24/7",
-                  },
-                  {
-                    feature: "Response analytics",
-                    starter: "Basic",
-                    growth: "Advanced",
-                    pro: "Advanced+",
-                  },
-                  {
-                    feature: "WhatsApp notifications",
-                    starter: "✗",
-                    growth: "✓",
-                    pro: "✓",
-                  },
-                  {
-                    feature: "Multi-language support",
-                    starter: "✗",
-                    growth: "✗",
-                    pro: "✓",
-                  },
-                  {
-                    feature: "Instagram accounts",
-                    starter: "1",
-                    growth: "3",
-                    pro: "5",
-                  },
-                  {
-                    feature: "CRM integration",
-                    starter: "✗",
-                    growth: "✗",
-                    pro: "✓",
-                  },
-                ].map((row, index) => (
-                  <tr
-                    key={index}
-                    className={`hover:${
-                      theme === "dark" ? "bg-[#1a1a1a]/50" : "bg-gray-100/50"
-                    } font-montserrat text-base`}
-                  >
-                    <td
-                      className={`py-4 px-6 font-medium ${themeStyles.textSecondary}`}
-                    >
-                      {row.feature}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      {row.starter === "✓" ? (
-                        <Check className="h-5 w-5 text-[#00F0FF] mx-auto" />
-                      ) : row.starter === "✗" ? (
-                        <span className={themeStyles.textMuted}>—</span>
-                      ) : (
-                        <span className={themeStyles.textSecondary}>
-                          {row.starter}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      {row.growth === "✓" ? (
-                        <Check className="h-5 w-5 text-[#B026FF] mx-auto" />
-                      ) : row.growth === "✗" ? (
-                        <span className={themeStyles.textMuted}>—</span>
-                      ) : (
-                        <span className={themeStyles.textSecondary}>
-                          {row.growth}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      {row.pro === "✓" ? (
-                        <Check className="h-5 w-5 text-[#FF2E9F] mx-auto" />
-                      ) : row.pro === "✗" ? (
-                        <span className={themeStyles.textMuted}>—</span>
-                      ) : (
-                        <span className={themeStyles.textSecondary}>
-                          {row.pro}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {renderFeatureRow(
+                  "Comments per month",
+                  "500",
+                  "2,000",
+                  "10,000"
+                )}
+                {renderFeatureRow("Reply templates", "3", "10", "Unlimited")}
+                {renderFeatureRow(
+                  "Keyword triggers",
+                  "Basic",
+                  "Advanced",
+                  "Advanced+"
+                )}
+                {renderFeatureRow("AI spam filter", "✓", "✓", "✓")}
+                {renderFeatureRow("Sentiment analysis", "✗", "✗", "✓")}
+                {renderFeatureRow("Custom workflows", "✗", "Basic", "Advanced")}
+                {renderFeatureRow("Email support", "✓", "✓", "✓")}
+                {renderFeatureRow("Priority support", "✗", "✓", "24/7")}
+                {renderFeatureRow(
+                  "Response analytics",
+                  "Basic",
+                  "Advanced",
+                  "Advanced+"
+                )}
+                {renderFeatureRow("WhatsApp notifications", "✗", "✓", "✓")}
+                {renderFeatureRow("Multi-language support", "✗", "✗", "✓")}
+                {renderFeatureRow("Instagram accounts", "1", "3", "5")}
+                {renderFeatureRow("CRM integration", "✗", "✗", "✓")}
               </tbody>
             </table>
           </div>
         </div>
       </section>
+
+      {/* Cancel Subscription Dialog */}
       {showCancelDialog && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div
@@ -1082,8 +1033,9 @@ function PricingWithSearchParams() {
           </div>
         </div>
       )}
+
       {/* Payment Modal */}
-      {islogged && (
+      {userId && (
         <PaymentModal
           isOpen={isPaymentModalOpen}
           onClose={() => setIsPaymentModalOpen(false)}
@@ -1092,7 +1044,7 @@ function PricingWithSearchParams() {
           buyerId={buyerId}
           isSubscribed={isSubscribed}
           isInstaAccount={isInstaAccount}
-          isgettingAcc={isgettingAcc}
+          isgettingAcc={isGettingAcc}
           onSuccess={(newSubscription) => {
             setCurrentSubscription(newSubscription);
             setIsSubscribed(true);
@@ -1190,6 +1142,7 @@ function PricingWithSearchParams() {
     </div>
   );
 }
+
 export default function Pricing() {
   return (
     <Suspense

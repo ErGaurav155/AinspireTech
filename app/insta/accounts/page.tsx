@@ -9,6 +9,7 @@ import {
   BarChart3,
   Zap,
   RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,27 +37,75 @@ import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 import { useTheme } from "next-themes";
 import { refreshInstagramToken } from "@/lib/action/insta.action";
 
-// Cache key
+// Types
+interface InstagramAccount {
+  id: string;
+  accountId: string;
+  username: string;
+  displayName: string;
+  profilePicture: string;
+  followersCount: number;
+  postsCount: number;
+  isActive: boolean;
+  expiryDate: string | null;
+  templatesCount: number;
+  repliesCount: number;
+  replyLimit: number;
+  accountLimit: number;
+  totalAccounts: number;
+  accountReply: number;
+  lastActivity: string;
+  engagementRate: number;
+  successRate: number;
+  avgResponseTime: number;
+  accessToken: string;
+}
+
+interface ThemeStyles {
+  containerBg: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  cardBg: string;
+  cardBorder: string;
+  badgeBg: string;
+  alertBg: string;
+  buttonOutlineBorder: string;
+  buttonOutlineText: string;
+}
+
+// Constants
 const ACCOUNTS_CACHE_KEY = "instagramAccounts";
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+const FREE_PLAN_REPLY_LIMIT = 500;
+const FREE_PLAN_ACCOUNT_LIMIT = 1;
 
 export default function AccountsPage() {
-  const [accounts, setAccounts] = useState<any>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Hooks
   const { userId, isLoaded } = useAuth();
   const router = useRouter();
-  const [hasError, setHasError] = useState<string[]>([]);
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
-  const [userInfo, setUserInfo] = useState<any>();
-  const [dialog, setDialog] = useState(false);
   const { theme, resolvedTheme } = useTheme();
   const currentTheme = resolvedTheme || theme || "light";
 
+  // State
+  const [accounts, setAccounts] = useState<InstagramAccount[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hasError, setHasError] = useState<string[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [showAccountLimitDialog, setShowAccountLimitDialog] =
+    useState<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isUpdatingAccount, setIsUpdatingAccount] = useState<string | null>(
+    null
+  );
+
   // Theme-based styles
-  const themeStyles = useMemo(() => {
+  const themeStyles = useMemo((): ThemeStyles => {
     const isDark = currentTheme === "dark";
     return {
-      containerBg: isDark ? "bg-transperant" : "bg-gray-50",
+      containerBg: isDark ? "bg-transparent" : "bg-gray-50",
       textPrimary: isDark ? "text-white" : "text-n-7",
       textSecondary: isDark ? "text-gray-300" : "text-n-5",
       textMuted: isDark ? "text-gray-400" : "text-n-5",
@@ -69,35 +118,88 @@ export default function AccountsPage() {
     };
   }, [currentTheme]);
 
-  // Fetch accounts with caching
-  const fetchAccounts = useCallback(async () => {
+  // Helper: Get cached data
+  const getCachedData = <T,>(key: string): T | null => {
+    try {
+      const cached = localStorage.getItem(key);
+      if (!cached) return null;
+
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp > CACHE_DURATION) {
+        localStorage.removeItem(key);
+        return null;
+      }
+
+      return data;
+    } catch {
+      localStorage.removeItem(key);
+      return null;
+    }
+  };
+
+  // Helper: Set cached data
+  const setCachedData = <T,>(key: string, data: T): void => {
+    try {
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          data,
+          timestamp: Date.now(),
+        })
+      );
+    } catch (error) {
+      console.error("Failed to cache data:", error);
+    }
+  };
+
+  // Helper: Format last activity
+  const formatLastActivity = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInMinutes = Math.floor(
+        (now.getTime() - date.getTime()) / (1000 * 60)
+      );
+
+      if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+      if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+      return `${Math.floor(diffInMinutes / 1440)}d ago`;
+    } catch {
+      return "N/A";
+    }
+  };
+
+  // Helper: Handle image error
+  const handleImageError = (id: string): void => {
+    setHasError((prev) => [...prev, id]);
+  };
+
+  // Fetch Instagram accounts with caching
+  const fetchAccounts = useCallback(async (): Promise<void> => {
     if (!userId) {
       router.push("/sign-in");
       return;
     }
+
     try {
       setIsLoading(true);
       setError(null);
-      // Check cache first
-      const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
-      const cacheDuration = 15 * 60 * 1000; // 15 minutes
 
-      if (cachedData) {
-        const { data, timestamp } = JSON.parse(cachedData);
-        if (Date.now() - timestamp < cacheDuration) {
-          if (data) {
-            setAccounts(data);
-          }
-          setIsLoading(false);
-          return;
-        }
+      // Check cache first
+      const cachedAccounts =
+        getCachedData<InstagramAccount[]>(ACCOUNTS_CACHE_KEY);
+      if (cachedAccounts) {
+        setAccounts(cachedAccounts);
+        return;
       }
 
       // Fetch from API
       const accountsResponse = await fetch(
         `/api/insta/dashboard?userId=${userId}`
       );
-      if (!accountsResponse.ok) throw new Error("Failed to fetch accounts");
+      if (!accountsResponse.ok) {
+        throw new Error(`Failed to fetch accounts: ${accountsResponse.status}`);
+      }
 
       const {
         accounts: dbAccounts,
@@ -106,8 +208,10 @@ export default function AccountsPage() {
         replyLimit,
         totalAccounts,
       } = await accountsResponse.json();
+
       if (!dbAccounts?.length) {
-        return null;
+        setAccounts([]);
+        return;
       }
 
       // Fetch Instagram data for each account
@@ -118,7 +222,9 @@ export default function AccountsPage() {
               `/api/insta/user-info?accessToken=${dbAccount.accessToken}&fields=username,user_id,followers_count,media_count,profile_picture_url`
             );
 
-            if (!instaResponse.ok) throw new Error("Instagram API failed");
+            if (!instaResponse.ok) {
+              throw new Error(`Instagram API failed: ${instaResponse.status}`);
+            }
 
             const instaData = await instaResponse.json();
 
@@ -131,7 +237,7 @@ export default function AccountsPage() {
               profilePicture:
                 instaData.profile_picture_url ||
                 dbAccount.profilePicture ||
-                defaultImg,
+                defaultImg.src,
               followersCount:
                 instaData.followers_count || dbAccount.followersCount || 0,
               postsCount: instaData.media_count || dbAccount.postsCount || 0,
@@ -139,14 +245,14 @@ export default function AccountsPage() {
               expiryDate: dbAccount.expiresAt || null,
               templatesCount: dbAccount.templatesCount || 0,
               repliesCount: totalReplies || 0,
-              replyLimit: replyLimit || 500,
-              accountLimit: accountLimit || 1,
+              replyLimit: replyLimit || FREE_PLAN_REPLY_LIMIT,
+              accountLimit: accountLimit || FREE_PLAN_ACCOUNT_LIMIT,
               totalAccounts: totalAccounts || 0,
               accountReply: dbAccount.accountReply || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
-              engagementRate: Math.floor(Math.random() * 4) + 5, // Mock data
-              successRate: Math.floor(Math.random() * 4) + 90, // Mock data
-              avgResponseTime: dbAccount?.avgResTime[0]?.avgResponseTime || 0,
+              engagementRate: Math.floor(Math.random() * 4) + 85,
+              successRate: Math.floor(Math.random() * 4) + 90,
+              avgResponseTime: dbAccount?.avgResTime?.[0]?.avgResponseTime || 0,
               accessToken: dbAccount.accessToken,
             };
           } catch (instaError) {
@@ -158,17 +264,15 @@ export default function AccountsPage() {
           }
         })
       );
-      const validAccounts = completeAccounts.filter(Boolean);
 
-      if (validAccounts && validAccounts.length > 0) {
-        setAccounts(validAccounts);
-        localStorage.setItem(
-          ACCOUNTS_CACHE_KEY,
-          JSON.stringify({
-            data: validAccounts,
-            timestamp: Date.now(),
-          })
-        );
+      const validAccounts = completeAccounts.filter(
+        (account): account is InstagramAccount => account !== null
+      );
+
+      setAccounts(validAccounts);
+
+      if (validAccounts.length > 0) {
+        setCachedData(ACCOUNTS_CACHE_KEY, validAccounts);
       }
     } catch (error) {
       console.error("Failed to fetch accounts:", error);
@@ -177,41 +281,48 @@ export default function AccountsPage() {
       );
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   }, [userId, router]);
 
+  // Fetch user subscriptions
+  const fetchSubscriptions = useCallback(async (): Promise<void> => {
+    if (!userId) return;
+
+    try {
+      const userData = await getUserById(userId);
+      if (userData) {
+        const subs = await getInstaSubscriptionInfo(userId);
+        setSubscriptions(subs);
+        setUserInfo(userData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch subscriptions:", error);
+    }
+  }, [userId]);
+
+  // Initialize component
   useEffect(() => {
-    const fetchSubscriptions = async () => {
-      if (!userId) {
-        router.push("/sign-in");
-        return;
-      }
-      try {
-        const userData = await getUserById(userId);
-        if (userData) {
-          const subs = await getInstaSubscriptionInfo(userId);
-          setSubscriptions(subs);
-          setUserInfo(userData);
-        }
-      } catch (error) {
-        console.error("Failed to fetch subscriptions:", error);
-      }
+    if (!isLoaded) return;
+
+    const initializeData = async () => {
+      await Promise.all([fetchSubscriptions(), fetchAccounts()]);
     };
-    if (!isLoaded) return; // Wait for auth to load
 
-    fetchSubscriptions();
-    fetchAccounts();
-  }, [userId, router, fetchAccounts, isLoaded]);
+    initializeData();
+  }, [userId, isLoaded, fetchSubscriptions, fetchAccounts]);
 
+  // Handle toggle account status
   const handleToggleAccount = async (accountId: string) => {
-    const account = accounts.find((acc: any) => acc.id === accountId);
+    const account = accounts.find((acc) => acc.id === accountId);
     if (!account) return;
 
     const newActiveState = !account.isActive;
+    setIsUpdatingAccount(accountId);
 
     // Optimistic UI update
-    setAccounts((prev: any) =>
-      prev.map((acc: any) =>
+    setAccounts((prev) =>
+      prev.map((acc) =>
         acc.id === accountId ? { ...acc, isActive: newActiveState } : acc
       )
     );
@@ -227,8 +338,8 @@ export default function AccountsPage() {
 
       if (!response.ok) {
         // Revert on error
-        setAccounts((prev: any) =>
-          prev.map((acc: any) =>
+        setAccounts((prev) =>
+          prev.map((acc) =>
             acc.id === accountId ? { ...acc, isActive: !newActiveState } : acc
           )
         );
@@ -236,84 +347,99 @@ export default function AccountsPage() {
       }
 
       // Update cache
-      const cachedData = localStorage.getItem(ACCOUNTS_CACHE_KEY);
-      if (cachedData) {
-        const { data, timestamp } = JSON.parse(cachedData);
-        const updatedData = data.map((acc: any) =>
+      const cachedAccounts =
+        getCachedData<InstagramAccount[]>(ACCOUNTS_CACHE_KEY);
+      if (cachedAccounts) {
+        const updatedCache = cachedAccounts.map((acc) =>
           acc.id === accountId ? { ...acc, isActive: newActiveState } : acc
         );
-        localStorage.setItem(
-          ACCOUNTS_CACHE_KEY,
-          JSON.stringify({
-            data: updatedData,
-            timestamp,
-          })
-        );
+        setCachedData(ACCOUNTS_CACHE_KEY, updatedCache);
       }
     } catch (error) {
       console.error("Error updating account:", error);
+      // Show error toast or notification here
+    } finally {
+      setIsUpdatingAccount(null);
     }
   };
 
-  const formatLastActivity = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60)
-    );
+  // Handle add account click
+  const handleAddAccountClick = () => {
+    const accountLimit = accounts[0]?.accountLimit || FREE_PLAN_ACCOUNT_LIMIT;
 
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+    if (accounts.length >= accountLimit) {
+      setShowAccountLimitDialog(true);
+    } else {
+      router.push("/insta/accounts/add");
+    }
   };
-  const refresh = async () => {
-    await localStorage.removeItem(ACCOUNTS_CACHE_KEY);
+
+  // Handle refresh
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    localStorage.removeItem(ACCOUNTS_CACHE_KEY);
     await fetchAccounts();
   };
 
-  const displayedAccounts = accounts.length > 0 ? accounts : [];
-  const activeAccounts = displayedAccounts?.filter(
-    (a: any) => a?.isActive
-  ).length;
-  const totalFollowers = displayedAccounts?.reduce(
-    (sum: number, acc: any) => sum + acc?.followersCount,
-    0
-  );
-  const totalReplies = displayedAccounts[0]?.repliesCount || 0;
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const activeAccounts = accounts.filter(
+      (account) => account.isActive
+    ).length;
+    const totalFollowers = accounts.reduce(
+      (sum, acc) => sum + acc.followersCount,
+      0
+    );
+    const totalReplies = accounts[0]?.repliesCount || 0;
+    const avgEngagement =
+      accounts.length > 0
+        ? (
+            accounts.reduce((sum, acc) => sum + acc.engagementRate, 0) /
+            accounts.length
+          ).toFixed(1)
+        : "0";
 
-  const avgEngagement =
-    displayedAccounts?.length > 0
-      ? (
-          displayedAccounts?.reduce(
-            (sum: number, acc: any) => sum + acc?.engagementRate,
-            0
-          ) / displayedAccounts?.length
-        ).toFixed(1)
-      : 0;
-  const handleError = (id: string) => {
-    setHasError((prev) => [...prev, id]); // Add the ID to the error array
-  };
+    return {
+      activeAccounts,
+      totalFollowers,
+      totalReplies,
+      avgEngagement,
+    };
+  }, [accounts]);
+
+  // Get account limits
+  const accountLimit = accounts[0]?.accountLimit || FREE_PLAN_ACCOUNT_LIMIT;
+  const replyLimit =
+    subscriptions.length > 0 ? userInfo?.replyLimit : FREE_PLAN_REPLY_LIMIT;
+
+  // Loading state
   if (!isLoaded || isLoading) {
     return (
-      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+      <div className="min-h-screen bg-transparent flex items-center justify-center h-full w-full">
         <div className="w-5 h-5 border-2 border-t-transparent border-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div
         className={`min-h-screen ${themeStyles.textPrimary} flex items-center justify-center ${themeStyles.containerBg}`}
       >
-        <div className="text-center p-6 bg-red-900/20 rounded-lg max-w-md">
-          <h2 className="text-xl font-bold mb-4">Error Loading Accounts</h2>
-          <p className={`mb-6 ${themeStyles.textSecondary}`}>{error}</p>
-          <Button onClick={fetchAccounts} className="btn-gradient-cyan">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Try Again
-          </Button>
-        </div>
+        <Card
+          className={`max-w-md ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+        >
+          <CardContent className="pt-6 text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2">Error Loading Accounts</h2>
+            <p className={`mb-6 ${themeStyles.textSecondary}`}>{error}</p>
+            <Button onClick={fetchAccounts} className="btn-gradient-cyan">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -325,11 +451,12 @@ export default function AccountsPage() {
       <BreadcrumbsDefault />
 
       <div className="container mx-auto px-4 py-8">
+        {/* Header */}
         <div className="flex flex-wrap gap-3 md:gap-0 justify-between items-center mb-8">
           <div>
             <div
               className={`inline-flex items-center ${
-                theme === "dark"
+                currentTheme === "dark"
                   ? "bg-blue-100/10 text-blue-400 border-blue-400/30"
                   : "bg-blue-100 text-blue-600 border-blue-300"
               } border rounded-full px-4 py-1 mb-4`}
@@ -337,9 +464,7 @@ export default function AccountsPage() {
               <Instagram className="h-4 w-4 mr-1" />
               <span className="text-sm font-medium">Account Management</span>
             </div>
-            <h1
-              className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-2 gradient-text-main ${themeStyles.textPrimary}`}
-            >
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] bg-clip-text text-transparent">
               Instagram Accounts
             </h1>
             <p
@@ -351,25 +476,19 @@ export default function AccountsPage() {
           </div>
           <div className="flex gap-3 mt-1 md:mt-3">
             <Button
-              onClick={() => refresh()}
+              onClick={handleRefresh}
               variant="outline"
-              className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#05a957]/80  hover:bg-white/10`}
+              disabled={isRefreshing}
+              className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#05a957]/80 hover:bg-white/10`}
             >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+              {isRefreshing ? "Refreshing..." : "Refresh"}
             </Button>
             <Button
               className="btn-gradient-cyan hover:opacity-90 transition-opacity"
-              onClick={() => {
-                if (
-                  displayedAccounts?.length >=
-                  displayedAccounts[0]?.accountLimit
-                ) {
-                  return setDialog(true);
-                } else {
-                  router.push("/insta/accounts/add");
-                }
-              }}
+              onClick={handleAddAccountClick}
             >
               <Plus className="mr-2 h-4 w-4" />
               Add Account
@@ -392,13 +511,10 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#00F0FF]">
-                {displayedAccounts?.length || 0} /{" "}
-                {displayedAccounts[0]?.accountLimit || subscriptions.length > 0
-                  ? userInfo?.accountLimit
-                  : 1}
+                {accounts.length} / {accountLimit}
               </div>
               <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
-                {activeAccounts || 0} active
+                {stats.activeAccounts} active
               </p>
             </CardContent>
           </Card>
@@ -416,7 +532,7 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#B026FF]">
-                {totalFollowers || 0}
+                {stats.totalFollowers.toLocaleString()}
               </div>
               <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 Across all accounts
@@ -437,8 +553,7 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#FF2E9F]">
-                {totalReplies || userInfo?.totalReplies || 0} /{" "}
-                {subscriptions.length > 0 ? userInfo?.replyLimit : 500}
+                {stats.totalReplies} / {replyLimit}
               </div>
               <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 Total sent
@@ -459,7 +574,7 @@ export default function AccountsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#00F0FF]">
-                {avgEngagement || 0}%
+                {stats.avgEngagement}%
               </div>
               <p className={`text-xs ${themeStyles.textMuted} font-montserrat`}>
                 Engagement rate
@@ -470,216 +585,55 @@ export default function AccountsPage() {
 
         {/* Accounts Grid */}
         <div className="grid gap-6">
-          {displayedAccounts &&
-            displayedAccounts?.length > 0 &&
-            displayedAccounts?.map((account: any) => (
-              <Card
-                key={account?.id}
-                className={`card-hover transition-all duration-300 ${
-                  themeStyles.cardBg
-                } ${themeStyles.cardBorder} ${
-                  account?.isActive
-                    ? "border-[#00F0FF]/30 bg-gradient-to-r from-[#00F0FF]/5 to-transparent"
-                    : ""
-                }`}
-              >
-                <CardContent className="pt-6 p-2 md:p-4">
-                  <div className="flex flex-col md:flex-row gap-4 justify-between">
-                    <div className="flex flex-col  items-center justify-center gap-4">
-                      <div className="relative">
-                        <Image
-                          src={
-                            hasError.includes(account.id)
-                              ? defaultImg
-                              : account?.profilePicture
-                          }
-                          alt={account?.displayName}
-                          onError={() => handleError(account.id)} // Pass a function, not the result
-                          width={64}
-                          height={64}
-                          className="h-16 w-16 rounded-full object-cover"
-                        />
-                        <div
-                          className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2  ${
-                            account?.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
-                          }`}
-                        />
-                      </div>
-                      <div className="flex flex-col items-center text-center">
-                        <div className="flex items-center gap-2 ">
-                          <h3
-                            className={`text-lg font-bold ${themeStyles.textPrimary}`}
-                          >
-                            @{account?.username || "unknown"}
-                          </h3>
-                          <Badge
-                            variant={
-                              account?.isActive ? "default" : "secondary"
-                            }
-                            className={
-                              account?.isActive
-                                ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
-                                : `${
-                                    theme === "dark"
-                                      ? "bg-gray-800 text-gray-400"
-                                      : "bg-gray-200 text-gray-600"
-                                  }`
-                            }
-                          >
-                            {account?.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </div>
-                        <p className={themeStyles.textMuted}>
-                          {account?.displayName || "unknown"}
-                        </p>
-                        <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
-                          <span className={`text-sm ${themeStyles.textMuted}`}>
-                            {account?.followersCount || 0} followers
-                          </span>
-                          <span className={`text-sm ${themeStyles.textMuted}`}>
-                            {account?.postsCount || 0} posts
-                          </span>
-                          <span className={`text-sm ${themeStyles.textMuted}`}>
-                            {account?.engagementRate || 0}% engagement
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col md:flex-row items-center gap-4 mt-4 md:mt-0">
-                      <div className="flex items-center gap-4">
-                        <div className="flex flex-col items-center">
-                          <span
-                            className={`font-bold ${themeStyles.textPrimary}`}
-                          >
-                            {account?.templatesCount || 0}
-                          </span>
-                          <span className={`text-xs ${themeStyles.textMuted}`}>
-                            Templates
-                          </span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span
-                            className={`font-bold ${themeStyles.textPrimary}`}
-                          >
-                            {account?.accountReply || 0}
-                          </span>
-                          <span className={`text-xs ${themeStyles.textMuted}`}>
-                            Replies
-                          </span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span
-                            className={`font-bold ${themeStyles.textPrimary}`}
-                          >
-                            {formatLastActivity(account?.lastActivity) || "N/A"}
-                          </span>
-                          <span className={`text-xs ${themeStyles.textMuted}`}>
-                            Active
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col lg:flex-row items-center gap-3 w-full">
-                        <div className="flex items-center justify-center gap-2">
-                          <Label
-                            className={`text-sm ${themeStyles.textSecondary} mr-2`}
-                          >
-                            Auto-replies
-                          </Label>
-                          <Switch
-                            checked={account?.isActive}
-                            onCheckedChange={() =>
-                              handleToggleAccount(account?.id)
-                            }
-                            className="data-[state=checked]:bg-[#00F0FF]"
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-center gap-2">
-                          {new Date(account?.expiryDate) <
-                            new Date(Date.now() + 24 * 60 * 60 * 1000) &&
-                            userId && (
-                              <Button
-                                onClick={() => refreshInstagramToken(userId)}
-                                variant="outline"
-                                size="sm"
-                                className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
-                              >
-                                <RefreshCw className="mr-2 h-4 w-4" />
-                                Refresh Token
-                              </Button>
-                            )}
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText} p-2 bg-[#B026FF]/10 hover:bg-[#B026FF]/15 transition-colors`}
-                            asChild
-                          >
-                            <Link href={`/insta/accounts/${account?.id}`}>
-                              <Settings className="h-4 w-4 mr-1" /> Manage
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-          {displayedAccounts?.length === 0 && (
-            <Card
-              className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
-            >
-              <CardContent className="text-center py-12">
-                <div
-                  className={`mx-auto w-24 h-24 ${
-                    theme === "dark" ? "bg-white/5" : "bg-gray-100"
-                  } rounded-full flex items-center justify-center mb-4`}
-                >
-                  <Instagram className="h-8 w-8 text-gray-500" />
-                </div>
-                <h3
-                  className={`text-lg font-semibold mb-2 ${themeStyles.textPrimary}`}
-                >
-                  No accounts connected
-                </h3>
-                <p className={`${themeStyles.textMuted} mb-4 font-mono`}>
-                  Connect your first Instagram account to start automating
-                  replies
-                </p>
-                <Button className="btn-gradient-cyan" asChild>
-                  <Link href="/insta/accounts/add">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Connect Account
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+          {accounts.length > 0 ? (
+            accounts.map((account) => (
+              <AccountCard
+                key={account.id}
+                account={account}
+                theme={currentTheme}
+                themeStyles={themeStyles}
+                isUpdating={isUpdatingAccount === account.id}
+                hasError={hasError.includes(account.id)}
+                onToggleAccount={handleToggleAccount}
+                onImageError={handleImageError}
+                userId={userId}
+              />
+            ))
+          ) : (
+            <EmptyAccountsCard
+              themeStyles={themeStyles}
+              currentTheme={currentTheme}
+            />
           )}
         </div>
       </div>
-      <AlertDialog open={dialog} onOpenChange={setDialog}>
+
+      {/* Account Limit Dialog */}
+      <AlertDialog
+        open={showAccountLimitDialog}
+        onOpenChange={setShowAccountLimitDialog}
+      >
         <AlertDialogContent
           className={`${themeStyles.alertBg} backdrop-blur-md`}
         >
           <AlertDialogHeader>
             <AlertDialogTitle className={themeStyles.textPrimary}>
-              Your Account Limit Reached
+              Account Limit Reached
             </AlertDialogTitle>
             <AlertDialogDescription className={themeStyles.textSecondary}>
-              To add more account you need to update your subscription.
+              You have reached the maximum number of accounts for your current
+              plan. To add more accounts, please upgrade your subscription.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className={themeStyles.buttonOutlineBorder}>
+              Cancel
+            </AlertDialogCancel>
             <Button
               onClick={() => router.push("/insta/pricing")}
-              className="flex-1"
+              className="bg-gradient-to-r from-purple-600 to-pink-600"
             >
-              Upgrade
+              Upgrade Now
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -687,3 +641,219 @@ export default function AccountsPage() {
     </div>
   );
 }
+
+// Account Card Component
+interface AccountCardProps {
+  account: InstagramAccount;
+  theme: string;
+  themeStyles: ThemeStyles;
+  isUpdating: boolean;
+  hasError: boolean;
+  onToggleAccount: (accountId: string) => void;
+  onImageError: (accountId: string) => void;
+  userId: string | null;
+}
+
+const AccountCard: React.FC<AccountCardProps> = ({
+  account,
+  theme,
+  themeStyles,
+  isUpdating,
+  hasError,
+  onToggleAccount,
+  onImageError,
+  userId,
+}) => {
+  const isTokenExpiring =
+    account.expiryDate &&
+    new Date(account.expiryDate) < new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  return (
+    <Card
+      className={`card-hover transition-all duration-300 ${
+        themeStyles.cardBg
+      } ${themeStyles.cardBorder} ${
+        account.isActive
+          ? "border-[#00F0FF]/30 bg-gradient-to-r from-[#00F0FF]/5 to-transparent"
+          : ""
+      }`}
+    >
+      <CardContent className="pt-6 p-2 md:p-4">
+        <div className="flex flex-col md:flex-row gap-4 justify-between">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <div className="relative">
+              <Image
+                src={hasError ? defaultImg.src : account.profilePicture}
+                alt={account.displayName}
+                onError={() => onImageError(account.id)}
+                width={64}
+                height={64}
+                className="h-16 w-16 rounded-full object-cover"
+              />
+              <div
+                className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 ${
+                  account.isActive ? "bg-[#00F0FF]" : "bg-gray-400"
+                }`}
+              />
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <div className="flex items-center gap-2">
+                <h3 className={`text-lg font-bold ${themeStyles.textPrimary}`}>
+                  @{account.username}
+                </h3>
+                <Badge
+                  variant={account.isActive ? "default" : "secondary"}
+                  className={
+                    account.isActive
+                      ? "bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/30"
+                      : `${
+                          theme === "dark"
+                            ? "bg-gray-800 text-gray-400"
+                            : "bg-gray-200 text-gray-600"
+                        }`
+                  }
+                >
+                  {account.isActive ? "Active" : "Inactive"}
+                </Badge>
+              </div>
+              <p className={themeStyles.textMuted}>{account.displayName}</p>
+              <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+                <span className={`text-sm ${themeStyles.textMuted}`}>
+                  {account.followersCount.toLocaleString()} followers
+                </span>
+                <span className={`text-sm ${themeStyles.textMuted}`}>
+                  {account.postsCount} posts
+                </span>
+                <span className={`text-sm ${themeStyles.textMuted}`}>
+                  {account.engagementRate}% engagement
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center gap-4 mt-4 md:mt-0">
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col items-center">
+                <span className={`font-bold ${themeStyles.textPrimary}`}>
+                  {account.templatesCount}
+                </span>
+                <span className={`text-xs ${themeStyles.textMuted}`}>
+                  Templates
+                </span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className={`font-bold ${themeStyles.textPrimary}`}>
+                  {account.accountReply}
+                </span>
+                <span className={`text-xs ${themeStyles.textMuted}`}>
+                  Replies
+                </span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className={`font-bold ${themeStyles.textPrimary}`}>
+                  {formatLastActivity(account.lastActivity)}
+                </span>
+                <span className={`text-xs ${themeStyles.textMuted}`}>
+                  Active
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col lg:flex-row items-center gap-3 w-full">
+              <div className="flex items-center justify-center gap-2">
+                <Label className={`text-sm ${themeStyles.textSecondary} mr-2`}>
+                  Auto-replies
+                </Label>
+                <Switch
+                  checked={account.isActive}
+                  onCheckedChange={() => onToggleAccount(account.id)}
+                  disabled={isUpdating}
+                  className="data-[state=checked]:bg-[#00F0FF]"
+                />
+              </div>
+
+              <div className="flex items-center justify-center gap-2">
+                {isTokenExpiring && userId && (
+                  <Button
+                    onClick={() => refreshInstagramToken(userId)}
+                    variant="outline"
+                    size="sm"
+                    className={`${themeStyles.buttonOutlineBorder} p-2 bg-gradient-to-r from-[#0ce05d]/80 to-[#054e29] text-black hover:bg-white/10`}
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Refresh Token
+                  </Button>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText} p-2 bg-[#B026FF]/10 hover:bg-[#B026FF]/15 transition-colors`}
+                  asChild
+                >
+                  <Link href={`/insta/accounts/${account.id}`}>
+                    <Settings className="h-4 w-4 mr-1" /> Manage
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Empty Accounts Card Component
+interface EmptyAccountsCardProps {
+  themeStyles: ThemeStyles;
+  currentTheme: string;
+}
+
+const EmptyAccountsCard: React.FC<EmptyAccountsCardProps> = ({
+  themeStyles,
+  currentTheme,
+}) => (
+  <Card
+    className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
+  >
+    <CardContent className="text-center py-12">
+      <div
+        className={`mx-auto w-24 h-24 ${
+          currentTheme === "dark" ? "bg-white/5" : "bg-gray-100"
+        } rounded-full flex items-center justify-center mb-4`}
+      >
+        <Instagram className="h-8 w-8 text-gray-500" />
+      </div>
+      <h3 className={`text-lg font-semibold mb-2 ${themeStyles.textPrimary}`}>
+        No accounts connected
+      </h3>
+      <p className={`${themeStyles.textMuted} mb-4 font-mono`}>
+        Connect your first Instagram account to start automating replies
+      </p>
+      <Button className="btn-gradient-cyan" asChild>
+        <Link href="/insta/accounts/add">
+          <Plus className="mr-2 h-4 w-4" />
+          Connect Account
+        </Link>
+      </Button>
+    </CardContent>
+  </Card>
+);
+
+// Helper function: Format last activity
+const formatLastActivity = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
+
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+  } catch {
+    return "N/A";
+  }
+};

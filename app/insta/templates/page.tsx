@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { useAuth } from "@clerk/nextjs";
+import { useTheme } from "next-themes";
 import {
   Plus,
   MessageSquare,
@@ -17,6 +22,8 @@ import {
   Link as LinkIcon,
   ChevronDown,
 } from "lucide-react";
+
+// Components
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -58,15 +65,13 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
-import { useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
-import Link from "next/link";
-import Image from "next/image";
-import { useTheme } from "next-themes";
+
+// Actions
 import { getInstaSubscriptionInfo } from "@/lib/action/subscription.action";
 
-interface accountDataType {
+// Types
+interface InstagramAccount {
   instagramId: string;
   username: string;
 }
@@ -87,36 +92,109 @@ interface ContentItem {
   link?: string;
 }
 
+interface Template {
+  _id: string;
+  name: string;
+  content: ContentItem[];
+  openDm: string;
+  reply: string[];
+  triggers: string[];
+  isFollow: boolean;
+  isActive: boolean;
+  priority: number;
+  accountUsername: string;
+  mediaId: string;
+  mediaUrl: string;
+  mediaType?: string;
+  usageCount?: number;
+  lastUsed?: string;
+  successRate?: number;
+  userId?: string;
+}
+
+interface TemplateFormData {
+  name: string;
+  content: ContentItem[];
+  openDm: string;
+  reply: string[];
+  triggers: string[];
+  isFollow: boolean;
+  priority: number;
+  accountUsername: string;
+  mediaId: string;
+  mediaUrl: string;
+}
+
+// Constants
+const INITIAL_TEMPLATE_FORM: TemplateFormData = {
+  name: "",
+  content: [
+    { text: "This Is the link you want,Click the button below.", link: "" },
+  ],
+  openDm:
+    "Hey there! I'm so happy you're here, thanks so much for your interest 😊 Click below and I'll send you the link in just a sec ✨",
+  reply: [
+    "Thanks! Please see DMs.",
+    "Sent you a message! Check it out!",
+    "Nice! Check your DMs!",
+  ],
+  triggers: ["Price", "Link", "Product"],
+  isFollow: false,
+  priority: 5,
+  accountUsername: "",
+  mediaId: "",
+  mediaUrl: "",
+};
+
+const MAX_TRIGGERS = 3;
+const MIN_REPLIES = 3;
+const PRIORITY_MIN = 1;
+const PRIORITY_MAX = 10;
+
 export default function TemplatesPage() {
-  const [templates, setTemplates] = useState<any>([]);
+  const router = useRouter();
+  const { userId, isLoaded } = useAuth();
+  const { theme, resolvedTheme } = useTheme();
+
+  // State
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [loadMoreCount, setLoadMoreCount] = useState(0);
   const [hasMoreTemplates, setHasMoreTemplates] = useState(false);
   const [totalTemplates, setTotalTemplates] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterAccount, setFilterAccount] = useState("all");
-  const [editingTemplate, setEditingTemplate] = useState<any>(null);
-  const [accounts, setAccounts] = useState<accountDataType[]>([]);
+  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const [accounts, setAccounts] = useState<InstagramAccount[]>([]);
   const [selectedAccountMedia, setSelectedAccountMedia] = useState<MediaItem[]>(
     []
   );
   const [isLoadingMedia, setIsLoadingMedia] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
-  const [isTemplateCreating, setIsTemplateCreting] = useState(false);
-  const [isUpdateTemplate, setIsUpdateTempalte] = useState(false);
+  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
+  const [isUpdatingTemplate, setIsUpdatingTemplate] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [canFollow, setCanFollow] = useState(false);
-  const { userId, isLoaded } = useAuth();
-  const router = useRouter();
-  const { theme, resolvedTheme } = useTheme();
+
+  // Form state
+  const [templateForm, setTemplateForm] = useState<TemplateFormData>(
+    INITIAL_TEMPLATE_FORM
+  );
+
+  // Refs
+  const isInitialMount = useRef(true);
+  const userIdRef = useRef<string | null>(null);
+  const filterAccountRef = useRef<string>("all");
+
+  // Derived state
   const currentTheme = resolvedTheme || theme || "light";
 
   // Theme-based styles
   const themeStyles = useMemo(() => {
     const isDark = currentTheme === "dark";
     return {
-      containerBg: isDark ? "bg-transperant" : "bg-gray-50",
+      containerBg: isDark ? "bg-transparent" : "bg-gray-50",
       textPrimary: isDark ? "text-white" : "text-n-7",
       textSecondary: isDark ? "text-gray-300" : "text-n-5",
       textMuted: isDark ? "text-gray-400" : "text-n-5",
@@ -133,77 +211,123 @@ export default function TemplatesPage() {
     };
   }, [currentTheme]);
 
-  // Updated template form state - content is now array of objects
-  const [newTemplate, setNewTemplate] = useState({
-    name: "",
-    content: [
-      { text: "This Is the link you want,Click the button below.", link: "" },
-    ],
-    openDm:
-      "Hey there! I’m so happy you’re here, thanks so much for your interest 😊 Click below and I’ll send you the link in just a sec ✨",
-    reply: [
-      "Thanks! Please see DMs.",
-      "Sent you a message! Check it out!",
-      "Nice! Check your DMs!",
-    ],
-    triggers: ["Price", "Link", "Product"],
-    isFollow: false,
-    priority: 5,
-    accountUsername: "",
-    mediaId: "",
-    mediaUrl: "",
-  });
+  // Helper functions
+  const showSuccessToast = (message: string) => {
+    toast({
+      title: "Success!",
+      description: message,
+      duration: 3000,
+      className: "success-toast",
+    });
+  };
 
+  const showErrorToast = (message: string, error?: string) => {
+    toast({
+      title: "Error",
+      description: error ? `${message}: ${error}` : message,
+      duration: 3000,
+      className: "error-toast",
+      variant: "destructive",
+    });
+  };
+
+  // Authentication check
   useEffect(() => {
-    if (!isLoaded) {
-      return; // Wait for auth to load
-    }
+    if (!isLoaded) return;
+
     if (!userId) {
       router.push("/sign-in");
       return;
     }
+  }, [userId, isLoaded, router]);
+
+  // Fetch accounts - runs only once
+  useEffect(() => {
     const fetchAccounts = async () => {
+      if (!userId) return;
+
       try {
         const response = await fetch(`/api/insta/accounts?userId=${userId}`);
-        if (response.ok) {
-          const data = await response.json();
 
-          if (data?.accounts && Array.isArray(data.accounts)) {
-            setAccounts(
-              data.accounts.map((acc: any) => ({
-                instagramId: acc.instagramId,
-                username: acc.username,
-              }))
-            );
-          } else {
-            setAccounts([]);
-          }
+        if (!response.ok) {
+          throw new Error(`Failed to fetch accounts: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data?.accounts && Array.isArray(data.accounts)) {
+          setAccounts(
+            data.accounts.map((acc: any) => ({
+              instagramId: acc.instagramId,
+              username: acc.username,
+            }))
+          );
         } else {
           setAccounts([]);
         }
       } catch (error) {
+        console.error("Error fetching accounts:", error);
         setAccounts([]);
+        showErrorToast("Failed to load Instagram accounts");
       }
     };
+
     fetchAccounts();
-  }, [router, userId, isLoaded]);
+  }, [userId]); // Only depends on userId
 
-  // Fetch templates with loadMoreCount
-  const fetchTemplates = useCallback(async () => {
-    setIsLoading(true);
+  // Fetch subscription info - runs only once
+  useEffect(() => {
+    const fetchSubscriptionInfo = async () => {
+      if (!userId) return;
 
-    try {
-      const url = new URL(
-        `/api/insta/templates?userId=${userId}`,
-        window.location.origin
-      );
-      url.searchParams.set("loadMoreCount", "0"); // Always start from 0 for initial load
-      if (filterAccount !== "all")
-        url.searchParams.set("filterAccount", filterAccount);
+      try {
+        const subscriptionInfo = await getInstaSubscriptionInfo(userId);
+        setCanFollow(subscriptionInfo && subscriptionInfo.length > 0);
+      } catch (error) {
+        console.error("Error fetching subscription info:", error);
+        setCanFollow(false);
+      }
+    };
 
-      const response = await fetch(url.toString());
-      if (response.ok) {
+    fetchSubscriptionInfo();
+  }, [userId]); // Only depends on userId
+
+  // Fetch templates - using useCallback with proper dependencies
+  const fetchTemplates = useCallback(
+    async (loadCount = 0, forceRefresh = false) => {
+      if (!userId) return;
+
+      // Skip if it's not a forced refresh and we're already loading the same data
+      if (
+        !forceRefresh &&
+        loadCount === 0 &&
+        !isInitialMount.current &&
+        userId === userIdRef.current &&
+        filterAccount === filterAccountRef.current
+      ) {
+        return;
+      }
+
+      const loadingState = loadCount === 0 ? setIsLoading : setIsLoadingMore;
+      loadingState(true);
+
+      try {
+        const url = new URL(`/api/insta/templates`, window.location.origin);
+        url.searchParams.set("userId", userId);
+        url.searchParams.set("loadMoreCount", loadCount.toString());
+
+        if (filterAccount !== "all") {
+          url.searchParams.set("filterAccount", filterAccount);
+        }
+
+        const response = await fetch(url.toString());
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch templates: ${response.status}`);
+        }
+
         const data = await response.json();
+
         if (data.templates && Array.isArray(data.templates)) {
           const formattedTemplates = data.templates.map((template: any) => ({
             ...template,
@@ -213,140 +337,107 @@ export default function TemplatesPage() {
             successRate: template.successRate || 0,
           }));
 
-          setTemplates(formattedTemplates);
-          setHasMoreTemplates(data.hasMore);
-          setTotalTemplates(data.totalCount);
-          setLoadMoreCount(0); // Reset to 0 for initial load
+          if (loadCount === 0) {
+            setTemplates(formattedTemplates);
+          } else {
+            setTemplates((prev) => [...prev, ...formattedTemplates]);
+          }
+
+          setHasMoreTemplates(data.hasMore || false);
+          setTotalTemplates(data.totalCount || 0);
+          setLoadMoreCount(loadCount);
+
+          // Update refs to track current state
+          userIdRef.current = userId;
+          filterAccountRef.current = filterAccount;
+        }
+      } catch (error) {
+        console.error("Error fetching templates:", error);
+        showErrorToast("Failed to load templates");
+      } finally {
+        loadingState(false);
+        if (isInitialMount.current) {
+          isInitialMount.current = false;
         }
       }
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filterAccount, userId]);
+    },
+    [userId, filterAccount]
+  ); // Only depends on userId and filterAccount
 
-  // Load initial templates
+  // Initial data fetch - runs only once on mount
   useEffect(() => {
-    const fetchData = async () => {
-      if (userId) {
-        const subs = await getInstaSubscriptionInfo(userId);
-        if (!subs || subs.length === 0) {
-          setCanFollow(false);
-        } else {
-          setCanFollow(true);
-        }
-        await fetchTemplates();
-      }
-    };
+    if (!userId || !isLoaded) return;
 
-    fetchData();
-  }, [userId, fetchTemplates]);
+    fetchTemplates(0, true);
+  }, [userId, isLoaded, fetchTemplates]); // Only runs when userId or isLoaded changes
 
-  // Reload templates when filters change
+  // Filter change effect - only runs when filterAccount changes
   useEffect(() => {
-    if (userId) {
-      fetchTemplates();
-    }
-  }, [filterAccount, fetchTemplates, userId]);
+    if (!userId || isInitialMount.current) return;
+
+    const timer = setTimeout(() => {
+      fetchTemplates(0, true);
+    }, 300); // Debounce filter changes
+
+    return () => clearTimeout(timer);
+  }, [filterAccount, fetchTemplates, userId]); // Only runs when filterAccount changes
 
   // Load more templates
   const loadMoreTemplates = async () => {
+    if (!userId || isLoadingMore) return;
+
     setIsLoadingMore(true);
     const nextLoadCount = loadMoreCount + 1;
 
     try {
-      const url = new URL(
-        `/api/insta/templates?userId=${userId}`,
-        window.location.origin
-      );
-      url.searchParams.set("loadMoreCount", nextLoadCount.toString());
-      if (filterAccount !== "all")
-        url.searchParams.set("filterAccount", filterAccount);
-
-      const response = await fetch(url.toString());
-      if (response.ok) {
-        const data = await response.json();
-        if (data.templates && Array.isArray(data.templates)) {
-          const formattedTemplates = data.templates.map((template: any) => ({
-            ...template,
-            lastUsed: template.lastUsed
-              ? new Date(template.lastUsed).toISOString()
-              : new Date().toISOString(),
-            successRate: template.successRate || 0,
-          }));
-
-          // CORRECTLY APPEND NEW TEMPLATES TO EXISTING ONES
-          setTemplates((prevTemplates: any) => [
-            ...prevTemplates,
-            ...formattedTemplates,
-          ]);
-          setHasMoreTemplates(data.hasMore);
-          setTotalTemplates(data.totalCount);
-          setLoadMoreCount(nextLoadCount);
-        }
-      } else {
-        console.error("Failed to load more templates");
-      }
+      await fetchTemplates(nextLoadCount, false);
     } catch (error) {
       console.error("Error loading more templates:", error);
-      toast({
-        title: "Failed to load more templates",
-        description: "Please try again",
-        duration: 3000,
-        className: "error-toast",
-      });
+      showErrorToast("Failed to load more templates");
     } finally {
       setIsLoadingMore(false);
     }
   };
 
+  // Fetch account media
   const fetchAccountMedia = async (accountId: string, username: string) => {
+    if (!userId) return;
+
     setIsLoadingMedia(true);
+    setSelectedAccountMedia([]);
+
     try {
       const response = await fetch(
         `/api/insta/media?accountId=${accountId}&userId=${userId}`
       );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.media && data.media.length > 0) {
-          setSelectedAccountMedia(data.media);
-        } else {
-          setSelectedAccountMedia([]);
-          toast({
-            title: "No media found",
-            description: `No posts or reels found for @${username}`,
-            duration: 3000,
-            className: "info-toast",
-          });
-        }
-      } else {
-        const errorData = await response.json();
-        setSelectedAccountMedia([]);
-        toast({
-          title: "Failed to fetch media",
-          description:
-            errorData.error || "Could not load Instagram posts and reels",
-          duration: 3000,
-          className: "error-toast",
-        });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to fetch media");
       }
-    } catch (error) {
-      setSelectedAccountMedia([]);
-      toast({
-        title: "Error fetching media",
-        description: "Please try again later",
-        duration: 3000,
-        className: "error-toast",
-      });
+
+      const data = await response.json();
+
+      if (data.media && data.media.length > 0) {
+        setSelectedAccountMedia(data.media);
+      } else {
+        showErrorToast(
+          "No media found",
+          `No posts or reels found for @${username}`
+        );
+      }
+    } catch (error: any) {
+      console.error("Error fetching media:", error);
+      showErrorToast("Failed to fetch media", error.message);
     } finally {
       setIsLoadingMedia(false);
     }
   };
 
+  // Handle account change
   const handleAccountChange = (username: string) => {
-    setNewTemplate({
-      ...newTemplate,
+    setTemplateForm({
+      ...templateForm,
       accountUsername: username,
       mediaId: "",
       mediaUrl: "",
@@ -358,247 +449,589 @@ export default function TemplatesPage() {
       fetchAccountMedia(account.instagramId, username);
     } else {
       setSelectedAccountMedia([]);
-      toast({
-        title: "Account not connected",
-        description:
-          "This Instagram account is not properly connected to Facebook",
-        duration: 3000,
-        className: "error-toast",
-      });
+      showErrorToast(
+        "Account not connected",
+        "This Instagram account is not properly connected to Facebook"
+      );
     }
   };
 
-  const handleEditClick = (template: any) => {
+  // Handle edit template
+  const handleEditClick = (template: Template) => {
     setEditingTemplate(template);
+    setTemplateForm({
+      name: template.name,
+      content: template.content,
+      openDm: template.openDm,
+      reply: template.reply,
+      triggers: template.triggers,
+      isFollow: template.isFollow,
+      priority: template.priority,
+      accountUsername: template.accountUsername,
+      mediaId: template.mediaId,
+      mediaUrl: template.mediaUrl,
+    });
     setIsCreateDialogOpen(true);
 
-    // If editing, fetch media for the account
     const account = accounts.find(
       (acc) => acc.username === template.accountUsername
     );
     if (account && account.instagramId) {
       fetchAccountMedia(account.instagramId, account.username);
-      setSelectedMedia(template.mediaId || null);
+      setSelectedMedia(template.mediaId);
     }
   };
 
-  const handleUpdateTemplate = async (template: any) => {
+  // Handle update template
+  const handleUpdateTemplate = async () => {
+    if (!editingTemplate || !userId) return;
+
+    setIsUpdatingTemplate(true);
+
     try {
-      setIsUpdateTempalte(true);
-      const templateId = template._id;
+      const templateId = editingTemplate._id;
       const response = await fetch(`/api/insta/templates/${templateId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...template,
-          isFollow: canFollow ? template.isFollow : false,
+          ...templateForm,
+          isFollow: canFollow ? templateForm.isFollow : false,
+          reply: templateForm.reply.filter((r) => r.trim() !== ""),
+          content: templateForm.content.filter((c) => c.text.trim() !== ""),
+          triggers: templateForm.triggers.filter((t) => t.trim() !== ""),
         }),
       });
 
-      if (response.ok) {
-        const updated = await response.json();
-        // Refresh templates after update
-        fetchTemplates();
-        setIsCreateDialogOpen(false);
-        setEditingTemplate(null);
-        toast({
-          title: "Template updated successfully",
-          duration: 3000,
-          className: "success-toast",
-        });
+      if (!response.ok) {
+        throw new Error(`Failed to update template: ${response.status}`);
       }
+
+      await fetchTemplates(0, true); // Force refresh after update
+      setIsCreateDialogOpen(false);
+      setEditingTemplate(null);
+      resetForm();
+      showSuccessToast("Template updated successfully");
     } catch (error) {
-      toast({
-        title: "Failed to update template",
-        duration: 3000,
-        className: "error-toast",
-      });
+      console.error("Error updating template:", error);
+      showErrorToast("Failed to update template");
     } finally {
-      setIsUpdateTempalte(false);
+      setIsUpdatingTemplate(false);
     }
   };
 
+  // Handle toggle template active state
   const handleToggleTemplate = async (templateId: string) => {
+    if (!userId) return;
+
     try {
-      const template = templates.find((t: any) => t._id === templateId);
+      const template = templates.find((t) => t._id === templateId);
       if (!template) return;
 
       const newActiveState = !template.isActive;
 
       const response = await fetch(`/api/insta/templates/${templateId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...template,
           isActive: newActiveState,
         }),
       });
 
-      if (response.ok) {
-        // Refresh templates after toggle
-        fetchTemplates();
+      if (!response.ok) {
+        throw new Error(`Failed to update template: ${response.status}`);
       }
+
+      await fetchTemplates(0, true); // Force refresh after toggle
+      showSuccessToast(
+        `Template ${newActiveState ? "activated" : "deactivated"}`
+      );
     } catch (error) {
       console.error("Error updating template:", error);
+      showErrorToast("Failed to update template status");
     }
   };
 
+  // Handle delete template
   const handleDeleteTemplate = async (templateId: string) => {
+    if (!userId) return;
+
     try {
       const response = await fetch(`/api/insta/templates/${templateId}`, {
         method: "DELETE",
       });
 
-      if (response.ok) {
-        // Refresh templates after delete
-        fetchTemplates();
-      } else {
-        console.error("Failed to delete template");
+      if (!response.ok) {
+        throw new Error(`Failed to delete template: ${response.status}`);
       }
+
+      await fetchTemplates(0, true); // Force refresh after delete
+      showSuccessToast("Template deleted successfully");
     } catch (error) {
       console.error("Error deleting template:", error);
+      showErrorToast("Failed to delete template");
     }
   };
 
+  // Handle create template
   const handleCreateTemplate = async () => {
+    if (!userId) return;
+
+    setIsCreatingTemplate(true);
+
     try {
-      setIsTemplateCreting(true);
-      const selectedAccount = accounts.find(
-        (acc) => acc.username === newTemplate.accountUsername
-      );
-      if (!selectedAccount) {
-        toast({
-          title: "Account not found",
-          description: "Please select a valid Instagram account",
-          duration: 3000,
-          className: "error-toast",
-        });
-        return;
+      // Validation
+      if (!templateForm.name.trim()) {
+        throw new Error("Template name is required");
       }
 
-      if (!newTemplate.mediaId) {
-        toast({
-          title: "Media required",
-          description: "Please select a post or reel for this template",
-          duration: 3000,
-          className: "error-toast",
-        });
-        return;
+      if (!templateForm.accountUsername) {
+        throw new Error("Please select an Instagram account");
+      }
+
+      if (!templateForm.mediaId) {
+        throw new Error("Please select a post or reel for this template");
+      }
+
+      if (templateForm.reply.length < MIN_REPLIES) {
+        throw new Error(`Please add at least ${MIN_REPLIES} replies`);
+      }
+
+      if (templateForm.reply.some((r) => !r.trim())) {
+        throw new Error("All replies must have content");
+      }
+
+      if (templateForm.triggers.length === 0) {
+        throw new Error("Please add at least one trigger");
+      }
+
+      if (templateForm.triggers.some((t) => !t.trim())) {
+        throw new Error("All triggers must have content");
+      }
+
+      if (templateForm.content.length === 0) {
+        throw new Error("Please add at least one DM content");
+      }
+
+      if (templateForm.content.some((c) => !c.text.trim() || !c.link?.trim())) {
+        throw new Error("All DM content must have both text and link");
+      }
+
+      const selectedAccount = accounts.find(
+        (acc) => acc.username === templateForm.accountUsername
+      );
+
+      if (!selectedAccount) {
+        throw new Error("Selected account not found");
       }
 
       const response = await fetch("/api/insta/templates", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: userId,
+          userId,
           accountId: selectedAccount.instagramId,
-          ...newTemplate,
-          isFollow: canFollow ? newTemplate.isFollow : false,
-          reply: newTemplate.reply.filter((r) => r.trim() !== ""),
-          content: newTemplate.content.filter((c) => c.text.trim() !== ""),
-          triggers: newTemplate.triggers.filter((t) => t.trim() !== ""),
+          ...templateForm,
+          isFollow: canFollow ? templateForm.isFollow : false,
+          reply: templateForm.reply.filter((r) => r.trim() !== ""),
+          content: templateForm.content.filter((c) => c.text.trim() !== ""),
+          triggers: templateForm.triggers.filter((t) => t.trim() !== ""),
         }),
       });
+
       const result = await response.json();
-      if (response.ok && result.ok) {
-        // Refresh templates after create
-        fetchTemplates();
-        setIsCreateDialogOpen(false);
 
-        toast({
-          title: "Template created successfully",
-          duration: 3000,
-          className: "success-toast",
-        });
-        setNewTemplate({
-          name: "",
-          openDm: "",
-          content: [{ text: "", link: "" }],
-          reply: [""],
-          isFollow: false,
-          triggers: [""],
-          priority: 5,
-          accountUsername: "",
-          mediaId: "",
-          mediaUrl: "",
-        });
-        setSelectedMedia(null);
-        setSelectedAccountMedia([]);
-      } else {
-        setIsCreateDialogOpen(false);
-        toast({
-          title: result.message || "Failed to create template",
-          description: result.error || "Please try again",
-          duration: 3000,
-          className: "error-toast",
-        });
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to create template");
       }
-    } catch (error) {
+
+      await fetchTemplates(0, true); // Force refresh after create
       setIsCreateDialogOpen(false);
-      toast({
-        title: "Network error",
-        description: "Could not connect to server",
-        duration: 3000,
-        className: "error-toast",
-      });
+      resetForm();
+      showSuccessToast("Template created successfully");
+    } catch (error: any) {
+      console.error("Error creating template:", error);
+      showErrorToast("Failed to create template", error.message);
     } finally {
-      setIsTemplateCreting(false);
+      setIsCreatingTemplate(false);
     }
   };
 
+  // Reset form
+  const resetForm = () => {
+    setTemplateForm(INITIAL_TEMPLATE_FORM);
+    setSelectedAccountMedia([]);
+    setSelectedMedia(null);
+    setEditingTemplate(null);
+  };
+
+  // Format last used time
   const formatLastUsed = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60)
-    );
-
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes || 0}m ago`;
-    } else if (diffInMinutes < 1440) {
-      return `${Math.floor(diffInMinutes / 60) || 0}h ago`;
-    } else {
-      return `${Math.floor(diffInMinutes / 1440) || 0}d ago`;
-    }
-  };
-  const filteredTemplates = templates.filter((template: any) => {
-    const matchesSearch =
-      template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.content
-        .join(", ")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      template.triggers.some((trigger: any) =>
-        trigger.toLowerCase().includes(searchTerm.toLowerCase())
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInMinutes = Math.floor(
+        (now.getTime() - date.getTime()) / (1000 * 60)
       );
 
-    return matchesSearch;
-  });
+      if (diffInMinutes < 60) {
+        return `${diffInMinutes || 0}m ago`;
+      } else if (diffInMinutes < 1440) {
+        return `${Math.floor(diffInMinutes / 60) || 0}h ago`;
+      } else {
+        return `${Math.floor(diffInMinutes / 1440) || 0}d ago`;
+      }
+    } catch {
+      return "Never";
+    }
+  };
 
+  // Filter templates
+  const filteredTemplates = useMemo(() => {
+    if (!searchTerm.trim()) return templates;
+
+    const searchLower = searchTerm.toLowerCase();
+    return templates.filter((template) => {
+      return (
+        template.name.toLowerCase().includes(searchLower) ||
+        template.content.some((c) =>
+          c.text.toLowerCase().includes(searchLower)
+        ) ||
+        template.triggers.some((trigger) =>
+          trigger.toLowerCase().includes(searchLower)
+        ) ||
+        template.reply.some((r) => r.toLowerCase().includes(searchLower)) ||
+        template.openDm.toLowerCase().includes(searchLower)
+      );
+    });
+  }, [templates, searchTerm]);
+
+  // Form validation
+  const isFormValid = useMemo(() => {
+    const form = templateForm;
+
+    const basicValid =
+      form.name.trim() &&
+      form.openDm.trim() &&
+      form.accountUsername &&
+      form.mediaId &&
+      form.reply.length >= MIN_REPLIES &&
+      form.reply.every((r) => r.trim()) &&
+      form.triggers.length > 0 &&
+      form.triggers.every((t) => t.trim()) &&
+      form.content.length > 0 &&
+      form.content.every((c) => c.text.trim() && c.link?.trim());
+
+    return basicValid;
+  }, [templateForm]);
+
+  // Loading state
   if (isLoading || !isLoaded) {
     return (
-      <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="w-5 h-5 border-2 border-t-transparent border-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
 
+  // Render functions
+  const renderMediaGrid = () => {
+    if (isLoadingMedia) {
+      return (
+        <div className="flex justify-center items-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00F0FF]" />
+        </div>
+      );
+    }
+
+    if (selectedAccountMedia.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <p className="text-gray-400">
+            No posts or reels found for this account
+          </p>
+          <p className="text-sm mt-2 text-gray-500">
+            Make sure your Instagram account is connected to a Facebook Page
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-80 overflow-y-auto p-2">
+        {selectedAccountMedia.map((media) => (
+          <div
+            key={media.id}
+            className={`relative cursor-pointer rounded-md overflow-hidden border-2 transition-all ${
+              selectedMedia === media.id
+                ? "border-[#00F0FF]"
+                : themeStyles.inputBorder
+            }`}
+            onClick={() => {
+              setSelectedMedia(media.id);
+              setTemplateForm({
+                ...templateForm,
+                mediaId: media.id,
+                mediaUrl: media.media_url,
+              });
+            }}
+          >
+            <Image
+              src={media.media_url}
+              alt="Post"
+              height={160}
+              width={160}
+              className="w-full h-40 object-cover"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-1 text-xs truncate">
+              {media.caption
+                ? media.caption.substring(0, 30) +
+                  (media.caption.length > 30 ? "..." : "")
+                : "No caption"}
+            </div>
+            <div className="absolute top-1 right-1 bg-black/70 rounded-full px-1 text-xs">
+              {media.media_type === "VIDEO" ? "Reel" : "Post"}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderTemplateCard = (template: Template) => (
+    <Card
+      key={template._id}
+      className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${
+        template.isActive
+          ? "from-[#B026FF]/20 to-[#B026FF]/5 border-[#B026FF]/20 hover:border-[#B026FF]/40"
+          : "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:border-[#00F0FF]/40"
+      } ${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
+    >
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <CardTitle
+                className={`text-lg font-semibold ${themeStyles.textPrimary}`}
+              >
+                {template.name}
+              </CardTitle>
+              {template.mediaType && (
+                <Badge className="bg-purple-500/20 text-purple-400 border-purple-400/30">
+                  {template.mediaType === "VIDEO" ? "Reel" : "Post"}
+                </Badge>
+              )}
+              <Badge
+                variant="outline"
+                className={`text-xs ${themeStyles.inputBorder} ${themeStyles.textMuted}`}
+              >
+                Priority {template.priority}
+              </Badge>
+            </div>
+            <p className={`text-sm ${themeStyles.textMuted}`}>
+              @{template.accountUsername}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={template.isActive}
+              onCheckedChange={() => handleToggleTemplate(template._id)}
+              className="data-[state=checked]:bg-[#00F0FF]"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleEditClick(template)}
+              className="text-gray-400 hover:text-white"
+            >
+              <Edit2 className="h-4 w-4" />
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-[#FF2E9F] hover:text-[#FF2E9F]/80"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent
+                className={`${themeStyles.dialogBg} ${themeStyles.cardBorder}`}
+              >
+                <AlertDialogHeader>
+                  <AlertDialogTitle className={themeStyles.textPrimary}>
+                    Delete Template
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className={themeStyles.textMuted}>
+                    Are you sure you want to delete {template.name}? This action
+                    cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel
+                    className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText}`}
+                  >
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => handleDeleteTemplate(template._id)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Replies Section */}
+          <div>
+            <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
+              Comment Replies:
+            </p>
+            <div className="space-y-2">
+              {template.reply.slice(0, 3).map((reply, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className={`w-full justify-start text-left ${themeStyles.inputBg} p-2 rounded-md ${themeStyles.textMuted}`}
+                >
+                  {reply}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Opening DM Section */}
+          <div>
+            <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
+              Opening DM:
+            </p>
+            <Badge
+              variant="outline"
+              className={`w-full justify-start text-left ${themeStyles.inputBg} p-2 rounded-md ${themeStyles.textMuted} min-h-[80px]`}
+            >
+              {template.openDm}
+            </Badge>
+          </div>
+
+          {/* DM Content Section */}
+          <div>
+            <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
+              DM Content:
+            </p>
+            <div className="space-y-2">
+              {template.content.map((content, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className={`w-full justify-start text-left ${themeStyles.inputBg} p-2 rounded-md ${themeStyles.textMuted}`}
+                >
+                  <div className="truncate">{content.text}</div>
+                  {content.link && (
+                    <div className="text-xs text-cyan-400 truncate mt-1">
+                      <LinkIcon className="h-3 w-3 inline mr-1" />
+                      {content.link}
+                    </div>
+                  )}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Triggers & Info Section */}
+          <div className="space-y-3">
+            <div>
+              <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
+                Triggers:
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {template.triggers.map((trigger, index) => (
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className={`${themeStyles.inputBorder} ${themeStyles.textMuted}`}
+                  >
+                    {trigger}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
+                Content For:
+              </p>
+              <Badge
+                variant="outline"
+                className={`${themeStyles.inputBorder} ${themeStyles.textMuted}`}
+              >
+                {template.isFollow ? "Followers Only" : "Everyone"}
+              </Badge>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-white/10">
+              <div
+                className={`flex items-center gap-1 text-sm ${themeStyles.textMuted}`}
+              >
+                <BarChart3 className="h-3 w-3" />
+                {template.usageCount || 0} uses
+              </div>
+              <div className="text-xs text-gray-400">
+                Last used:{" "}
+                {formatLastUsed(template.lastUsed || new Date().toISOString())}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Media Preview */}
+        {template.mediaUrl && (
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
+              Linked Media:
+            </p>
+            <div
+              className={`relative w-24 h-24 rounded-md overflow-hidden border ${themeStyles.inputBorder}`}
+            >
+              <Image
+                src={template.mediaUrl}
+                alt="Linked media"
+                height={96}
+                width={96}
+                className="w-full h-full object-cover"
+              />
+              {template.mediaType === "VIDEO" && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                  <VideoIcon className="h-6 w-6 text-white" />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div
-      className={`min-h-screen ${themeStyles.textPrimary} ${themeStyles.containerBg}`}
+      className={`min-h-screen ${themeStyles.containerBg} ${themeStyles.textPrimary}`}
     >
-      <div className="container mx-auto p-2 md:px-4 py-8">
+      <div className="container mx-auto px-2 md:px-4 py-8">
         <BreadcrumbsDefault />
+
         {/* Header */}
-        <div className="flex flex-wrap justify-between items-center gap-3 lg:gap-0 mb-8">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
           <div>
             <div
               className={`inline-flex items-center ${
-                theme === "dark"
+                currentTheme === "dark"
                   ? "bg-blue-100/10 text-blue-400 border-blue-400/30"
                   : "bg-blue-100 text-blue-600 border-blue-300"
               } border rounded-full px-4 py-1 mb-4`}
@@ -606,45 +1039,34 @@ export default function TemplatesPage() {
               <MessageSquare className="h-4 w-4 mr-1" />
               <span className="text-sm font-medium">Template Management</span>
             </div>
-            <h1
-              className={`text-4xl font-bold mb-2 gradient-text-main ${themeStyles.textPrimary}`}
-            >
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
               Reply Templates
             </h1>
-            <p
-              className={`${themeStyles.textSecondary} text-lg font-light font-montserrat`}
-            >
+            <p className={`${themeStyles.textSecondary} text-lg`}>
               Create and manage automated reply templates for your Instagram
               posts and reels
             </p>
           </div>
+
           <Dialog
             open={isCreateDialogOpen}
             onOpenChange={(open) => {
               setIsCreateDialogOpen(open);
-              if (!open) {
-                setEditingTemplate(null);
-                setSelectedAccountMedia([]);
-                setSelectedMedia(null);
-              }
+              if (!open) resetForm();
             }}
           >
             <DialogTrigger asChild>
-              <Button className="btn-gradient-cyan hover:opacity-90 hover:shadow-cyan-500 shadow-lg transition-opacity">
+              <Button className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:opacity-90 text-black">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Template
               </Button>
             </DialogTrigger>
-            <DialogContent
-              className={`sm:max-w-[800px] bg-transparent bg-gradient-to-br border-[#B026FF]/20 hover:border-[#B026FF]/40 backdrop-blur-md border max-h-[95vh] overflow-y-auto ${themeStyles.dialogBg}`}
-            >
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className={themeStyles.textPrimary}>
                   {editingTemplate ? "Edit Template" : "Create New Template"}
                 </DialogTitle>
-                <DialogDescription
-                  className={`${themeStyles.textMuted} text-lg font-montserrat`}
-                >
+                <DialogDescription className={themeStyles.textMuted}>
                   {editingTemplate
                     ? "Update your automated replies and triggers"
                     : "Set up automated replies for specific Instagram posts or reels"}
@@ -652,31 +1074,24 @@ export default function TemplatesPage() {
               </DialogHeader>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                {/* Template Name and Account */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name" className={themeStyles.textSecondary}>
                       Template Name
                     </Label>
-                    {editingTemplate ? (
-                      <div
-                        className={`px-3 py-2 ${themeStyles.inputBg} ${themeStyles.inputBorder} rounded-md ${themeStyles.textMuted} font-montserrat`}
-                      >
-                        {editingTemplate.name}
-                      </div>
-                    ) : (
-                      <Input
-                        id="name"
-                        value={newTemplate.name}
-                        onChange={(e) =>
-                          setNewTemplate({
-                            ...newTemplate,
-                            name: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., Welcome Message"
-                        className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
-                      />
-                    )}
+                    <Input
+                      id="name"
+                      value={templateForm.name}
+                      onChange={(e) =>
+                        setTemplateForm({
+                          ...templateForm,
+                          name: e.target.value,
+                        })
+                      }
+                      placeholder="e.g., Welcome Message"
+                      className={themeStyles.inputBg}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label
@@ -685,48 +1100,31 @@ export default function TemplatesPage() {
                     >
                       Account
                     </Label>
-                    {editingTemplate ? (
-                      <div
-                        className={`px-3 py-2 ${themeStyles.inputBg} ${themeStyles.inputBorder} rounded-md ${themeStyles.textMuted} font-montserrat`}
-                      >
-                        {accounts.find(
-                          (a) => a.username === editingTemplate.accountUsername
-                        )?.username || editingTemplate.accountUsername}
-                      </div>
-                    ) : (
-                      <Select
-                        value={newTemplate.accountUsername}
-                        onValueChange={handleAccountChange}
-                      >
-                        <SelectTrigger
-                          className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
-                        >
-                          <SelectValue
-                            className={`${themeStyles.inputText} block font-montserrat`}
-                            placeholder="Choose account"
-                          />
-                        </SelectTrigger>
-                        <SelectContent
-                          className={`block font-montserrat ${themeStyles.dialogBg}`}
-                        >
-                          {accounts.map((account) => (
-                            <SelectItem
-                              key={account.instagramId}
-                              value={account.username}
-                              disabled={!account.instagramId}
-                            >
-                              {account.username}
-                              {!account.instagramId && " (Not Connected)"}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                    <Select
+                      value={templateForm.accountUsername}
+                      onValueChange={handleAccountChange}
+                    >
+                      <SelectTrigger className={themeStyles.inputBg}>
+                        <SelectValue placeholder="Choose account" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {accounts.map((account) => (
+                          <SelectItem
+                            key={account.instagramId}
+                            value={account.username}
+                            disabled={!account.instagramId}
+                          >
+                            {account.username}
+                            {!account.instagramId && " (Not Connected)"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
                 {/* Media Selection */}
-                {newTemplate.accountUsername && (
+                {templateForm.accountUsername && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label className={themeStyles.textSecondary}>
@@ -738,7 +1136,7 @@ export default function TemplatesPage() {
                         onClick={() => {
                           const account = accounts.find(
                             (acc) =>
-                              acc.username === newTemplate.accountUsername
+                              acc.username === templateForm.accountUsername
                           );
                           if (account) {
                             fetchAccountMedia(
@@ -747,538 +1145,314 @@ export default function TemplatesPage() {
                             );
                           }
                         }}
-                        className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText} hover:bg-cyan-300/10`}
                       >
                         <RefreshCw className="h-3 w-3 mr-1" />
                         Refresh
                       </Button>
                     </div>
-                    {isLoadingMedia ? (
-                      <div className="flex justify-center items-center h-32">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00F0FF]"></div>
-                      </div>
-                    ) : selectedAccountMedia.length > 0 ? (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-max overflow-y-auto no-scrollbar p-2">
-                        {selectedAccountMedia.map((media) => (
-                          <div
-                            key={media.id}
-                            className={`relative cursor-pointer rounded-md overflow-hidden border-2 ${
-                              selectedMedia === media.id
-                                ? "border-[#00F0FF]"
-                                : themeStyles.inputBorder
-                            } transition-all`}
-                            onClick={() => {
-                              setSelectedMedia(media.id);
-                              setNewTemplate({
-                                ...newTemplate,
-                                mediaId: media.id,
-                                mediaUrl: media.media_url,
-                              });
-                            }}
-                          >
-                            <Image
-                              src={media.media_url}
-                              alt="Post"
-                              height={128}
-                              width={128}
-                              className="w-full h-52 object-cover"
-                            />
-
-                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-1 text-xs truncate">
-                              {media.caption
-                                ? media.caption.substring(0, 30) +
-                                  (media.caption.length > 30 ? "..." : "")
-                                : "No caption"}
-                            </div>
-                            <div className="absolute top-1 right-1 bg-black/70 rounded-full px-1 text-xs">
-                              {media.media_type === "VIDEO" ? "Reel" : "Post"}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div
-                        className={`text-center py-8 ${themeStyles.textMuted} font-montserrat`}
-                      >
-                        <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p>No posts or reels found for this account</p>
-                        <p className="text-sm mt-2">
-                          Make sure your Instagram account is connected to a
-                          Facebook Page
-                        </p>
-                      </div>
-                    )}
+                    {renderMediaGrid()}
                   </div>
                 )}
 
-                {/* Multi-Comment Reply Section */}
+                {/* Comment Replies */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <Label className={themeStyles.textSecondary}>
-                      reply to their comments under the post. ( Add atleast 3
-                      reply )
+                      Comment Replies (Add at least {MIN_REPLIES})
                     </Label>
-                    {(!editingTemplate ||
-                      (editingTemplate.reply &&
-                        editingTemplate.reply.length < 3)) && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          if (editingTemplate) {
-                            setEditingTemplate({
-                              ...editingTemplate,
-                              reply: [...(editingTemplate.reply || []), ""],
-                            });
-                          } else {
-                            setNewTemplate({
-                              ...newTemplate,
-                              reply: [...(newTemplate.reply || []), ""],
-                            });
-                          }
-                        }}
-                        className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText} hover:bg-cyan-300/10`}
-                      >
-                        <Plus className="mr-1 h-3 w-3" /> Add Reply
-                      </Button>
-                    )}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setTemplateForm({
+                          ...templateForm,
+                          reply: [...templateForm.reply, ""],
+                        });
+                      }}
+                      disabled={templateForm.reply.length >= 10}
+                    >
+                      <Plus className="mr-1 h-3 w-3" /> Add Reply
+                    </Button>
                   </div>
 
-                  {(editingTemplate
-                    ? editingTemplate.reply
-                    : newTemplate.reply
-                  )?.map((reply: any, index: number) => (
+                  {templateForm.reply.map((reply, index) => (
                     <div key={index} className="space-y-2">
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <Label
-                          htmlFor={`Dm reply-${index}`}
+                          htmlFor={`reply-${index}`}
                           className={themeStyles.textSecondary}
                         >
                           Reply {index + 1}
                         </Label>
-                        {(editingTemplate
-                          ? editingTemplate.reply
-                          : newTemplate.reply
-                        )?.length > 1 && (
+                        {templateForm.reply.length > 1 && (
                           <Button
                             type="button"
                             variant="ghost"
-                            size="icon"
+                            size="sm"
                             onClick={() => {
-                              const updatedReply = editingTemplate
-                                ? [...editingTemplate.reply]
-                                : [...newTemplate.reply];
+                              const updatedReply = [...templateForm.reply];
                               updatedReply.splice(index, 1);
-
-                              if (editingTemplate) {
-                                setEditingTemplate({
-                                  ...editingTemplate,
-                                  reply: updatedReply,
-                                });
-                              } else {
-                                setNewTemplate({
-                                  ...newTemplate,
-                                  reply: updatedReply,
-                                });
-                              }
+                              setTemplateForm({
+                                ...templateForm,
+                                reply: updatedReply,
+                              });
                             }}
-                            className="text-red-500 bg-red-100 hover:bg-red-500/10 h-6 w-6"
+                            className="h-6 w-6 p-0 text-red-500"
                           >
-                            <X className="h-5 w-5" />
+                            <X className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
-
                       <Input
                         id={`reply-${index}`}
                         value={reply}
                         onChange={(e) => {
-                          const updatedReply = editingTemplate
-                            ? [...editingTemplate.reply]
-                            : [...newTemplate.reply];
-
+                          const updatedReply = [...templateForm.reply];
                           updatedReply[index] = e.target.value;
-
-                          if (editingTemplate) {
-                            setEditingTemplate({
-                              ...editingTemplate,
-                              reply: updatedReply,
-                            });
-                          } else {
-                            setNewTemplate({
-                              ...newTemplate,
-                              reply: updatedReply,
-                            });
-                          }
+                          setTemplateForm({
+                            ...templateForm,
+                            reply: updatedReply,
+                          });
                         }}
-                        placeholder="Eg.Nice! Check your DMs!"
-                        className={` ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
+                        placeholder="e.g., Nice! Check your DMs!"
                       />
                     </div>
                   ))}
                 </div>
+
+                {/* Opening DM */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="priority"
-                    className={themeStyles.textSecondary}
-                  >
-                    An opening DM
+                  <Label htmlFor="openDm" className={themeStyles.textSecondary}>
+                    Opening DM
                   </Label>
                   <Textarea
                     id="openDm"
-                    value={
-                      editingTemplate
-                        ? editingTemplate.openDm || ""
-                        : newTemplate.openDm || ""
+                    value={templateForm.openDm}
+                    onChange={(e) =>
+                      setTemplateForm({
+                        ...templateForm,
+                        openDm: e.target.value,
+                      })
                     }
-                    onChange={(e) => {
-                      if (editingTemplate) {
-                        setEditingTemplate({
-                          ...editingTemplate,
-                          openDm: e.target.value,
-                        });
-                      } else {
-                        setNewTemplate({
-                          ...newTemplate,
-                          openDm: e.target.value,
-                        });
-                      }
-                    }}
-                    placeholder="Hey there! I’m so happy you’re here, thanks so much for your interest 😊 Click below and I’ll send you the link in just a sec ✨"
-                    className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
+                    placeholder="Hey there! I'm so happy you're here..."
+                    className="min-h-[100px]"
                   />
                 </div>
-                {/* Multi-DmReply Section */}
+
+                {/* DM Content */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <Label className={themeStyles.textSecondary}>
-                      Get reply in Direct Dm{" "}
+                      DM Content
                     </Label>
-                    {(!editingTemplate ||
-                      (editingTemplate.content &&
-                        editingTemplate.content.length < 3)) && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          if (editingTemplate) {
-                            setEditingTemplate({
-                              ...editingTemplate,
-                              content: [
-                                ...(editingTemplate.content || []),
-                                { text: "", link: "" },
-                              ],
-                            });
-                          } else {
-                            setNewTemplate({
-                              ...newTemplate,
-                              content: [
-                                ...(newTemplate.content || []),
-                                { text: "", link: "" },
-                              ],
-                            });
-                          }
-                        }}
-                        className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText} hover:bg-cyan-300/10 font-montserrat`}
-                      >
-                        <Plus className="mr-1 h-3 w-3" /> Add Reply
-                      </Button>
-                    )}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setTemplateForm({
+                          ...templateForm,
+                          content: [
+                            ...templateForm.content,
+                            { text: "", link: "" },
+                          ],
+                        });
+                      }}
+                    >
+                      <Plus className="mr-1 h-3 w-3" /> Add Content
+                    </Button>
                   </div>
 
-                  {(editingTemplate
-                    ? editingTemplate.content
-                    : newTemplate.content
-                  )?.map((content: ContentItem, index: number) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label
-                          htmlFor={`content-${index}`}
-                          className={themeStyles.textSecondary}
-                        >
-                          Sent Dm {index + 1}
+                  {templateForm.content.map((content, index) => (
+                    <div
+                      key={index}
+                      className="space-y-2 border p-3 rounded-lg"
+                    >
+                      <div className="flex justify-between items-center">
+                        <Label className={themeStyles.textSecondary}>
+                          Content {index + 1}
                         </Label>
-                        {(editingTemplate
-                          ? editingTemplate.content
-                          : newTemplate.content
-                        )?.length > 1 && (
+                        {templateForm.content.length > 1 && (
                           <Button
                             type="button"
                             variant="ghost"
-                            size="icon"
+                            size="sm"
                             onClick={() => {
-                              const updatedContent = editingTemplate
-                                ? [...editingTemplate.content]
-                                : [...newTemplate.content];
+                              const updatedContent = [...templateForm.content];
                               updatedContent.splice(index, 1);
-
-                              if (editingTemplate) {
-                                setEditingTemplate({
-                                  ...editingTemplate,
-                                  content: updatedContent,
-                                });
-                              } else {
-                                setNewTemplate({
-                                  ...newTemplate,
-                                  content: updatedContent,
-                                });
-                              }
+                              setTemplateForm({
+                                ...templateForm,
+                                content: updatedContent,
+                              });
                             }}
-                            className="text-red-500 bg-red-100 hover:bg-red-500/10 h-6 w-6"
+                            className="h-6 w-6 p-0 text-red-500"
                           >
-                            <X className="h-5 w-5" />
+                            <X className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
-
-                      {/* Text input for the content text */}
                       <Textarea
-                        id={`content-text-${index}`}
                         value={content.text}
                         onChange={(e) => {
-                          const updatedContent = editingTemplate
-                            ? [...editingTemplate.content]
-                            : [...newTemplate.content];
-
+                          const updatedContent = [...templateForm.content];
                           updatedContent[index] = {
                             ...updatedContent[index],
                             text: e.target.value,
                           };
-
-                          if (editingTemplate) {
-                            setEditingTemplate({
-                              ...editingTemplate,
-                              content: updatedContent,
-                            });
-                          } else {
-                            setNewTemplate({
-                              ...newTemplate,
-                              content: updatedContent,
-                            });
-                          }
+                          setTemplateForm({
+                            ...templateForm,
+                            content: updatedContent,
+                          });
                         }}
-                        placeholder="This Is the link you want,Click the button below."
-                        className={`min-h-[80px] ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
+                        placeholder="Message text..."
+                        className="min-h-[80px]"
                       />
-
-                      {/* Link input for the content link */}
                       <div className="flex items-center">
                         <LinkIcon className="h-4 w-4 mr-2 text-gray-400" />
                         <Input
-                          id={`content-link-${index}`}
                           value={content.link || ""}
                           onChange={(e) => {
-                            const updatedContent = editingTemplate
-                              ? [...editingTemplate.content]
-                              : [...newTemplate.content];
-
+                            const updatedContent = [...templateForm.content];
                             updatedContent[index] = {
                               ...updatedContent[index],
                               link: e.target.value,
                             };
-
-                            if (editingTemplate) {
-                              setEditingTemplate({
-                                ...editingTemplate,
-                                content: updatedContent,
-                              });
-                            } else {
-                              setNewTemplate({
-                                ...newTemplate,
-                                content: updatedContent,
-                              });
-                            }
+                            setTemplateForm({
+                              ...templateForm,
+                              content: updatedContent,
+                            });
                           }}
-                          placeholder="Eg.www.yourlink.com"
-                          className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
+                          placeholder="Link (e.g., https://example.com)"
                         />
                       </div>
                     </div>
                   ))}
                 </div>
-                <div
-                  className={` flex items-center justify-between gap-8 p-3 border rounded-md ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
-                >
-                  <p> a DM asking to follow you before they get the link</p>
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="bg-blue-700 px-1 rounded-sm">Paid</div>
-                    <Switch
-                      disabled={!canFollow}
-                      checked={
-                        editingTemplate
-                          ? editingTemplate.isFollow
-                          : newTemplate.isFollow
-                      }
-                      onCheckedChange={() => {
-                        if (editingTemplate) {
-                          setEditingTemplate({
-                            ...editingTemplate,
-                            isFollow: !editingTemplate.isFollow,
-                          });
-                        } else {
-                          setNewTemplate({
-                            ...newTemplate,
-                            isFollow: !newTemplate.isFollow,
+
+                {/* Triggers */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Label className={themeStyles.textSecondary}>
+                      Triggers (up to {MAX_TRIGGERS})
+                    </Label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        if (templateForm.triggers.length < MAX_TRIGGERS) {
+                          setTemplateForm({
+                            ...templateForm,
+                            triggers: [...templateForm.triggers, ""],
                           });
                         }
                       }}
-                      className="self-start  data-[state=checked]:bg-[#00F0FF]"
-                    />
-                  </div>
-                </div>
-                {/* Triggers Section */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label
-                      htmlFor="triggers"
-                      className={themeStyles.textSecondary}
+                      disabled={templateForm.triggers.length >= MAX_TRIGGERS}
                     >
-                      Set triggers (up to 3)
-                    </Label>
-                    {(!editingTemplate ||
-                      (editingTemplate.triggers &&
-                        editingTemplate.triggers.length < 3)) && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          if (editingTemplate) {
-                            setEditingTemplate({
-                              ...editingTemplate,
-                              triggers: [
-                                ...(editingTemplate.triggers || []),
-                                "",
-                              ],
-                            });
-                          } else {
-                            setNewTemplate({
-                              ...newTemplate,
-                              triggers: [...(newTemplate.triggers || []), ""],
-                            });
-                          }
-                        }}
-                        className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText} hover:bg-cyan-300/10`}
-                      >
-                        <Plus className="mr-1 h-3 w-3" /> Add Trigger
-                      </Button>
-                    )}
+                      <Plus className="mr-1 h-3 w-3" /> Add Trigger
+                    </Button>
                   </div>
 
-                  <div className="flex items-center justify-start w-full gap-5">
-                    {(editingTemplate
-                      ? editingTemplate.triggers
-                      : newTemplate.triggers
-                    )?.map((trigger: any, index: number) => (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {templateForm.triggers.map((trigger, index) => (
                       <div key={index} className="space-y-2">
-                        <div className="flex justify-between">
-                          <Label
-                            htmlFor={`trigger-${index}`}
-                            className={themeStyles.textSecondary}
-                          >
-                            Trigger {index + 1}
-                          </Label>
-                          {(editingTemplate
-                            ? editingTemplate.triggers
-                            : newTemplate.triggers
-                          )?.length > 1 && (
+                        <div className="flex justify-between items-center">
+                          <Label className="text-xs">Trigger {index + 1}</Label>
+                          {templateForm.triggers.length > 1 && (
                             <Button
                               type="button"
                               variant="ghost"
-                              size="icon"
+                              size="sm"
                               onClick={() => {
-                                const updatedTriggers = editingTemplate
-                                  ? [...editingTemplate.triggers]
-                                  : [...newTemplate.triggers];
+                                const updatedTriggers = [
+                                  ...templateForm.triggers,
+                                ];
                                 updatedTriggers.splice(index, 1);
-
-                                if (editingTemplate) {
-                                  setEditingTemplate({
-                                    ...editingTemplate,
-                                    triggers: updatedTriggers,
-                                  });
-                                } else {
-                                  setNewTemplate({
-                                    ...newTemplate,
-                                    triggers: updatedTriggers,
-                                  });
-                                }
+                                setTemplateForm({
+                                  ...templateForm,
+                                  triggers: updatedTriggers,
+                                });
                               }}
-                              className="text-red-500 bg-red-100 hover:bg-red-500/10 h-6 w-6"
+                              className="h-5 w-5 p-0 text-red-500"
                             >
-                              <X className="h-5 w-5" />
+                              <X className="h-3 w-3" />
                             </Button>
                           )}
                         </div>
-
                         <Input
-                          id={`trigger-${index}`}
                           value={trigger}
                           onChange={(e) => {
-                            const updatedTriggers = editingTemplate
-                              ? [...editingTemplate.triggers]
-                              : [...newTemplate.triggers];
-
+                            const updatedTriggers = [...templateForm.triggers];
                             updatedTriggers[index] = e.target.value;
-
-                            if (editingTemplate) {
-                              setEditingTemplate({
-                                ...editingTemplate,
-                                triggers: updatedTriggers,
-                              });
-                            } else {
-                              setNewTemplate({
-                                ...newTemplate,
-                                triggers: updatedTriggers,
-                              });
-                            }
+                            setTemplateForm({
+                              ...templateForm,
+                              triggers: updatedTriggers,
+                            });
                           }}
-                          placeholder="Enter trigger keyword Like Link,Product,etc"
-                          className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} max-w-max font-montserrat`}
+                          placeholder="e.g., Price, Link"
                         />
                       </div>
                     ))}
                   </div>
                 </div>
 
+                {/* Follow Requirement */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <p className="font-medium">
+                      Require follow before sending link
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      User must follow your account before receiving the link
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      className={
+                        canFollow
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                      }
+                    >
+                      {canFollow ? "Available" : "Paid Feature"}
+                    </Badge>
+                    <Switch
+                      checked={templateForm.isFollow}
+                      onCheckedChange={(checked) =>
+                        setTemplateForm({ ...templateForm, isFollow: checked })
+                      }
+                      disabled={!canFollow}
+                    />
+                  </div>
+                </div>
+
+                {/* Priority */}
                 <div className="space-y-2">
                   <Label
                     htmlFor="priority"
                     className={themeStyles.textSecondary}
                   >
-                    Priority (1-10)
+                    Priority (1-{PRIORITY_MAX})
                   </Label>
                   <Input
                     id="priority"
                     type="number"
-                    min="1"
-                    max="10"
-                    value={
-                      editingTemplate
-                        ? editingTemplate.priority || 5
-                        : newTemplate.priority || 5
-                    }
+                    min={PRIORITY_MIN}
+                    max={PRIORITY_MAX}
+                    value={templateForm.priority}
                     onChange={(e) => {
                       const value = parseInt(e.target.value);
-                      if (editingTemplate) {
-                        setEditingTemplate({
-                          ...editingTemplate,
-                          priority: isNaN(value)
-                            ? 5
-                            : Math.min(Math.max(value, 1), 10),
-                        });
-                      } else {
-                        setNewTemplate({
-                          ...newTemplate,
-                          priority: isNaN(value)
-                            ? 5
-                            : Math.min(Math.max(value, 1), 10),
-                        });
-                      }
+                      setTemplateForm({
+                        ...templateForm,
+                        priority: isNaN(value)
+                          ? 5
+                          : Math.min(
+                              Math.max(value, PRIORITY_MIN),
+                              PRIORITY_MAX
+                            ),
+                      });
                     }}
-                    className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} font-montserrat`}
                   />
                 </div>
               </div>
@@ -1288,58 +1462,32 @@ export default function TemplatesPage() {
                   variant="outline"
                   onClick={() => {
                     setIsCreateDialogOpen(false);
-                    setEditingTemplate(null);
-                    setSelectedAccountMedia([]);
-                    setSelectedMedia(null);
+                    resetForm();
                   }}
-                  className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText}`}
                 >
                   Cancel
                 </Button>
                 <Button
-                  onClick={() =>
+                  onClick={
                     editingTemplate
-                      ? handleUpdateTemplate(editingTemplate)
-                      : handleCreateTemplate()
+                      ? handleUpdateTemplate
+                      : handleCreateTemplate
                   }
-                  className="btn-gradient-cyan"
                   disabled={
-                    isTemplateCreating ||
-                    isUpdateTemplate ||
-                    (editingTemplate
-                      ? !editingTemplate.name ||
-                        !editingTemplate.openDm ||
-                        !editingTemplate.accountUsername ||
-                        !editingTemplate.mediaId ||
-                        editingTemplate.reply.length === 0 ||
-                        editingTemplate.reply.some(
-                          (r: any) => r.trim() === ""
-                        ) ||
-                        editingTemplate.triggers.length === 0 ||
-                        editingTemplate.triggers.some(
-                          (t: any) => t.trim() === ""
-                        ) ||
-                        editingTemplate.content.length === 0 ||
-                        editingTemplate.content.some(
-                          (c: ContentItem) =>
-                            c.text.trim() === "" || c.link!.trim() === ""
-                        )
-                      : !newTemplate.name ||
-                        !newTemplate.openDm ||
-                        !newTemplate.accountUsername ||
-                        !newTemplate.mediaId ||
-                        newTemplate.reply.length === 0 ||
-                        newTemplate.reply.some((r) => r.trim() === "") ||
-                        newTemplate.triggers.length === 0 ||
-                        newTemplate.triggers.some((t) => t.trim() === "") ||
-                        newTemplate.content.length === 0 ||
-                        newTemplate.content.some(
-                          (c: ContentItem) =>
-                            c.text.trim() === "" || c.link!.trim() === ""
-                        ))
+                    !isFormValid || isCreatingTemplate || isUpdatingTemplate
                   }
+                  className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] hover:opacity-90"
                 >
-                  {editingTemplate ? "Update Template" : "Create Template"}
+                  {isCreatingTemplate || isUpdatingTemplate ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      {editingTemplate ? "Updating..." : "Creating..."}
+                    </>
+                  ) : editingTemplate ? (
+                    "Update Template"
+                  ) : (
+                    "Create Template"
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -1349,23 +1497,19 @@ export default function TemplatesPage() {
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative flex-1">
-            <Search
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${themeStyles.textMuted}`}
-            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search templates, content, or keywords..."
+              placeholder="Search templates..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`pl-10 ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText} text-base font-light font-montserrat`}
+              className="pl-10"
             />
           </div>
           <Select value={filterAccount} onValueChange={setFilterAccount}>
-            <SelectTrigger
-              className={`w-48 ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.inputText}`}
-            >
+            <SelectTrigger className="w-48">
               <SelectValue placeholder="Filter by account" />
             </SelectTrigger>
-            <SelectContent className={themeStyles.dialogBg}>
+            <SelectContent>
               <SelectItem value="all">All Accounts</SelectItem>
               {accounts.map((account) => (
                 <SelectItem key={account.instagramId} value={account.username}>
@@ -1378,339 +1522,98 @@ export default function TemplatesPage() {
 
         {/* Templates Count */}
         <div className="mb-6">
-          <p className={themeStyles.textMuted}>
-            Showing {templates.length} of {totalTemplates} templates
+          <p className="text-gray-500">
+            Showing {filteredTemplates.length} of {totalTemplates} templates
           </p>
         </div>
 
         {/* Templates Grid */}
-        <div className="grid gap-6">
-          {filteredTemplates.map((template: any) => (
+        <div className="space-y-6">
+          {filteredTemplates.length > 0 ? (
+            filteredTemplates.map(renderTemplateCard)
+          ) : (
             <Card
-              key={template._id}
-              className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-br ${
-                template.isActive
-                  ? "from-[#B026FF]/20 to-[#B026FF]/5 border-[#B026FF]/20 hover:border-[#B026FF]/40"
-                  : "from-[#00F0FF]/10 to-[#00F0FF]/5 border-[#00F0FF]/20 hover:border-[#00F0FF]/40"
-              } ${themeStyles.cardBg} backdrop-blur-sm ${
-                themeStyles.cardBorder
-              }`}
+              className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
             >
-              <CardHeader className="pb-3 p-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <CardTitle
-                        className={`text-base font-normal ${themeStyles.textPrimary}`}
-                      >
-                        {template.name}
-                      </CardTitle>
-                      {template.mediaType && (
-                        <Badge className="bg-purple-500/20 text-purple-400 border-purple-400/30">
-                          {template.mediaType === "VIDEO" ? "Reel" : "Post"}
-                        </Badge>
-                      )}
-                      <Badge
-                        variant="outline"
-                        className={`text-xs ${themeStyles.inputBorder} ${themeStyles.textMuted}`}
-                      >
-                        Priority {template.priority}
-                      </Badge>
-                    </div>
-                    <p className={`text-sm ${themeStyles.textMuted}`}>
-                      @{template.accountUsername}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 md:gap-2">
-                    <Switch
-                      checked={template.isActive}
-                      onCheckedChange={() => {
-                        handleToggleTemplate(template._id);
-                      }}
-                      className="data-[state=checked]:bg-[#00F0FF]"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`${themeStyles.textMuted} hover:${themeStyles.textPrimary}`}
-                      onClick={() => handleEditClick(template)}
+              <CardContent className="text-center py-12">
+                {accounts.length === 0 ? (
+                  <>
+                    {" "}
+                    <div
+                      className={`mx-auto w-24 h-24 ${
+                        theme === "dark" ? "bg-white/5" : "bg-gray-100"
+                      } rounded-full flex items-center justify-center mb-4`}
                     >
-                      <Edit2 className="h-4 w-4" />
+                      <Instagram className="h-12 w-12 text-gray-400 mx-auto " />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">
+                      No accounts connected
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      Connect your first Instagram account to start automating
+                      replies
+                    </p>
+                    <Button asChild className="btn-gradient-cyan">
+                      <Link href="/insta/accounts/add">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Connect Account
+                      </Link>
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-[#FF2E9F] hover:text-[#FF2E9F]/80"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent
-                        className={`${themeStyles.dialogBg} ${themeStyles.cardBorder}`}
-                      >
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className={themeStyles.textPrimary}>
-                            Delete Template
-                          </AlertDialogTitle>
-                          <AlertDialogDescription
-                            className={themeStyles.textMuted}
-                          >
-                            Are you sure you want to delete {template.name}?
-                            This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel
-                            className={`${themeStyles.buttonOutlineBorder} ${themeStyles.buttonOutlineText}`}
-                          >
-                            Cancel
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteTemplate(template._id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="flex flex-col items-start p-2 w-full">
-                <div className="flex flex-col md:flex-row-reverse items-start justify-between gap-3 w-full">
-                  {template.mediaUrl && (
-                    <div className="w-full flex-1">
-                      <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
-                        Linked Media:
-                      </p>
-                      <div
-                        className={`relative w-40 h-40 rounded-md overflow-hidden border ${themeStyles.inputBorder} mb-2`}
-                      >
-                        <Image
-                          src={template.mediaUrl}
-                          alt="Linked media"
-                          height={160}
-                          width={160}
-                          className="w-full h-full object-cover"
-                        />
-                        {template.mediaType === "VIDEO" && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                            <VideoIcon className="h-6 w-6 text-white" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
-                      reply to their comments:
+                  </>
+                ) : (
+                  <>
+                    <div
+                      className={`mx-auto w-24 h-24 ${
+                        theme === "dark" ? "bg-white/5" : "bg-gray-100"
+                      } rounded-full flex items-center justify-center mb-4`}
+                    >
+                      <MessageSquare className="h-8 w-8 text-gray-500" />
+                    </div>{" "}
+                    <h3 className="text-lg font-semibold mb-2">
+                      {searchTerm || filterAccount !== "all"
+                        ? "No templates match your filters"
+                        : "No templates yet"}
+                    </h3>
+                    <p className="text-gray-500 mb-4 ">
+                      {searchTerm || filterAccount !== "all"
+                        ? "Try adjusting your search or filter criteria"
+                        : "Create your first reply template to start automating responses"}
                     </p>
-                    <div className="flex flex-wrap items-center justify-start w-full gap-2">
-                      {template.reply.map((reply: any, index: number) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className={`${themeStyles.inputBg} p-3 rounded-md ${themeStyles.textMuted} text-wrap text-base font-light font-montserrat`}
-                        >
-                          {reply}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div className=" flex-1">
-                    <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
-                      An opening DM
-                    </p>
-                    <div className="flex ">
-                      <Badge
-                        variant="outline"
-                        className={`flex flex-col items-start justify-center ${themeStyles.textMuted} ${themeStyles.inputBg} p-3 rounded-md `}
-                      >
-                        <p className="text-base font-light font-montserrat">
-                          {template.openDm}
-                        </p>
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="space-y-4 flex-1">
-                    <div>
-                      <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
-                        Reply send in Dm:
-                      </p>
-                      <div className="flex flex-col gap-2">
-                        {template.content.map(
-                          (content: ContentItem, index: number) => (
-                            <Badge
-                              key={index}
-                              variant="outline"
-                              className={`flex flex-col items-start ${themeStyles.inputBg} p-3 rounded-md ${themeStyles.textMuted}`}
-                            >
-                              <p className="text-base font-light font-montserrat">
-                                {content.text}
-                              </p>
-                              {content.link && (
-                                <p className="text-xs text-cyan-400 mt-1 truncate">
-                                  <LinkIcon className="h-3 w-3 inline mr-1" />
-                                  {content.link.length > 30
-                                    ? content.link.substring(0, 30) + "..."
-                                    : content.link}
-                                </p>
-                              )}
-                            </Badge>
-                          )
-                        )}
-                      </div>
-                    </div>
-                    <div className="pb-2 w-full">
-                      <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
-                        Trigger Keywords:
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {template.triggers.map(
-                          (trigger: any, index: number) => (
-                            <Badge
-                              key={index}
-                              variant="outline"
-                              className={`text-base font-light font-montserrat ${themeStyles.inputBorder} ${themeStyles.textMuted}`}
-                            >
-                              {trigger}
-                            </Badge>
-                          )
-                        )}
-                      </div>
-                    </div>
-                    <div className="pb-2 w-full">
-                      <p className={`text-sm ${themeStyles.textMuted} mb-2`}>
-                        Content For:
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {template.isFollow ? (
-                          <Badge
-                            variant="outline"
-                            className={`text-base font-light font-montserrat ${themeStyles.inputBorder} ${themeStyles.textMuted}`}
-                          >
-                            Followers Only
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className={`text-base font-light font-montserrat ${themeStyles.inputBorder} ${themeStyles.textMuted}`}
-                          >
-                            Everyone
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-white/10 w-full">
-                  <div
-                    className={`flex items-center gap-6 text-sm ${themeStyles.textMuted}`}
-                  >
-                    <div className="flex items-center gap-1">
-                      <BarChart3 className="h-3 w-3" />
-                      {template?.usageCount || 0} uses
-                    </div>
-                    <div>
-                      Last used: {formatLastUsed(template.lastUsed) || 1}
-                    </div>
-                  </div>
-                </div>
+                    <Button
+                      onClick={() => setIsCreateDialogOpen(true)}
+                      className="btn-gradient-cyan"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Template
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
-          ))}
+          )}
 
           {/* Load More Button */}
-          {hasMoreTemplates && (
+          {hasMoreTemplates && filteredTemplates.length > 0 && (
             <div className="flex justify-center mt-6">
               <Button
                 onClick={loadMoreTemplates}
                 disabled={isLoadingMore}
-                className="btn-gradient-cyan px-8 py-3"
+                variant="outline"
+                className="px-8 py-3"
               >
                 {isLoadingMore ? (
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2" />
                     Loading...
                   </div>
                 ) : (
                   <div className="flex items-center">
                     <ChevronDown className="mr-2 h-4 w-4" />
-                    Load More ({totalTemplates - templates.length} more)
+                    Load More ({totalTemplates - filteredTemplates.length} more)
                   </div>
                 )}
               </Button>
             </div>
-          )}
-
-          {/* No templates states */}
-          {accounts.length === 0 && (
-            <Card
-              className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
-            >
-              <CardContent className="text-center py-12">
-                <div
-                  className={`mx-auto w-24 h-24 ${
-                    theme === "dark" ? "bg-white/5" : "bg-gray-100"
-                  } rounded-full flex items-center justify-center mb-4`}
-                >
-                  <Instagram className="h-8 w-8 text-gray-500" />
-                </div>
-                <h3
-                  className={`text-lg font-semibold mb-2 ${themeStyles.textPrimary}`}
-                >
-                  No accounts connected
-                </h3>
-                <p className={`${themeStyles.textMuted} mb-4 font-mono`}>
-                  Connect your first Instagram account to start automating
-                  replies
-                </p>
-                <Button className="btn-gradient-cyan" asChild>
-                  <Link href="/insta/accounts/add">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Connect Account
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-          {accounts.length > 0 && templates.length === 0 && (
-            <Card
-              className={`card-hover ${themeStyles.cardBg} ${themeStyles.cardBorder}`}
-            >
-              <CardContent className="text-center py-12">
-                <div
-                  className={`mx-auto w-24 h-24 ${
-                    theme === "dark" ? "bg-white/5" : "bg-gray-100"
-                  } rounded-full flex items-center justify-center mb-4`}
-                >
-                  <MessageSquare className="h-8 w-8 text-gray-500" />
-                </div>
-                <h3
-                  className={`text-lg font-semibold mb-2 ${themeStyles.textPrimary}`}
-                >
-                  {searchTerm || filterAccount !== "all"
-                    ? "No templates match your filters"
-                    : "No templates yet"}
-                </h3>
-                <p className={`${themeStyles.textMuted} mb-4 font-mono`}>
-                  {searchTerm || filterAccount !== "all"
-                    ? "Try adjusting your search or filter criteria"
-                    : "Create your first reply template to start automating responses"}
-                </p>
-                <Button
-                  onClick={() => setIsCreateDialogOpen(true)}
-                  className="btn-gradient-cyan"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Template
-                </Button>
-              </CardContent>
-            </Card>
           )}
         </div>
       </div>
