@@ -232,3 +232,4 @@ export class RateLimiterService {
     return result;
   }
 }
+export default RateLimiterService;
