@@ -51,7 +51,8 @@ const RateLimitLogSchema = new Schema<IRateLimitLog>({
 });
 
 export const RateLimit: Model<IRateLimit> =
-  mongoose.models.RateLimit || mongoose.model("RateLimit", RateLimitSchema);
+  mongoose.models.RateLimit ||
+  mongoose.model<IRateLimit>("RateLimit", RateLimitSchema);
 export const RateLimitLog: Model<IRateLimitLog> =
   mongoose.models.RateLimitLog ||
-  mongoose.model("RateLimitLog", RateLimitLogSchema);
+  mongoose.model<IRateLimitLog>("RateLimitLog", RateLimitLogSchema);

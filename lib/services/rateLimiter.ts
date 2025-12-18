@@ -7,7 +7,7 @@ import {
   RateLimitLog,
 } from "@/lib/database/models/rate/RateLimit.model";
 
-export default class RateLimiterService {
+export class RateLimiterService {
   private static readonly CALLS_PER_HOUR = 180; // Using 180 to be safe (20 buffer)
   private static readonly WINDOW_MS = 60 * 60 * 1000; // 1 hour
   private static readonly BLOCK_THRESHOLD = 170; // Block at 170 calls to prevent hitting limit
@@ -51,6 +51,7 @@ export default class RateLimiterService {
       rateLimit.windowStart = now;
       rateLimit.isBlocked = false;
       rateLimit.blockedUntil = undefined;
+      await rateLimit.save();
     }
 
     // Check if account is blocked
@@ -173,10 +174,22 @@ export default class RateLimiterService {
       };
     }
 
-    const windowStart = new Date(
+    // Check if window has expired
+    const windowStartTime = new Date(
       rateLimit.windowStart.getTime() + this.WINDOW_MS
     );
-    const resetInMs = Math.max(0, windowStart.getTime() - now.getTime());
+    const resetInMs = Math.max(0, windowStartTime.getTime() - now.getTime());
+
+    // If window has expired, reset counts
+    if (windowStartTime < now) {
+      return {
+        calls: 0,
+        remaining: this.CALLS_PER_HOUR,
+        isBlocked: false,
+        windowStart: now,
+        resetInMs: this.WINDOW_MS,
+      };
+    }
 
     return {
       calls: rateLimit.calls,
@@ -209,26 +222,103 @@ export default class RateLimiterService {
   > {
     await connectToDatabase();
 
-    const result = await RateLimit.aggregate([
-      {
-        $group: {
-          _id: { userId: "$userId", accountId: "$accountId" },
-          totalCalls: { $sum: "$calls" },
-          records: { $sum: 1 },
+    try {
+      const result = await RateLimit.aggregate([
+        {
+          $group: {
+            _id: { userId: "$userId", accountId: "$accountId" },
+            totalCalls: { $sum: "$calls" },
+            records: { $sum: 1 },
+          },
         },
-      },
-      {
-        $project: {
-          userId: "$_id.userId",
-          accountId: "$_id.accountId",
-          totalCalls: 1,
-          avgCallsPerHour: { $divide: ["$totalCalls", "$records"] },
+        {
+          $project: {
+            userId: "$_id.userId",
+            accountId: "$_id.accountId",
+            totalCalls: 1,
+            avgCallsPerHour: {
+              $divide: ["$totalCalls", { $max: ["$records", 1] }],
+            },
+          },
         },
-      },
-      { $sort: { totalCalls: -1 } },
-      { $limit: limit },
-    ]);
+        { $sort: { totalCalls: -1 } },
+        { $limit: limit },
+      ]);
 
-    return result;
+      return result;
+    } catch (error) {
+      console.error("Error getting top users:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Get system-wide rate limit statistics
+   */
+  static async getSystemStats(): Promise<{
+    totalAccounts: number;
+    blockedAccounts: number;
+    nearLimitAccounts: number;
+    totalCallsToday: number;
+    avgCallsPerAccount: number;
+  }> {
+    await connectToDatabase();
+
+    try {
+      const now = new Date();
+      const todayStart = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+      );
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+      const allRateLimits = await RateLimit.find();
+
+      let totalCallsToday = 0;
+      let blockedAccounts = 0;
+      let nearLimitAccounts = 0;
+
+      allRateLimits.forEach((limit) => {
+        // Count calls made today
+        if (limit.windowStart >= todayStart) {
+          totalCallsToday += limit.calls || 0;
+        }
+
+        // Count blocked accounts
+        if (limit.isBlocked && limit.blockedUntil && limit.blockedUntil > now) {
+          blockedAccounts++;
+        }
+
+        // Count accounts near limit
+        if (
+          limit.calls >= this.BLOCK_THRESHOLD &&
+          limit.windowStart >= oneHourAgo
+        ) {
+          nearLimitAccounts++;
+        }
+      });
+
+      const totalAccounts = allRateLimits.length;
+      const avgCallsPerAccount =
+        totalAccounts > 0 ? totalCallsToday / totalAccounts : 0;
+
+      return {
+        totalAccounts,
+        blockedAccounts,
+        nearLimitAccounts,
+        totalCallsToday,
+        avgCallsPerAccount,
+      };
+    } catch (error) {
+      console.error("Error getting system stats:", error);
+      return {
+        totalAccounts: 0,
+        blockedAccounts: 0,
+        nearLimitAccounts: 0,
+        totalCallsToday: 0,
+        avgCallsPerAccount: 0,
+      };
+    }
   }
 }
