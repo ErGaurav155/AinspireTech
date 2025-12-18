@@ -5,7 +5,7 @@ import { connectToDatabase } from "@/lib/database/mongoose";
 import { QueueItem, IQueueItem } from "@/lib/database/models/rate/Queue.model";
 import RateLimiterService from "./rateLimiter";
 
-export class QueueService {
+export default class QueueService {
   private static readonly BATCH_SIZE = 5;
   private static readonly RETRY_DELAY_MS = 5000; // 5 seconds
   private static readonly MAX_PRIORITY_DELAY = 60000; // 1 minute for low priority

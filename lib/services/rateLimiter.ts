@@ -7,7 +7,7 @@ import {
   RateLimitLog,
 } from "@/lib/database/models/rate/RateLimit.model";
 
-export class RateLimiterService {
+export default class RateLimiterService {
   private static readonly CALLS_PER_HOUR = 180; // Using 180 to be safe (20 buffer)
   private static readonly WINDOW_MS = 60 * 60 * 1000; // 1 hour
   private static readonly BLOCK_THRESHOLD = 170; // Block at 170 calls to prevent hitting limit
@@ -232,4 +232,3 @@ export class RateLimiterService {
     return result;
   }
 }
-export default RateLimiterService;

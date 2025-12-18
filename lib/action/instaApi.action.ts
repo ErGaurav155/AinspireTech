@@ -10,7 +10,7 @@ import InstaReplyTemplate, {
 import { getUserById } from "./user.actions";
 import User from "../database/models/user.model";
 import RateLimiterService from "../services/rateLimiter";
-import { QueueService } from "../services/queue";
+import QueueService from "../services/queue";
 
 // Interfaces
 interface InstagramComment {
