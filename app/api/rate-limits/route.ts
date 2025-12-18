@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { RateLimiterService } from "@/lib/services/rateLimiter";
+import RateLimiterService from "@/lib/services/rateLimiter";
 import { QueueService } from "@/lib/services/queue";
 
 export async function GET(request: Request) {

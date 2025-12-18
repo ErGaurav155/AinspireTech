@@ -3,7 +3,7 @@
 
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { QueueItem, IQueueItem } from "@/lib/database/models/rate/Queue.model";
-import { RateLimiterService } from "./rateLimiter";
+import RateLimiterService from "./rateLimiter";
 
 export class QueueService {
   private static readonly BATCH_SIZE = 5;

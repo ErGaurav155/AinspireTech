@@ -9,7 +9,7 @@ import InstaReplyTemplate, {
 } from "../database/models/insta/ReplyTemplate.model";
 import { getUserById } from "./user.actions";
 import User from "../database/models/user.model";
-import { RateLimiterService } from "../services/rateLimiter";
+import RateLimiterService from "../services/rateLimiter";
 import { QueueService } from "../services/queue";
 
 // Interfaces
