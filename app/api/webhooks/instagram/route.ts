@@ -1,6 +1,9 @@
-// app/api/instagram/webhook/route.ts
-import { handleInstagramWebhook } from "@/lib/action/instaApi.action";
-import { NextRequest } from "next/server";
+// app/api/webhooks/instagram/route.ts
+import {
+  getAccountRateLimitStatus,
+  handleInstagramWebhook,
+} from "@/lib/action/instaApi.action";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   // Instagram verification handshake
@@ -10,16 +13,35 @@ export async function GET(req: NextRequest) {
 
   if (mode && token) {
     if (mode === "subscribe" && token === process.env.INSTAGRAM_VERIFY_TOKEN) {
-      return new Response(challenge, { status: 200 });
+      return new NextResponse(challenge, { status: 200 });
     }
   }
 
-  return new Response("Verification failed", { status: 403 });
+  return new NextResponse("Verification failed", { status: 403 });
 }
 
 export async function POST(req: Request) {
-  const payload = await req.json();
-  console.log("Received Instagram webhook payload:", payload);
-  const result = await handleInstagramWebhook(payload);
-  return Response.json(result);
+  try {
+    const payload = await req.json();
+    console.log("Received Instagram webhook payload:", payload);
+
+    // Process the webhook
+    const result = await handleInstagramWebhook(payload);
+
+    // Log rate limit status
+    if (payload.entry?.[0]?.id) {
+      const accountId = payload.entry[0].id;
+
+      const rateStatus = await getAccountRateLimitStatus(accountId);
+      console.log(`Rate limit status for ${accountId}:`, rateStatus);
+    }
+
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Error processing webhook:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

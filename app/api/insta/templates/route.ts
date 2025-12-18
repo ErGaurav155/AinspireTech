@@ -99,7 +99,6 @@ export async function POST(req: Request) {
       accountUsername,
       isFollow,
     } = body;
-
     // ✅ Validation
     if (
       !userId ||
@@ -111,8 +110,7 @@ export async function POST(req: Request) {
       !triggers ||
       !mediaId ||
       !mediaUrl ||
-      !accountUsername ||
-      !isFollow
+      !accountUsername
     ) {
       return NextResponse.json(
         { ok: false, error: "All fields are required" },

@@ -33,7 +33,10 @@ import {
   Target,
   Mail,
   MessageSquare,
+  AlertTriangle,
+  Activity,
 } from "lucide-react";
+import RateLimitDashboard from "@/components/shared/RateLimitDashboard";
 
 // Types based on your models
 interface WebSubscription {
@@ -217,7 +220,7 @@ const api = {
   },
 };
 
-type ActiveTab = "subscriptions" | "appointments";
+type ActiveTab = "subscriptions" | "appointments" | "rate-limits";
 
 export default function AdminDashboard() {
   const { user, isLoaded } = useUser();
@@ -234,6 +237,7 @@ export default function AdminDashboard() {
   const [isOwner, setIsOwner] = useState<boolean | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>("subscriptions");
   const [appointmentSearchTerm, setAppointmentSearchTerm] = useState("");
+  const [rateLimitStats, setRateLimitStats] = useState<any>(null);
 
   // Animation variants
   const containerVariants = {
@@ -351,6 +355,9 @@ export default function AdminDashboard() {
         appointmentsData.data
       );
       setAnalytics(analyticsData);
+
+      // Fetch rate limit stats
+      await fetchRateLimitStats();
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to fetch data";
@@ -365,6 +372,21 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   }, [user?.primaryEmailAddress?.emailAddress]);
+
+  // Fetch rate limit statistics
+  const fetchRateLimitStats = async () => {
+    try {
+      const response = await fetch("/api/rate-limits/status");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setRateLimitStats(data.data);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching rate limit stats:", error);
+    }
+  };
 
   // Calculate analytics from subscription data
   const calculateAnalytics = (
@@ -545,7 +567,7 @@ export default function AdminDashboard() {
             <Lock className="h-10 w-10 text-red-500" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-4">Access Denied</h1>
-          <p className="text-gray-400 mb-2">
+          <p className="text-gray-400 mb-2 font-montserrat">
             You are not authorized to access the admin dashboard.
           </p>
           <p className="text-gray-500 text-sm mb-4">
@@ -582,7 +604,7 @@ export default function AdminDashboard() {
         >
           <RefreshCw className="h-12 w-12 text-cyan-500 animate-spin mx-auto mb-4" />
           <p className="text-white text-lg">Loading dashboard...</p>
-          <p className="text-gray-400 text-sm mt-2">
+          <p className="text-gray-400 text-sm mt-2 font-montserrat">
             Verifying access permissions
           </p>
         </motion.div>
@@ -600,7 +622,7 @@ export default function AdminDashboard() {
         >
           <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <p className="text-white text-lg mb-4">Error loading data</p>
-          <p className="text-gray-400 mb-6">{error}</p>
+          <p className="text-gray-400 mb-6 font-montserrat">{error}</p>
           <motion.button
             onClick={fetchData}
             className="px-6 py-3 bg-cyan-600 rounded-lg hover:bg-cyan-700 transition-colors text-white"
@@ -628,13 +650,14 @@ export default function AdminDashboard() {
           className="flex flex-wrap flex-row justify-between items-start lg:items-center mb-8"
           variants={cardVariants}
         >
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-start justify-center gap-4">
             <div className="">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">
                 Admin Dashboard
               </h1>
-              <p className="text-gray-400 mt-2">
-                Manage and monitor your subscription business and appointments
+              <p className="text-gray-400 mt-2 font-montserrat">
+                Manage and monitor your subscription business, appointments, and
+                Instagram rate limits
               </p>
             </div>
             <motion.div
@@ -645,9 +668,9 @@ export default function AdminDashboard() {
               <span className="text-green-400 text-sm font-medium">Owner</span>
             </motion.div>
           </div>
-          <div className="flex flex-wrap items-center space-x-4 mt-4 lg:mt-0 gap-3">
-            <div className="text-right">
-              <p className="text-sm text-gray-400">Logged in as</p>
+          <div className=" w-full flex flex-wrap items-center justify-between  space-x-4 mt-4 gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span className="text-sm text-gray-400">Logged in as</span>
               <p className="text-cyan-400 font-medium">
                 {user.primaryEmailAddress?.emailAddress}
               </p>
@@ -768,34 +791,45 @@ export default function AdminDashboard() {
             </div>
           </motion.div>
 
-          {/* Web Subscriptions */}
+          {/* Rate Limits Status */}
           <motion.div
-            className="bg-gradient-to-br from-blue-900/20 to-indigo-900/20 border border-blue-500/30 rounded-2xl p-6 backdrop-blur-sm"
+            className="bg-gradient-to-br from-orange-900/20 to-red-900/20 border border-orange-500/30 rounded-2xl p-6 backdrop-blur-sm"
             variants={cardVariants}
             whileHover="hover"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Web Chatbots</p>
+                <p className="text-gray-400 text-sm">Rate Limits</p>
                 <p className="text-3xl font-bold text-white mt-2">
-                  {analytics?.webSubscriptions}
+                  {rateLimitStats?.blockedAccounts || 0}
                 </p>
-                <p className="text-blue-400 text-sm mt-1">Voice Agents</p>
+                <p
+                  className={`text-sm mt-1 flex items-center ${
+                    (rateLimitStats?.blockedAccounts || 0) > 0
+                      ? "text-red-400"
+                      : "text-green-400"
+                  }`}
+                >
+                  <Activity className="h-4 w-4 mr-1" />
+                  {(rateLimitStats?.blockedAccounts || 0) > 0
+                    ? "Accounts Blocked"
+                    : "All Good"}
+                </p>
               </div>
-              <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                <Globe className="h-6 w-6 text-blue-400" />
+              <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-orange-400" />
               </div>
             </div>
           </motion.div>
         </motion.div>
 
-        {/* Tabs for Subscriptions and Appointments */}
+        {/* Tabs for Subscriptions, Appointments, and Rate Limits */}
         <motion.div
-          className="flex border-b border-gray-700 mb-6"
+          className="flex border-b border-gray-700 mb-6 overflow-x-auto"
           variants={cardVariants}
         >
           <button
-            className={`px-6 py-3 font-medium text-sm border-b-2 transition-all ${
+            className={`flex-shrink-0 px-6 py-3 font-medium text-sm border-b-2 transition-all ${
               activeTab === "subscriptions"
                 ? "border-cyan-500 text-cyan-400"
                 : "border-transparent text-gray-400 hover:text-gray-300"
@@ -806,7 +840,7 @@ export default function AdminDashboard() {
             Subscriptions ({subscriptions.length})
           </button>
           <button
-            className={`px-6 py-3 font-medium text-sm border-b-2 transition-all ${
+            className={`flex-shrink-0 px-6 py-3 font-medium text-sm border-b-2 transition-all ${
               activeTab === "appointments"
                 ? "border-cyan-500 text-cyan-400"
                 : "border-transparent text-gray-400 hover:text-gray-300"
@@ -815,6 +849,17 @@ export default function AdminDashboard() {
           >
             <CalendarDays className="h-4 w-4 inline mr-2" />
             Appointments ({appointments.length})
+          </button>
+          <button
+            className={`flex-shrink-0 px-6 py-3 font-medium text-sm border-b-2 transition-all ${
+              activeTab === "rate-limits"
+                ? "border-cyan-500 text-cyan-400"
+                : "border-transparent text-gray-400 hover:text-gray-300"
+            }`}
+            onClick={() => setActiveTab("rate-limits")}
+          >
+            <AlertTriangle className="h-4 w-4 inline mr-2" />
+            Rate Limits
           </button>
         </motion.div>
 
@@ -833,7 +878,7 @@ export default function AdminDashboard() {
                   placeholder="Search users, emails, or plans..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500"
+                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 font-montserrat"
                 />
               </div>
               <div className="flex flex-wrap gap-4">
@@ -910,7 +955,7 @@ export default function AdminDashboard() {
                     {filteredSubscriptions.map((subscription, index) => (
                       <motion.tr
                         key={subscription._id}
-                        className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors"
+                        className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors font-montserrat"
                         variants={itemVariants}
                         initial="hidden"
                         animate="visible"
@@ -1032,10 +1077,10 @@ export default function AdminDashboard() {
                   animate={{ opacity: 1 }}
                 >
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-400 text-lg">
+                  <p className="text-gray-400 text-lg font-montserrat">
                     No subscriptions found
                   </p>
-                  <p className="text-gray-500 text-sm mt-2">
+                  <p className="text-gray-500 text-sm mt-2 font-montserrat">
                     Try adjusting your search or filters
                   </p>
                 </motion.div>
@@ -1059,7 +1104,7 @@ export default function AdminDashboard() {
                   placeholder="Search appointments by name, email, subject, or phone..."
                   value={appointmentSearchTerm}
                   onChange={(e) => setAppointmentSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500"
+                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 font-montserrat"
                 />
               </div>
             </motion.div>
@@ -1117,7 +1162,7 @@ export default function AdminDashboard() {
                     {filteredAppointments.map((appointment, index) => (
                       <motion.tr
                         key={appointment._id}
-                        className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors"
+                        className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors font-montserrat"
                         variants={itemVariants}
                         initial="hidden"
                         animate="visible"
@@ -1176,7 +1221,7 @@ export default function AdminDashboard() {
                 >
                   <CalendarDays className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-400 text-lg">No appointments found</p>
-                  <p className="text-gray-500 text-sm mt-2">
+                  <p className="text-gray-500 text-sm mt-2 font-montserrat">
                     {appointmentSearchTerm
                       ? "Try adjusting your search"
                       : "No appointments have been booked yet"}
@@ -1185,6 +1230,192 @@ export default function AdminDashboard() {
               )}
             </motion.div>
           </>
+        )}
+
+        {/* Rate Limits Tab Content */}
+        {activeTab === "rate-limits" && (
+          <motion.div
+            className="space-y-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {/* Rate Limit Dashboard Component */}
+            <motion.div
+              className="bg-gray-800/50 border border-gray-700 rounded-2xl overflow-hidden backdrop-blur-sm"
+              variants={cardVariants}
+            >
+              <div className="px-6 py-4 border-b border-gray-700">
+                <h2 className="text-xl font-semibold text-white">
+                  Instagram API Rate Limits
+                </h2>
+                <p className="text-gray-400 text-sm mt-1 font-montserrat">
+                  Monitor and manage Instagram API rate limits to prevent
+                  hitting Meta limits
+                </p>
+              </div>
+              <div className="p-6">
+                <RateLimitDashboard />
+              </div>
+            </motion.div>
+
+            {/* Rate Limit Information Panel */}
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              variants={containerVariants}
+            >
+              {/* Rate Limit Guidelines */}
+              <motion.div
+                className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 backdrop-blur-sm"
+                variants={cardVariants}
+                whileHover="hover"
+              >
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                  <AlertTriangle className="h-5 w-5 text-orange-400 mr-2" />
+                  Rate Limit Guidelines
+                </h3>
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3"></div>
+                    <div>
+                      <p className="text-white font-medium">Maximum Calls</p>
+                      <p className="text-gray-400 text-sm font-montserrat">
+                        180 API calls per hour per Instagram account
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3"></div>
+                    <div>
+                      <p className="text-white font-medium">Block Threshold</p>
+                      <p className="text-gray-400 text-sm font-montserrat">
+                        Accounts are temporarily blocked at 170 calls
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3"></div>
+                    <div>
+                      <p className="text-white font-medium">Block Duration</p>
+                      <p className="text-gray-400 text-sm font-montserrat">
+                        Blocked accounts are automatically unblocked after 5
+                        minutes
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 mr-3"></div>
+                    <div>
+                      <p className="text-white font-medium">Priority System</p>
+                      <p className="text-gray-400 text-sm font-montserrat">
+                        User-initiated actions get priority over automated
+                        comments
+                      </p>
+                    </div>
+                  </li>
+                </ul>
+              </motion.div>
+
+              {/* Queue Statistics */}
+              {rateLimitStats?.queue && (
+                <motion.div
+                  className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 backdrop-blur-sm"
+                  variants={cardVariants}
+                  whileHover="hover"
+                >
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                    <Activity className="h-5 w-5 text-cyan-400 mr-2" />
+                    Queue Statistics
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-900/50 rounded-lg p-4">
+                      <p className="text-gray-400 text-sm">Total Queued</p>
+                      <p className="text-2xl font-bold text-white">
+                        {rateLimitStats.queue.total || 0}
+                      </p>
+                    </div>
+                    <div className="bg-gray-900/50 rounded-lg p-4">
+                      <p className="text-gray-400 text-sm">Processing</p>
+                      <p className="text-2xl font-bold text-cyan-400">
+                        {rateLimitStats.queue.processing || 0}
+                      </p>
+                    </div>
+                    <div className="bg-gray-900/50 rounded-lg p-4">
+                      <p className="text-gray-400 text-sm">Pending</p>
+                      <p className="text-2xl font-bold text-yellow-400">
+                        {rateLimitStats.queue.pending || 0}
+                      </p>
+                    </div>
+                    <div className="bg-gray-900/50 rounded-lg p-4">
+                      <p className="text-gray-400 text-sm">Failed</p>
+                      <p className="text-2xl font-bold text-red-400">
+                        {rateLimitStats.queue.failed || 0}
+                      </p>
+                    </div>
+                  </div>
+                  {rateLimitStats.queue.avgProcessingTime > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-700">
+                      <p className="text-gray-400 text-sm">
+                        Average Processing Time
+                      </p>
+                      <p className="text-lg font-semibold text-white">
+                        {(
+                          rateLimitStats.queue.avgProcessingTime / 1000
+                        ).toFixed(2)}{" "}
+                        seconds
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </motion.div>
+
+            {/* Quick Actions */}
+            <motion.div
+              className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 backdrop-blur-sm"
+              variants={cardVariants}
+              whileHover="hover"
+            >
+              <h3 className="text-lg font-semibold text-white mb-4">
+                Quick Actions
+              </h3>
+              <div className="flex flex-wrap gap-4">
+                <motion.button
+                  onClick={() => {
+                    // This would trigger a cleanup in a real implementation
+                    alert("Cleanup triggered");
+                  }}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Cleanup Old Queue Items
+                </motion.button>
+                <motion.button
+                  onClick={() => {
+                    // This would trigger a system-wide reset in a real implementation
+                    alert("System reset triggered");
+                  }}
+                  className="px-4 py-2 bg-red-700/30 hover:bg-red-700/50 border border-red-500/30 rounded-lg transition-colors text-red-400"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Reset All Rate Limits
+                </motion.button>
+                <motion.button
+                  onClick={() => {
+                    fetchRateLimitStats();
+                  }}
+                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors text-white"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <RefreshCw className="h-4 w-4 inline mr-2" />
+                  Refresh Stats
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
 
         {/* Quick Stats */}

@@ -316,19 +316,16 @@ function PricingWithSearchParams() {
 
     setIsCancelling(true);
     try {
-      // const cancelResult = await cancelRazorPaySubscription(
-      //   selectedSubscriptionId,
-      //   cancellationReason || "User requested cancellation",
-      //   cancellationMode
-      // );
+      const cancelResult = await cancelRazorPaySubscription(
+        currentSubscription.subscriptionId!,
+        cancellationReason || "User requested cancellation",
+        cancellationMode
+      );
 
-      // if (!cancelResult.success) {
-      //   toast.error("Failed to cancel subscription", {
-      //     description: cancelResult.message,
-      //   });
-      //   return;
-      // }
-
+      if (!cancelResult.success) {
+        showToast("Failed to cancel subscription", "error");
+        return;
+      }
       // Update database status
       // await setSubsciptionCanceled(
       //   selectedSubscriptionId,
@@ -393,19 +390,22 @@ function PricingWithSearchParams() {
       }
 
       // First, cancel current subscription
-      // const cancelResult = await cancelRazorPaySubscription(
-      //   currentSubscription.subscriptionId,
-      //   "Changing to new plan",
-      //   "Immediate"
-      // );
+      const cancelResult = await cancelRazorPaySubscription(
+        currentSubscription?.subscriptionId!,
+        "Changing to new plan",
+        "Immediate"
+      );
 
-      // if (!cancelResult.success) {
-      //   toast.error("Failed to cancel current subscription", {
-      //     description: cancelResult.message,
-      //   });
-      //   setIsProcessingChange(false);
-      //   return;
-      // }
+      if (!cancelResult.success) {
+        showToast(
+          "Failed to cancel current subscription",
+          cancelResult.message,
+          true
+        );
+
+        setIsProcessingChange(false);
+        return;
+      }
 
       // Update database status
       // await setSubsciptionCanceled(
@@ -429,12 +429,17 @@ function PricingWithSearchParams() {
       // Delete selected accounts
       for (const accountId of selectedAccountIds) {
         console.log("accountId:", accountId);
-        // const result = await deleteInstaAccount(accountId, userId!);
-        // if (!result.success) {
-        //   toast.error(`Failed to delete account: ${result.error}`);
-        //   setIsProcessingChange(false);
-        //   return;
-        // }
+        const result = await deleteInstaAccount(accountId, userId!);
+        if (!result.success) {
+          showToast(
+            `Failed to delete account`,
+            result.error || "Failed to delete accounts",
+            true
+          );
+
+          setIsProcessingChange(false);
+          return;
+        }
       }
 
       showToast("Success!", "Accounts deleted successfully", false);
@@ -478,12 +483,12 @@ function PricingWithSearchParams() {
       // Delete selected accounts
       for (const accountId of selectedAccountIds) {
         console.log("accountId:", accountId);
-        // const result = await deleteInstaAccount(accountId, userId!);
-        // if (!result.success) {
-        //   toast.error(`Failed to delete account: ${result.error}`);
-        //   setIsCancelling(false);
-        //   return;
-        // }
+        const result = await deleteInstaAccount(accountId, userId!);
+        if (!result.success) {
+          showToast(`Failed to delete account: ${result.error}`, "error");
+          setIsCancelling(false);
+          return;
+        }
       }
 
       showToast("Success!", "Accounts deleted successfully", false);
@@ -508,16 +513,16 @@ function PricingWithSearchParams() {
     if (!currentSubscription) return;
 
     try {
-      // const cancelResult = await cancelRazorPaySubscription(
-      //   currentSubscription.subscriptionId,
-      //   CANCELLATION_REASON_PLACEHOLDER,
-      //   "Immediate"
-      // );
+      const cancelResult = await cancelRazorPaySubscription(
+        currentSubscription?.subscriptionId!,
+        CANCELLATION_REASON_PLACEHOLDER,
+        "Immediate"
+      );
 
-      // if (!cancelResult.success) {
-      //   showToast("Failed!", "Failed to cancel subscription", true);
-      //   return;
-      // }
+      if (!cancelResult.success) {
+        showToast("Failed!", "Failed to cancel subscription", true);
+        return;
+      }
 
       // Update database status
       // await setSubsciptionCanceled(
@@ -675,7 +680,8 @@ function PricingWithSearchParams() {
 
               <ul className="flex-[30%] space-y-3 mb-8 font-montserrat text-base">
                 {[
-                  "500 comments/month",
+                  "Comments Automation Unlimited",
+                  "100 DMs Automation Daily",
                   "3 reply templates",
                   "Basic keyword triggers",
                   "Email support",

@@ -366,7 +366,8 @@ export const instagramPricingPlans: PricingPlan[] = [
     account: 1,
     limit: 500,
     features: [
-      "500 comments/month",
+      "Comments Automation Unlimited",
+      "1000 DMs Automation Daily",
       "3 reply templates",
       "Basic keyword triggers",
       "Email support",
@@ -384,7 +385,8 @@ export const instagramPricingPlans: PricingPlan[] = [
     account: 3,
     limit: 2000,
     features: [
-      "2,000 comments/month",
+      "Comments Automation Unlimited",
+      "3000 DMs Automation Daily",
       "10 reply templates",
       "AI spam filter",
       "Priority support",
@@ -403,7 +405,8 @@ export const instagramPricingPlans: PricingPlan[] = [
     account: 5,
     limit: 5000,
     features: [
-      "5,000 comments/month",
+      "Comments Automation Unlimited",
+      "Unlimited DMs Automation Daily",
       "Unlimited templates",
       "Sentiment analysis",
       "Custom workflows",

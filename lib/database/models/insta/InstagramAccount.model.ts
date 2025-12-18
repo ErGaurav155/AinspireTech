@@ -1,4 +1,15 @@
+// app/database/models/insta/InstagramAccount.model.ts
 import mongoose, { Schema, Document } from "mongoose";
+
+export interface IRateLimitInfo {
+  calls: number;
+  remaining: number;
+  isBlocked: boolean;
+  blockedUntil?: Date;
+  resetAt?: Date;
+  windowStart: Date;
+  lastUpdated: Date;
+}
 
 export interface IInstagramAccount extends Document {
   userId: string;
@@ -11,9 +22,24 @@ export interface IInstagramAccount extends Document {
   accountReply: number;
   lastTokenRefresh?: Date;
   expiresAt?: Date;
+  rateLimitInfo?: IRateLimitInfo;
+  lastActivity?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
+
+const RateLimitInfoSchema = new Schema(
+  {
+    calls: { type: Number, default: 0 },
+    remaining: { type: Number, default: 180 },
+    isBlocked: { type: Boolean, default: false },
+    blockedUntil: { type: Date },
+    resetAt: { type: Date },
+    windowStart: { type: Date, default: Date.now },
+    lastUpdated: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
 
 const InstagramAccountSchema = new Schema<IInstagramAccount>(
   {
@@ -31,7 +57,6 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
       lowercase: true,
     },
     accessToken: String,
-
     profilePicture: {
       type: String,
     },
@@ -43,7 +68,19 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
       type: Number,
       default: 0,
     },
-
+    lastActivity: {
+      type: Date,
+    },
+    rateLimitInfo: {
+      type: RateLimitInfoSchema,
+      default: () => ({
+        calls: 0,
+        remaining: 180,
+        isBlocked: false,
+        windowStart: new Date(),
+        lastUpdated: new Date(),
+      }),
+    },
     expiresAt: {
       type: Date,
       default: () => new Date(Date.now() + 60 * 60 * 24 * 1000),
@@ -58,7 +95,15 @@ const InstagramAccountSchema = new Schema<IInstagramAccount>(
   }
 );
 
+// Add index for rate limiting queries
+InstagramAccountSchema.index({
+  "rateLimitInfo.isBlocked": 1,
+  "rateLimitInfo.blockedUntil": 1,
+});
+InstagramAccountSchema.index({ "rateLimitInfo.windowStart": 1 });
+
 const InstagramAccount =
   mongoose.models?.InstagramAccount ||
   mongoose.model<IInstagramAccount>("InstagramAccount", InstagramAccountSchema);
+
 export default InstagramAccount;

@@ -88,3 +88,29 @@ export interface ScrapeRequest {
   maxPages?: number;
   maxDepth?: number;
 }
+// app/lib/types/queue.types.ts
+export interface QueueMetadata {
+  commentId?: string;
+  mediaId?: string;
+  recipientId?: string;
+  templateId?: string;
+  action?: string;
+  commenterUsername?: string;
+  rateLimitStatus?: {
+    calls?: number;
+    remaining?: number;
+    isBlocked?: boolean;
+    blockedUntil?: Date;
+  };
+}
+
+export type QueueActionType =
+  | "COMMENT"
+  | "DM"
+  | "POSTBACK"
+  | "PROFILE"
+  | "FOLLOW_CHECK";
+
+export interface QueuePayload {
+  [key: string]: any;
+}
