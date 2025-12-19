@@ -1,12 +1,8 @@
 // app/api/webhooks/instagram/route.ts
-import {
-  getAccountRateLimitStatus,
-  handleInstagramWebhook,
-} from "@/lib/action/instaApi.action";
+import { handleInstagramWebhook } from "@/lib/action/instaApi.action";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  // Instagram verification handshake
   const mode = req.nextUrl.searchParams.get("hub.mode");
   const token = req.nextUrl.searchParams.get("hub.verify_token");
   const challenge = req.nextUrl.searchParams.get("hub.challenge");
@@ -25,16 +21,7 @@ export async function POST(req: Request) {
     const payload = await req.json();
     console.log("Received Instagram webhook payload:", payload);
 
-    // Process the webhook
     const result = await handleInstagramWebhook(payload);
-
-    // Log rate limit status
-    if (payload.entry?.[0]?.id) {
-      const accountId = payload.entry[0].id;
-
-      const rateStatus = await getAccountRateLimitStatus(accountId);
-      console.log(`Rate limit status for ${accountId}:`, rateStatus);
-    }
 
     return NextResponse.json(result);
   } catch (error) {

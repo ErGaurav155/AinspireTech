@@ -9,8 +9,16 @@ import InstaReplyTemplate, {
 } from "../database/models/insta/ReplyTemplate.model";
 import { getUserById } from "./user.actions";
 import User from "../database/models/user.model";
-import RateLimiterService from "../services/rateLimiter";
-import QueueService from "../services/queue";
+import {
+  canMakeCall,
+  getAccountStatus,
+  getTopUsers,
+} from "../services/rateLimiter";
+import {
+  cleanupOldQueueItems,
+  enqueueItem,
+  getQueueStats,
+} from "../services/queue";
 
 // Interfaces
 interface InstagramComment {
@@ -36,11 +44,26 @@ interface FollowRelationship {
   is_user_follow_business?: boolean;
 }
 
-// Rate Limiter Constants
+// Extended metadata interface to include rateLimitStatus
+interface ExtendedMetadata {
+  commentId?: string;
+  mediaId?: string;
+  recipientId?: string;
+  templateId?: string;
+  action?: string;
+  commenterUsername?: string;
+  rateLimitStatus?: {
+    calls: number;
+    remaining: number;
+    isBlocked: boolean;
+    blockedUntil?: Date;
+  };
+}
+
+// Constants
 const RATE_LIMIT_MAX_REQUESTS = 180;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 const RATE_LIMIT_BLOCK_THRESHOLD = 170;
-const RATE_LIMIT_BLOCK_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
 function isMeaningfulComment(text: string): boolean {
   const cleanedText = text.replace(/\s+/g, "").replace(/[^\w]/g, "");
@@ -100,6 +123,18 @@ async function sendInitialAccessDM(
   openDm: string
 ): Promise<boolean> {
   try {
+    // Check rate limit before making API call
+    const rateCheck = await canMakeCall(
+      accountId,
+      accountId,
+      "SEND_INITIAL_DM"
+    );
+
+    if (!rateCheck.allowed) {
+      console.warn(`Rate limited for account ${accountId}. DM queued.`);
+      return false;
+    }
+
     const response = await fetch(
       `https://graph.instagram.com/v23.0/${accountId}/messages`,
       {
@@ -152,6 +187,20 @@ async function sendFollowReminderDM(
   targetTemplate: string
 ): Promise<boolean> {
   try {
+    // Check rate limit before making API call
+    const rateCheck = await canMakeCall(
+      accountId,
+      accountId,
+      "SEND_FOLLOW_REMINDER"
+    );
+
+    if (!rateCheck.allowed) {
+      console.warn(
+        `Rate limited for account ${accountId}. Follow reminder DM queued.`
+      );
+      return false;
+    }
+
     const response = await fetch(
       `https://graph.instagram.com/v23.0/${accountId}/messages`,
       {
@@ -167,7 +216,7 @@ async function sendFollowReminderDM(
               type: "template",
               payload: {
                 template_type: "button",
-                text: `I noticed you have not followed us yet . It would mean a lot if you visit our profile and hit follow, then tap "I am following" to unlock your link!`,
+                text: `I noticed you have not followed us yet. It would mean a lot if you visit our profile and hit follow, then tap "I am following" to unlock your link!`,
                 buttons: [
                   {
                     type: "web_url",
@@ -209,6 +258,20 @@ async function sendFinalLinkDM(
   content: { text: string; link: string; buttonTitle?: string }[]
 ): Promise<boolean> {
   try {
+    // Check rate limit before making API call
+    const rateCheck = await canMakeCall(
+      accountId,
+      accountId,
+      "SEND_FINAL_LINK"
+    );
+
+    if (!rateCheck.allowed) {
+      console.warn(
+        `Rate limited for account ${accountId}. Final link DM queued.`
+      );
+      return false;
+    }
+
     const randomNumber = Math.floor(Math.random() * content.length);
     const {
       text,
@@ -268,6 +331,20 @@ async function replyToComment(
   message: string[]
 ): Promise<string | boolean> {
   try {
+    // Check rate limit before making API call
+    const rateCheck = await canMakeCall(
+      accountId,
+      accountId,
+      "REPLY_TO_COMMENT"
+    );
+
+    if (!rateCheck.allowed) {
+      console.warn(
+        `Rate limited for account ${accountId}. Comment reply queued.`
+      );
+      return false;
+    }
+
     // Verify media ownership
     const mediaResponse = await fetch(
       `https://graph.instagram.com/v23.0/${mediaId}?fields=id,username&access_token=${accessToken}`
@@ -320,6 +397,15 @@ async function replyToComment(
 
 async function validateAccessToken(accessToken: string): Promise<boolean> {
   try {
+    // Check rate limit before making API call
+    // Use a generic accountId since this is a validation call
+    const rateCheck = await canMakeCall("system", "system", "VALIDATE_TOKEN");
+
+    if (!rateCheck.allowed) {
+      console.warn("Rate limited for token validation");
+      return false;
+    }
+
     const response = await fetch(
       `https://graph.instagram.com/v23.0/me?fields=id&access_token=${accessToken}`
     );
@@ -381,6 +467,35 @@ async function updateAccountRateLimitInfo(
   );
 }
 
+// Helper function to safely add metadata with rateLimitStatus
+async function enqueueWithMetadata(
+  accountId: string,
+  userId: string,
+  actionType: "COMMENT" | "DM" | "POSTBACK" | "PROFILE" | "FOLLOW_CHECK",
+  payload: any,
+  priority: number = 3,
+  metadata?: ExtendedMetadata
+) {
+  // Extract only the known properties for the queue metadata
+  const queueMetadata = {
+    commentId: metadata?.commentId,
+    mediaId: metadata?.mediaId,
+    recipientId: metadata?.recipientId,
+    templateId: metadata?.templateId,
+    action: metadata?.action,
+    commenterUsername: metadata?.commenterUsername,
+  };
+
+  return await enqueueItem(
+    accountId,
+    userId,
+    actionType,
+    payload,
+    priority,
+    queueMetadata
+  );
+}
+
 // Handle postback (button clicks) with queue integration
 export async function handlePostback(
   accountId: string,
@@ -412,7 +527,7 @@ export async function handlePostback(
     }
 
     // Check rate limit before processing
-    const rateStatus = await RateLimiterService.getAccountStatus(accountId);
+    const rateStatus = await getAccountStatus(accountId);
     await updateAccountRateLimitInfo(accountId, rateStatus);
 
     // Handle CHECK_FOLLOW - when user clicks "Send me the access"
@@ -431,7 +546,7 @@ export async function handlePostback(
 
       if (templates[0].isFollow === false) {
         // Directly send link if no follow required - enqueue DM with high priority
-        await QueueService.enqueue(
+        await enqueueWithMetadata(
           accountId,
           userId,
           "DM",
@@ -452,7 +567,7 @@ export async function handlePostback(
       }
 
       // First, check if user follows
-      const followCheckResult = await QueueService.enqueue(
+      const followCheckResult = await enqueueWithMetadata(
         accountId,
         userId,
         "FOLLOW_CHECK",
@@ -481,7 +596,7 @@ export async function handlePostback(
 
             if (followStatus.is_user_follow_business) {
               // User follows - send final link
-              await QueueService.enqueue(
+              await enqueueWithMetadata(
                 accountId,
                 userId,
                 "DM",
@@ -500,7 +615,7 @@ export async function handlePostback(
               );
             } else {
               // User doesn't follow - send follow reminder
-              await QueueService.enqueue(
+              await enqueueWithMetadata(
                 accountId,
                 userId,
                 "DM",
@@ -541,7 +656,7 @@ export async function handlePostback(
       }
 
       // Enqueue follow verification
-      const verifyResult = await QueueService.enqueue(
+      const verifyResult = await enqueueWithMetadata(
         accountId,
         userId,
         "FOLLOW_CHECK",
@@ -567,7 +682,7 @@ export async function handlePostback(
 
             if (followStatus.is_user_follow_business) {
               // User is now following - send final link
-              await QueueService.enqueue(
+              await enqueueWithMetadata(
                 accountId,
                 userId,
                 "DM",
@@ -586,7 +701,7 @@ export async function handlePostback(
               );
             } else {
               // User still not following - send reminder again
-              await QueueService.enqueue(
+              await enqueueWithMetadata(
                 accountId,
                 userId,
                 "DM",
@@ -673,7 +788,7 @@ export async function processComment(
     const startTime = Date.now();
 
     // Check rate limit status before processing
-    const rateStatus = await RateLimiterService.getAccountStatus(accountId);
+    const rateStatus = await getAccountStatus(accountId);
     await updateAccountRateLimitInfo(accountId, rateStatus);
 
     if (rateStatus.isBlocked) {
@@ -682,8 +797,16 @@ export async function processComment(
       );
     }
 
+    // Store rate limit status for logging (not in queue metadata)
+    const rateLimitStatusForLog = {
+      calls: rateStatus.calls,
+      remaining: rateStatus.remaining,
+      isBlocked: rateStatus.isBlocked,
+      blockedUntil: rateStatus.blockedUntil,
+    };
+
     // Enqueue DM sending with medium priority (2) for comments
-    const dmResult = await QueueService.enqueue(
+    const dmResult = await enqueueWithMetadata(
       accountId,
       userId,
       "DM",
@@ -702,12 +825,6 @@ export async function processComment(
         templateId: matchingTemplate._id?.toString(),
         commenterUsername: comment.username,
         action: "COMMENT_INITIAL_DM",
-        rateLimitStatus: {
-          calls: rateStatus.calls,
-          remaining: rateStatus.remaining,
-          isBlocked: rateStatus.isBlocked,
-          blockedUntil: rateStatus.blockedUntil,
-        },
       }
     );
 
@@ -715,7 +832,7 @@ export async function processComment(
       dmMessage = true;
 
       // Enqueue comment reply with same priority
-      const replyResult = await QueueService.enqueue(
+      const replyResult = await enqueueWithMetadata(
         accountId,
         userId,
         "COMMENT",
@@ -733,12 +850,6 @@ export async function processComment(
           templateId: matchingTemplate._id?.toString(),
           commenterUsername: comment.username,
           action: "COMMENT_REPLY",
-          rateLimitStatus: {
-            calls: rateStatus.calls,
-            remaining: rateStatus.remaining,
-            isBlocked: rateStatus.isBlocked,
-            blockedUntil: rateStatus.blockedUntil,
-          },
         }
       );
 
@@ -764,12 +875,7 @@ export async function processComment(
         queueId: dmResult.queueId,
         scheduledFor: dmResult.scheduledFor,
         delayMs: dmResult.delayMs,
-        rateLimitStatus: {
-          calls: rateStatus.calls,
-          remaining: rateStatus.remaining,
-          isBlocked: rateStatus.isBlocked,
-          blockedUntil: rateStatus.blockedUntil,
-        },
+        rateLimitStatus: rateLimitStatusForLog,
       },
     });
 
@@ -814,8 +920,8 @@ export async function getAccountRateLimitStatus(accountId: string): Promise<{
 }> {
   await connectToDatabase();
 
-  const rateStatus = await RateLimiterService.getAccountStatus(accountId);
-  const queueStats = await QueueService.getStats(accountId);
+  const rateStatus = await getAccountStatus(accountId);
+  const queueStats = await getQueueStats(accountId);
 
   const account = await InstagramAccount.findOne({ instagramId: accountId });
 
@@ -837,7 +943,7 @@ export async function resetAccountRateLimit(
   try {
     await connectToDatabase();
 
-    await RateLimiterService.resetAccount(accountId);
+    await resetAccountRateLimit(accountId);
 
     // Also reset in account document
     await InstagramAccount.findOneAndUpdate(
@@ -916,8 +1022,8 @@ export async function getSystemRateLimitStats(): Promise<{
     return sum;
   }, 0);
 
-  const topUsers = await RateLimiterService.getTopUsers(10);
-  const queueStats = await QueueService.getStats();
+  const topUsers = await getTopUsers(10);
+  const queueStats = await getQueueStats();
 
   return {
     totalAccounts,
@@ -1040,12 +1146,12 @@ export async function handleInstagramWebhook(
   }
 }
 
-// Clean up old queue items
-export async function cleanupOldQueueItems(
+// Clean up old queue items - FIXED: Properly handles the return type
+export async function cleanupQueueItems(
   days: number = 7
 ): Promise<{ success: boolean; deletedCount: number }> {
   try {
-    const deletedCount = await QueueService.cleanupOldItems(days);
+    const deletedCount = await cleanupOldQueueItems(days); // Call the imported function
     return {
       success: true,
       deletedCount,

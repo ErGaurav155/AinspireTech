@@ -6,7 +6,7 @@ export interface IQueueItem extends Document {
   userId: string;
   actionType: "COMMENT" | "DM" | "POSTBACK" | "PROFILE" | "FOLLOW_CHECK";
   payload: any;
-  priority: number; // 1 = high, 5 = low
+  priority: number;
   status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "QUEUED";
   attempts: number;
   maxAttempts: number;
@@ -19,14 +19,8 @@ export interface IQueueItem extends Document {
     mediaId?: string;
     recipientId?: string;
     templateId?: string;
-    action?: string; // Added this
-    commenterUsername?: string; // Added this
-    rateLimitStatus?: {
-      calls?: number;
-      remaining?: number;
-      isBlocked?: boolean;
-      blockedUntil?: Date;
-    };
+    action?: string;
+    commenterUsername?: string;
   };
   createdAt: Date;
   updatedAt: Date;
@@ -59,14 +53,8 @@ const QueueItemSchema = new Schema<IQueueItem>(
       mediaId: { type: String },
       recipientId: { type: String },
       templateId: { type: String },
-      action: { type: String }, // Added this
-      commenterUsername: { type: String }, // Added this
-      rateLimitStatus: {
-        calls: { type: Number },
-        remaining: { type: Number },
-        isBlocked: { type: Boolean },
-        blockedUntil: { type: Date },
-      },
+      action: { type: String },
+      commenterUsername: { type: String },
     },
   },
   {
@@ -74,10 +62,6 @@ const QueueItemSchema = new Schema<IQueueItem>(
   }
 );
 
-// Indexes for efficient queue processing
-QueueItemSchema.index({ status: 1, priority: 1, scheduledFor: 1 });
-QueueItemSchema.index({ accountId: 1, status: 1 });
-QueueItemSchema.index({ createdAt: 1 }, { expireAfterSeconds: 604800 }); // Auto-delete after 7 days
-
 export const QueueItem: Model<IQueueItem> =
-  mongoose.models.QueueItem || mongoose.model("QueueItem", QueueItemSchema);
+  mongoose.models.QueueItem ||
+  mongoose.model<IQueueItem>("QueueItem", QueueItemSchema);

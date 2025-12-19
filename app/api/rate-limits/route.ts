@@ -1,9 +1,13 @@
 // app/api/rate-limits/status/route.ts
-
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import QueueService from "@/lib/services/queue";
-import RateLimiterService from "@/lib/services/rateLimiter";
+import {
+  getAccountStatus,
+  getSystemStats,
+  getTopUsers,
+  resetAccountRateLimit,
+} from "@/lib/services/rateLimiter";
+import { getQueueStats } from "@/lib/services/queue";
 
 export async function GET(request: Request) {
   try {
@@ -19,13 +23,17 @@ export async function GET(request: Request) {
     let queueStats;
 
     if (accountId) {
-      rateLimitStatus = await RateLimiterService.getAccountStatus(accountId);
-      queueStats = await QueueService.getStats(accountId);
+      rateLimitStatus = await getAccountStatus(accountId);
+      queueStats = await getQueueStats(accountId);
     } else {
       // Get top users if no account specified
-      const topUsers = await RateLimiterService.getTopUsers(10);
-      rateLimitStatus = { summary: topUsers };
-      queueStats = await QueueService.getStats();
+      const topUsers = await getTopUsers(10);
+      const systemStats = await getSystemStats();
+      rateLimitStatus = {
+        summary: topUsers,
+        system: systemStats,
+      };
+      queueStats = await getQueueStats();
     }
 
     return NextResponse.json({
@@ -66,7 +74,7 @@ export async function POST(request: Request) {
       );
     }
 
-    await RateLimiterService.resetAccount(accountId);
+    await resetAccountRateLimit(accountId);
 
     return NextResponse.json({
       success: true,
