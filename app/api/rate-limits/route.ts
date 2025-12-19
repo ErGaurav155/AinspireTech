@@ -1,4 +1,4 @@
-// app/api/rate-limits/status/route.ts
+// app/api/rate-limits/route.ts
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import {

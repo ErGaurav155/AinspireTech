@@ -38,7 +38,7 @@ export default function RateLimitDashboard() {
 
     try {
       const params = new URLSearchParams({ accountId });
-      const response = await fetch(`/api/rate-limits/status?${params}`);
+      const response = await fetch(`/api/rate-limits?${params}`);
       const data = await response.json();
 
       if (data.success) {
@@ -62,7 +62,7 @@ export default function RateLimitDashboard() {
       return;
 
     try {
-      const response = await fetch("/api/rate-limits/status", {
+      const response = await fetch("/api/rate-limits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accountId }),
