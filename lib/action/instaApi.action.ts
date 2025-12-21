@@ -11,14 +11,14 @@ import { getUserById } from "./user.actions";
 import User from "../database/models/user.model";
 import {
   canMakeCall,
-  getAccountStatus,
-  getTopUsers,
-} from "../services/rateLimiter";
+  getCurrentWindowInfo,
+} from "../services/hourlyRateLimiter";
 import {
   cleanupOldQueueItems,
   enqueueItem,
   getQueueStats,
 } from "../services/queue";
+import { hybridQueueProcessor } from "../services/hybridQueueProcessor";
 
 // Interfaces
 interface InstagramComment {
@@ -114,7 +114,7 @@ export async function checkFollowRelationshipDBFirst(
 }
 
 // Send initial DM with access button
-async function sendInitialAccessDM(
+export async function sendInitialAccessDM(
   accountId: string,
   accessToken: string,
   recipientId: string,
@@ -123,18 +123,6 @@ async function sendInitialAccessDM(
   openDm: string
 ): Promise<boolean> {
   try {
-    // Check rate limit before making API call
-    const rateCheck = await canMakeCall(
-      accountId,
-      accountId,
-      "SEND_INITIAL_DM"
-    );
-
-    if (!rateCheck.allowed) {
-      console.warn(`Rate limited for account ${accountId}. DM queued.`);
-      return false;
-    }
-
     const response = await fetch(
       `https://graph.instagram.com/v23.0/${accountId}/messages`,
       {
@@ -179,7 +167,7 @@ async function sendInitialAccessDM(
 }
 
 // Send follow reminder DM
-async function sendFollowReminderDM(
+export async function sendFollowReminderDM(
   accountId: string,
   accessToken: string,
   recipientId: string,
@@ -187,20 +175,6 @@ async function sendFollowReminderDM(
   targetTemplate: string
 ): Promise<boolean> {
   try {
-    // Check rate limit before making API call
-    const rateCheck = await canMakeCall(
-      accountId,
-      accountId,
-      "SEND_FOLLOW_REMINDER"
-    );
-
-    if (!rateCheck.allowed) {
-      console.warn(
-        `Rate limited for account ${accountId}. Follow reminder DM queued.`
-      );
-      return false;
-    }
-
     const response = await fetch(
       `https://graph.instagram.com/v23.0/${accountId}/messages`,
       {
@@ -251,27 +225,13 @@ async function sendFollowReminderDM(
 }
 
 // Send final link DM
-async function sendFinalLinkDM(
+export async function sendFinalLinkDM(
   accountId: string,
   accessToken: string,
   recipientId: string,
   content: { text: string; link: string; buttonTitle?: string }[]
 ): Promise<boolean> {
   try {
-    // Check rate limit before making API call
-    const rateCheck = await canMakeCall(
-      accountId,
-      accountId,
-      "SEND_FINAL_LINK"
-    );
-
-    if (!rateCheck.allowed) {
-      console.warn(
-        `Rate limited for account ${accountId}. Final link DM queued.`
-      );
-      return false;
-    }
-
     const randomNumber = Math.floor(Math.random() * content.length);
     const {
       text,
@@ -322,7 +282,7 @@ async function sendFinalLinkDM(
   }
 }
 
-async function replyToComment(
+export async function replyToComment(
   username: string,
   accountId: string,
   accessToken: string,
@@ -331,20 +291,6 @@ async function replyToComment(
   message: string[]
 ): Promise<string | boolean> {
   try {
-    // Check rate limit before making API call
-    const rateCheck = await canMakeCall(
-      accountId,
-      accountId,
-      "REPLY_TO_COMMENT"
-    );
-
-    if (!rateCheck.allowed) {
-      console.warn(
-        `Rate limited for account ${accountId}. Comment reply queued.`
-      );
-      return false;
-    }
-
     // Verify media ownership
     const mediaResponse = await fetch(
       `https://graph.instagram.com/v23.0/${mediaId}?fields=id,username&access_token=${accessToken}`
@@ -395,17 +341,10 @@ async function replyToComment(
   }
 }
 
-async function validateAccessToken(accessToken: string): Promise<boolean> {
+export async function validateAccessToken(
+  accessToken: string
+): Promise<boolean> {
   try {
-    // Check rate limit before making API call
-    // Use a generic accountId since this is a validation call
-    const rateCheck = await canMakeCall("system", "system", "VALIDATE_TOKEN");
-
-    if (!rateCheck.allowed) {
-      console.warn("Rate limited for token validation");
-      return false;
-    }
-
     const response = await fetch(
       `https://graph.instagram.com/v23.0/me?fields=id&access_token=${accessToken}`
     );
@@ -471,6 +410,7 @@ async function updateAccountRateLimitInfo(
 async function enqueueWithMetadata(
   accountId: string,
   userId: string,
+  clerkId: string,
   actionType: "COMMENT" | "DM" | "POSTBACK" | "PROFILE" | "FOLLOW_CHECK",
   payload: any,
   priority: number = 3,
@@ -489,6 +429,7 @@ async function enqueueWithMetadata(
   return await enqueueItem(
     accountId,
     userId,
+    clerkId,
     actionType,
     payload,
     priority,
@@ -502,33 +443,66 @@ export async function handlePostback(
   userId: string,
   recipientId: string,
   payload: string
-): Promise<void> {
+): Promise<{
+  success: boolean;
+  queued: boolean;
+  queueInfo?: any;
+  reason?: string;
+}> {
   try {
     await connectToDatabase();
 
     const account = await InstagramAccount.findOne({ instagramId: accountId });
     if (!account) {
-      console.error("Account not found for postback");
-      return;
+      return { success: false, queued: false, reason: "Account not found" };
     }
 
     // Check user's reply limit first
     const userInfo = await getUserById(userId);
     if (!userInfo) {
-      console.error("User not found for postback");
-      return;
+      return { success: false, queued: false, reason: "User not found" };
     }
 
     if (userInfo.totalReplies >= userInfo.replyLimit) {
       console.warn(
         `Account ${accountId} has reached its reply limit (${userInfo.totalReplies}/${userInfo.replyLimit})`
       );
-      return;
+      return {
+        success: false,
+        queued: false,
+        reason: "User reply limit reached",
+      };
     }
 
     // Check rate limit before processing
-    const rateStatus = await getAccountStatus(accountId);
-    await updateAccountRateLimitInfo(accountId, rateStatus);
+    const rateCheck = await canMakeCall(
+      userInfo.clerkId,
+      accountId,
+      "POSTBACK",
+      {
+        recipientId,
+        payload,
+        accountId,
+      }
+    );
+
+    if (!rateCheck.allowed) {
+      // Log the rate limit status
+      console.log(`Postback rate limited: ${rateCheck.reason}`);
+
+      // Trigger queue processing check (fallback mechanism)
+      const shouldCheckQueue = Math.random() < 0.1; // 10% chance
+      if (shouldCheckQueue) {
+        await hybridQueueProcessor();
+      }
+
+      return {
+        success: false,
+        queued: rateCheck.shouldQueue,
+        queueInfo: rateCheck.queueInfo,
+        reason: rateCheck.reason,
+      };
+    }
 
     // Handle CHECK_FOLLOW - when user clicks "Send me the access"
     if (payload.startsWith("CHECK_FOLLOW_")) {
@@ -541,103 +515,91 @@ export async function handlePostback(
 
       if (templates.length === 0) {
         console.error("No active templates found for postback");
-        return;
+        return { success: false, queued: false, reason: "No active templates" };
       }
 
       if (templates[0].isFollow === false) {
-        // Directly send link if no follow required - enqueue DM with high priority
-        await enqueueWithMetadata(
+        // Directly send link if no follow required
+        const dmResult = await sendFinalLinkDM(
           accountId,
-          userId,
-          "DM",
-          {
-            dmType: "FINAL_LINK",
-            accessToken: account.accessToken,
-            recipientId: recipientId,
-            content: templates[0].content,
-          },
-          1, // High priority for user-initiated actions
-          {
-            recipientId,
-            templateId: templates[0]._id?.toString(),
-            action: "CHECK_FOLLOW_DIRECT",
-          }
+          account.accessToken,
+          recipientId,
+          templates[0].content
         );
-        return;
+
+        if (dmResult) {
+          // Update user reply count
+          await User.findByIdAndUpdate(userInfo._id, {
+            $inc: { totalReplies: 1 },
+          });
+
+          // Trigger queue processing check
+          const shouldCheckQueue = Math.random() < 0.1;
+          if (shouldCheckQueue) {
+            await hybridQueueProcessor();
+          }
+
+          return { success: true, queued: false };
+        }
+        return { success: false, queued: false, reason: "Failed to send DM" };
       }
 
       // First, check if user follows
-      const followCheckResult = await enqueueWithMetadata(
-        accountId,
-        userId,
-        "FOLLOW_CHECK",
-        {
-          igScopedUserId: recipientId,
-          pageAccessToken: account.accessToken,
-        },
-        1, // High priority
-        {
+      try {
+        const followStatus = await checkFollowRelationshipDBFirst(
           recipientId,
-          templateId: templates[0]._id?.toString(),
-          action: "CHECK_FOLLOW_VERIFY",
-        }
-      );
+          account.accessToken
+        );
 
-      if (followCheckResult.queued) {
-        // After follow check completes, we need to handle the result
-        // In a real implementation, you would set up a webhook or callback
-        // For now, we'll simulate with a timeout
-        setTimeout(async () => {
-          try {
-            const followStatus = await checkFollowRelationshipDBFirst(
-              recipientId,
-              account.accessToken
-            );
+        if (followStatus.is_user_follow_business) {
+          // User follows - send final link
+          const dmResult = await sendFinalLinkDM(
+            accountId,
+            account.accessToken,
+            recipientId,
+            templates[0].content
+          );
 
-            if (followStatus.is_user_follow_business) {
-              // User follows - send final link
-              await enqueueWithMetadata(
-                accountId,
-                userId,
-                "DM",
-                {
-                  dmType: "FINAL_LINK",
-                  accessToken: account.accessToken,
-                  recipientId: recipientId,
-                  content: templates[0].content,
-                },
-                1,
-                {
-                  recipientId,
-                  templateId: templates[0]._id?.toString(),
-                  action: "CHECK_FOLLOW_SUCCESS",
-                }
-              );
-            } else {
-              // User doesn't follow - send follow reminder
-              await enqueueWithMetadata(
-                accountId,
-                userId,
-                "DM",
-                {
-                  dmType: "FOLLOW_REMINDER",
-                  accessToken: account.accessToken,
-                  recipientId: recipientId,
-                  targetUsername: account.username,
-                  targetTemplate: targetTemplate,
-                },
-                1,
-                {
-                  recipientId,
-                  templateId: templates[0]._id?.toString(),
-                  action: "CHECK_FOLLOW_REMINDER",
-                }
-              );
+          if (dmResult) {
+            await User.findByIdAndUpdate(userInfo._id, {
+              $inc: { totalReplies: 1 },
+            });
+
+            // Trigger queue processing check
+            const shouldCheckQueue = Math.random() < 0.1;
+            if (shouldCheckQueue) {
+              await hybridQueueProcessor();
             }
-          } catch (error) {
-            console.error("Error processing follow check result:", error);
+
+            return { success: true, queued: false };
           }
-        }, 2000);
+        } else {
+          // User doesn't follow - send follow reminder
+          const reminderResult = await sendFollowReminderDM(
+            accountId,
+            account.accessToken,
+            recipientId,
+            account.username,
+            targetTemplate
+          );
+
+          if (reminderResult) {
+            await User.findByIdAndUpdate(userInfo._id, {
+              $inc: { totalReplies: 1 },
+            });
+
+            // Trigger queue processing check
+            const shouldCheckQueue = Math.random() < 0.1;
+            if (shouldCheckQueue) {
+              await hybridQueueProcessor();
+            }
+
+            return { success: true, queued: false };
+          }
+        }
+      } catch (error) {
+        console.error("Error checking follow relationship:", error);
+        return { success: false, queued: false, reason: "Follow check failed" };
       }
     }
 
@@ -652,96 +614,103 @@ export async function handlePostback(
 
       if (templates.length === 0) {
         console.error("No active templates found for postback");
-        return;
+        return { success: false, queued: false, reason: "No active templates" };
       }
 
-      // Enqueue follow verification
-      const verifyResult = await enqueueWithMetadata(
-        accountId,
-        userId,
-        "FOLLOW_CHECK",
-        {
-          igScopedUserId: recipientId,
-          pageAccessToken: account.accessToken,
-        },
-        1,
-        {
+      try {
+        const followStatus = await checkFollowRelationshipDBFirst(
           recipientId,
-          templateId: templates[0]._id?.toString(),
-          action: "VERIFY_FOLLOW",
-        }
-      );
+          account.accessToken
+        );
 
-      if (verifyResult.queued) {
-        setTimeout(async () => {
-          try {
-            const followStatus = await checkFollowRelationshipDBFirst(
-              recipientId,
-              account.accessToken
-            );
+        if (followStatus.is_user_follow_business) {
+          // User is now following - send final link
+          const dmResult = await sendFinalLinkDM(
+            accountId,
+            account.accessToken,
+            recipientId,
+            templates[0].content
+          );
 
-            if (followStatus.is_user_follow_business) {
-              // User is now following - send final link
-              await enqueueWithMetadata(
-                accountId,
-                userId,
-                "DM",
-                {
-                  dmType: "FINAL_LINK",
-                  accessToken: account.accessToken,
-                  recipientId: recipientId,
-                  content: templates[0].content,
-                },
-                1,
-                {
-                  recipientId,
-                  templateId: templates[0]._id?.toString(),
-                  action: "VERIFY_FOLLOW_SUCCESS",
-                }
-              );
-            } else {
-              // User still not following - send reminder again
-              await enqueueWithMetadata(
-                accountId,
-                userId,
-                "DM",
-                {
-                  dmType: "FOLLOW_REMINDER",
-                  accessToken: account.accessToken,
-                  recipientId: recipientId,
-                  targetUsername: account.username,
-                  targetTemplate: targetTemplate,
-                },
-                1,
-                {
-                  recipientId,
-                  templateId: templates[0]._id?.toString(),
-                  action: "VERIFY_FOLLOW_REMINDER",
-                }
-              );
+          if (dmResult) {
+            await User.findByIdAndUpdate(userInfo._id, {
+              $inc: { totalReplies: 1 },
+            });
+
+            // Trigger queue processing check
+            const shouldCheckQueue = Math.random() < 0.1;
+            if (shouldCheckQueue) {
+              await hybridQueueProcessor();
             }
-          } catch (error) {
-            console.error("Error processing verify follow result:", error);
+
+            return { success: true, queued: false };
           }
-        }, 2000);
+        } else {
+          // User still not following - send reminder again
+          const reminderResult = await sendFollowReminderDM(
+            accountId,
+            account.accessToken,
+            recipientId,
+            account.username,
+            targetTemplate
+          );
+
+          if (reminderResult) {
+            await User.findByIdAndUpdate(userInfo._id, {
+              $inc: { totalReplies: 1 },
+            });
+
+            // Trigger queue processing check
+            const shouldCheckQueue = Math.random() < 0.1;
+            if (shouldCheckQueue) {
+              await hybridQueueProcessor();
+            }
+
+            return { success: true, queued: false };
+          }
+        }
+      } catch (error) {
+        console.error("Error verifying follow relationship:", error);
+        return {
+          success: false,
+          queued: false,
+          reason: "Follow verification failed",
+        };
       }
     }
 
     // Update user's reply count for this postback action
     await User.findByIdAndUpdate(userInfo._id, { $inc: { totalReplies: 1 } });
+
+    // Trigger queue processing check (every 10th postback)
+    const shouldCheckQueue = Math.random() < 0.1; // 10% chance
+    if (shouldCheckQueue) {
+      await hybridQueueProcessor();
+    }
+
+    return { success: true, queued: false };
   } catch (error) {
     console.error("Error handling postback:", error);
-    return;
+    return {
+      success: false,
+      queued: false,
+      reason: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
-// Core Comment Processing with Queue Integration
+// Core Comment Processing with Queue Integration - COMPLETE VERSION
 export async function processComment(
   accountId: string,
   userId: string,
   comment: InstagramComment
-): Promise<void> {
-  let success;
+): Promise<{
+  success: boolean;
+  queued: boolean;
+  queueInfo?: any;
+  reason?: string;
+}> {
+  let success = false;
   let dmMessage = false;
   let responseTime = 0;
   let matchingTemplate: IReplyTemplate | null = null;
@@ -751,19 +720,29 @@ export async function processComment(
 
     // Check duplicate processing
     const existingLog = await InstaReplyLog.findOne({ commentId: comment.id });
-    if (existingLog) return;
+    if (existingLog) {
+      return { success: false, queued: false, reason: "Already processed" };
+    }
 
     const account = await InstagramAccount.findOne({ instagramId: accountId });
-    if (!account || !account.isActive) return;
+    if (!account || !account.isActive) {
+      return { success: false, queued: false, reason: "Account not active" };
+    }
 
     const userInfo = await getUserById(userId);
-    if (!userInfo) return;
+    if (!userInfo) {
+      return { success: false, queued: false, reason: "User not found" };
+    }
 
     if (userInfo.totalReplies >= userInfo.replyLimit) {
       console.warn(
         `Account ${accountId} has reached its reply limit (${userInfo.totalReplies}/${userInfo.replyLimit})`
       );
-      return;
+      return {
+        success: false,
+        queued: false,
+        reason: "User reply limit reached",
+      };
     }
 
     // Validate access token
@@ -771,7 +750,7 @@ export async function processComment(
     if (!isValidToken) {
       account.isActive = false;
       await account.save();
-      return;
+      return { success: false, queued: false, reason: "Invalid token" };
     }
 
     // Find matching template
@@ -783,77 +762,88 @@ export async function processComment(
     }).sort({ priority: 1 });
 
     matchingTemplate = await findMatchingTemplate(comment.text, templates);
-    if (!matchingTemplate) return;
+    if (!matchingTemplate) {
+      return { success: false, queued: false, reason: "No matching template" };
+    }
 
     const startTime = Date.now();
 
-    // Check rate limit status before processing
-    const rateStatus = await getAccountStatus(accountId);
-    await updateAccountRateLimitInfo(accountId, rateStatus);
-
-    if (rateStatus.isBlocked) {
-      console.warn(
-        `Account ${accountId} is blocked until ${rateStatus.blockedUntil}. Comment queued.`
-      );
-    }
-
-    // Store rate limit status for logging (not in queue metadata)
-    const rateLimitStatusForLog = {
-      calls: rateStatus.calls,
-      remaining: rateStatus.remaining,
-      isBlocked: rateStatus.isBlocked,
-      blockedUntil: rateStatus.blockedUntil,
-    };
-
-    // Enqueue DM sending with medium priority (2) for comments
-    const dmResult = await enqueueWithMetadata(
+    // Check rate limit before processing
+    const rateCheck = await canMakeCall(
+      userInfo.clerkId,
       accountId,
-      userId,
-      "DM",
-      {
-        dmType: "INITIAL",
-        accessToken: account.accessToken,
-        recipientId: comment.id,
-        targetUsername: account.username,
-        templateMediaId: matchingTemplate.mediaId,
-        openDm: matchingTemplate.openDm,
-      },
-      2, // Medium priority for automated comments
+      "COMMENT",
       {
         commentId: comment.id,
         mediaId: comment.media_id,
         templateId: matchingTemplate._id?.toString(),
         commenterUsername: comment.username,
-        action: "COMMENT_INITIAL_DM",
+        username: account.username,
+        accessToken: account.accessToken,
+        message: matchingTemplate.reply,
       }
     );
 
-    if (dmResult.queued) {
+    if (!rateCheck.allowed) {
+      // Log that this was queued
+      await InstaReplyLog.create({
+        userId,
+        accountId,
+        templateId: matchingTemplate._id,
+        templateName: matchingTemplate.name,
+        commentId: comment.id,
+        commentText: comment.text,
+        replyText: "Queued due to rate limit",
+        success: false,
+        responseTime: 0,
+        mediaId: comment.media_id,
+        commenterUsername: comment.username,
+        metadata: {
+          rateLimitStatus: rateCheck.limits,
+          queueInfo: rateCheck.queueInfo,
+          templateName: matchingTemplate.name,
+        },
+      });
+
+      // Trigger queue processing check (fallback mechanism)
+      const shouldCheckQueue = Math.random() < 0.1; // 10% chance
+      if (shouldCheckQueue) {
+        await hybridQueueProcessor();
+      }
+
+      return {
+        success: false,
+        queued: rateCheck.shouldQueue,
+        queueInfo: rateCheck.queueInfo,
+        reason: rateCheck.reason,
+      };
+    }
+
+    // Rate limit passed, proceed with actual processing
+    // Enqueue DM sending
+    const dmResult = await sendInitialAccessDM(
+      accountId,
+      account.accessToken,
+      comment.id,
+      account.username,
+      matchingTemplate.mediaId,
+      matchingTemplate.openDm
+    );
+
+    if (dmResult) {
       dmMessage = true;
 
-      // Enqueue comment reply with same priority
-      const replyResult = await enqueueWithMetadata(
+      // Send comment reply
+      const replyResult = await replyToComment(
+        account.username,
         accountId,
-        userId,
-        "COMMENT",
-        {
-          username: account.username,
-          accessToken: account.accessToken,
-          commentId: comment.id,
-          mediaId: comment.media_id,
-          message: matchingTemplate.reply,
-        },
-        2,
-        {
-          commentId: comment.id,
-          mediaId: comment.media_id,
-          templateId: matchingTemplate._id?.toString(),
-          commenterUsername: comment.username,
-          action: "COMMENT_REPLY",
-        }
+        account.accessToken,
+        comment.id,
+        comment.media_id,
+        matchingTemplate.reply
       );
 
-      success = replyResult.queued;
+      success = !!replyResult;
     }
 
     responseTime = Date.now() - startTime;
@@ -866,16 +856,16 @@ export async function processComment(
       templateName: matchingTemplate.name,
       commentId: comment.id,
       commentText: comment.text,
-      replyText: success ? "Queued for processing" : "Failed to queue",
-      success: !!success,
+      replyText: success ? "Success" : "Failed",
+      success,
       responseTime,
       mediaId: comment.media_id,
       commenterUsername: comment.username,
       metadata: {
-        queueId: dmResult.queueId,
-        scheduledFor: dmResult.scheduledFor,
-        delayMs: dmResult.delayMs,
-        rateLimitStatus: rateLimitStatusForLog,
+        rateLimitStatus: rateCheck.limits,
+        dmSent: dmMessage,
+        replySuccess: success,
+        templateName: matchingTemplate.name,
       },
     });
 
@@ -890,21 +880,59 @@ export async function processComment(
     // Update user reply count
     await User.findByIdAndUpdate(userInfo._id, { $inc: { totalReplies: 1 } });
 
-    // Update account activity and reply count
+    // Update account activity
     await InstagramAccount.findByIdAndUpdate(account._id, {
       $inc: { accountReply: 1 },
       $set: {
         lastActivity: new Date(),
-        "rateLimitInfo.calls": rateStatus.calls,
-        "rateLimitInfo.remaining": rateStatus.remaining,
-        "rateLimitInfo.isBlocked": rateStatus.isBlocked,
-        "rateLimitInfo.blockedUntil": rateStatus.blockedUntil,
-        "rateLimitInfo.resetAt": new Date(Date.now() + rateStatus.resetInMs),
+        "rateLimitInfo.calls": (account.rateLimitInfo?.calls || 0) + 1,
+        "rateLimitInfo.remaining": Math.max(
+          0,
+          180 - ((account.rateLimitInfo?.calls || 0) + 1)
+        ),
         "rateLimitInfo.lastUpdated": new Date(),
       },
     });
+
+    // Trigger queue processing check (every 10th comment)
+    const shouldCheckQueue = Math.random() < 0.1; // 10% chance
+    if (shouldCheckQueue) {
+      await hybridQueueProcessor();
+    }
+
+    return {
+      success: true,
+      queued: false,
+    };
   } catch (error) {
     console.error("Error processing comment:", error);
+
+    // Log the error
+    if (matchingTemplate) {
+      await InstaReplyLog.create({
+        userId,
+        accountId,
+        templateId: matchingTemplate._id,
+        templateName: matchingTemplate.name,
+        commentId: comment.id,
+        commentText: comment.text,
+        replyText: "Error occurred",
+        success: false,
+        responseTime,
+        mediaId: comment.media_id,
+        commenterUsername: comment.username,
+        metadata: {
+          error: error instanceof Error ? error.message : "Unknown error",
+          templateName: matchingTemplate.name,
+        },
+      });
+    }
+
+    return {
+      success: false,
+      queued: false,
+      reason: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
@@ -920,18 +948,19 @@ export async function getAccountRateLimitStatus(accountId: string): Promise<{
 }> {
   await connectToDatabase();
 
-  const rateStatus = await getAccountStatus(accountId);
-  const queueStats = await getQueueStats(accountId);
+  // Use the new hourly rate limiter
+  const { windowLabel } = await getCurrentWindowInfo();
 
   const account = await InstagramAccount.findOne({ instagramId: accountId });
+  const queueStats = await getQueueStats(accountId);
 
   return {
-    calls: rateStatus.calls,
-    remaining: rateStatus.remaining,
-    isBlocked: rateStatus.isBlocked,
-    blockedUntil: rateStatus.blockedUntil,
+    calls: account?.rateLimitInfo?.calls || 0,
+    remaining: account?.rateLimitInfo?.remaining || 180,
+    isBlocked: account?.rateLimitInfo?.isBlocked || false,
+    blockedUntil: account?.rateLimitInfo?.blockedUntil,
     resetAt: account?.rateLimitInfo?.resetAt,
-    windowStart: rateStatus.windowStart,
+    windowStart: account?.rateLimitInfo?.windowStart || new Date(),
     queueStats,
   };
 }
@@ -942,8 +971,6 @@ export async function resetAccountRateLimit(
 ): Promise<{ success: boolean; message: string }> {
   try {
     await connectToDatabase();
-
-    await resetAccountRateLimit(accountId);
 
     // Also reset in account document
     await InstagramAccount.findOneAndUpdate(
@@ -1022,8 +1049,37 @@ export async function getSystemRateLimitStats(): Promise<{
     return sum;
   }, 0);
 
-  const topUsers = await getTopUsers(10);
+  // Get queue stats
   const queueStats = await getQueueStats();
+
+  // Get top users (simplified version)
+  const topUsers = await InstagramAccount.aggregate([
+    {
+      $match: {
+        isActive: true,
+        "rateLimitInfo.windowStart": { $gte: oneHourAgo },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          userId: "$userId",
+          accountId: "$instagramId",
+        },
+        totalCalls: { $sum: "$rateLimitInfo.calls" },
+      },
+    },
+    {
+      $project: {
+        userId: "$_id.userId",
+        accountId: "$_id.accountId",
+        totalCalls: 1,
+        avgCallsPerHour: { $divide: ["$totalCalls", 1] },
+      },
+    },
+    { $sort: { totalCalls: -1 } },
+    { $limit: 10 },
+  ]);
 
   return {
     totalAccounts,
@@ -1035,7 +1091,7 @@ export async function getSystemRateLimitStats(): Promise<{
   };
 }
 
-// Enhanced Webhook Handler to handle postbacks
+// Enhanced Webhook Handler to handle postbacks - COMPLETE VERSION
 export async function handleInstagramWebhook(
   payload: any
 ): Promise<{ success: boolean; message: string }> {
@@ -1136,6 +1192,9 @@ export async function handleInstagramWebhook(
       }
     }
 
+    // Trigger queue processing check after webhook processing
+    await hybridQueueProcessor();
+
     return { success: true, message: "Webhook processed" };
   } catch (error) {
     console.error("Webhook processing error:", error);
@@ -1151,7 +1210,7 @@ export async function cleanupQueueItems(
   days: number = 7
 ): Promise<{ success: boolean; deletedCount: number }> {
   try {
-    const deletedCount = await cleanupOldQueueItems(days); // Call the imported function
+    const deletedCount = await cleanupOldQueueItems(days);
     return {
       success: true,
       deletedCount,
@@ -1164,12 +1223,3 @@ export async function cleanupQueueItems(
     };
   }
 }
-
-// Export helper functions for direct use if needed
-export {
-  sendInitialAccessDM,
-  sendFollowReminderDM,
-  sendFinalLinkDM,
-  replyToComment,
-  validateAccessToken,
-};

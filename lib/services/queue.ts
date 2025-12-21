@@ -1,15 +1,16 @@
-// app/lib/server/queue.ts
+// app/lib/services/queue.ts
 "use server";
 
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { QueueItem, IQueueItem } from "@/lib/database/models/rate/Queue.model";
 
 /**
- * Add item to queue
+ * Add item to queue - UPDATED with clerkId and windowLabel
  */
 export async function enqueueItem(
   accountId: string,
   userId: string,
+  clerkId: string,
   actionType: IQueueItem["actionType"],
   payload: any,
   priority: number = 3,
@@ -23,21 +24,41 @@ export async function enqueueItem(
   await connectToDatabase();
 
   const now = new Date();
+
+  // Get current window
+  const currentHour = now.getHours();
+  const nextHour = (currentHour + 1) % 24;
+  const windowLabel = `${currentHour}-${nextHour}`;
+
+  // Get queue position
+  const queueSize = await QueueItem.countDocuments({
+    windowLabel,
+    status: "QUEUED",
+  });
+
   const queueItem = await QueueItem.create({
     accountId,
     userId,
+    clerkId,
     actionType,
     payload,
     priority,
-    status: "PENDING",
+    status: "QUEUED",
     scheduledFor: now,
-    metadata,
+    windowLabel,
+    position: queueSize + 1,
+    metadata: {
+      ...metadata,
+      originalTimestamp: now,
+      retryCount: 0,
+    },
   });
 
   return {
     queued: true,
     queueId: queueItem._id.toString(),
     scheduledFor: now,
+    delayMs: 0,
   };
 }
 
@@ -52,6 +73,7 @@ export async function getQueueStats(accountId?: string): Promise<{
   failed: number;
   byType: Record<string, number>;
   avgProcessingTime: number;
+  byWindow: Record<string, number>;
 }> {
   await connectToDatabase();
 
@@ -76,6 +98,14 @@ export async function getQueueStats(accountId?: string): Promise<{
           {
             $group: {
               _id: "$actionType",
+              count: { $sum: 1 },
+            },
+          },
+        ],
+        windows: [
+          {
+            $group: {
+              _id: "$windowLabel",
               count: { $sum: 1 },
             },
           },
@@ -113,6 +143,7 @@ export async function getQueueStats(accountId?: string): Promise<{
     queued: 0,
     failed: 0,
     byType: {} as Record<string, number>,
+    byWindow: {} as Record<string, number>,
     avgProcessingTime: 0,
   };
 
@@ -142,6 +173,12 @@ export async function getQueueStats(accountId?: string): Promise<{
     });
   }
 
+  if (stats[0]?.windows) {
+    stats[0].windows.forEach((item: any) => {
+      result.byWindow[item._id] = item.count;
+    });
+  }
+
   if (stats[0]?.processingTimes?.[0]?.avgTime) {
     result.avgProcessingTime = stats[0].processingTimes[0].avgTime;
   }
@@ -163,4 +200,50 @@ export async function cleanupOldQueueItems(days: number = 7): Promise<number> {
   });
 
   return result.deletedCount;
+}
+
+/**
+ * Get next item from queue for processing
+ */
+export async function getNextQueueItem(
+  limit: number = 10
+): Promise<IQueueItem[]> {
+  await connectToDatabase();
+
+  const currentHour = new Date().getHours();
+  const windowLabel = `${currentHour}-${(currentHour + 1) % 24}`;
+
+  return await QueueItem.find({
+    status: "QUEUED",
+    windowLabel,
+  })
+    .sort({ priority: 1, position: 1 })
+    .limit(limit);
+}
+
+/**
+ * Update queue item status
+ */
+export async function updateQueueItemStatus(
+  queueId: string,
+  status: IQueueItem["status"],
+  result?: any,
+  error?: string
+): Promise<boolean> {
+  await connectToDatabase();
+
+  const updateData: any = {
+    status,
+    updatedAt: new Date(),
+  };
+
+  if (status === "COMPLETED") {
+    updateData.processedAt = new Date();
+    updateData.result = result;
+  } else if (status === "FAILED") {
+    updateData.error = error;
+  }
+
+  const updated = await QueueItem.findByIdAndUpdate(queueId, updateData);
+  return !!updated;
 }

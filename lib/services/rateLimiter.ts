@@ -1,11 +1,13 @@
-// app/lib/server/rateLimiter.ts
+// app/lib/services/rateLimiter.ts - MODIFIED
 "use server";
 
 import { connectToDatabase } from "@/lib/database/mongoose";
+
+import { getCurrentWindowInfo } from "./hourlyRateLimiter";
 import {
   RateLimit,
   RateLimitLog,
-} from "@/lib/database/models/rate/RateLimit.model";
+} from "../database/models/rate/RateLimit.model";
 
 // Constants
 const CALLS_PER_HOUR = 180;
@@ -14,7 +16,7 @@ const BLOCK_THRESHOLD = 170;
 const BLOCK_DURATION_MS = 5 * 60 * 1000;
 
 /**
- * Check if account can make API call
+ * Check if account can make API call - UPDATED with window check
  */
 export async function canMakeCall(
   accountId: string,
@@ -30,7 +32,7 @@ export async function canMakeCall(
   await connectToDatabase();
 
   const now = new Date();
-  const windowStart = new Date(now.getTime() - WINDOW_MS);
+  const { windowLabel, windowStart } = await getCurrentWindowInfo();
 
   let rateLimit = await RateLimit.findOne({ accountId });
 
@@ -39,14 +41,15 @@ export async function canMakeCall(
       accountId,
       userId,
       calls: 0,
-      windowStart: now,
+      windowStart: windowStart,
       isBlocked: false,
     });
   }
 
+  // Check if window changed
   if (rateLimit.windowStart < windowStart) {
     rateLimit.calls = 0;
-    rateLimit.windowStart = now;
+    rateLimit.windowStart = windowStart;
     rateLimit.isBlocked = false;
     rateLimit.blockedUntil = undefined;
     await rateLimit.save();
@@ -141,7 +144,7 @@ export async function canMakeCall(
 }
 
 /**
- * Get rate limit status for account
+ * Get rate limit status for account - UPDATED
  */
 export async function getAccountStatus(accountId: string): Promise<{
   calls: number;
@@ -154,6 +157,7 @@ export async function getAccountStatus(accountId: string): Promise<{
   await connectToDatabase();
 
   const rateLimit = await RateLimit.findOne({ accountId });
+  const { windowStart } = await getCurrentWindowInfo();
   const now = new Date();
 
   if (!rateLimit) {
@@ -161,23 +165,24 @@ export async function getAccountStatus(accountId: string): Promise<{
       calls: 0,
       remaining: CALLS_PER_HOUR,
       isBlocked: false,
-      windowStart: now,
+      windowStart: windowStart,
+      resetInMs: WINDOW_MS,
+    };
+  }
+
+  // Check if window changed
+  if (rateLimit.windowStart < windowStart) {
+    return {
+      calls: 0,
+      remaining: CALLS_PER_HOUR,
+      isBlocked: false,
+      windowStart: windowStart,
       resetInMs: WINDOW_MS,
     };
   }
 
   const windowStartTime = new Date(rateLimit.windowStart.getTime() + WINDOW_MS);
   const resetInMs = Math.max(0, windowStartTime.getTime() - now.getTime());
-
-  if (windowStartTime < now) {
-    return {
-      calls: 0,
-      remaining: CALLS_PER_HOUR,
-      isBlocked: false,
-      windowStart: now,
-      resetInMs: WINDOW_MS,
-    };
-  }
 
   return {
     calls: rateLimit.calls,
@@ -254,12 +259,12 @@ export async function getSystemStats(): Promise<{
 
   try {
     const now = new Date();
+    const { windowStart } = await getCurrentWindowInfo();
     const todayStart = new Date(
       now.getFullYear(),
       now.getMonth(),
       now.getDate()
     );
-    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
     const allRateLimits = await RateLimit.find();
 
@@ -268,7 +273,8 @@ export async function getSystemStats(): Promise<{
     let nearLimitAccounts = 0;
 
     allRateLimits.forEach((limit) => {
-      if (limit.windowStart >= todayStart) {
+      // Only count calls from current window
+      if (limit.windowStart >= windowStart) {
         totalCallsToday += limit.calls || 0;
       }
 
@@ -276,7 +282,7 @@ export async function getSystemStats(): Promise<{
         blockedAccounts++;
       }
 
-      if (limit.calls >= BLOCK_THRESHOLD && limit.windowStart >= oneHourAgo) {
+      if (limit.calls >= BLOCK_THRESHOLD && limit.windowStart >= windowStart) {
         nearLimitAccounts++;
       }
     });

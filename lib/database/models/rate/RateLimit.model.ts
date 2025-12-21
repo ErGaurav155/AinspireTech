@@ -27,7 +27,7 @@ const RateLimitSchema = new Schema<IRateLimit>(
     accountId: { type: String, required: true, index: true },
     userId: { type: String, required: true, index: true },
     calls: { type: Number, default: 0 },
-    windowStart: { type: Date, default: Date.now },
+    windowStart: { type: Date, default: Date.now, index: true },
     isBlocked: { type: Boolean, default: false },
     blockedUntil: { type: Date },
   },
@@ -51,8 +51,8 @@ const RateLimitLogSchema = new Schema<IRateLimitLog>({
 });
 
 export const RateLimit: Model<IRateLimit> =
-  mongoose.models.RateLimit ||
+  mongoose.models?.RateLimit ||
   mongoose.model<IRateLimit>("RateLimit", RateLimitSchema);
 export const RateLimitLog: Model<IRateLimitLog> =
-  mongoose.models.RateLimitLog ||
+  mongoose.models?.RateLimitLog ||
   mongoose.model<IRateLimitLog>("RateLimitLog", RateLimitLogSchema);

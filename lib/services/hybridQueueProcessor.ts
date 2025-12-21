@@ -1,0 +1,120 @@
+// app/lib/services/hybridQueueProcessor.ts
+"use server";
+
+import { connectToDatabase } from "@/lib/database/mongoose";
+import { QueueItem } from "@/lib/database/models/rate/Queue.model";
+import { getCurrentWindowInfo } from "./hourlyRateLimiter";
+import { processQueuedItemsForNewWindow } from "./hourlyRateLimiter";
+
+let processingInProgress = false;
+let lastProcessedWindow = "";
+
+export async function hybridQueueProcessor() {
+  // Prevent concurrent processing
+  if (processingInProgress) {
+    return {
+      processed: false,
+      reason: "Processing already in progress",
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  try {
+    processingInProgress = true;
+    await connectToDatabase();
+
+    const { windowLabel } = await getCurrentWindowInfo();
+
+    // Skip if we already processed this window
+    if (lastProcessedWindow === windowLabel) {
+      return {
+        processed: false,
+        reason: "Already processed this window",
+        window: windowLabel,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Check if we need to process queue from previous window
+    const previousWindowHour =
+      (parseInt(windowLabel.split("-")[0]) - 1 + 24) % 24;
+    const nextWindowHour = (previousWindowHour + 1) % 24;
+    const previousWindowLabel = `${previousWindowHour}-${nextWindowHour}`;
+
+    const queuedItemsCount = await QueueItem.countDocuments({
+      windowLabel: previousWindowLabel,
+      status: "QUEUED",
+    });
+
+    if (queuedItemsCount === 0) {
+      lastProcessedWindow = windowLabel;
+      return {
+        processed: false,
+        reason: "No items to process",
+        window: windowLabel,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    console.log(
+      `Hybrid Queue Processor: Processing ${queuedItemsCount} items from window ${previousWindowLabel} to ${windowLabel}`
+    );
+
+    // Process queue items
+    const result = await processQueuedItemsForNewWindow();
+    lastProcessedWindow = windowLabel;
+
+    return {
+      success: true, // Overall success
+      queueProcessingSummary: result, // Contains processed, failed, skipped
+      windowInfo: {
+        currentWindow: windowLabel,
+        previousWindow: previousWindowLabel,
+      },
+      stats: {
+        totalQueuedItems: queuedItemsCount,
+        ...result,
+      },
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error("Error in hybrid queue processing:", error);
+    return {
+      processed: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString(),
+    };
+  } finally {
+    processingInProgress = false;
+  }
+}
+
+// Function to manually trigger queue processing (for testing or admin)
+export async function manualTriggerQueueProcessing() {
+  return await hybridQueueProcessor();
+}
+
+// Check if queue processing is needed (call this from your API routes)
+export async function checkAndProcessQueueIfNeeded() {
+  const { windowLabel } = await getCurrentWindowInfo();
+
+  // Check if any queued items exist from previous windows
+  const queuedItems = await QueueItem.countDocuments({
+    windowLabel: { $ne: windowLabel },
+    status: "QUEUED",
+  });
+
+  if (queuedItems > 0) {
+    console.log(
+      `Found ${queuedItems} queued items from previous windows, triggering processing...`
+    );
+    return await hybridQueueProcessor();
+  }
+
+  return {
+    processed: false,
+    reason: "No queued items found",
+    window: windowLabel,
+    timestamp: new Date().toISOString(),
+  };
+}
