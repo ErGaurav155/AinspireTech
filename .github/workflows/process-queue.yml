@@ -15,7 +15,7 @@ jobs:
       - name: Trigger Queue Processing
         run: |
           RESPONSE=$(curl -s -X GET \
-            "${{ secrets.APP_URL }}/api/public/process-queue" \
+            "${{ secrets.APP_URI }}/api/public/process-queue" \
             -H "Authorization: Bearer ${{ secrets.CRON_TOKEN }}" \
             -H "Content-Type: application/json" \
             -w "\nHTTP Status: %{http_code}")
@@ -33,5 +33,5 @@ jobs:
 
           echo "Queue processing triggered successfully"
         env:
-          APP_URL: ${{ secrets.APP_URL }}
+          APP_URI: ${{ secrets.APP_URI }}
           CRON_TOKEN: ${{ secrets.CRON_TOKEN }}
