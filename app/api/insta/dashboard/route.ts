@@ -2,6 +2,7 @@ import { getUserById } from "@/lib/action/user.actions";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaReplyLog from "@/lib/database/models/insta/ReplyLog.model";
 import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
+import { RateUserCall } from "@/lib/database/models/rate/UserCall.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -28,8 +29,24 @@ export async function GET(request: NextRequest) {
       createdAt: -1,
     });
     if (accounts.length === 0) {
-      return NextResponse.json({ accounts: [] });
+      return NextResponse.json({ accounts: [], totalReplies: 0 });
     }
+
+    // Get all RateUserCall documents for the user's accounts
+    const accountIds = accounts.map((account) => account.instagramId);
+    const rateUserCalls = await RateUserCall.find({
+      instagramId: { $in: accountIds },
+    });
+
+    // Create a map for quick lookup with proper typing
+    const rateUserCallMap: Record<string, number> = {};
+    let totalReplies = 0;
+
+    rateUserCalls.forEach((call) => {
+      rateUserCallMap[call.instagramId] = call.count;
+      totalReplies += call.count;
+    });
+
     const enhancedAccounts = await Promise.all(
       accounts.map(async (account) => {
         // Get template count
@@ -50,17 +67,19 @@ export async function GET(request: NextRequest) {
             },
           },
         ])) || [{ avgResponseTime: 0 }];
+
         return {
           ...account.toObject(), // Convert Mongoose document to plain object
           templatesCount,
           avgResTime,
+          replies: rateUserCallMap[account.instagramId] || 0,
         };
       })
     );
 
     return NextResponse.json({
       accounts: enhancedAccounts,
-      totalReplies: userData.totalReplies,
+      totalReplies, // Now calculated dynamically
       accountLimit: userData.accountLimit,
       replyLimit: userData.replyLimit,
       totalAccounts: accounts.length,

@@ -82,6 +82,6 @@ QueueItemSchema.index({ windowLabel: 1, status: 1, priority: 1, position: 1 });
 QueueItemSchema.index({ status: 1, scheduledFor: 1 });
 QueueItemSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 * 7 }); // Auto-delete after 7 days
 
-export const QueueItem: Model<IQueueItem> =
-  mongoose.models?.QueueItem ||
-  mongoose.model<IQueueItem>("QueueItem", QueueItemSchema);
+export const RateQueueItem: Model<IQueueItem> =
+  mongoose.models?.RateQueueItem ||
+  mongoose.model<IQueueItem>("RateQueueItem", QueueItemSchema);

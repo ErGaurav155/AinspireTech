@@ -38,9 +38,12 @@ const GlobalRateLimitSchema = new Schema<IGlobalRateLimit>(
   }
 );
 
-// TTL index - auto delete after 2 hours
-GlobalRateLimitSchema.index({ endsAt: 1 }, { expireAfterSeconds: 7200 });
+// TTL index - auto delete after 1 hours
+GlobalRateLimitSchema.index({ endsAt: 1 }, { expireAfterSeconds: 3600 });
 
-export const GlobalRateLimit: Model<IGlobalRateLimit> =
-  mongoose.models?.GlobalRateLimit ||
-  mongoose.model<IGlobalRateLimit>("GlobalRateLimit", GlobalRateLimitSchema);
+export const RateGlobalRateLimit: Model<IGlobalRateLimit> =
+  mongoose.models?.RateGlobalRateLimit ||
+  mongoose.model<IGlobalRateLimit>(
+    "RateGlobalRateLimit",
+    GlobalRateLimitSchema
+  );

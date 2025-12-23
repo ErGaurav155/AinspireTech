@@ -7,7 +7,7 @@ import { auth } from "@clerk/nextjs/server";
 import User from "@/lib/database/models/user.model";
 import { instagramPricingPlans } from "@/constant";
 import Affiliate from "@/lib/database/models/affiliate/Affiliate";
-import Referral from "@/lib/database/models/affiliate/Referral";
+import AffiReferral from "@/lib/database/models/affiliate/Referral";
 
 export async function POST(req: Request) {
   try {
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
           billingCycle === "yearly" ? subscriptionPrice * commissionRate : 0;
 
         // Create referral record
-        referralRecord = await Referral.create({
+        referralRecord = await AffiReferral.create({
           affiliateId: affiliate._id,
           referredUserId: clerkId,
           productType: "insta-automation",

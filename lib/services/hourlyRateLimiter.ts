@@ -2,9 +2,6 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/database/mongoose";
-import { GlobalRateLimit } from "@/lib/database/models/rate/GlobalRateLimit.model";
-import { UserCall } from "@/lib/database/models/rate/UserCall.model";
-import { QueueItem } from "@/lib/database/models/rate/Queue.model";
 import User from "@/lib/database/models/user.model";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaSubscription from "../database/models/insta/InstaSubscription.model";
@@ -15,6 +12,9 @@ import {
   sendFollowReminderDM,
   sendInitialAccessDM,
 } from "../action/instaApi.action";
+import { RateGlobalRateLimit } from "../database/models/rate/GlobalRateLimit.model";
+import { RateQueueItem } from "../database/models/rate/Queue.model";
+import { RateUserCall } from "../database/models/rate/UserCall.model";
 
 // Helper to get current fixed window
 export async function getCurrentWindowInfo() {
@@ -43,13 +43,13 @@ async function getOrCreateGlobalWindow() {
   const { windowLabel, currentHour, windowStart, windowEnd } =
     await getCurrentWindowInfo();
 
-  let globalWindow = await GlobalRateLimit.findOne({
+  let globalWindow = await RateGlobalRateLimit.findOne({
     windowLabel,
     windowStartHour: currentHour,
   });
 
   if (!globalWindow) {
-    globalWindow = await GlobalRateLimit.create({
+    globalWindow = await RateGlobalRateLimit.create({
       windowLabel,
       windowStartHour: currentHour,
       totalCalls: 0,
@@ -174,12 +174,12 @@ export async function canMakeCall(
   }
 
   // Get or create user call counter
-  let userCall = await UserCall.findOne({ clerkId });
+  let userCall = await RateUserCall.findOne({ clerkId });
 
   if (!userCall) {
-    userCall = await UserCall.create({
-      userId: user._id.toString(),
-      clerkId,
+    userCall = await RateUserCall.create({
+      userId: clerkId,
+      instagramId: accountId,
       count: 0,
       currentWindow: windowLabel,
       windowStartHour: currentHour,
@@ -244,12 +244,12 @@ export async function canMakeCall(
 
     if (shouldQueue && metadata) {
       // Add to queue with FIFO position
-      const queueSize = await QueueItem.countDocuments({
+      const queueSize = await RateQueueItem.countDocuments({
         windowLabel,
         status: "QUEUED",
       });
 
-      const queueItem = await QueueItem.create({
+      const queueItem = await RateQueueItem.create({
         accountId,
         userId: user._id.toString(),
         clerkId,
@@ -270,7 +270,7 @@ export async function canMakeCall(
       });
 
       // Update global window queue size
-      await GlobalRateLimit.findByIdAndUpdate(globalWindow._id, {
+      await RateGlobalRateLimit.findByIdAndUpdate(globalWindow._id, {
         $inc: { "metadata.queueSize": 1 },
       });
 
@@ -328,7 +328,7 @@ export async function canMakeCall(
   await userCall.save();
 
   // Increment global call count
-  await GlobalRateLimit.findByIdAndUpdate(globalWindow._id, {
+  await RateGlobalRateLimit.findByIdAndUpdate(globalWindow._id, {
     $inc: { totalCalls: 1 },
     $addToSet: { "metadata.accountsProcessed": accountId },
   });
@@ -359,7 +359,7 @@ export async function processQueuedItemsForNewWindow(): Promise<{
   const previousWindowLabel = `${(currentHour - 1 + 24) % 24}-${currentHour}`;
 
   // Find all queued items from previous window
-  const queuedItems = await QueueItem.find({
+  const queuedItems = await RateQueueItem.find({
     windowLabel: previousWindowLabel,
     status: "QUEUED",
   })
@@ -411,7 +411,7 @@ export async function processQueuedItemsForNewWindow(): Promise<{
   }
 
   // Update global window queue size
-  await GlobalRateLimit.findOneAndUpdate(
+  await RateGlobalRateLimit.findOneAndUpdate(
     { windowLabel: previousWindowLabel },
     { $set: { "metadata.queueSize": 0 } }
   );
@@ -522,15 +522,15 @@ export async function getWindowStats(windowLabel?: string) {
   const { windowLabel: currentWindow } = await getCurrentWindowInfo();
   const targetWindow = windowLabel || currentWindow;
 
-  const globalWindow = await GlobalRateLimit.findOne({
+  const globalWindow = await RateGlobalRateLimit.findOne({
     windowLabel: targetWindow,
   });
-  const queuedItems = await QueueItem.countDocuments({
+  const queuedItems = await RateQueueItem.countDocuments({
     windowLabel: targetWindow,
     status: "QUEUED",
   });
 
-  const userCalls = await UserCall.find({ currentWindow: targetWindow });
+  const userCalls = await RateUserCall.find({ currentWindow: targetWindow });
   const totalUserCalls = userCalls.reduce((sum, uc) => sum + uc.count, 0);
 
   return {
@@ -550,7 +550,7 @@ export async function getWindowStats(windowLabel?: string) {
     },
     queue: {
       queuedItems,
-      byType: await QueueItem.aggregate([
+      byType: await RateQueueItem.aggregate([
         { $match: { windowLabel: targetWindow, status: "QUEUED" } },
         { $group: { _id: "$actionType", count: { $sum: 1 } } },
       ]),
@@ -566,7 +566,7 @@ export async function resetUserCountsForNewWindow() {
   const { windowLabel, currentHour } = await getCurrentWindowInfo();
 
   // Update all users who are still in old window
-  const result = await UserCall.updateMany(
+  const result = await RateUserCall.updateMany(
     {
       $or: [
         { currentWindow: { $ne: windowLabel } },

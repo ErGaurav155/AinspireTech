@@ -15,6 +15,8 @@ import WebAppointmentQuestions from "../database/models/web/AppointmentQuestions
 import InstaReplyTemplate from "../database/models/insta/ReplyTemplate.model";
 import Razorpay from "razorpay";
 import Affiliate from "../database/models/affiliate/Affiliate";
+import { RateUserCall } from "../database/models/rate/UserCall.model";
+import AffiReferral from "../database/models/affiliate/Referral";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
@@ -172,17 +174,21 @@ export async function cleanupUserData(clerkId: string) {
     // Data deletion promises
     const deletionPromises = [
       // Web-related data
-      WebSubscription?.deleteMany({ clerkId }),
-      WebConversation?.deleteMany({ clerkId }),
-      WebAppointmentQuestions?.deleteMany({ clerkId }),
+      await WebSubscription?.deleteMany({ clerkId }),
+      await WebConversation?.deleteMany({ clerkId }),
+      await WebAppointmentQuestions?.deleteMany({ clerkId }),
       // Instagram-related data
-      InstaReplyTemplate?.deleteMany({ userId: clerkId }),
-      InstaReplyLog?.deleteMany({ userId: clerkId }),
-      InstaSubscription?.deleteMany({ clerkId }),
-      InstagramAccount?.deleteMany({ userId: clerkId }),
-
+      await InstaReplyTemplate?.deleteMany({ userId: clerkId }),
+      await InstaReplyLog?.deleteMany({ userId: clerkId }),
+      await InstaSubscription?.deleteMany({ clerkId }),
+      await InstagramAccount?.deleteMany({ userId: clerkId }),
+      await RateUserCall?.deleteMany({ userId: clerkId }),
+      // Affiliate Data
+      await Affiliate?.deleteMany({ userId: clerkId }),
+      await AffiReferral?.deleteMany({ referredUserId: clerkId }),
+      await AffiReferral?.deleteMany({ affiliateUserId: clerkId }),
       // User
-      User?.deleteOne({ clerkId }),
+      await User?.deleteOne({ clerkId }),
     ];
 
     const results = await Promise.allSettled(deletionPromises);

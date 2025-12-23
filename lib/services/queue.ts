@@ -2,7 +2,10 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/database/mongoose";
-import { QueueItem, IQueueItem } from "@/lib/database/models/rate/Queue.model";
+import {
+  IQueueItem,
+  RateQueueItem,
+} from "@/lib/database/models/rate/Queue.model";
 
 /**
  * Add item to queue - UPDATED with clerkId and windowLabel
@@ -31,12 +34,12 @@ export async function enqueueItem(
   const windowLabel = `${currentHour}-${nextHour}`;
 
   // Get queue position
-  const queueSize = await QueueItem.countDocuments({
+  const queueSize = await RateQueueItem.countDocuments({
     windowLabel,
     status: "QUEUED",
   });
 
-  const queueItem = await QueueItem.create({
+  const queueItem = await RateQueueItem.create({
     accountId,
     userId,
     clerkId,
@@ -82,7 +85,7 @@ export async function getQueueStats(accountId?: string): Promise<{
     matchStage.accountId = accountId;
   }
 
-  const stats = await QueueItem.aggregate([
+  const stats = await RateQueueItem.aggregate([
     { $match: matchStage },
     {
       $facet: {
@@ -194,7 +197,7 @@ export async function cleanupOldQueueItems(days: number = 7): Promise<number> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
 
-  const result = await QueueItem.deleteMany({
+  const result = await RateQueueItem.deleteMany({
     createdAt: { $lt: cutoffDate },
     status: { $in: ["COMPLETED", "FAILED"] },
   });
@@ -213,7 +216,7 @@ export async function getNextQueueItem(
   const currentHour = new Date().getHours();
   const windowLabel = `${currentHour}-${(currentHour + 1) % 24}`;
 
-  return await QueueItem.find({
+  return await RateQueueItem.find({
     status: "QUEUED",
     windowLabel,
   })
@@ -244,6 +247,6 @@ export async function updateQueueItemStatus(
     updateData.error = error;
   }
 
-  const updated = await QueueItem.findByIdAndUpdate(queueId, updateData);
+  const updated = await RateQueueItem.findByIdAndUpdate(queueId, updateData);
   return !!updated;
 }

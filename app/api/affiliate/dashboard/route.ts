@@ -1,8 +1,8 @@
 // app/api/affiliates/dashboard/route.ts
 import Affiliate from "@/lib/database/models/affiliate/Affiliate";
-import CommissionRecord from "@/lib/database/models/affiliate/CommissionRecord";
-import Payout from "@/lib/database/models/affiliate/Payout";
-import Referral from "@/lib/database/models/affiliate/Referral";
+import AffiCommissionRecord from "@/lib/database/models/affiliate/CommissionRecord";
+import AffiPayout from "@/lib/database/models/affiliate/Payout";
+import AffiReferral from "@/lib/database/models/affiliate/Referral";
 import User from "@/lib/database/models/user.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { auth } from "@clerk/nextjs/server";
@@ -32,7 +32,7 @@ export async function GET() {
     }
 
     // Get referrals with subscription details
-    const referrals = await Referral.find({ affiliateId: affiliate._id })
+    const referrals = await AffiReferral.find({ affiliateId: affiliate._id })
       .populate("referredUserId", "firstName lastName email")
       .sort({ createdAt: -1 });
 
@@ -44,14 +44,14 @@ export async function GET() {
       .toString()
       .padStart(2, "0")}`;
 
-    const monthlyCommissions = await CommissionRecord.find({
+    const monthlyCommissions = await AffiCommissionRecord.find({
       affiliateId: affiliate._id,
       period: currentPeriod,
       status: "pending",
     });
 
     // Get payout history
-    const payoutHistory = await Payout.find({ affiliateId: affiliate._id })
+    const payoutHistory = await AffiPayout.find({ affiliateId: affiliate._id })
       .sort({ createdAt: -1 })
       .limit(10);
 

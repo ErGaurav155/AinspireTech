@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IUserCall extends Document {
   userId: string;
-  clerkId: string;
+  instagramId: string;
   count: number;
   currentWindow: string; // "10-11", "11-12"
   windowStartHour: number; // 10, 11, 12
@@ -22,7 +22,7 @@ export interface IUserCall extends Document {
 const UserCallSchema = new Schema<IUserCall>(
   {
     userId: { type: String, required: true, index: true },
-    clerkId: { type: String, required: true, index: true },
+    instagramId: { type: String, required: true, unique: true, index: true },
     count: { type: Number, default: 0 },
     currentWindow: { type: String, default: "" },
     windowStartHour: { type: Number, default: -1 },
@@ -46,6 +46,6 @@ const UserCallSchema = new Schema<IUserCall>(
 UserCallSchema.index({ clerkId: 1, currentWindow: 1 });
 UserCallSchema.index({ lastUpdated: 1 });
 
-export const UserCall: Model<IUserCall> =
-  mongoose.models?.UserCall ||
-  mongoose.model<IUserCall>("UserCall", UserCallSchema);
+export const RateUserCall: Model<IUserCall> =
+  mongoose.models?.RateUserCall ||
+  mongoose.model<IUserCall>("RateUserCall", UserCallSchema);

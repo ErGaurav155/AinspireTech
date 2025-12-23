@@ -1,12 +1,12 @@
 // app/api/cron/process-commissions/route.ts
 import { instagramPricingPlans, productSubscriptionDetails } from "@/constant";
 import Affiliate from "@/lib/database/models/affiliate/Affiliate";
-import CommissionRecord from "@/lib/database/models/affiliate/CommissionRecord";
 import InstaSubscription from "@/lib/database/models/insta/InstaSubscription.model";
-import Referral from "@/lib/database/models/affiliate/Referral";
 import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { NextRequest, NextResponse } from "next/server";
+import AffiCommissionRecord from "@/lib/database/models/affiliate/CommissionRecord";
+import AffiReferral from "@/lib/database/models/affiliate/Referral";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     console.log(`Processing commissions for period: ${currentPeriod}`);
 
     // Get all active referrals
-    const activeReferrals = await Referral.find({
+    const activeReferrals = await AffiReferral.find({
       status: "active",
     }).populate("referredUserId", "clerkId");
 
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
 
       if (shouldProcess && commissionAmount > 0) {
         // Create commission record
-        const commissionRecord = await CommissionRecord.create({
+        const commissionRecord = await AffiCommissionRecord.create({
           affiliateId: referral.affiliateId,
           referralId: referral._id,
           referredUserId: referral.referredUserId,

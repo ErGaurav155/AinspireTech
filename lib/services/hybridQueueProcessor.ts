@@ -2,9 +2,9 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/database/mongoose";
-import { QueueItem } from "@/lib/database/models/rate/Queue.model";
 import { getCurrentWindowInfo } from "./hourlyRateLimiter";
 import { processQueuedItemsForNewWindow } from "./hourlyRateLimiter";
+import { RateQueueItem } from "../database/models/rate/Queue.model";
 
 let processingInProgress = false;
 let lastProcessedWindow = "";
@@ -41,7 +41,7 @@ export async function hybridQueueProcessor() {
     const nextWindowHour = (previousWindowHour + 1) % 24;
     const previousWindowLabel = `${previousWindowHour}-${nextWindowHour}`;
 
-    const queuedItemsCount = await QueueItem.countDocuments({
+    const queuedItemsCount = await RateQueueItem.countDocuments({
       windowLabel: previousWindowLabel,
       status: "QUEUED",
     });
@@ -99,7 +99,7 @@ export async function checkAndProcessQueueIfNeeded() {
   const { windowLabel } = await getCurrentWindowInfo();
 
   // Check if any queued items exist from previous windows
-  const queuedItems = await QueueItem.countDocuments({
+  const queuedItems = await RateQueueItem.countDocuments({
     windowLabel: { $ne: windowLabel },
     status: "QUEUED",
   });

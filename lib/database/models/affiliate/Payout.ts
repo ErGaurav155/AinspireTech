@@ -34,5 +34,5 @@ const PayoutSchema = new Schema(
   }
 );
 
-const Payout = models?.Payout || model("Payout", PayoutSchema);
-export default Payout;
+const AffiPayout = models?.AffiPayout || model("AffiPayout", PayoutSchema);
+export default AffiPayout;

@@ -62,6 +62,7 @@ const CommissionRecordSchema = new Schema(
 CommissionRecordSchema.index({ affiliateId: 1, status: 1 });
 CommissionRecordSchema.index({ period: 1, status: 1 });
 
-const CommissionRecord =
-  models?.CommissionRecord || model("CommissionRecord", CommissionRecordSchema);
-export default CommissionRecord;
+const AffiCommissionRecord =
+  models?.AffiCommissionRecord ||
+  model("AffiCommissionRecord", CommissionRecordSchema);
+export default AffiCommissionRecord;

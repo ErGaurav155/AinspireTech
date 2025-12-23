@@ -92,5 +92,6 @@ ReferralSchema.index(
   { unique: true, partialFilterExpression: { status: "active" } }
 );
 
-const Referral = models?.Referral || model("Referral", ReferralSchema);
-export default Referral;
+const AffiReferral =
+  models?.AffiReferral || model("AffiReferral", ReferralSchema);
+export default AffiReferral;
