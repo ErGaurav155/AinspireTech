@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, JSX, useCallback } from "react";
+import { useState, useEffect, JSX, useCallback, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import {
@@ -36,6 +36,7 @@ import {
   AlertTriangle,
   Activity,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import RateLimitDashboard from "@/components/shared/RateLimitDashboard";
 
 // Types based on your models
@@ -128,6 +129,23 @@ interface Analytics {
   subscriptionGrowth: number;
   revenueGrowth: number;
   appointmentGrowth: number;
+}
+
+interface ThemeStyles {
+  containerBg: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  cardBg: string;
+  cardBorder: string;
+  badgeBg: string;
+  alertBg: string;
+  buttonOutlineBorder: string;
+  buttonOutlineText: string;
+  inputBg: string;
+  inputBorder: string;
+  tableBg: string;
+  tableBorder: string;
 }
 
 // Hardcoded pricing based on your plan IDs
@@ -224,6 +242,9 @@ type ActiveTab = "subscriptions" | "appointments" | "rate-limits";
 
 export default function AdminDashboard() {
   const { user, isLoaded } = useUser();
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme || theme || "light";
+
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [subscriptions, setSubscriptions] = useState<CombinedSubscription[]>(
     []
@@ -238,6 +259,31 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("subscriptions");
   const [appointmentSearchTerm, setAppointmentSearchTerm] = useState("");
   const [rateLimitStats, setRateLimitStats] = useState<any>(null);
+
+  // Theme-based styles
+  const themeStyles = useMemo((): ThemeStyles => {
+    const isDark = currentTheme === "dark";
+    return {
+      containerBg: isDark ? "bg-[#0a0a0a]" : "bg-gray-50",
+      textPrimary: isDark ? "text-white" : "text-gray-900",
+      textSecondary: isDark ? "text-gray-300" : "text-gray-600",
+      textMuted: isDark ? "text-gray-400" : "text-gray-500",
+      cardBg: isDark
+        ? "bg-[#0a0a0a]/60 border-white/10"
+        : "bg-white/80 border-gray-200",
+      cardBorder: isDark ? "border-white/10" : "border-gray-200",
+      badgeBg: isDark ? "bg-[#0a0a0a]" : "bg-white",
+      alertBg: isDark ? "bg-[#0a0a0a]/80" : "bg-white/80",
+      buttonOutlineBorder: isDark ? "border-white/20" : "border-gray-300",
+      buttonOutlineText: isDark ? "text-gray-300" : "text-gray-700",
+      inputBg: isDark
+        ? "bg-[#0a0a0a]/60 border-white/10"
+        : "bg-white border-gray-300",
+      inputBorder: isDark ? "border-white/10" : "border-gray-300",
+      tableBg: isDark ? "bg-[#0a0a0a]/40" : "bg-white/60",
+      tableBorder: isDark ? "border-white/10" : "border-gray-200",
+    };
+  }, [currentTheme]);
 
   // Animation variants
   const containerVariants = {
@@ -515,6 +561,7 @@ export default function AdminDashboard() {
   }, [isLoaded, fetchData]);
 
   // Clerk still loading
+
   if (!isLoaded) {
     return (
       <div className="min-h-screen bg-transparent  flex items-center justify-center h-full w-full">
@@ -522,11 +569,12 @@ export default function AdminDashboard() {
       </div>
     );
   }
-
   // User not signed in
   if (!user) {
     return (
-      <div className="min-h-screen bg-transparent flex items-center justify-center p-6">
+      <div
+        className={`min-h-screen ${themeStyles.containerBg} flex items-center justify-center p-6`}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -535,10 +583,10 @@ export default function AdminDashboard() {
           <div className="w-20 h-20 bg-cyan-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <Lock className="h-10 w-10 text-cyan-500" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-4">
+          <h1 className={`text-2xl font-bold ${themeStyles.textPrimary} mb-4`}>
             Authentication Required
           </h1>
-          <p className="text-gray-400 mb-6">
+          <p className={`${themeStyles.textSecondary} mb-6`}>
             Please sign in to access the admin dashboard.
           </p>
           <motion.button
@@ -557,7 +605,9 @@ export default function AdminDashboard() {
   // Access Denied Component
   if (isOwner === false) {
     return (
-      <div className="min-h-screen bg-transparent flex items-center justify-center p-6">
+      <div
+        className={`min-h-screen ${themeStyles.containerBg} flex items-center justify-center p-6`}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -566,17 +616,19 @@ export default function AdminDashboard() {
           <div className="w-20 h-20 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <Lock className="h-10 w-10 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-4">Access Denied</h1>
-          <p className="text-gray-400 mb-2 font-montserrat">
+          <h1 className={`text-2xl font-bold ${themeStyles.textPrimary} mb-4`}>
+            Access Denied
+          </h1>
+          <p className={`${themeStyles.textSecondary} mb-2 font-montserrat`}>
             You are not authorized to access the admin dashboard.
           </p>
-          <p className="text-gray-500 text-sm mb-4">
+          <p className={`${themeStyles.textMuted} text-sm mb-4`}>
             Logged in as:{" "}
             <span className="text-cyan-400">
               {user.primaryEmailAddress?.emailAddress}
             </span>
           </p>
-          <p className="text-gray-500 text-sm mb-6">
+          <p className={`${themeStyles.textMuted} text-sm mb-6`}>
             Only the owner (
             <span className="text-cyan-400">gauravgkhaire@gmail.com</span>) can
             view this page.
@@ -596,15 +648,21 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-transparent flex items-center justify-center">
+      <div
+        className={`min-h-screen ${themeStyles.containerBg} flex items-center justify-center`}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
           <RefreshCw className="h-12 w-12 text-cyan-500 animate-spin mx-auto mb-4" />
-          <p className="text-white text-lg">Loading dashboard...</p>
-          <p className="text-gray-400 text-sm mt-2 font-montserrat">
+          <p className={`${themeStyles.textPrimary} text-lg`}>
+            Loading dashboard...
+          </p>
+          <p
+            className={`${themeStyles.textMuted} text-sm mt-2 font-montserrat`}
+          >
             Verifying access permissions
           </p>
         </motion.div>
@@ -614,15 +672,21 @@ export default function AdminDashboard() {
 
   if (error && !error.includes("ACCESS_DENIED")) {
     return (
-      <div className="min-h-screen bg-transparent flex items-center justify-center">
+      <div
+        className={`min-h-screen ${themeStyles.containerBg} flex items-center justify-center`}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
           <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-white text-lg mb-4">Error loading data</p>
-          <p className="text-gray-400 mb-6 font-montserrat">{error}</p>
+          <p className={`${themeStyles.textPrimary} text-lg mb-4`}>
+            Error loading data
+          </p>
+          <p className={`${themeStyles.textSecondary} mb-6 font-montserrat`}>
+            {error}
+          </p>
           <motion.button
             onClick={fetchData}
             className="px-6 py-3 bg-cyan-600 rounded-lg hover:bg-cyan-700 transition-colors text-white"
@@ -639,7 +703,7 @@ export default function AdminDashboard() {
   // Main Dashboard Render
   return (
     <motion.div
-      className="min-h-screen bg-transparent text-white p-6"
+      className={`bg-transparent min-h-screen ${themeStyles.containerBg} ${themeStyles.textPrimary} p-3`}
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -655,22 +719,30 @@ export default function AdminDashboard() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">
                 Admin Dashboard
               </h1>
-              <p className="text-gray-400 mt-2 font-montserrat">
+              <p
+                className={`${themeStyles.textSecondary} mt-2 font-montserrat`}
+              >
                 Manage and monitor your subscription business, appointments, and
                 Instagram rate limits
               </p>
             </div>
             <motion.div
-              className="flex items-center px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full"
+              className={`flex items-center px-3 py-1 ${
+                currentTheme === "dark"
+                  ? "bg-green-500/20 border-green-500/30"
+                  : "bg-green-100 border-green-200"
+              } border rounded-full`}
               whileHover={{ scale: 1.05 }}
             >
               <Shield className="h-4 w-4 text-green-400 mr-2" />
               <span className="text-green-400 text-sm font-medium">Owner</span>
             </motion.div>
           </div>
-          <div className=" w-full flex flex-wrap items-center justify-between  space-x-4 mt-4 gap-3">
+          <div className="w-full flex flex-wrap items-center justify-between space-x-4 mt-4 gap-3">
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <span className="text-sm text-gray-400">Logged in as</span>
+              <span className={`text-sm ${themeStyles.textSecondary}`}>
+                Logged in as
+              </span>
               <p className="text-cyan-400 font-medium">
                 {user.primaryEmailAddress?.emailAddress}
               </p>
@@ -678,20 +750,24 @@ export default function AdminDashboard() {
             <div className="flex space-x-2">
               <motion.button
                 onClick={fetchData}
-                className="flex items-center px-4 py-2 bg-cyan-600 rounded-lg hover:bg-cyan-700 transition-colors"
+                className="flex items-center px-4 py-2 bg-cyan-600 rounded-lg hover:bg-cyan-700 transition-colors text-white"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh Data
+                Refresh
               </motion.button>
               <motion.button
-                className="flex items-center px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                className={`flex items-center px-4 py-2 ${
+                  currentTheme === "dark"
+                    ? "bg-gray-800 hover:bg-gray-700"
+                    : "bg-gray-200 hover:bg-gray-300"
+                } rounded-lg transition-colors ${themeStyles.textPrimary}`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <Download className="h-4 w-4 mr-2" />
-                Export Report
+                Report
               </motion.button>
             </div>
           </div>
@@ -704,14 +780,22 @@ export default function AdminDashboard() {
         >
           {/* Total Revenue */}
           <motion.div
-            className="bg-gradient-to-br from-cyan-900/20 to-blue-900/20 border border-cyan-500/30 rounded-2xl p-6 backdrop-blur-sm"
+            className={`${
+              currentTheme === "dark"
+                ? "bg-gradient-to-br from-cyan-900/20 to-blue-900/20 border-cyan-500/30"
+                : "bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200"
+            } border rounded-2xl p-6 backdrop-blur-sm ${themeStyles.cardBg}`}
             variants={cardVariants}
             whileHover="hover"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Total Revenue</p>
-                <p className="text-3xl font-bold text-white mt-2">
+                <p className={`${themeStyles.textSecondary} text-sm`}>
+                  Total Revenue
+                </p>
+                <p
+                  className={`${themeStyles.textPrimary} text-3xl font-bold mt-2`}
+                >
                   ${analytics?.totalRevenue}
                 </p>
                 <p className="text-green-500 text-sm mt-1 flex items-center">
@@ -719,7 +803,11 @@ export default function AdminDashboard() {
                   {analytics?.revenueGrowth}%
                 </p>
               </div>
-              <div className="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center">
+              <div
+                className={`w-12 h-12 ${
+                  currentTheme === "dark" ? "bg-cyan-500/20" : "bg-cyan-100"
+                } rounded-xl flex items-center justify-center`}
+              >
                 <DollarSign className="h-6 w-6 text-cyan-400" />
               </div>
             </div>
@@ -727,14 +815,22 @@ export default function AdminDashboard() {
 
           {/* Active Subscriptions */}
           <motion.div
-            className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border border-green-500/30 rounded-2xl p-6 backdrop-blur-sm"
+            className={`${
+              currentTheme === "dark"
+                ? "bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-500/30"
+                : "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
+            } border rounded-2xl p-6 backdrop-blur-sm ${themeStyles.cardBg}`}
             variants={cardVariants}
             whileHover="hover"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Active Subscriptions</p>
-                <p className="text-3xl font-bold text-white mt-2">
+                <p className={`${themeStyles.textSecondary} text-sm`}>
+                  Active Subscriptions
+                </p>
+                <p
+                  className={`${themeStyles.textPrimary} text-3xl font-bold mt-2`}
+                >
                   {analytics?.activeSubscriptions}
                 </p>
                 <p className="text-green-500 text-sm mt-1 flex items-center">
@@ -742,7 +838,11 @@ export default function AdminDashboard() {
                   {analytics?.subscriptionGrowth}%
                 </p>
               </div>
-              <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+              <div
+                className={`w-12 h-12 ${
+                  currentTheme === "dark" ? "bg-green-500/20" : "bg-green-100"
+                } rounded-xl flex items-center justify-center`}
+              >
                 <Users className="h-6 w-6 text-green-400" />
               </div>
             </div>
@@ -750,14 +850,22 @@ export default function AdminDashboard() {
 
           {/* Total Appointments */}
           <motion.div
-            className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-2xl p-6 backdrop-blur-sm"
+            className={`${
+              currentTheme === "dark"
+                ? "bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-500/30"
+                : "bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200"
+            } border rounded-2xl p-6 backdrop-blur-sm ${themeStyles.cardBg}`}
             variants={cardVariants}
             whileHover="hover"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Total Appointments</p>
-                <p className="text-3xl font-bold text-white mt-2">
+                <p className={`${themeStyles.textSecondary} text-sm`}>
+                  Total Appointments
+                </p>
+                <p
+                  className={`${themeStyles.textPrimary} text-3xl font-bold mt-2`}
+                >
                   {analytics?.totalAppointments || appointments?.length}
                 </p>
                 <p className="text-purple-400 text-sm mt-1 flex items-center">
@@ -765,7 +873,11 @@ export default function AdminDashboard() {
                   {analytics?.appointmentGrowth}%
                 </p>
               </div>
-              <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+              <div
+                className={`w-12 h-12 ${
+                  currentTheme === "dark" ? "bg-purple-500/20" : "bg-purple-100"
+                } rounded-xl flex items-center justify-center`}
+              >
                 <CalendarDays className="h-6 w-6 text-purple-400" />
               </div>
             </div>
@@ -773,19 +885,31 @@ export default function AdminDashboard() {
 
           {/* Instagram Subscriptions */}
           <motion.div
-            className="bg-gradient-to-br from-pink-900/20 to-purple-900/20 border border-pink-500/30 rounded-2xl p-6 backdrop-blur-sm"
+            className={`${
+              currentTheme === "dark"
+                ? "bg-gradient-to-br from-pink-900/20 to-purple-900/20 border-pink-500/30"
+                : "bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200"
+            } border rounded-2xl p-6 backdrop-blur-sm ${themeStyles.cardBg}`}
             variants={cardVariants}
             whileHover="hover"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Instagram Plans</p>
-                <p className="text-3xl font-bold text-white mt-2">
+                <p className={`${themeStyles.textSecondary} text-sm`}>
+                  Instagram Plans
+                </p>
+                <p
+                  className={`${themeStyles.textPrimary} text-3xl font-bold mt-2`}
+                >
                   {analytics?.instaSubscriptions}
                 </p>
                 <p className="text-pink-400 text-sm mt-1">Automation</p>
               </div>
-              <div className="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center">
+              <div
+                className={`w-12 h-12 ${
+                  currentTheme === "dark" ? "bg-pink-500/20" : "bg-pink-100"
+                } rounded-xl flex items-center justify-center`}
+              >
                 <Instagram className="h-6 w-6 text-pink-400" />
               </div>
             </div>
@@ -793,14 +917,22 @@ export default function AdminDashboard() {
 
           {/* Rate Limits Status */}
           <motion.div
-            className="bg-gradient-to-br from-orange-900/20 to-red-900/20 border border-orange-500/30 rounded-2xl p-6 backdrop-blur-sm"
+            className={`${
+              currentTheme === "dark"
+                ? "bg-gradient-to-br from-orange-900/20 to-red-900/20 border-orange-500/30"
+                : "bg-gradient-to-br from-orange-50 to-red-50 border-orange-200"
+            } border rounded-2xl p-6 backdrop-blur-sm ${themeStyles.cardBg}`}
             variants={cardVariants}
             whileHover="hover"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Rate Limits</p>
-                <p className="text-3xl font-bold text-white mt-2">
+                <p className={`${themeStyles.textSecondary} text-sm`}>
+                  Rate Limits
+                </p>
+                <p
+                  className={`${themeStyles.textPrimary} text-3xl font-bold mt-2`}
+                >
                   {rateLimitStats?.blockedAccounts || 0}
                 </p>
                 <p
@@ -816,7 +948,11 @@ export default function AdminDashboard() {
                     : "All Good"}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
+              <div
+                className={`w-12 h-12 ${
+                  currentTheme === "dark" ? "bg-orange-500/20" : "bg-orange-100"
+                } rounded-xl flex items-center justify-center`}
+              >
                 <AlertTriangle className="h-6 w-6 text-orange-400" />
               </div>
             </div>
@@ -825,14 +961,16 @@ export default function AdminDashboard() {
 
         {/* Tabs for Subscriptions, Appointments, and Rate Limits */}
         <motion.div
-          className="flex border-b border-gray-700 mb-6 overflow-x-auto"
+          className={`flex border-b ${
+            currentTheme === "dark" ? "border-gray-700" : "border-gray-300"
+          } mb-6 overflow-x-auto`}
           variants={cardVariants}
         >
           <button
             className={`flex-shrink-0 px-6 py-3 font-medium text-sm border-b-2 transition-all ${
               activeTab === "subscriptions"
                 ? "border-cyan-500 text-cyan-400"
-                : "border-transparent text-gray-400 hover:text-gray-300"
+                : `border-transparent ${themeStyles.textSecondary} hover:${themeStyles.textPrimary}`
             }`}
             onClick={() => setActiveTab("subscriptions")}
           >
@@ -843,7 +981,7 @@ export default function AdminDashboard() {
             className={`flex-shrink-0 px-6 py-3 font-medium text-sm border-b-2 transition-all ${
               activeTab === "appointments"
                 ? "border-cyan-500 text-cyan-400"
-                : "border-transparent text-gray-400 hover:text-gray-300"
+                : `border-transparent ${themeStyles.textSecondary} hover:${themeStyles.textPrimary}`
             }`}
             onClick={() => setActiveTab("appointments")}
           >
@@ -854,7 +992,7 @@ export default function AdminDashboard() {
             className={`flex-shrink-0 px-6 py-3 font-medium text-sm border-b-2 transition-all ${
               activeTab === "rate-limits"
                 ? "border-cyan-500 text-cyan-400"
-                : "border-transparent text-gray-400 hover:text-gray-300"
+                : `border-transparent ${themeStyles.textSecondary} hover:${themeStyles.textPrimary}`
             }`}
             onClick={() => setActiveTab("rate-limits")}
           >
@@ -878,14 +1016,14 @@ export default function AdminDashboard() {
                   placeholder="Search users, emails, or plans..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 font-montserrat"
+                  className={`w-full pl-10 pr-4 py-2 ${themeStyles.inputBg} border ${themeStyles.inputBorder} rounded-lg ${themeStyles.textPrimary} placeholder-gray-400 focus:outline-none focus:border-cyan-500 font-montserrat`}
                 />
               </div>
               <div className="flex flex-wrap gap-4">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  className={`px-4 py-2 ${themeStyles.inputBg} border ${themeStyles.inputBorder} rounded-lg ${themeStyles.textPrimary} focus:outline-none focus:border-cyan-500`}
                 >
                   <option value="all">All Status</option>
                   <option value="active">Active</option>
@@ -895,7 +1033,7 @@ export default function AdminDashboard() {
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  className={`px-4 py-2 ${themeStyles.inputBg} border ${themeStyles.inputBorder} rounded-lg ${themeStyles.textPrimary} focus:outline-none focus:border-cyan-500`}
                 >
                   <option value="all">All Types</option>
                   <option value="web">Web</option>
@@ -906,14 +1044,22 @@ export default function AdminDashboard() {
 
             {/* Subscriptions Table */}
             <motion.div
-              className="bg-gray-800/50 border border-gray-700 rounded-2xl overflow-hidden backdrop-blur-sm"
+              className={`${themeStyles.tableBg} border ${themeStyles.tableBorder} rounded-2xl overflow-hidden backdrop-blur-sm`}
               variants={cardVariants}
             >
-              <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-white">
+              <div
+                className={`px-6 py-4 border-b ${
+                  currentTheme === "dark"
+                    ? "border-gray-700"
+                    : "border-gray-200"
+                } flex justify-between items-center`}
+              >
+                <h2
+                  className={`text-xl font-semibold ${themeStyles.textPrimary}`}
+                >
                   Subscriptions ({filteredSubscriptions.length})
                 </h2>
-                <p className="text-gray-400 text-sm">
+                <p className={`${themeStyles.textSecondary} text-sm`}>
                   Last updated: {new Date().toLocaleTimeString()}
                 </p>
               </div>
@@ -921,32 +1067,56 @@ export default function AdminDashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-gray-700">
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                    <tr
+                      className={`border-b ${
+                        currentTheme === "dark"
+                          ? "border-gray-700"
+                          : "border-gray-200"
+                      }`}
+                    >
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         User
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         Type
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         Plan
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         Billing
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         Status
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         Price
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         Start Date
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         Expiry
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         Actions
                       </th>
                     </tr>
@@ -955,7 +1125,11 @@ export default function AdminDashboard() {
                     {filteredSubscriptions.map((subscription, index) => (
                       <motion.tr
                         key={subscription._id}
-                        className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors font-montserrat"
+                        className={`border-b ${
+                          currentTheme === "dark"
+                            ? "border-gray-700/50 hover:bg-gray-700/30"
+                            : "border-gray-200/50 hover:bg-gray-100/50"
+                        } transition-colors font-montserrat`}
                         variants={itemVariants}
                         initial="hidden"
                         animate="visible"
@@ -968,11 +1142,15 @@ export default function AdminDashboard() {
                               {subscription.user?.lastName?.[0]}
                             </div>
                             <div className="ml-3">
-                              <p className="text-white font-medium">
+                              <p
+                                className={`${themeStyles.textPrimary} font-medium`}
+                              >
                                 {subscription.user?.firstName}{" "}
                                 {subscription.user?.lastName}
                               </p>
-                              <p className="text-gray-400 text-sm">
+                              <p
+                                className={`${themeStyles.textSecondary} text-sm`}
+                              >
                                 {subscription.user?.email}
                               </p>
                             </div>
@@ -990,17 +1168,23 @@ export default function AdminDashboard() {
                               {getPlanIcon(subscription.chatbotType)}
                             </div>
                             <div className="ml-3">
-                              <p className="text-white capitalize">
+                              <p
+                                className={`${themeStyles.textPrimary} capitalize`}
+                              >
                                 {subscription.type}
                               </p>
-                              <p className="text-gray-400 text-sm">
+                              <p
+                                className={`${themeStyles.textSecondary} text-sm`}
+                              >
                                 {getPlanSubtype(subscription.chatbotType)}
                               </p>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-white">{subscription.plan}</p>
+                          <p className={`${themeStyles.textPrimary}`}>
+                            {subscription.plan}
+                          </p>
                         </td>
                         <td className="px-6 py-4">
                           <span
@@ -1016,15 +1200,21 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4">
                           <div className="flex items-center">
                             {getStatusIcon(subscription.status)}
-                            <span className="ml-2 capitalize">
+                            <span
+                              className={`ml-2 capitalize ${themeStyles.textPrimary}`}
+                            >
                               {subscription.status}
                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-white font-medium">
+                          <p
+                            className={`${themeStyles.textPrimary} font-medium`}
+                          >
                             ${subscription.price}
-                            <span className="text-gray-400 text-sm ml-1">
+                            <span
+                              className={`${themeStyles.textSecondary} text-sm ml-1`}
+                            >
                               /
                               {subscription.billingCycle === "yearly"
                                 ? "year"
@@ -1033,14 +1223,14 @@ export default function AdminDashboard() {
                           </p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-white">
+                          <p className={`${themeStyles.textPrimary}`}>
                             {new Date(
                               subscription.createdAt
                             ).toLocaleDateString()}
                           </p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-white">
+                          <p className={`${themeStyles.textPrimary}`}>
                             {new Date(
                               subscription.expiresAt
                             ).toLocaleDateString()}
@@ -1049,14 +1239,22 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-2">
                             <motion.button
-                              className="p-2 hover:bg-gray-600 rounded-lg transition-colors"
+                              className={`p-2 ${
+                                currentTheme === "dark"
+                                  ? "hover:bg-gray-600"
+                                  : "hover:bg-gray-200"
+                              } rounded-lg transition-colors`}
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                             >
                               <Eye className="h-4 w-4 text-gray-400" />
                             </motion.button>
                             <motion.button
-                              className="p-2 hover:bg-gray-600 rounded-lg transition-colors"
+                              className={`p-2 ${
+                                currentTheme === "dark"
+                                  ? "hover:bg-gray-600"
+                                  : "hover:bg-gray-200"
+                              } rounded-lg transition-colors`}
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                             >
@@ -1077,10 +1275,14 @@ export default function AdminDashboard() {
                   animate={{ opacity: 1 }}
                 >
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-400 text-lg font-montserrat">
+                  <p
+                    className={`${themeStyles.textSecondary} text-lg font-montserrat`}
+                  >
                     No subscriptions found
                   </p>
-                  <p className="text-gray-500 text-sm mt-2 font-montserrat">
+                  <p
+                    className={`${themeStyles.textMuted} text-sm mt-2 font-montserrat`}
+                  >
                     Try adjusting your search or filters
                   </p>
                 </motion.div>
@@ -1104,21 +1306,29 @@ export default function AdminDashboard() {
                   placeholder="Search appointments by name, email, subject, or phone..."
                   value={appointmentSearchTerm}
                   onChange={(e) => setAppointmentSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 font-montserrat"
+                  className={`w-full pl-10 pr-4 py-2 ${themeStyles.inputBg} border ${themeStyles.inputBorder} rounded-lg ${themeStyles.textPrimary} placeholder-gray-400 focus:outline-none focus:border-cyan-500 font-montserrat`}
                 />
               </div>
             </motion.div>
 
             {/* Appointments Table */}
             <motion.div
-              className="bg-gray-800/50 border border-gray-700 rounded-2xl overflow-hidden backdrop-blur-sm"
+              className={`${themeStyles.tableBg} border ${themeStyles.tableBorder} rounded-2xl overflow-hidden backdrop-blur-sm`}
               variants={cardVariants}
             >
-              <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-white">
+              <div
+                className={`px-6 py-4 border-b ${
+                  currentTheme === "dark"
+                    ? "border-gray-700"
+                    : "border-gray-200"
+                } flex justify-between items-center`}
+              >
+                <h2
+                  className={`text-xl font-semibold ${themeStyles.textPrimary}`}
+                >
                   Appointments ({filteredAppointments.length})
                 </h2>
-                <p className="text-gray-400 text-sm">
+                <p className={`${themeStyles.textSecondary} text-sm`}>
                   Last updated: {new Date().toLocaleTimeString()}
                 </p>
               </div>
@@ -1126,33 +1336,53 @@ export default function AdminDashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-gray-700">
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                    <tr
+                      className={`border-b ${
+                        currentTheme === "dark"
+                          ? "border-gray-700"
+                          : "border-gray-200"
+                      }`}
+                    >
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         <User className="h-4 w-4 inline mr-2" />
                         Name
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         <Phone className="h-4 w-4 inline mr-2" />
                         Phone
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         <MapPin className="h-4 w-4 inline mr-2" />
                         Address
                       </th>
 
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         <Target className="h-4 w-4 inline mr-2" />
                         Subject
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         <Mail className="h-4 w-4 inline mr-2" />
                         Email
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         <MessageSquare className="h-4 w-4 inline mr-2" />
                         Message
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">
+                      <th
+                        className={`px-6 py-4 text-left text-sm font-medium ${themeStyles.textSecondary}`}
+                      >
                         <Calendar className="h-4 w-4 inline mr-2" />
                         Created
                       </th>
@@ -1162,7 +1392,11 @@ export default function AdminDashboard() {
                     {filteredAppointments.map((appointment, index) => (
                       <motion.tr
                         key={appointment._id}
-                        className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors font-montserrat"
+                        className={`border-b ${
+                          currentTheme === "dark"
+                            ? "border-gray-700/50 hover:bg-gray-700/30"
+                            : "border-gray-200/50 hover:bg-gray-100/50"
+                        } transition-colors font-montserrat`}
                         variants={itemVariants}
                         initial="hidden"
                         animate="visible"
@@ -1174,34 +1408,46 @@ export default function AdminDashboard() {
                               {appointment.name[0]}
                             </div>
                             <div className="ml-3">
-                              <p className="text-white font-medium">
+                              <p
+                                className={`${themeStyles.textPrimary} font-medium`}
+                              >
                                 {appointment.name}
                               </p>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-white">{appointment.phone}</p>
+                          <p className={`${themeStyles.textPrimary}`}>
+                            {appointment.phone}
+                          </p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-white max-w-xs truncate">
+                          <p
+                            className={`${themeStyles.textPrimary} max-w-xs truncate`}
+                          >
                             {appointment.address}
                           </p>
                         </td>
 
                         <td className="px-6 py-4">
-                          <p className="text-white">{appointment.subject}</p>
+                          <p className={`${themeStyles.textPrimary}`}>
+                            {appointment.subject}
+                          </p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-white">{appointment.email}</p>
+                          <p className={`${themeStyles.textPrimary}`}>
+                            {appointment.email}
+                          </p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-gray-400 max-w-xs truncate">
+                          <p
+                            className={`${themeStyles.textMuted} max-w-xs truncate`}
+                          >
                             {appointment.message || "N/A"}
                           </p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-white">
+                          <p className={`${themeStyles.textPrimary}`}>
                             {new Date(
                               appointment.createdAt
                             ).toLocaleDateString()}
@@ -1220,8 +1466,12 @@ export default function AdminDashboard() {
                   animate={{ opacity: 1 }}
                 >
                   <CalendarDays className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-400 text-lg">No appointments found</p>
-                  <p className="text-gray-500 text-sm mt-2 font-montserrat">
+                  <p className={`${themeStyles.textSecondary} text-lg`}>
+                    No appointments found
+                  </p>
+                  <p
+                    className={`${themeStyles.textMuted} text-sm mt-2 font-montserrat`}
+                  >
                     {appointmentSearchTerm
                       ? "Try adjusting your search"
                       : "No appointments have been booked yet"}
@@ -1242,19 +1492,29 @@ export default function AdminDashboard() {
           >
             {/* Rate Limit Dashboard Component */}
             <motion.div
-              className="bg-gray-800/50 border border-gray-700 rounded-2xl overflow-hidden backdrop-blur-sm"
+              className={`${themeStyles.tableBg} border ${themeStyles.tableBorder} rounded-2xl overflow-hidden backdrop-blur-sm`}
               variants={cardVariants}
             >
-              <div className="px-6 py-4 border-b border-gray-700">
-                <h2 className="text-xl font-semibold text-white">
+              <div
+                className={`px-6 py-4 border-b ${
+                  currentTheme === "dark"
+                    ? "border-gray-700"
+                    : "border-gray-200"
+                }`}
+              >
+                <h2
+                  className={`text-xl font-semibold ${themeStyles.textPrimary}`}
+                >
                   Instagram API Rate Limits
                 </h2>
-                <p className="text-gray-400 text-sm mt-1 font-montserrat">
+                <p
+                  className={`${themeStyles.textSecondary} text-sm mt-1 font-montserrat`}
+                >
                   Monitor and manage Instagram API rate limits to prevent
                   hitting Meta limits
                 </p>
               </div>
-              <div className="p-6">
+              <div className="p-2">
                 <RateLimitDashboard />
               </div>
             </motion.div>
@@ -1266,11 +1526,13 @@ export default function AdminDashboard() {
             >
               {/* Rate Limit Guidelines */}
               <motion.div
-                className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 backdrop-blur-sm"
+                className={`${themeStyles.tableBg} border ${themeStyles.tableBorder} rounded-2xl p-6 backdrop-blur-sm`}
                 variants={cardVariants}
                 whileHover="hover"
               >
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                <h3
+                  className={`text-lg font-semibold ${themeStyles.textPrimary} mb-4 flex items-center`}
+                >
                   <AlertTriangle className="h-5 w-5 text-orange-400 mr-2" />
                   Rate Limit Guidelines
                 </h3>
@@ -1278,8 +1540,12 @@ export default function AdminDashboard() {
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3"></div>
                     <div>
-                      <p className="text-white font-medium">Maximum Calls</p>
-                      <p className="text-gray-400 text-sm font-montserrat">
+                      <p className={`${themeStyles.textPrimary} font-medium`}>
+                        Maximum Calls
+                      </p>
+                      <p
+                        className={`${themeStyles.textSecondary} text-sm font-montserrat`}
+                      >
                         180 API calls per hour per Instagram account
                       </p>
                     </div>
@@ -1287,8 +1553,12 @@ export default function AdminDashboard() {
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3"></div>
                     <div>
-                      <p className="text-white font-medium">Block Threshold</p>
-                      <p className="text-gray-400 text-sm font-montserrat">
+                      <p className={`${themeStyles.textPrimary} font-medium`}>
+                        Block Threshold
+                      </p>
+                      <p
+                        className={`${themeStyles.textSecondary} text-sm font-montserrat`}
+                      >
                         Accounts are temporarily blocked at 170 calls
                       </p>
                     </div>
@@ -1296,8 +1566,12 @@ export default function AdminDashboard() {
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3"></div>
                     <div>
-                      <p className="text-white font-medium">Block Duration</p>
-                      <p className="text-gray-400 text-sm font-montserrat">
+                      <p className={`${themeStyles.textPrimary} font-medium`}>
+                        Block Duration
+                      </p>
+                      <p
+                        className={`${themeStyles.textSecondary} text-sm font-montserrat`}
+                      >
                         Blocked accounts are automatically unblocked after 5
                         minutes
                       </p>
@@ -1306,8 +1580,12 @@ export default function AdminDashboard() {
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 mr-3"></div>
                     <div>
-                      <p className="text-white font-medium">Priority System</p>
-                      <p className="text-gray-400 text-sm font-montserrat">
+                      <p className={`${themeStyles.textPrimary} font-medium`}>
+                        Priority System
+                      </p>
+                      <p
+                        className={`${themeStyles.textSecondary} text-sm font-montserrat`}
+                      >
                         User-initiated actions get priority over automated
                         comments
                       </p>
@@ -1319,35 +1597,71 @@ export default function AdminDashboard() {
               {/* Queue Statistics */}
               {rateLimitStats?.queue && (
                 <motion.div
-                  className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 backdrop-blur-sm"
+                  className={`${themeStyles.tableBg} border ${themeStyles.tableBorder} rounded-2xl p-6 backdrop-blur-sm`}
                   variants={cardVariants}
                   whileHover="hover"
                 >
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                  <h3
+                    className={`text-lg font-semibold ${themeStyles.textPrimary} mb-4 flex items-center`}
+                  >
                     <Activity className="h-5 w-5 text-cyan-400 mr-2" />
                     Queue Statistics
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-900/50 rounded-lg p-4">
-                      <p className="text-gray-400 text-sm">Total Queued</p>
-                      <p className="text-2xl font-bold text-white">
+                    <div
+                      className={`${
+                        currentTheme === "dark"
+                          ? "bg-gray-900/50"
+                          : "bg-gray-100/50"
+                      } rounded-lg p-4`}
+                    >
+                      <p className={`${themeStyles.textSecondary} text-sm`}>
+                        Total Queued
+                      </p>
+                      <p
+                        className={`text-2xl font-bold ${themeStyles.textPrimary}`}
+                      >
                         {rateLimitStats.queue.total || 0}
                       </p>
                     </div>
-                    <div className="bg-gray-900/50 rounded-lg p-4">
-                      <p className="text-gray-400 text-sm">Processing</p>
+                    <div
+                      className={`${
+                        currentTheme === "dark"
+                          ? "bg-gray-900/50"
+                          : "bg-gray-100/50"
+                      } rounded-lg p-4`}
+                    >
+                      <p className={`${themeStyles.textSecondary} text-sm`}>
+                        Processing
+                      </p>
                       <p className="text-2xl font-bold text-cyan-400">
                         {rateLimitStats.queue.processing || 0}
                       </p>
                     </div>
-                    <div className="bg-gray-900/50 rounded-lg p-4">
-                      <p className="text-gray-400 text-sm">Pending</p>
+                    <div
+                      className={`${
+                        currentTheme === "dark"
+                          ? "bg-gray-900/50"
+                          : "bg-gray-100/50"
+                      } rounded-lg p-4`}
+                    >
+                      <p className={`${themeStyles.textSecondary} text-sm`}>
+                        Pending
+                      </p>
                       <p className="text-2xl font-bold text-yellow-400">
                         {rateLimitStats.queue.pending || 0}
                       </p>
                     </div>
-                    <div className="bg-gray-900/50 rounded-lg p-4">
-                      <p className="text-gray-400 text-sm">Failed</p>
+                    <div
+                      className={`${
+                        currentTheme === "dark"
+                          ? "bg-gray-900/50"
+                          : "bg-gray-100/50"
+                      } rounded-lg p-4`}
+                    >
+                      <p className={`${themeStyles.textSecondary} text-sm`}>
+                        Failed
+                      </p>
                       <p className="text-2xl font-bold text-red-400">
                         {rateLimitStats.queue.failed || 0}
                       </p>
@@ -1355,10 +1669,12 @@ export default function AdminDashboard() {
                   </div>
                   {rateLimitStats.queue.avgProcessingTime > 0 && (
                     <div className="mt-4 pt-4 border-t border-gray-700">
-                      <p className="text-gray-400 text-sm">
+                      <p className={`${themeStyles.textSecondary} text-sm`}>
                         Average Processing Time
                       </p>
-                      <p className="text-lg font-semibold text-white">
+                      <p
+                        className={`text-lg font-semibold ${themeStyles.textPrimary}`}
+                      >
                         {(
                           rateLimitStats.queue.avgProcessingTime / 1000
                         ).toFixed(2)}{" "}
@@ -1372,11 +1688,13 @@ export default function AdminDashboard() {
 
             {/* Quick Actions */}
             <motion.div
-              className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 backdrop-blur-sm"
+              className={`${themeStyles.tableBg} border ${themeStyles.tableBorder} rounded-2xl p-6 backdrop-blur-sm`}
               variants={cardVariants}
               whileHover="hover"
             >
-              <h3 className="text-lg font-semibold text-white mb-4">
+              <h3
+                className={`text-lg font-semibold ${themeStyles.textPrimary} mb-4`}
+              >
                 Quick Actions
               </h3>
               <div className="flex flex-wrap gap-4">
@@ -1385,7 +1703,11 @@ export default function AdminDashboard() {
                     // This would trigger a cleanup in a real implementation
                     alert("Cleanup triggered");
                   }}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white"
+                  className={`px-4 py-2 ${
+                    currentTheme === "dark"
+                      ? "bg-gray-700 hover:bg-gray-600"
+                      : "bg-gray-200 hover:bg-gray-300"
+                  } rounded-lg transition-colors ${themeStyles.textPrimary}`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -1424,14 +1746,18 @@ export default function AdminDashboard() {
           variants={containerVariants}
         >
           <motion.div
-            className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 backdrop-blur-sm"
+            className={`${themeStyles.tableBg} border ${themeStyles.tableBorder} rounded-2xl p-6 backdrop-blur-sm`}
             variants={cardVariants}
             whileHover="hover"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Monthly Recurring</p>
-                <p className="text-2xl font-bold text-white mt-2">
+                <p className={`${themeStyles.textSecondary} text-sm`}>
+                  Monthly Recurring
+                </p>
+                <p
+                  className={`text-2xl font-bold ${themeStyles.textPrimary} mt-2`}
+                >
                   ${analytics?.monthlyRecurring}
                 </p>
               </div>
@@ -1440,14 +1766,18 @@ export default function AdminDashboard() {
           </motion.div>
 
           <motion.div
-            className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 backdrop-blur-sm"
+            className={`${themeStyles.tableBg} border ${themeStyles.tableBorder} rounded-2xl p-6 backdrop-blur-sm`}
             variants={cardVariants}
             whileHover="hover"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Yearly Recurring</p>
-                <p className="text-2xl font-bold text-white mt-2">
+                <p className={`${themeStyles.textSecondary} text-sm`}>
+                  Yearly Recurring
+                </p>
+                <p
+                  className={`text-2xl font-bold ${themeStyles.textPrimary} mt-2`}
+                >
                   ${analytics?.yearlyRecurring}
                 </p>
               </div>
@@ -1456,14 +1786,18 @@ export default function AdminDashboard() {
           </motion.div>
 
           <motion.div
-            className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 backdrop-blur-sm"
+            className={`${themeStyles.tableBg} border ${themeStyles.tableBorder} rounded-2xl p-6 backdrop-blur-sm`}
             variants={cardVariants}
             whileHover="hover"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Total Records</p>
-                <p className="text-2xl font-bold text-white mt-2">
+                <p className={`${themeStyles.textSecondary} text-sm`}>
+                  Total Records
+                </p>
+                <p
+                  className={`text-2xl font-bold ${themeStyles.textPrimary} mt-2`}
+                >
                   {subscriptions.length + appointments.length}
                 </p>
               </div>

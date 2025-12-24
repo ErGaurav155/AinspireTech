@@ -46,7 +46,7 @@ const ProductShowcase = () => {
               <h3
                 className={`text-3xl md:text-4xl font-bold ${themeStyles.titleColor} mb-4 font-montserrat`}
               >
-                Ready to Transform Your Business?
+                Ready to Transform Your Business/Instagram?
               </h3>
 
               <p
@@ -62,7 +62,7 @@ const ProductShowcase = () => {
                   className="bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F] hover:shadow-xl text-black font-semibold px-8 py-6 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105"
                 >
                   <Sparkles className="mr-2 h-5 w-5" />
-                  Start Free Trial
+                  Web Automation
                 </Link>
 
                 <Link
@@ -70,7 +70,7 @@ const ProductShowcase = () => {
                   className={`${themeStyles.outlineButtonBg} px-8 py-6 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105`}
                 >
                   <Play className="mr-2 h-5 w-5" />
-                  Purchase Now
+                  Instagram Automation
                 </Link>
               </div>
             </div>

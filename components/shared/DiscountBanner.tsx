@@ -107,17 +107,15 @@ const DiscountBanner = () => {
   }
 
   return (
-    <div className="p-2 relative z-50 backdrop-blur-lg mt-5 top-0 left-0 w-full">
-      <div className="absolute inset-0 overflow-hidden rounded-xl">
-        <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full opacity-10 blur-xl animate-pulse"></div>
-        <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-r from-[#FF2E9F] to-[#B026FF] rounded-full opacity-10 blur-xl animate-pulse delay-1000"></div>
+    <div className=" relative z-50 bg-transparent mt-5 top-0 left-0 w-full overflow-hidden rounded-xl ">
+      <div className="absolute inset-0  rounded-xl">
+        <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full opacity-5 blur-2xl animate-pulse"></div>
+        <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-r from-[#FF2E9F] to-[#B026FF] rounded-full opacity-5 blur-2xl animate-pulse delay-1000"></div>
       </div>
       <div
         className={`rounded-xl flex flex-col gap-1 justify-center items-center border ${
           themeStyles.borderColor
-        } ${
-          themeStyles.containerBg
-        } text-foreground font-sans p-2 md:py-5 md:px-6 shadow-2xl ${
+        }  text-foreground font-sans p-2 md:py-5 md:px-6 shadow-2xl ${
           theme === "dark" ? "shadow-[#00F0FF]/10" : "shadow-blue-200/20"
         }`}
       >

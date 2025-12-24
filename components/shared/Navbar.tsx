@@ -204,9 +204,14 @@ export function NavBar() {
                 </button>
               </>
             )}
-            <div className="block">
-              <UserButton afterSignOutUrl="/" />
-            </div>
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  userButtonAvatarBox: "w-9 h-9",
+                },
+              }}
+            />
           </SignedIn>
 
           <SignedOut>
@@ -228,7 +233,7 @@ export function NavBar() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-2xl text-[#00F0FF] cursor-pointer rounded-full whitespace-nowrap"
+            className="md:hidden text-xl text-[#00F0FF] border border-purple-700 rounded-md cursor-pointer px-2 py-1 whitespace-nowrap"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? "✕" : "☰"}
