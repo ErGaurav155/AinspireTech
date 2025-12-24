@@ -12,10 +12,6 @@
     {
       "path": "/api/affiliate/process-commissions?secret=whsec_BGrEpsnDXDHGZ/XhYB9CxSgfYW5PQHS9x5R8",
       "schedule": "0 0 1 * *"
-    },
-    {
-      "path": "/api/cron/process-queue?secret=whsec_BGrEpsnDXDHGZ/XhYB9CxSgfYW5PQHS9x5R8",
-      "schedule": "0 * * * *"
     }
   ],
   "headers": [
