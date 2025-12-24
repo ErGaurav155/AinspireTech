@@ -155,13 +155,17 @@ export function NavBar() {
 
           <SignedIn>
             {isOwn ? (
-              <button
-                onClick={() => router.push("/admin")}
-                className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-              >
-                <span className="mr-2">Dashboard</span>
-                <ArrowRight className="hidden lg:flex" size={16} />
-              </button>
+              <>
+                <ThemeToggle />
+
+                <button
+                  onClick={() => router.push("/admin")}
+                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                >
+                  <span className="mr-2">Dashboard</span>
+                  <ArrowRight className="hidden lg:flex" size={16} />
+                </button>
+              </>
             ) : (
               <>
                 <ThemeToggle />
