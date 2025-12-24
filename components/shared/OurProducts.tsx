@@ -251,13 +251,13 @@ export function AIVoiceAgentShowcase() {
             {[
               {
                 id: "web",
-                label: "Web Chatbots",
+                label: "Web Auto",
                 icon: <MessageSquare className="h-5 w-5" />,
                 gradient: "from-cyan-500 to-blue-500",
               },
               {
                 id: "insta",
-                label: "Instagram Automation",
+                label: "Insta Auto",
                 icon: <Instagram className="h-5 w-5" />,
                 gradient: "from-pink-500 to-purple-500",
               },

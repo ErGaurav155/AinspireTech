@@ -46,7 +46,7 @@ const ProductShowcase = () => {
               <h3
                 className={`text-3xl md:text-4xl font-bold ${themeStyles.titleColor} mb-4 font-montserrat`}
               >
-                Ready to Transform Your Business/Instagram?
+                Ready to Transform Your Web/Insta Automation?
               </h3>
 
               <p
@@ -70,7 +70,7 @@ const ProductShowcase = () => {
                   className={`${themeStyles.outlineButtonBg} px-8 py-6 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105`}
                 >
                   <Play className="mr-2 h-5 w-5" />
-                  Instagram Automation
+                  Insta Automation
                 </Link>
               </div>
             </div>
