@@ -817,13 +817,13 @@ export default function AccountPage({
   }, [userId, account, newTemplate, canFollow]);
 
   const handleEditClick = useCallback(
-    (template: any) => {
+    async (template: any) => {
       setEditingTemplate(template);
       setIsCreateDialogOpen(true);
 
       // If editing, fetch media for the account
       if (account?.accountId && account?.username) {
-        fetchAccountMedia(account.accountId, account.username);
+        await fetchAccountMedia(account.accountId, account.username);
       }
       setSelectedMedia(template.mediaId || null);
     },
@@ -1182,7 +1182,12 @@ export default function AccountPage({
               >
                 <DialogTrigger asChild>
                   <Button
-                    onClick={() => setEditingTemplate(null)}
+                    onClick={() => {
+                      setEditingTemplate(null);
+                      if (account?.accountId && account?.username) {
+                        fetchAccountMedia(account.accountId, account.username);
+                      }
+                    }}
                     disabled={Object.keys(account).length <= 1 ? true : false}
                     className="btn-gradient-cyan hover:opacity-90 hover:shadow-cyan-500 shadow-lg transition-opacity"
                   >
@@ -1313,13 +1318,13 @@ export default function AccountPage({
                                   className="w-full h-52 object-cover"
                                 />
 
-                                <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-1 text-xs truncate">
+                                <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-1 text-xs truncate text-white">
                                   {media.caption
                                     ? media.caption.substring(0, 30) +
                                       (media.caption.length > 30 ? "..." : "")
                                     : "No caption"}
                                 </div>
-                                <div className="absolute top-1 right-1 bg-black/70 rounded-full px-1 text-xs">
+                                <div className="absolute top-1 right-1 bg-black/70 text-white rounded-full px-1 text-xs">
                                   {media.media_type === "VIDEO"
                                     ? "Reel"
                                     : "Post"}
@@ -1632,7 +1637,15 @@ export default function AccountPage({
                     >
                       <p> a DM asking to follow you before they get the link</p>
                       <div className="flex items-center justify-center gap-2">
-                        <div className="bg-blue-700 px-1 rounded-sm">Paid</div>
+                        <div
+                          className={`px-2 py-1 rounded-sm text-xs ${
+                            canFollow
+                              ? "bg-blue-700 text-white"
+                              : "bg-gray-300 text-gray-600"
+                          }`}
+                        >
+                          {canFollow ? "Available" : "Upgrade Required"}
+                        </div>
                         <Switch
                           disabled={!canFollow}
                           checked={
@@ -2201,7 +2214,16 @@ export default function AccountPage({
                       responses
                     </p>
                     <Button
-                      onClick={() => setIsCreateDialogOpen(true)}
+                      // onClick={() => setIsCreateDialogOpen(true)}
+                      onClick={() => {
+                        setIsCreateDialogOpen(true);
+                        if (account?.accountId && account?.username) {
+                          fetchAccountMedia(
+                            account.accountId,
+                            account.username
+                          );
+                        }
+                      }}
                       disabled={Object.keys(account).length <= 1 ? true : false}
                     >
                       <Plus className="mr-2 h-4 w-4" />

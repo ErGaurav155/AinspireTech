@@ -919,13 +919,13 @@ export default function TemplatesPage() {
                               width={128}
                               className="w-full h-52 object-cover"
                             />
-                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-1 text-xs truncate">
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-1 text-xs truncate">
                               {media.caption
                                 ? media.caption.substring(0, 30) +
                                   (media.caption.length > 30 ? "..." : "")
                                 : "No caption"}
                             </div>
-                            <div className="absolute top-1 right-1 bg-black/70 rounded-full px-1 text-xs">
+                            <div className="absolute top-1 right-1 bg-black/70 text-white rounded-full px-1 text-xs">
                               {media.media_type === "VIDEO" ? "Reel" : "Post"}
                             </div>
                           </div>
