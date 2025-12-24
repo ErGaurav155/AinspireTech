@@ -1,7 +1,7 @@
-// app/database/models/rate/GlobalRateLimit.model.ts
+// app/database/models/rate/RateGlobalRateLimit.model.ts
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-export interface IGlobalRateLimit extends Document {
+export interface IRateGlobalRateLimit extends Document {
   windowLabel: string; // "10-11", "11-12", etc.
   windowStartHour: number; // 10, 11, 12
   totalCalls: number;
@@ -18,12 +18,12 @@ export interface IGlobalRateLimit extends Document {
   updatedAt: Date;
 }
 
-const GlobalRateLimitSchema = new Schema<IGlobalRateLimit>(
+const RateGlobalRateLimitSchema = new Schema<IRateGlobalRateLimit>(
   {
     windowLabel: { type: String, required: true, index: true },
     windowStartHour: { type: Number, required: true },
     totalCalls: { type: Number, default: 0 },
-    appLimit: { type: Number, default: 10000 }, // Default global limit
+    appLimit: { type: Number, default: 10000 },
     isActive: { type: Boolean, default: true },
     startedAt: { type: Date, required: true },
     endsAt: { type: Date, required: true },
@@ -38,12 +38,12 @@ const GlobalRateLimitSchema = new Schema<IGlobalRateLimit>(
   }
 );
 
-// TTL index - auto delete after 1 hours
-GlobalRateLimitSchema.index({ endsAt: 1 }, { expireAfterSeconds: 3600 });
+// TTL index - auto delete after 2 hours
+RateGlobalRateLimitSchema.index({ endsAt: 1 }, { expireAfterSeconds: 3600 });
 
-export const RateGlobalRateLimit: Model<IGlobalRateLimit> =
+export const RateGlobalRateLimit: Model<IRateGlobalRateLimit> =
   mongoose.models?.RateGlobalRateLimit ||
-  mongoose.model<IGlobalRateLimit>(
+  mongoose.model<IRateGlobalRateLimit>(
     "RateGlobalRateLimit",
-    GlobalRateLimitSchema
+    RateGlobalRateLimitSchema
   );

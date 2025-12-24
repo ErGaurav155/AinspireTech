@@ -3,21 +3,18 @@
 
 import { connectToDatabase } from "@/lib/database/mongoose";
 import {
-  IQueueItem,
+  IRateQueueItem,
   RateQueueItem,
-} from "@/lib/database/models/rate/Queue.model";
+} from "../database/models/rate/Queue.model";
 
-/**
- * Add item to queue - UPDATED with clerkId and windowLabel
- */
 export async function enqueueItem(
   accountId: string,
   userId: string,
   clerkId: string,
-  actionType: IQueueItem["actionType"],
+  actionType: IRateQueueItem["actionType"],
   payload: any,
   priority: number = 3,
-  metadata?: Partial<IQueueItem["metadata"]>
+  metadata?: Partial<IRateQueueItem["metadata"]>
 ): Promise<{
   queued: boolean;
   queueId?: string;
@@ -65,9 +62,6 @@ export async function enqueueItem(
   };
 }
 
-/**
- * Get queue statistics
- */
 export async function getQueueStats(accountId?: string): Promise<{
   total: number;
   pending: number;
@@ -189,9 +183,6 @@ export async function getQueueStats(accountId?: string): Promise<{
   return result;
 }
 
-/**
- * Clean up old queue items
- */
 export async function cleanupOldQueueItems(days: number = 7): Promise<number> {
   await connectToDatabase();
   const cutoffDate = new Date();
@@ -205,12 +196,9 @@ export async function cleanupOldQueueItems(days: number = 7): Promise<number> {
   return result.deletedCount;
 }
 
-/**
- * Get next item from queue for processing
- */
 export async function getNextQueueItem(
   limit: number = 10
-): Promise<IQueueItem[]> {
+): Promise<IRateQueueItem[]> {
   await connectToDatabase();
 
   const currentHour = new Date().getHours();
@@ -222,31 +210,4 @@ export async function getNextQueueItem(
   })
     .sort({ priority: 1, position: 1 })
     .limit(limit);
-}
-
-/**
- * Update queue item status
- */
-export async function updateQueueItemStatus(
-  queueId: string,
-  status: IQueueItem["status"],
-  result?: any,
-  error?: string
-): Promise<boolean> {
-  await connectToDatabase();
-
-  const updateData: any = {
-    status,
-    updatedAt: new Date(),
-  };
-
-  if (status === "COMPLETED") {
-    updateData.processedAt = new Date();
-    updateData.result = result;
-  } else if (status === "FAILED") {
-    updateData.error = error;
-  }
-
-  const updated = await RateQueueItem.findByIdAndUpdate(queueId, updateData);
-  return !!updated;
 }

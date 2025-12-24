@@ -1,24 +1,18 @@
-// app/api/public/process-queue/route.ts
+// app/api/cron/process-queue/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { hybridQueueProcessor } from "@/lib/services/hybridQueueProcessor";
 import { connectToDatabase } from "@/lib/database/mongoose";
 
-// Public endpoint that can be called by external cron services
+export const runtime = "nodejs"; // Required for Vercel Cron Jobs
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
-    // Simple security check (optional but recommended)
-    const authHeader = request.headers.get("authorization");
-    const expectedToken = process.env.CRON_PUBLIC_TOKEN;
+    const url = new URL(request.url);
+    const secret = url.searchParams.get("secret");
 
-    if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Unauthorized",
-          timestamp: new Date().toISOString(),
-        },
-        { status: 401 }
-      );
+    if (secret !== process.env.CRON_SECRET) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectToDatabase();
@@ -42,7 +36,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Also support POST for flexibility
 export async function POST(request: NextRequest) {
   return await GET(request);
 }

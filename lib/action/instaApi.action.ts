@@ -13,12 +13,13 @@ import {
   canMakeCall,
   getCurrentWindowInfo,
 } from "../services/hourlyRateLimiter";
+import { hybridQueueProcessor } from "../services/hybridQueueProcessor";
 import {
   cleanupOldQueueItems,
   enqueueItem,
   getQueueStats,
 } from "../services/queue";
-import { hybridQueueProcessor } from "../services/hybridQueueProcessor";
+import { RateUserCall } from "../database/models/rate/UserCall.model";
 
 // Interfaces
 interface InstagramComment {
@@ -44,22 +45,6 @@ interface FollowRelationship {
   is_user_follow_business?: boolean;
 }
 
-// Extended metadata interface to include rateLimitStatus
-interface ExtendedMetadata {
-  commentId?: string;
-  mediaId?: string;
-  recipientId?: string;
-  templateId?: string;
-  action?: string;
-  commenterUsername?: string;
-  rateLimitStatus?: {
-    calls: number;
-    remaining: number;
-    isBlocked: boolean;
-    blockedUntil?: Date;
-  };
-}
-
 // Constants
 const RATE_LIMIT_MAX_REQUESTS = 180;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
@@ -74,8 +59,7 @@ function isMeaningfulComment(text: string): boolean {
   return cleanedText.length > 0 && !emojiOnly && !isGifComment;
 }
 
-// ----------------- Instagram API Functions -----------------
-
+// Instagram API Functions - NO CHANGES TO THESE
 export async function getInstagramProfile(
   accessToken: string
 ): Promise<InstagramProfile> {
@@ -375,69 +359,7 @@ async function findMatchingTemplate(
   return null;
 }
 
-// Update account rate limit info in database
-async function updateAccountRateLimitInfo(
-  accountId: string,
-  rateLimitStatus: {
-    calls: number;
-    remaining: number;
-    isBlocked: boolean;
-    blockedUntil?: Date;
-    resetInMs: number;
-  }
-): Promise<void> {
-  await connectToDatabase();
-
-  await InstagramAccount.findOneAndUpdate(
-    { instagramId: accountId },
-    {
-      $set: {
-        "rateLimitInfo.calls": rateLimitStatus.calls,
-        "rateLimitInfo.remaining": rateLimitStatus.remaining,
-        "rateLimitInfo.isBlocked": rateLimitStatus.isBlocked,
-        "rateLimitInfo.blockedUntil": rateLimitStatus.blockedUntil,
-        "rateLimitInfo.resetAt": new Date(
-          Date.now() + rateLimitStatus.resetInMs
-        ),
-        "rateLimitInfo.lastUpdated": new Date(),
-        lastActivity: new Date(),
-      },
-    }
-  );
-}
-
-// Helper function to safely add metadata with rateLimitStatus
-async function enqueueWithMetadata(
-  accountId: string,
-  userId: string,
-  clerkId: string,
-  actionType: "COMMENT" | "DM" | "POSTBACK" | "PROFILE" | "FOLLOW_CHECK",
-  payload: any,
-  priority: number = 3,
-  metadata?: ExtendedMetadata
-) {
-  // Extract only the known properties for the queue metadata
-  const queueMetadata = {
-    commentId: metadata?.commentId,
-    mediaId: metadata?.mediaId,
-    recipientId: metadata?.recipientId,
-    templateId: metadata?.templateId,
-    action: metadata?.action,
-    commenterUsername: metadata?.commenterUsername,
-  };
-
-  return await enqueueItem(
-    accountId,
-    userId,
-    clerkId,
-    actionType,
-    payload,
-    priority,
-    queueMetadata
-  );
-}
-
-// Handle postback (button clicks) with queue integration
+// Handle postback with rate limiting in RateUserCall
 export async function handlePostback(
   accountId: string,
   userId: string,
@@ -474,7 +396,7 @@ export async function handlePostback(
       };
     }
 
-    // Check rate limit before processing
+    // Check rate limit before processing - USING RateUserCall for rate limiting
     const rateCheck = await canMakeCall(
       userInfo.clerkId,
       accountId,
@@ -487,11 +409,10 @@ export async function handlePostback(
     );
 
     if (!rateCheck.allowed) {
-      // Log the rate limit status
       console.log(`Postback rate limited: ${rateCheck.reason}`);
 
-      // Trigger queue processing check (fallback mechanism)
-      const shouldCheckQueue = Math.random() < 0.1; // 10% chance
+      // Trigger queue processing check
+      const shouldCheckQueue = Math.random() < 0.1;
       if (shouldCheckQueue) {
         await hybridQueueProcessor();
       }
@@ -504,7 +425,7 @@ export async function handlePostback(
       };
     }
 
-    // Handle CHECK_FOLLOW - when user clicks "Send me the access"
+    // Handle CHECK_FOLLOW
     if (payload.startsWith("CHECK_FOLLOW_")) {
       const targetTemplate = payload.replace("CHECK_FOLLOW_", "");
 
@@ -514,7 +435,6 @@ export async function handlePostback(
       }).sort({ priority: 1 });
 
       if (templates.length === 0) {
-        console.error("No active templates found for postback");
         return { success: false, queued: false, reason: "No active templates" };
       }
 
@@ -603,7 +523,7 @@ export async function handlePostback(
       }
     }
 
-    // Handle VERIFY_FOLLOW - when user clicks "I am following"
+    // Handle VERIFY_FOLLOW
     else if (payload.startsWith("VERIFY_FOLLOW_")) {
       const targetTemplate = payload.replace("VERIFY_FOLLOW_", "");
 
@@ -613,7 +533,6 @@ export async function handlePostback(
       }).sort({ priority: 1 });
 
       if (templates.length === 0) {
-        console.error("No active templates found for postback");
         return { success: false, queued: false, reason: "No active templates" };
       }
 
@@ -679,11 +598,11 @@ export async function handlePostback(
       }
     }
 
-    // Update user's reply count for this postback action
+    // Update user's reply count
     await User.findByIdAndUpdate(userInfo._id, { $inc: { totalReplies: 1 } });
 
-    // Trigger queue processing check (every 10th postback)
-    const shouldCheckQueue = Math.random() < 0.1; // 10% chance
+    // Trigger queue processing check
+    const shouldCheckQueue = Math.random() < 0.1;
     if (shouldCheckQueue) {
       await hybridQueueProcessor();
     }
@@ -699,7 +618,7 @@ export async function handlePostback(
   }
 }
 
-// Core Comment Processing with Queue Integration - COMPLETE VERSION
+// Core Comment Processing with rate limiting in RateUserCall
 export async function processComment(
   accountId: string,
   userId: string,
@@ -735,9 +654,6 @@ export async function processComment(
     }
 
     if (userInfo.totalReplies >= userInfo.replyLimit) {
-      console.warn(
-        `Account ${accountId} has reached its reply limit (${userInfo.totalReplies}/${userInfo.replyLimit})`
-      );
       return {
         success: false,
         queued: false,
@@ -768,7 +684,7 @@ export async function processComment(
 
     const startTime = Date.now();
 
-    // Check rate limit before processing
+    // Check rate limit before processing - USING RateUserCall for rate limiting
     const rateCheck = await canMakeCall(
       userInfo.clerkId,
       accountId,
@@ -805,8 +721,8 @@ export async function processComment(
         },
       });
 
-      // Trigger queue processing check (fallback mechanism)
-      const shouldCheckQueue = Math.random() < 0.1; // 10% chance
+      // Trigger queue processing check
+      const shouldCheckQueue = Math.random() < 0.1;
       if (shouldCheckQueue) {
         await hybridQueueProcessor();
       }
@@ -820,7 +736,6 @@ export async function processComment(
     }
 
     // Rate limit passed, proceed with actual processing
-    // Enqueue DM sending
     const dmResult = await sendInitialAccessDM(
       accountId,
       account.accessToken,
@@ -880,22 +795,10 @@ export async function processComment(
     // Update user reply count
     await User.findByIdAndUpdate(userInfo._id, { $inc: { totalReplies: 1 } });
 
-    // Update account activity
-    await InstagramAccount.findByIdAndUpdate(account._id, {
-      $inc: { accountReply: 1 },
-      $set: {
-        lastActivity: new Date(),
-        "rateLimitInfo.calls": (account.rateLimitInfo?.calls || 0) + 1,
-        "rateLimitInfo.remaining": Math.max(
-          0,
-          180 - ((account.rateLimitInfo?.calls || 0) + 1)
-        ),
-        "rateLimitInfo.lastUpdated": new Date(),
-      },
-    });
+    // NO UPDATE TO InstagramAccount model - all rate limiting in RateUserCall
 
-    // Trigger queue processing check (every 10th comment)
-    const shouldCheckQueue = Math.random() < 0.1; // 10% chance
+    // Trigger queue processing check
+    const shouldCheckQueue = Math.random() < 0.1;
     if (shouldCheckQueue) {
       await hybridQueueProcessor();
     }
@@ -936,57 +839,61 @@ export async function processComment(
   }
 }
 
-// Get account rate limit status
-export async function getAccountRateLimitStatus(accountId: string): Promise<{
+// Get account rate limit status from RateUserCall
+export async function getAccountRateLimitStatus(
+  accountId: string,
+  clerkId: string
+): Promise<{
   calls: number;
   remaining: number;
   isBlocked: boolean;
   blockedUntil?: Date;
-  resetAt?: Date;
   windowStart: Date;
   queueStats: any;
 }> {
   await connectToDatabase();
 
-  // Use the new hourly rate limiter
-  const { windowLabel } = await getCurrentWindowInfo();
+  const { windowLabel, windowStart } = await getCurrentWindowInfo();
+  const rateUserCall = await RateUserCall.findOne({ userId: clerkId });
 
-  const account = await InstagramAccount.findOne({ instagramId: accountId });
+  let accountCalls = 0;
+  let isBlocked = false;
+  let blockedUntil = undefined;
+
+  if (rateUserCall) {
+    const accountInfo = rateUserCall.metadata.accountCalls.get(accountId);
+    if (accountInfo) {
+      accountCalls = accountInfo.calls;
+      isBlocked = accountInfo.isBlocked;
+      blockedUntil = accountInfo.blockedUntil;
+    }
+  }
+
   const queueStats = await getQueueStats(accountId);
 
   return {
-    calls: account?.rateLimitInfo?.calls || 0,
-    remaining: account?.rateLimitInfo?.remaining || 180,
-    isBlocked: account?.rateLimitInfo?.isBlocked || false,
-    blockedUntil: account?.rateLimitInfo?.blockedUntil,
-    resetAt: account?.rateLimitInfo?.resetAt,
-    windowStart: account?.rateLimitInfo?.windowStart || new Date(),
+    calls: accountCalls,
+    remaining: Math.max(0, 180 - accountCalls),
+    isBlocked,
+    blockedUntil,
+    windowStart,
     queueStats,
   };
 }
 
-// Reset account rate limit
+// Reset account rate limit in RateUserCall
 export async function resetAccountRateLimit(
-  accountId: string
+  accountId: string,
+  clerkId: string
 ): Promise<{ success: boolean; message: string }> {
   try {
     await connectToDatabase();
 
-    // Also reset in account document
-    await InstagramAccount.findOneAndUpdate(
-      { instagramId: accountId },
-      {
-        $set: {
-          "rateLimitInfo.calls": 0,
-          "rateLimitInfo.remaining": 180,
-          "rateLimitInfo.isBlocked": false,
-          "rateLimitInfo.blockedUntil": null,
-          "rateLimitInfo.resetAt": null,
-          "rateLimitInfo.windowStart": new Date(),
-          "rateLimitInfo.lastUpdated": new Date(),
-        },
-      }
-    );
+    const rateUserCall = await RateUserCall.findOne({ userId: clerkId });
+    if (rateUserCall) {
+      rateUserCall.metadata.accountCalls.delete(accountId);
+      await rateUserCall.save();
+    }
 
     return {
       success: true,
@@ -1024,49 +931,48 @@ export async function getSystemRateLimitStats(): Promise<{
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
-  const blockedAccounts = await InstagramAccount.countDocuments({
-    "rateLimitInfo.isBlocked": true,
-    "rateLimitInfo.blockedUntil": { $gt: now },
-  });
+  // Calculate from RateUserCall instead of InstagramAccount
+  const rateUserCalls = await RateUserCall.find();
+  let blockedAccounts = 0;
+  let nearLimitAccounts = 0;
+  let totalCallsToday = 0;
 
-  const nearLimitAccounts = await InstagramAccount.countDocuments({
-    "rateLimitInfo.calls": { $gte: RATE_LIMIT_BLOCK_THRESHOLD },
-    "rateLimitInfo.windowStart": { $gte: oneHourAgo },
-  });
+  for (const rateUserCall of rateUserCalls) {
+    const accountCalls = Array.from(
+      rateUserCall.metadata.accountCalls.values()
+    );
+    totalCallsToday += accountCalls.reduce((sum, acc) => sum + acc.calls, 0);
 
-  // Calculate total calls today
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-
-  const activeAccounts = await InstagramAccount.find({ isActive: true });
-  const totalCallsToday = activeAccounts.reduce((sum, account) => {
-    if (
-      account.rateLimitInfo?.windowStart &&
-      account.rateLimitInfo.windowStart >= todayStart
-    ) {
-      return sum + (account.rateLimitInfo.calls || 0);
+    for (const account of accountCalls) {
+      if (account.isBlocked) {
+        blockedAccounts++;
+      }
+      if (account.calls >= 170) {
+        nearLimitAccounts++;
+      }
     }
-    return sum;
-  }, 0);
+  }
 
   // Get queue stats
   const queueStats = await getQueueStats();
 
-  // Get top users (simplified version)
-  const topUsers = await InstagramAccount.aggregate([
+  // Get top users from RateUserCall
+  const topUsers = await RateUserCall.aggregate([
     {
-      $match: {
-        isActive: true,
-        "rateLimitInfo.windowStart": { $gte: oneHourAgo },
+      $project: {
+        userId: 1,
+        accountsUsed: "$metadata.accountsUsed",
+        accountCalls: { $objectToArray: "$metadata.accountCalls" },
       },
     },
+    { $unwind: "$accountCalls" },
     {
       $group: {
         _id: {
           userId: "$userId",
-          accountId: "$instagramId",
+          accountId: "$accountCalls.k",
         },
-        totalCalls: { $sum: "$rateLimitInfo.calls" },
+        totalCalls: { $sum: "$accountCalls.v.calls" },
       },
     },
     {
@@ -1091,7 +997,7 @@ export async function getSystemRateLimitStats(): Promise<{
   };
 }
 
-// Enhanced Webhook Handler to handle postbacks - COMPLETE VERSION
+// Enhanced Webhook Handler
 export async function handleInstagramWebhook(
   payload: any
 ): Promise<{ success: boolean; message: string }> {
@@ -1205,7 +1111,7 @@ export async function handleInstagramWebhook(
   }
 }
 
-// Clean up old queue items - FIXED: Properly handles the return type
+// Clean up old queue items
 export async function cleanupQueueItems(
   days: number = 7
 ): Promise<{ success: boolean; deletedCount: number }> {

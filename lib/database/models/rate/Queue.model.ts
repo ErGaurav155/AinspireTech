@@ -1,7 +1,7 @@
-// app/database/models/rate/Queue.model.ts
+// app/database/models/rate/RateQueueItem.model.ts
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-export interface IQueueItem extends Document {
+export interface IRateQueueItem extends Document {
   accountId: string;
   userId: string;
   clerkId: string;
@@ -23,7 +23,7 @@ export interface IQueueItem extends Document {
     templateId?: string;
     action?: string;
     commenterUsername?: string;
-    originalTimestamp: Date; // When this was originally queued
+    originalTimestamp: Date;
     retryCount: number;
     source?: "RATE_LIMIT" | "SUBSCRIPTION_LIMIT" | "APP_LIMIT";
   };
@@ -32,9 +32,9 @@ export interface IQueueItem extends Document {
   updatedAt: Date;
 }
 
-const QueueItemSchema = new Schema<IQueueItem>(
+const RateQueueItemSchema = new Schema<IRateQueueItem>(
   {
-    accountId: { type: String, required: true, index: true },
+    accountId: { type: String, required: true, index: true, unique: true },
     userId: { type: String, required: true, index: true },
     clerkId: { type: String, required: true, index: true },
     actionType: {
@@ -77,11 +77,15 @@ const QueueItemSchema = new Schema<IQueueItem>(
   }
 );
 
-// Indexes for efficient FIFO queries
-QueueItemSchema.index({ windowLabel: 1, status: 1, priority: 1, position: 1 });
-QueueItemSchema.index({ status: 1, scheduledFor: 1 });
-QueueItemSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 * 7 }); // Auto-delete after 7 days
+RateQueueItemSchema.index({
+  windowLabel: 1,
+  status: 1,
+  priority: 1,
+  position: 1,
+});
+RateQueueItemSchema.index({ status: 1, scheduledFor: 1 });
+RateQueueItemSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 * 7 });
 
-export const RateQueueItem: Model<IQueueItem> =
+export const RateQueueItem: Model<IRateQueueItem> =
   mongoose.models?.RateQueueItem ||
-  mongoose.model<IQueueItem>("RateQueueItem", QueueItemSchema);
+  mongoose.model<IRateQueueItem>("RateQueueItem", RateQueueItemSchema);

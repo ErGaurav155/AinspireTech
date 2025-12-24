@@ -2,19 +2,16 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/database/mongoose";
+
 import User from "@/lib/database/models/user.model";
-import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
+import { RateGlobalRateLimit } from "../database/models/rate/GlobalRateLimit.model";
 import InstaSubscription from "../database/models/insta/InstaSubscription.model";
 import {
-  checkFollowRelationshipDBFirst,
-  replyToComment,
-  sendFinalLinkDM,
-  sendFollowReminderDM,
-  sendInitialAccessDM,
-} from "../action/instaApi.action";
-import { RateGlobalRateLimit } from "../database/models/rate/GlobalRateLimit.model";
+  IRateUserCall,
+  RateUserCall,
+} from "../database/models/rate/UserCall.model";
 import { RateQueueItem } from "../database/models/rate/Queue.model";
-import { RateUserCall } from "../database/models/rate/UserCall.model";
+import { triggerActionProcessing } from "./actionProcessor";
 
 // Helper to get current fixed window
 export async function getCurrentWindowInfo() {
@@ -53,7 +50,7 @@ async function getOrCreateGlobalWindow() {
       windowLabel,
       windowStartHour: currentHour,
       totalCalls: 0,
-      appLimit: 10000, // Default global limit
+      appLimit: 10000,
       isActive: true,
       startedAt: windowStart,
       endsAt: windowEnd,
@@ -79,7 +76,6 @@ async function getUserSubscriptionInfo(clerkId: string) {
   }).sort({ createdAt: -1 });
 
   if (!subscription) {
-    // Return default starter plan
     return {
       plan: "Insta-Automation-Starter",
       accountLimit: 1,
@@ -89,7 +85,6 @@ async function getUserSubscriptionInfo(clerkId: string) {
     };
   }
 
-  // Get plan details
   const planDetails = {
     "Insta-Automation-Starter": { accounts: 1, replies: 500, dms: 1000 },
     "Insta-Automation-Grow": { accounts: 3, replies: 2000, dms: 3000 },
@@ -109,7 +104,59 @@ async function getUserSubscriptionInfo(clerkId: string) {
   };
 }
 
-// Check if call can be made (main function)
+// Check Instagram account rate limit in RateUserCall
+function checkAccountRateLimit(rateUserCall: IRateUserCall, accountId: string) {
+  const accountCalls = rateUserCall.metadata.accountCalls.get(accountId);
+
+  if (!accountCalls) {
+    return {
+      calls: 0,
+      remaining: 180,
+      isBlocked: false,
+    };
+  }
+
+  // Check if blocked
+  if (
+    accountCalls.isBlocked &&
+    accountCalls.blockedUntil &&
+    accountCalls.blockedUntil > new Date()
+  ) {
+    return {
+      calls: accountCalls.calls,
+      remaining: Math.max(0, 180 - accountCalls.calls),
+      isBlocked: true,
+      blockedUntil: accountCalls.blockedUntil,
+    };
+  }
+
+  // Check if exceeded 180 calls
+  if (accountCalls.calls >= 180) {
+    return {
+      calls: accountCalls.calls,
+      remaining: 0,
+      isBlocked: true,
+    };
+  }
+
+  // Check if approaching limit (170+ calls)
+  if (accountCalls.calls >= 170) {
+    return {
+      calls: accountCalls.calls,
+      remaining: Math.max(0, 180 - accountCalls.calls),
+      isBlocked: false,
+      warning: true,
+    };
+  }
+
+  return {
+    calls: accountCalls.calls,
+    remaining: Math.max(0, 180 - accountCalls.calls),
+    isBlocked: false,
+  };
+}
+
+// Main rate limiting check
 export async function canMakeCall(
   clerkId: string,
   accountId: string,
@@ -174,10 +221,10 @@ export async function canMakeCall(
   }
 
   // Get or create user call counter
-  let userCall = await RateUserCall.findOne({ clerkId });
+  let rateUserCall = await RateUserCall.findOne({ userId: clerkId });
 
-  if (!userCall) {
-    userCall = await RateUserCall.create({
+  if (!rateUserCall) {
+    rateUserCall = await RateUserCall.create({
       userId: clerkId,
       instagramId: accountId,
       count: 0,
@@ -191,29 +238,32 @@ export async function canMakeCall(
         accountsUsed: [],
         totalDmCount: 0,
         totalCommentCount: 0,
+        accountCalls: new Map(),
       },
     });
   }
 
-  // Check if window changed
+  // Check if window changed - reset counts if new window
   if (
-    userCall.currentWindow !== windowLabel ||
-    userCall.windowStartHour !== currentHour
+    rateUserCall.currentWindow !== windowLabel ||
+    rateUserCall.windowStartHour !== currentHour
   ) {
     // Reset user count for new window
-    userCall.count = 0;
-    userCall.currentWindow = windowLabel;
-    userCall.windowStartHour = currentHour;
-    await userCall.save();
+    rateUserCall.count = 0;
+    rateUserCall.currentWindow = windowLabel;
+    rateUserCall.windowStartHour = currentHour;
+
+    // Reset all account calls
+    rateUserCall.metadata.accountCalls = new Map();
+
+    await rateUserCall.save();
   }
 
   // Get global window
   const globalWindow = await getOrCreateGlobalWindow();
 
-  // Get account rate limit info
-  const account = await InstagramAccount.findOne({ instagramId: accountId });
-  const accountCalls = account?.rateLimitInfo?.calls || 0;
-  const accountRemaining = 180 - accountCalls;
+  // Check account rate limit
+  const accountLimitInfo = checkAccountRateLimit(rateUserCall, accountId);
 
   // Check limits in order
   const checks = [
@@ -224,13 +274,18 @@ export async function canMakeCall(
     },
     {
       name: "userSubscriptionLimit",
-      condition: userCall.count >= subscription.replyLimit,
+      condition: rateUserCall.count >= subscription.replyLimit,
       reason: "User subscription limit reached",
     },
     {
       name: "accountRateLimit",
-      condition: accountCalls >= 180,
+      condition: accountLimitInfo.isBlocked,
       reason: "Instagram API rate limit reached",
+    },
+    {
+      name: "accountWarning",
+      condition: accountLimitInfo.warning,
+      reason: "Approaching Instagram API limit",
     },
   ];
 
@@ -238,9 +293,11 @@ export async function canMakeCall(
 
   if (failedCheck) {
     // Check if we should queue this request
-    const shouldQueue = ["userSubscriptionLimit", "accountRateLimit"].includes(
-      failedCheck.name
-    );
+    const shouldQueue = [
+      "userSubscriptionLimit",
+      "accountRateLimit",
+      "accountWarning",
+    ].includes(failedCheck.name);
 
     if (shouldQueue && metadata) {
       // Add to queue with FIFO position
@@ -280,16 +337,16 @@ export async function canMakeCall(
         shouldQueue: true,
         queueInfo: {
           position: queueItem.position,
-          estimatedWait: queueItem.position * 1000, // 1 second per item estimate
+          estimatedWait: queueItem.position * 1000,
           windowLabel,
         },
         limits: {
           userLimit: subscription.replyLimit,
-          userUsed: userCall.count,
+          userUsed: rateUserCall.count,
           globalLimit: globalWindow.appLimit,
           globalUsed: globalWindow.totalCalls,
           accountLimit: 180,
-          accountUsed: accountCalls,
+          accountUsed: accountLimitInfo.calls,
         },
       };
     }
@@ -300,32 +357,50 @@ export async function canMakeCall(
       shouldQueue: false,
       limits: {
         userLimit: subscription.replyLimit,
-        userUsed: userCall.count,
+        userUsed: rateUserCall.count,
         globalLimit: globalWindow.appLimit,
         globalUsed: globalWindow.totalCalls,
         accountLimit: 180,
-        accountUsed: accountCalls,
+        accountUsed: accountLimitInfo.calls,
       },
     };
   }
 
   // All checks passed - allow the call
   // Increment user call count
-  userCall.count += 1;
+  rateUserCall.count += 1;
+
+  // Increment account call count
+  const accountCalls = rateUserCall.metadata.accountCalls.get(accountId) || {
+    calls: 0,
+    lastCall: new Date(),
+    isBlocked: false,
+  };
+
+  accountCalls.calls += 1;
+  accountCalls.lastCall = new Date();
+
+  // Block if reached 170+ calls (Instagram limit)
+  if (accountCalls.calls >= 170) {
+    accountCalls.isBlocked = true;
+    accountCalls.blockedUntil = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes
+  }
+
+  rateUserCall.metadata.accountCalls.set(accountId, accountCalls);
 
   // Increment appropriate metadata counter
   if (actionType === "DM") {
-    userCall.metadata.totalDmCount += 1;
+    rateUserCall.metadata.totalDmCount += 1;
   } else if (actionType === "COMMENT") {
-    userCall.metadata.totalCommentCount += 1;
+    rateUserCall.metadata.totalCommentCount += 1;
   }
 
   // Add account to used accounts if not already
-  if (!userCall.metadata.accountsUsed.includes(accountId)) {
-    userCall.metadata.accountsUsed.push(accountId);
+  if (!rateUserCall.metadata.accountsUsed.includes(accountId)) {
+    rateUserCall.metadata.accountsUsed.push(accountId);
   }
 
-  await userCall.save();
+  await rateUserCall.save();
 
   // Increment global call count
   await RateGlobalRateLimit.findByIdAndUpdate(globalWindow._id, {
@@ -338,11 +413,11 @@ export async function canMakeCall(
     shouldQueue: false,
     limits: {
       userLimit: subscription.replyLimit,
-      userUsed: userCall.count,
+      userUsed: rateUserCall.count,
       globalLimit: globalWindow.appLimit,
       globalUsed: globalWindow.totalCalls + 1,
       accountLimit: 180,
-      accountUsed: accountCalls,
+      accountUsed: accountCalls.calls,
     },
   };
 }
@@ -364,7 +439,7 @@ export async function processQueuedItemsForNewWindow(): Promise<{
     status: "QUEUED",
   })
     .sort({ position: 1 })
-    .limit(100); // Process 100 at a time
+    .limit(100);
 
   let processed = 0;
   let failed = 0;
@@ -383,7 +458,7 @@ export async function processQueuedItemsForNewWindow(): Promise<{
       if (canProcess.allowed) {
         // Update item to pending for processing
         item.status = "PENDING";
-        item.windowLabel = windowLabel; // Move to current window
+        item.windowLabel = windowLabel;
         await item.save();
 
         // Trigger the actual processing
@@ -417,102 +492,6 @@ export async function processQueuedItemsForNewWindow(): Promise<{
   );
 
   return { processed, failed, skipped };
-}
-
-// Trigger actual action processing
-async function triggerActionProcessing(queueItem: any) {
-  // This function would trigger the actual API calls
-  // Based on your existing code structure
-  const { actionType, payload, accountId, userId, clerkId } = queueItem;
-
-  try {
-    let result = null;
-
-    switch (actionType) {
-      case "COMMENT":
-        result = await replyToComment(
-          payload.username,
-          accountId,
-          payload.accessToken,
-          payload.commentId,
-          payload.mediaId,
-          payload.message
-        );
-        break;
-
-      case "DM":
-        switch (payload.dmType) {
-          case "INITIAL":
-            result = await sendInitialAccessDM(
-              accountId,
-              payload.accessToken,
-              payload.recipientId,
-              payload.targetUsername,
-              payload.templateMediaId,
-              payload.openDm
-            );
-            break;
-          case "FOLLOW_REMINDER":
-            result = await sendFollowReminderDM(
-              accountId,
-              payload.accessToken,
-              payload.recipientId,
-              payload.targetUsername,
-              payload.targetTemplate
-            );
-            break;
-          case "FINAL_LINK":
-            result = await sendFinalLinkDM(
-              accountId,
-              payload.accessToken,
-              payload.recipientId,
-              payload.content
-            );
-            break;
-        }
-        break;
-
-      case "FOLLOW_CHECK":
-        result = await checkFollowRelationshipDBFirst(
-          payload.igScopedUserId,
-          payload.pageAccessToken
-        );
-        break;
-
-      default:
-        throw new Error(`Unknown action type: ${actionType}`);
-    }
-
-    // Update queue item as completed
-    queueItem.status = "COMPLETED";
-    queueItem.processedAt = new Date();
-    queueItem.result = result;
-    await queueItem.save();
-
-    console.log(
-      `Successfully processed queued item ${queueItem._id} for action ${actionType}`
-    );
-  } catch (error) {
-    console.error(`Error executing action for ${queueItem._id}:`, error);
-    queueItem.status = "FAILED";
-    queueItem.error = error instanceof Error ? error.message : "Unknown error";
-    await queueItem.save();
-
-    // Retry logic
-    if (queueItem.attempts < queueItem.maxAttempts) {
-      queueItem.attempts += 1;
-      queueItem.status = "QUEUED";
-      queueItem.metadata.retryCount += 1;
-      await queueItem.save();
-      console.log(
-        `Retry scheduled for item ${queueItem._id}, attempt ${queueItem.attempts}`
-      );
-    } else {
-      console.log(
-        `Max retries reached for item ${queueItem._id}, marking as failed`
-      );
-    }
-  }
 }
 
 // Get current window statistics
@@ -559,7 +538,7 @@ export async function getWindowStats(windowLabel?: string) {
   };
 }
 
-// Reset user counts for new window (cron job)
+// Reset user counts for new window
 export async function resetUserCountsForNewWindow() {
   await connectToDatabase();
 
@@ -579,6 +558,7 @@ export async function resetUserCountsForNewWindow() {
         currentWindow: windowLabel,
         windowStartHour: currentHour,
         lastUpdated: new Date(),
+        "metadata.accountCalls": {},
       },
     }
   );

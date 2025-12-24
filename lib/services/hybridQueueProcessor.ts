@@ -65,16 +65,12 @@ export async function hybridQueueProcessor() {
     lastProcessedWindow = windowLabel;
 
     return {
-      success: true, // Overall success
-      queueProcessingSummary: result, // Contains processed, failed, skipped
-      windowInfo: {
-        currentWindow: windowLabel,
-        previousWindow: previousWindowLabel,
-      },
-      stats: {
-        totalQueuedItems: queuedItemsCount,
-        ...result,
-      },
+      queueProcessed: true,
+      itemsProcessed: result.processed,
+      itemsFailed: result.failed,
+      itemsSkipped: result.skipped,
+      currentWindow: windowLabel,
+      previousWindow: previousWindowLabel,
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
@@ -89,16 +85,15 @@ export async function hybridQueueProcessor() {
   }
 }
 
-// Function to manually trigger queue processing (for testing or admin)
+// Function to manually trigger queue processing
 export async function manualTriggerQueueProcessing() {
   return await hybridQueueProcessor();
 }
 
-// Check if queue processing is needed (call this from your API routes)
+// Check if queue processing is needed
 export async function checkAndProcessQueueIfNeeded() {
   const { windowLabel } = await getCurrentWindowInfo();
 
-  // Check if any queued items exist from previous windows
   const queuedItems = await RateQueueItem.countDocuments({
     windowLabel: { $ne: windowLabel },
     status: "QUEUED",
