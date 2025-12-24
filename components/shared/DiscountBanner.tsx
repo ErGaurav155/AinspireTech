@@ -107,7 +107,7 @@ const DiscountBanner = () => {
   }
 
   return (
-    <div className=" relative z-50 bg-transparent mt-5 top-0 left-0 w-full overflow-hidden rounded-xl ">
+    <div className=" relative z-50 bg-transparent mt-5 top-0 left-0 w-[95vw] md:w-full mx-2 overflow-hidden rounded-xl ">
       <div className="absolute inset-0  rounded-xl">
         <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-full opacity-5 blur-2xl animate-pulse"></div>
         <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-r from-[#FF2E9F] to-[#B026FF] rounded-full opacity-5 blur-2xl animate-pulse delay-1000"></div>

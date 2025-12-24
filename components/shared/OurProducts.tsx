@@ -404,7 +404,10 @@ export function AIVoiceAgentShowcase() {
                 </div>
 
                 {/* Right Panel - Desktop Image */}
-                <div ref={imageRef} className="hidden md:flex lg:w-1/2">
+                <div
+                  ref={imageRef}
+                  className="hidden md:flex lg:w-1/2 items-center justify-center "
+                >
                   <div className="sticky top-24 h-full">
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
