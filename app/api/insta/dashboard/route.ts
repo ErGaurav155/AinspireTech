@@ -2,7 +2,7 @@ import { getUserById } from "@/lib/action/user.actions";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaReplyLog from "@/lib/database/models/insta/ReplyLog.model";
 import InstaReplyTemplate from "@/lib/database/models/insta/ReplyTemplate.model";
-import { RateUserCall } from "@/lib/database/models/rate/UserCall.model";
+import RateUserRateLimit from "@/lib/database/models/Rate/UserRateLimit.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
     const userData = await getUserById(userId);
     if (!userData) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -28,24 +29,47 @@ export async function GET(request: NextRequest) {
     const accounts = await InstagramAccount.find({ userId: userId }).sort({
       createdAt: -1,
     });
+
     if (accounts.length === 0) {
-      return NextResponse.json({ accounts: [], totalReplies: 0 });
+      return NextResponse.json({
+        accounts: [],
+        totalReplies: 0,
+        accountLimit: userData.accountLimit,
+        replyLimit: userData.replyLimit,
+        totalAccounts: 0,
+      });
     }
 
-    // Get all RateUserCall documents for the user's accounts
+    // Get the user's rate limit document
+    const rateLimitDoc = await RateUserRateLimit.findOne({ clerkId: userId });
+
+    // Get all Instagram account IDs
     const accountIds = accounts.map((account) => account.instagramId);
-    const rateUserCalls = await RateUserCall.find({
-      instagramId: { $in: accountIds },
-    });
 
-    // Create a map for quick lookup with proper typing
-    const rateUserCallMap: Record<string, number> = {};
     let totalReplies = 0;
+    const rateUserCallMap: Record<string, number> = {};
 
-    rateUserCalls.forEach((call) => {
-      rateUserCallMap[call.instagramId] = call.count;
-      totalReplies += call.count;
-    });
+    if (rateLimitDoc) {
+      accounts.forEach((account) => {
+        const hasAutomationActive = !rateLimitDoc.instagramAccounts.includes(
+          account.instagramId
+        );
+
+        if (hasAutomationActive) {
+          const activeAccountsCount =
+            accounts.length - rateLimitDoc.instagramAccounts.length;
+          const repliesPerAccount =
+            activeAccountsCount > 0
+              ? Math.floor(rateLimitDoc.callsMade / activeAccountsCount)
+              : 0;
+
+          rateUserCallMap[account.instagramId] = repliesPerAccount;
+          totalReplies += repliesPerAccount;
+        } else {
+          rateUserCallMap[account.instagramId] = 0;
+        }
+      });
+    }
 
     const enhancedAccounts = await Promise.all(
       accounts.map(async (account) => {
@@ -53,7 +77,9 @@ export async function GET(request: NextRequest) {
         const templatesCount = await InstaReplyTemplate.countDocuments({
           accountId: account.instagramId,
         });
-        const avgResTime = (await InstaReplyLog.aggregate([
+
+        // Get average response time
+        const avgResTimeAggregation = await InstaReplyLog.aggregate([
           {
             $match: {
               accountId: account.instagramId,
@@ -66,23 +92,35 @@ export async function GET(request: NextRequest) {
               avgResponseTime: { $avg: "$responseTime" },
             },
           },
-        ])) || [{ avgResponseTime: 0 }];
+        ]);
+
+        const avgResTime =
+          avgResTimeAggregation.length > 0
+            ? avgResTimeAggregation[0].avgResponseTime
+            : 0;
 
         return {
-          ...account.toObject(), // Convert Mongoose document to plain object
+          ...account.toObject(),
           templatesCount,
           avgResTime,
           replies: rateUserCallMap[account.instagramId] || 0,
+          isAutomationPaused:
+            rateLimitDoc?.instagramAccounts.includes(account.instagramId) ||
+            false,
         };
       })
     );
 
     return NextResponse.json({
       accounts: enhancedAccounts,
-      totalReplies, // Now calculated dynamically
+      totalReplies,
       accountLimit: userData.accountLimit,
-      replyLimit: userData.replyLimit,
+      replyLimit: userData.replyLimit || rateLimitDoc?.tierLimit || 100, // Use tierLimit from rate limit doc
       totalAccounts: accounts.length,
+      tier: rateLimitDoc?.tier || "free",
+      callsMade: rateLimitDoc?.callsMade || 0,
+      tierLimit: rateLimitDoc?.tierLimit || 100,
+      isAutomationPaused: rateLimitDoc?.isAutomationPaused || false,
     });
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
