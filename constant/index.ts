@@ -1082,3 +1082,42 @@ export const instagramFeatures = [
     tag: ["Analytics", "Insights"],
   },
 ];
+// lib/constants/rateLimits.ts
+
+export const TIER_LIMITS = {
+  free: 100,
+  starter: 2000,
+  grow: 5000,
+  professional: 10000,
+} as const;
+
+export type TierType = keyof typeof TIER_LIMITS;
+
+export interface TierInfo {
+  name: string;
+  limit: number;
+  color: string;
+}
+
+export const TIER_INFO: Record<TierType, TierInfo> = {
+  free: {
+    name: "Free",
+    limit: 100,
+    color: "bg-gray-500",
+  },
+  starter: {
+    name: "Starter",
+    limit: 2000,
+    color: "bg-green-500",
+  },
+  grow: {
+    name: "Grow",
+    limit: 5000,
+    color: "bg-blue-500",
+  },
+  professional: {
+    name: "Professional",
+    limit: 10000,
+    color: "bg-purple-500",
+  },
+};

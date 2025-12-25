@@ -1,571 +1,503 @@
-// app/lib/services/hourlyRateLimiter.ts
 "use server";
 
 import { connectToDatabase } from "@/lib/database/mongoose";
 
 import User from "@/lib/database/models/user.model";
-import { RateGlobalRateLimit } from "../database/models/rate/GlobalRateLimit.model";
 import InstaSubscription from "../database/models/insta/InstaSubscription.model";
-import {
-  IRateUserCall,
-  RateUserCall,
-} from "../database/models/rate/UserCall.model";
-import { RateQueueItem } from "../database/models/rate/Queue.model";
-import { triggerActionProcessing } from "./actionProcessor";
+import RateUserRateLimit from "../database/models/Rate/UserRateLimit.model";
+import RateLimitWindow from "../database/models/Rate/RateLimitWindow.model";
+import RateLimitQueue, {
+  IRateLimitQueue,
+} from "../database/models/Rate/RateLimitQueue.model";
+import { TIER_LIMITS } from "@/constant";
 
-// Helper to get current fixed window
-export async function getCurrentWindowInfo() {
+// Helper to get current GMT hour window
+export function getCurrentWindow(): { start: Date; end: Date; label: string } {
   const now = new Date();
-  const currentHour = now.getHours();
-  const nextHour = (currentHour + 1) % 24;
+  const currentHour = now.getUTCHours();
+  const windowStart = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      currentHour,
+      0,
+      0,
+      0
+    )
+  );
+  const windowEnd = new Date(windowStart.getTime() + 60 * 60 * 1000);
 
-  const windowStart = new Date(now);
-  windowStart.setHours(currentHour, 0, 0, 0);
+  const label = `${currentHour.toString().padStart(2, "0")}:00-${(
+    currentHour + 1
+  )
+    .toString()
+    .padStart(2, "0")}:00 GMT`;
 
-  const windowEnd = new Date(windowStart);
-  windowEnd.setHours(windowEnd.getHours() + 1);
-
-  return {
-    windowLabel: `${currentHour}-${nextHour}`,
-    currentHour,
-    windowStart,
-    windowEnd,
-    now,
-  };
+  return { start: windowStart, end: windowEnd, label };
 }
 
-// Get or create global window
-async function getOrCreateGlobalWindow() {
-  await connectToDatabase();
-  const { windowLabel, currentHour, windowStart, windowEnd } =
-    await getCurrentWindowInfo();
+// Helper to get next window
+export function getNextWindow(): { start: Date; end: Date; label: string } {
+  const now = new Date();
+  const nextHour = now.getUTCHours() + 1;
+  const windowStart = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      nextHour,
+      0,
+      0,
+      0
+    )
+  );
+  const windowEnd = new Date(windowStart.getTime() + 60 * 60 * 1000);
 
-  let globalWindow = await RateGlobalRateLimit.findOne({
-    windowLabel,
-    windowStartHour: currentHour,
-  });
+  const label = `${nextHour.toString().padStart(2, "0")}:00-${(nextHour + 1)
+    .toString()
+    .padStart(2, "0")}:00 GMT`;
 
-  if (!globalWindow) {
-    globalWindow = await RateGlobalRateLimit.create({
-      windowLabel,
-      windowStartHour: currentHour,
-      totalCalls: 0,
-      appLimit: 10000,
-      isActive: true,
-      startedAt: windowStart,
-      endsAt: windowEnd,
-      metadata: {
-        accountsProcessed: [],
-        blockedAccounts: [],
-        queueSize: 0,
-      },
-    });
-  }
-
-  return globalWindow;
+  return { start: windowStart, end: windowEnd, label };
 }
 
-// Get user subscription info
-async function getUserSubscriptionInfo(clerkId: string) {
+// Get user's tier
+export async function getUserTier(
+  clerkId: string
+): Promise<keyof typeof TIER_LIMITS> {
   await connectToDatabase();
 
+  // Check active subscription
   const subscription = await InstaSubscription.findOne({
     clerkId,
     status: "active",
     expiresAt: { $gt: new Date() },
   }).sort({ createdAt: -1 });
 
-  if (!subscription) {
-    return {
-      plan: "Insta-Automation-Starter",
-      accountLimit: 1,
-      replyLimit: 500,
-      dmLimit: 1000,
-      isActive: false,
-    };
+  if (subscription) {
+    const chatbotType = subscription.chatbotType;
+    if (chatbotType.includes("Professional")) return "professional";
+    if (chatbotType.includes("Grow")) return "grow";
+    if (chatbotType.includes("Starter")) return "starter";
   }
 
-  const planDetails = {
-    "Insta-Automation-Starter": { accounts: 1, replies: 500, dms: 1000 },
-    "Insta-Automation-Grow": { accounts: 3, replies: 2000, dms: 3000 },
-    "Insta-Automation-Professional": { accounts: 5, replies: 5000, dms: 10000 },
-  };
-
-  const details =
-    planDetails[subscription.chatbotType as keyof typeof planDetails] ||
-    planDetails["Insta-Automation-Starter"];
-
-  return {
-    plan: subscription.chatbotType,
-    accountLimit: details.accounts,
-    replyLimit: details.replies,
-    dmLimit: details.dms,
-    isActive: true,
-  };
+  return "free";
 }
 
-// Check Instagram account rate limit in RateUserCall
-function checkAccountRateLimit(rateUserCall: IRateUserCall, accountId: string) {
-  const accountCalls = rateUserCall.metadata.accountCalls.get(accountId);
-
-  if (!accountCalls) {
-    return {
-      calls: 0,
-      remaining: 180,
-      isBlocked: false,
-    };
-  }
-
-  // Check if blocked
-  if (
-    accountCalls.isBlocked &&
-    accountCalls.blockedUntil &&
-    accountCalls.blockedUntil > new Date()
-  ) {
-    return {
-      calls: accountCalls.calls,
-      remaining: Math.max(0, 180 - accountCalls.calls),
-      isBlocked: true,
-      blockedUntil: accountCalls.blockedUntil,
-    };
-  }
-
-  // Check if exceeded 180 calls
-  if (accountCalls.calls >= 180) {
-    return {
-      calls: accountCalls.calls,
-      remaining: 0,
-      isBlocked: true,
-    };
-  }
-
-  // Check if approaching limit (170+ calls)
-  if (accountCalls.calls >= 170) {
-    return {
-      calls: accountCalls.calls,
-      remaining: Math.max(0, 180 - accountCalls.calls),
-      isBlocked: false,
-      warning: true,
-    };
-  }
-
-  return {
-    calls: accountCalls.calls,
-    remaining: Math.max(0, 180 - accountCalls.calls),
-    isBlocked: false,
-  };
-}
-
-// Main rate limiting check
+// Check if user can make a call
 export async function canMakeCall(
   clerkId: string,
-  accountId: string,
-  actionType: "COMMENT" | "DM" | "POSTBACK" | "PROFILE" | "FOLLOW_CHECK",
-  metadata?: any
+  instagramAccountId?: string
 ): Promise<{
   allowed: boolean;
   reason?: string;
-  shouldQueue: boolean;
-  queueInfo?: {
-    position: number;
-    estimatedWait: number;
-    windowLabel: string;
-  };
-  limits: {
-    userLimit: number;
-    userUsed: number;
-    globalLimit: number;
-    globalUsed: number;
-    accountLimit: number;
-    accountUsed: number;
-  };
+  remainingCalls?: number;
+  tier?: string;
+  queueId?: string;
 }> {
   await connectToDatabase();
 
-  const { windowLabel, currentHour, now } = await getCurrentWindowInfo();
-  const user = await User.findOne({ clerkId });
+  const { start: windowStart } = getCurrentWindow();
+  const tier = await getUserTier(clerkId);
+  const tierLimit = TIER_LIMITS[tier];
 
-  if (!user) {
-    return {
-      allowed: false,
-      reason: "User not found",
-      shouldQueue: false,
-      limits: {
-        userLimit: 0,
-        userUsed: 0,
-        globalLimit: 0,
-        globalUsed: 0,
-        accountLimit: 180,
-        accountUsed: 0,
-      },
-    };
-  }
+  // Get or create user rate limit record
+  let userLimit = await RateUserRateLimit.findOne({
+    clerkId,
+    windowStart,
+  });
 
-  // Get subscription info
-  const subscription = await getUserSubscriptionInfo(clerkId);
-
-  if (!subscription.isActive) {
-    return {
-      allowed: false,
-      reason: "No active subscription",
-      shouldQueue: false,
-      limits: {
-        userLimit: subscription.replyLimit,
-        userUsed: 0,
-        globalLimit: 0,
-        globalUsed: 0,
-        accountLimit: 180,
-        accountUsed: 0,
-      },
-    };
-  }
-
-  // Get or create user call counter
-  let rateUserCall = await RateUserCall.findOne({ userId: clerkId });
-
-  if (!rateUserCall) {
-    rateUserCall = await RateUserCall.create({
-      userId: clerkId,
-      instagramId: accountId,
-      count: 0,
-      currentWindow: windowLabel,
-      windowStartHour: currentHour,
-      subscriptionLimit: subscription.replyLimit,
-      metadata: {
-        subscriptionType: subscription.plan,
-        accountLimit: subscription.accountLimit,
-        replyLimit: subscription.replyLimit,
-        accountsUsed: [],
-        totalDmCount: 0,
-        totalCommentCount: 0,
-        accountCalls: new Map(),
-      },
+  if (!userLimit) {
+    // Create new record for this window
+    userLimit = await RateUserRateLimit.create({
+      clerkId,
+      windowStart,
+      callsMade: 0,
+      tier,
+      tierLimit,
+      isAutomationPaused: false,
+      instagramAccounts: instagramAccountId ? [instagramAccountId] : [],
     });
   }
 
-  // Check if window changed - reset counts if new window
-  if (
-    rateUserCall.currentWindow !== windowLabel ||
-    rateUserCall.windowStartHour !== currentHour
-  ) {
-    // Reset user count for new window
-    rateUserCall.count = 0;
-    rateUserCall.currentWindow = windowLabel;
-    rateUserCall.windowStartHour = currentHour;
-
-    // Reset all account calls
-    rateUserCall.metadata.accountCalls = new Map();
-
-    await rateUserCall.save();
-  }
-
-  // Get global window
-  const globalWindow = await getOrCreateGlobalWindow();
-
-  // Check account rate limit
-  const accountLimitInfo = checkAccountRateLimit(rateUserCall, accountId);
-
-  // Check limits in order
-  const checks = [
-    {
-      name: "globalAppLimit",
-      condition: globalWindow.totalCalls >= globalWindow.appLimit,
-      reason: "Global app limit reached",
-    },
-    {
-      name: "userSubscriptionLimit",
-      condition: rateUserCall.count >= subscription.replyLimit,
-      reason: "User subscription limit reached",
-    },
-    {
-      name: "accountRateLimit",
-      condition: accountLimitInfo.isBlocked,
-      reason: "Instagram API rate limit reached",
-    },
-    {
-      name: "accountWarning",
-      condition: accountLimitInfo.warning,
-      reason: "Approaching Instagram API limit",
-    },
-  ];
-
-  const failedCheck = checks.find((check) => check.condition);
-
-  if (failedCheck) {
-    // Check if we should queue this request
-    const shouldQueue = [
-      "userSubscriptionLimit",
-      "accountRateLimit",
-      "accountWarning",
-    ].includes(failedCheck.name);
-
-    if (shouldQueue && metadata) {
-      // Add to queue with FIFO position
-      const queueSize = await RateQueueItem.countDocuments({
-        windowLabel,
-        status: "QUEUED",
-      });
-
-      const queueItem = await RateQueueItem.create({
-        accountId,
-        userId: user._id.toString(),
-        clerkId,
-        actionType,
-        payload: metadata,
-        priority: actionType === "COMMENT" ? 2 : 3,
-        status: "QUEUED",
-        windowLabel,
-        position: queueSize + 1,
-        metadata: {
-          ...metadata,
-          originalTimestamp: now,
-          source:
-            failedCheck.name === "userSubscriptionLimit"
-              ? "SUBSCRIPTION_LIMIT"
-              : "RATE_LIMIT",
-        },
-      });
-
-      // Update global window queue size
-      await RateGlobalRateLimit.findByIdAndUpdate(globalWindow._id, {
-        $inc: { "metadata.queueSize": 1 },
-      });
-
-      return {
-        allowed: false,
-        reason: failedCheck.reason,
-        shouldQueue: true,
-        queueInfo: {
-          position: queueItem.position,
-          estimatedWait: queueItem.position * 1000,
-          windowLabel,
-        },
-        limits: {
-          userLimit: subscription.replyLimit,
-          userUsed: rateUserCall.count,
-          globalLimit: globalWindow.appLimit,
-          globalUsed: globalWindow.totalCalls,
-          accountLimit: 180,
-          accountUsed: accountLimitInfo.calls,
-        },
-      };
+  // Check if user has reached their tier limit
+  if (userLimit.callsMade >= userLimit.tierLimit) {
+    // Pause automation for this user if not already paused
+    if (!userLimit.isAutomationPaused) {
+      await RateUserRateLimit.updateOne(
+        { _id: userLimit._id },
+        { isAutomationPaused: true }
+      );
     }
 
     return {
       allowed: false,
-      reason: failedCheck.reason,
-      shouldQueue: false,
-      limits: {
-        userLimit: subscription.replyLimit,
-        userUsed: rateUserCall.count,
-        globalLimit: globalWindow.appLimit,
-        globalUsed: globalWindow.totalCalls,
-        accountLimit: 180,
-        accountUsed: accountLimitInfo.calls,
+      reason: `User reached hourly limit (${userLimit.callsMade}/${userLimit.tierLimit})`,
+      remainingCalls: 0,
+      tier,
+    };
+  }
+
+  // Get current window global limit
+  const totalUsers = await User.countDocuments();
+  const appLimit = totalUsers * 200; // Each user gets 200 calls from Meta
+
+  let window = await RateLimitWindow.findOne({
+    windowStart,
+    status: "active",
+  });
+
+  if (!window) {
+    window = await RateLimitWindow.create({
+      windowStart,
+      windowEnd: new Date(windowStart.getTime() + 60 * 60 * 1000),
+      globalCalls: 0,
+      appLimit,
+      accountsProcessed: 0,
+      status: "active",
+    });
+  }
+
+  // Check if we've reached app limit
+  if (window.globalCalls >= window.appLimit) {
+    return {
+      allowed: false,
+      reason: `App reached global limit (${window.globalCalls}/${window.appLimit})`,
+      remainingCalls: Math.max(0, userLimit.tierLimit - userLimit.callsMade),
+      tier,
+    };
+  }
+
+  return {
+    allowed: true,
+    remainingCalls: Math.max(0, userLimit.tierLimit - userLimit.callsMade),
+    tier,
+  };
+}
+
+// Record a successful call
+export async function recordCall(
+  clerkId: string,
+  instagramAccountId: string,
+  actionType: IRateLimitQueue["actionType"],
+  metadata?: any
+): Promise<{ success: boolean; queued?: boolean; queueId?: string }> {
+  await connectToDatabase();
+
+  const { start: windowStart } = getCurrentWindow();
+
+  // Check if call is allowed
+  const canCall = await canMakeCall(clerkId, instagramAccountId);
+
+  if (!canCall.allowed) {
+    // Queue the call
+    const queueItem = await RateLimitQueue.create({
+      clerkId,
+      instagramAccountId,
+      actionType,
+      actionPayload: metadata || {},
+      priority: 5,
+      status: "pending",
+      windowStart,
+      metadata: metadata?.metadata,
+    });
+
+    return {
+      success: false,
+      queued: true,
+      queueId: queueItem._id.toString(),
+    };
+  }
+
+  // Record the call in user limit
+  await RateUserRateLimit.findOneAndUpdate(
+    { clerkId, windowStart },
+    {
+      $inc: { callsMade: 1 },
+      $addToSet: { instagramAccounts: instagramAccountId },
+    },
+    { upsert: true, new: true }
+  );
+
+  // Record the call in global window
+  await RateLimitWindow.findOneAndUpdate(
+    { windowStart, status: "active" },
+    {
+      $inc: { globalCalls: 1, accountsProcessed: 1 },
+    },
+    { upsert: true, new: true }
+  );
+
+  return { success: true };
+}
+
+// Queue a call for later processing
+export async function queueCall(
+  clerkId: string,
+  instagramAccountId: string,
+  actionType: IRateLimitQueue["actionType"],
+  actionPayload: any,
+  priority: number = 5
+): Promise<string> {
+  await connectToDatabase();
+
+  const { start: windowStart } = getCurrentWindow();
+
+  const queueItem = await RateLimitQueue.create({
+    clerkId,
+    instagramAccountId,
+    actionType,
+    actionPayload,
+    priority,
+    status: "pending",
+    windowStart,
+    retryCount: 0,
+    maxRetries: 3,
+  });
+
+  return queueItem._id.toString();
+}
+
+// Reset window and process queue (to be called by cron)
+export async function resetWindowAndProcessQueue(): Promise<{
+  success: boolean;
+  processed: number;
+  remaining: number;
+}> {
+  await connectToDatabase();
+
+  const currentWindow = getCurrentWindow();
+  const previousWindowStart = new Date(
+    currentWindow.start.getTime() - 60 * 60 * 1000
+  );
+
+  // Mark previous window as completed
+  await RateLimitWindow.updateOne(
+    { windowStart: previousWindowStart },
+    { status: "completed" }
+  );
+
+  // Reset user rate limits for new window
+  // Note: We don't delete old records, we'll create new ones as needed
+
+  // Process queue from previous window
+  const queueItems = await RateLimitQueue.find({
+    windowStart: previousWindowStart,
+    status: "pending",
+  })
+    .sort({ priority: 1, createdAt: 1 })
+    .limit(100); // Process 100 at a time
+
+  let processed = 0;
+
+  for (const item of queueItems) {
+    try {
+      // Check if user can make the call in new window
+      const canCall = await canMakeCall(item.clerkId, item.instagramAccountId);
+
+      if (canCall.allowed) {
+        // Update queue item status
+        await RateLimitQueue.updateOne(
+          { _id: item._id },
+          {
+            status: "processing",
+            processingStartedAt: new Date(),
+            windowStart: currentWindow.start, // Move to current window
+          }
+        );
+
+        // Here you would actually process the queued action
+        // For now, we'll just mark it as completed
+        await RateLimitQueue.updateOne(
+          { _id: item._id },
+          {
+            status: "completed",
+            processingCompletedAt: new Date(),
+          }
+        );
+
+        // Record the call
+        await recordCall(
+          item.clerkId,
+          item.instagramAccountId,
+          item.actionType,
+          item.actionPayload
+        );
+
+        processed++;
+      } else {
+        // Keep in queue for next window
+        await RateLimitQueue.updateOne(
+          { _id: item._id },
+          {
+            windowStart: currentWindow.start,
+          }
+        );
+      }
+    } catch (error) {
+      console.error("Error processing queue item:", error);
+      await RateLimitQueue.updateOne(
+        { _id: item._id },
+        {
+          status: "failed",
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
+        }
+      );
+    }
+  }
+
+  // Resume automation for users who were paused
+  await RateUserRateLimit.updateMany(
+    {
+      windowStart: { $lt: currentWindow.start },
+      isAutomationPaused: true,
+    },
+    { isAutomationPaused: false }
+  );
+
+  // Get remaining queue items
+  const remaining = await RateLimitQueue.countDocuments({
+    status: "pending",
+    windowStart: { $lt: currentWindow.start },
+  });
+
+  return {
+    success: true,
+    processed,
+    remaining,
+  };
+}
+
+// Get statistics for dashboard
+export async function getWindowStats(windowStart?: Date) {
+  await connectToDatabase();
+
+  const { start: currentWindowStart, label: currentLabel } = getCurrentWindow();
+  const targetWindowStart = windowStart || currentWindowStart;
+
+  // Get window data
+  const window = await RateLimitWindow.findOne({
+    windowStart: targetWindowStart,
+  });
+
+  if (!window) {
+    // Create window if it doesn't exist
+    const totalUsers = await User.countDocuments();
+    const appLimit = totalUsers * 200;
+
+    return {
+      window: currentLabel,
+      isCurrentWindow: true,
+      global: {
+        totalCalls: 0,
+        appLimit,
+        accountsProcessed: 0,
+      },
+      queue: {
+        queuedItems: 0,
+        byType: [],
+      },
+      users: {
+        totalUsers,
+        totalCalls: 0,
+        averageCallsPerUser: 0,
       },
     };
   }
 
-  // All checks passed - allow the call
-  // Increment user call count
-  rateUserCall.count += 1;
-
-  // Increment account call count
-  const accountCalls = rateUserCall.metadata.accountCalls.get(accountId) || {
-    calls: 0,
-    lastCall: new Date(),
-    isBlocked: false,
-  };
-
-  accountCalls.calls += 1;
-  accountCalls.lastCall = new Date();
-
-  // Block if reached 170+ calls (Instagram limit)
-  if (accountCalls.calls >= 170) {
-    accountCalls.isBlocked = true;
-    accountCalls.blockedUntil = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes
-  }
-
-  rateUserCall.metadata.accountCalls.set(accountId, accountCalls);
-
-  // Increment appropriate metadata counter
-  if (actionType === "DM") {
-    rateUserCall.metadata.totalDmCount += 1;
-  } else if (actionType === "COMMENT") {
-    rateUserCall.metadata.totalCommentCount += 1;
-  }
-
-  // Add account to used accounts if not already
-  if (!rateUserCall.metadata.accountsUsed.includes(accountId)) {
-    rateUserCall.metadata.accountsUsed.push(accountId);
-  }
-
-  await rateUserCall.save();
-
-  // Increment global call count
-  await RateGlobalRateLimit.findByIdAndUpdate(globalWindow._id, {
-    $inc: { totalCalls: 1 },
-    $addToSet: { "metadata.accountsProcessed": accountId },
+  // Get user statistics
+  const userLimits = await RateUserRateLimit.find({
+    windowStart: targetWindowStart,
   });
 
-  return {
-    allowed: true,
-    shouldQueue: false,
-    limits: {
-      userLimit: subscription.replyLimit,
-      userUsed: rateUserCall.count,
-      globalLimit: globalWindow.appLimit,
-      globalUsed: globalWindow.totalCalls + 1,
-      accountLimit: 180,
-      accountUsed: accountCalls.calls,
+  const totalUserCalls = userLimits.reduce((sum, ul) => sum + ul.callsMade, 0);
+  const activeUsers = userLimits.length;
+
+  // Get queue statistics
+  const queueStats = await RateLimitQueue.aggregate([
+    {
+      $match: {
+        windowStart: targetWindowStart,
+        status: { $in: ["pending", "processing"] },
+      },
     },
-  };
-}
+    {
+      $group: {
+        _id: "$actionType",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
 
-// Process queued items when new window starts
-export async function processQueuedItemsForNewWindow(): Promise<{
-  processed: number;
-  failed: number;
-  skipped: number;
-}> {
-  await connectToDatabase();
-
-  const { windowLabel, currentHour } = await getCurrentWindowInfo();
-  const previousWindowLabel = `${(currentHour - 1 + 24) % 24}-${currentHour}`;
-
-  // Find all queued items from previous window
-  const queuedItems = await RateQueueItem.find({
-    windowLabel: previousWindowLabel,
-    status: "QUEUED",
-  })
-    .sort({ position: 1 })
-    .limit(100);
-
-  let processed = 0;
-  let failed = 0;
-  let skipped = 0;
-
-  for (const item of queuedItems) {
-    try {
-      // Check if we can process this item now
-      const canProcess = await canMakeCall(
-        item.clerkId,
-        item.accountId,
-        item.actionType,
-        item.payload
-      );
-
-      if (canProcess.allowed) {
-        // Update item to pending for processing
-        item.status = "PENDING";
-        item.windowLabel = windowLabel;
-        await item.save();
-
-        // Trigger the actual processing
-        await triggerActionProcessing(item);
-        processed++;
-      } else if (canProcess.shouldQueue) {
-        // Still can't process, keep in queue but update window
-        item.windowLabel = windowLabel;
-        await item.save();
-        skipped++;
-      } else {
-        // Can't process and shouldn't queue - mark as failed
-        item.status = "FAILED";
-        item.error = canProcess.reason;
-        await item.save();
-        failed++;
-      }
-    } catch (error) {
-      console.error(`Error processing queued item ${item._id}:`, error);
-      item.status = "FAILED";
-      item.error = error instanceof Error ? error.message : "Unknown error";
-      await item.save();
-      failed++;
-    }
-  }
-
-  // Update global window queue size
-  await RateGlobalRateLimit.findOneAndUpdate(
-    { windowLabel: previousWindowLabel },
-    { $set: { "metadata.queueSize": 0 } }
-  );
-
-  return { processed, failed, skipped };
-}
-
-// Get current window statistics
-export async function getWindowStats(windowLabel?: string) {
-  await connectToDatabase();
-
-  const { windowLabel: currentWindow } = await getCurrentWindowInfo();
-  const targetWindow = windowLabel || currentWindow;
-
-  const globalWindow = await RateGlobalRateLimit.findOne({
-    windowLabel: targetWindow,
+  const totalQueued = await RateLimitQueue.countDocuments({
+    windowStart: targetWindowStart,
+    status: { $in: ["pending", "processing"] },
   });
-  const queuedItems = await RateQueueItem.countDocuments({
-    windowLabel: targetWindow,
-    status: "QUEUED",
-  });
-
-  const userCalls = await RateUserCall.find({ currentWindow: targetWindow });
-  const totalUserCalls = userCalls.reduce((sum, uc) => sum + uc.count, 0);
 
   return {
-    window: targetWindow,
+    window: currentLabel,
+    isCurrentWindow:
+      targetWindowStart.getTime() === currentWindowStart.getTime(),
     global: {
-      totalCalls: globalWindow?.totalCalls || 0,
-      appLimit: globalWindow?.appLimit || 10000,
-      accountsProcessed: globalWindow?.metadata?.accountsProcessed?.length || 0,
-      blockedAccounts: globalWindow?.metadata?.blockedAccounts?.length || 0,
-      queueSize: globalWindow?.metadata?.queueSize || 0,
-    },
-    users: {
-      totalUsers: userCalls.length,
-      totalCalls: totalUserCalls,
-      averageCallsPerUser:
-        userCalls.length > 0 ? totalUserCalls / userCalls.length : 0,
+      totalCalls: window.globalCalls,
+      appLimit: window.appLimit,
+      accountsProcessed: window.accountsProcessed,
     },
     queue: {
-      queuedItems,
-      byType: await RateQueueItem.aggregate([
-        { $match: { windowLabel: targetWindow, status: "QUEUED" } },
-        { $group: { _id: "$actionType", count: { $sum: 1 } } },
-      ]),
+      queuedItems: totalQueued,
+      byType: queueStats,
+      processing: await RateLimitQueue.countDocuments({
+        windowStart: targetWindowStart,
+        status: "processing",
+      }),
+      pending: await RateLimitQueue.countDocuments({
+        windowStart: targetWindowStart,
+        status: "pending",
+      }),
+      failed: await RateLimitQueue.countDocuments({
+        windowStart: targetWindowStart,
+        status: "failed",
+      }),
     },
-    isCurrentWindow: targetWindow === currentWindow,
+    users: {
+      totalUsers: activeUsers,
+      totalCalls: totalUserCalls,
+      averageCallsPerUser: activeUsers > 0 ? totalUserCalls / activeUsers : 0,
+    },
   };
 }
 
-// Reset user counts for new window
-export async function resetUserCountsForNewWindow() {
+// Get user-specific stats
+export async function getUserRateLimitStats(clerkId: string) {
   await connectToDatabase();
 
-  const { windowLabel, currentHour } = await getCurrentWindowInfo();
+  const { start: windowStart } = getCurrentWindow();
+  const tier = await getUserTier(clerkId);
+  const tierLimit = TIER_LIMITS[tier];
 
-  // Update all users who are still in old window
-  const result = await RateUserCall.updateMany(
-    {
-      $or: [
-        { currentWindow: { $ne: windowLabel } },
-        { windowStartHour: { $ne: currentHour } },
-      ],
-    },
-    {
-      $set: {
-        count: 0,
-        currentWindow: windowLabel,
-        windowStartHour: currentHour,
-        lastUpdated: new Date(),
-        "metadata.accountCalls": {},
-      },
-    }
-  );
+  const userLimit = await RateUserRateLimit.findOne({
+    clerkId,
+    windowStart,
+  });
+
+  const callsMade = userLimit?.callsMade || 0;
+  const isPaused = userLimit?.isAutomationPaused || false;
+
+  // Get queued items for this user
+  const queuedItems = await RateLimitQueue.countDocuments({
+    clerkId,
+    windowStart,
+    status: { $in: ["pending", "processing"] },
+  });
 
   return {
-    modifiedCount: result.modifiedCount,
-    windowLabel,
-    timestamp: new Date(),
+    tier,
+    tierLimit,
+    callsMade,
+    remainingCalls: Math.max(0, tierLimit - callsMade),
+    usagePercentage: tierLimit > 0 ? (callsMade / tierLimit) * 100 : 0,
+    isAutomationPaused: isPaused,
+    queuedItems,
   };
 }

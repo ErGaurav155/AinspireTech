@@ -1,27 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { processQueueBatch } from "@/lib/services/queueProcessor";
+import { resetWindowAndProcessQueue } from "@/lib/services/hourlyRateLimiter";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret
+    // Verify cron secret (from Vercel Cron)
     const url = new URL(request.url);
     const secret = url.searchParams.get("secret");
 
     if (secret !== process.env.CRON_SECRET) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const result = await processQueueBatch(50);
+
+    const result = await resetWindowAndProcessQueue();
 
     return NextResponse.json({
       success: true,
-      message: "Queue processed successfully",
+      message: "Window reset and queue processed successfully",
       data: result,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Error in process-queue cron:", error);
+    console.error("Error in reset-window cron:", error);
 
     return NextResponse.json(
       {

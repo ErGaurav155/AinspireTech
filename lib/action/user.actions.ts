@@ -1,7 +1,5 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
-
 import User from "@/lib/database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
 import { handleError } from "../utils";
@@ -15,8 +13,9 @@ import WebAppointmentQuestions from "../database/models/web/AppointmentQuestions
 import InstaReplyTemplate from "../database/models/insta/ReplyTemplate.model";
 import Razorpay from "razorpay";
 import Affiliate from "../database/models/affiliate/Affiliate";
-import { RateUserCall } from "../database/models/rate/UserCall.model";
 import AffiReferral from "../database/models/affiliate/Referral";
+import RateUserRateLimit from "../database/models/Rate/UserRateLimit.model";
+import RateLimitQueue from "../database/models/Rate/RateLimitQueue.model";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
@@ -182,7 +181,9 @@ export async function cleanupUserData(clerkId: string) {
       await InstaReplyLog?.deleteMany({ userId: clerkId }),
       await InstaSubscription?.deleteMany({ clerkId }),
       await InstagramAccount?.deleteMany({ userId: clerkId }),
-      await RateUserCall?.deleteMany({ userId: clerkId }),
+      await RateLimitQueue?.deleteMany({ userId: clerkId }),
+      await RateUserRateLimit?.deleteMany({ userId: clerkId }),
+
       // Affiliate Data
       await Affiliate?.deleteMany({ userId: clerkId }),
       await AffiReferral?.deleteMany({ referredUserId: clerkId }),
