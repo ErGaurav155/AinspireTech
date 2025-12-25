@@ -12,7 +12,7 @@ export async function processQueueBatch(batchSize: number = 50): Promise<{
 }> {
   await connectToDatabase();
 
-  const { start: currentWindowStart } = getCurrentWindow();
+  const { start: currentWindowStart } = await getCurrentWindow();
 
   // Get pending queue items for processing
   const queueItems = await RateLimitQueue.find({

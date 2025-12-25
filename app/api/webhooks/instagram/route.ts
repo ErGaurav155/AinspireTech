@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
     // After processing webhook, check if queue needs processing
     // This helps process any queued items immediately when we have webhook activity
-    const { start: currentWindowStart } = getCurrentWindow();
+    const { start: currentWindowStart } = await getCurrentWindow();
 
     // Only process queue if we have queued items
     if (result.queued && result.queued > 0) {

@@ -12,7 +12,11 @@ import RateLimitQueue, {
 import { TIER_LIMITS } from "@/constant";
 
 // Helper to get current GMT hour window
-export function getCurrentWindow(): { start: Date; end: Date; label: string } {
+export async function getCurrentWindow(): Promise<{
+  start: Date;
+  end: Date;
+  label: string;
+}> {
   const now = new Date();
   const currentHour = now.getUTCHours();
   const windowStart = new Date(
@@ -97,7 +101,7 @@ export async function canMakeCall(
 }> {
   await connectToDatabase();
 
-  const { start: windowStart } = getCurrentWindow();
+  const { start: windowStart } = await getCurrentWindow();
   const tier = await getUserTier(clerkId);
   const tierLimit = TIER_LIMITS[tier];
 
@@ -184,7 +188,7 @@ export async function recordCall(
 ): Promise<{ success: boolean; queued?: boolean; queueId?: string }> {
   await connectToDatabase();
 
-  const { start: windowStart } = getCurrentWindow();
+  const { start: windowStart } = await getCurrentWindow();
 
   // Check if call is allowed
   const canCall = await canMakeCall(clerkId, instagramAccountId);
@@ -241,7 +245,7 @@ export async function queueCall(
 ): Promise<string> {
   await connectToDatabase();
 
-  const { start: windowStart } = getCurrentWindow();
+  const { start: windowStart } = await getCurrentWindow();
 
   const queueItem = await RateLimitQueue.create({
     clerkId,
@@ -266,7 +270,7 @@ export async function resetWindowAndProcessQueue(): Promise<{
 }> {
   await connectToDatabase();
 
-  const currentWindow = getCurrentWindow();
+  const currentWindow = await getCurrentWindow();
   const previousWindowStart = new Date(
     currentWindow.start.getTime() - 60 * 60 * 1000
   );
@@ -373,7 +377,8 @@ export async function resetWindowAndProcessQueue(): Promise<{
 export async function getWindowStats(windowStart?: Date) {
   await connectToDatabase();
 
-  const { start: currentWindowStart, label: currentLabel } = getCurrentWindow();
+  const { start: currentWindowStart, label: currentLabel } =
+    await getCurrentWindow();
   const targetWindowStart = windowStart || currentWindowStart;
 
   // Get window data
@@ -472,7 +477,7 @@ export async function getWindowStats(windowStart?: Date) {
 export async function getUserRateLimitStats(clerkId: string) {
   await connectToDatabase();
 
-  const { start: windowStart } = getCurrentWindow();
+  const { start: windowStart } = await getCurrentWindow();
   const tier = await getUserTier(clerkId);
   const tierLimit = TIER_LIMITS[tier];
 

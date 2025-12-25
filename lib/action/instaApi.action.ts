@@ -746,7 +746,7 @@ export async function processComment(
       responseTime,
       mediaId: comment.media_id,
       commenterUsername: comment.username,
-      rateLimitWindow: getCurrentWindow().start,
+      rateLimitWindow: (await getCurrentWindow()).start,
       processedAt: new Date(),
       metaApiRemaining: getRemainingMetaRequests(account.instagramId),
     });
