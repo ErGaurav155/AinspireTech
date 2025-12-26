@@ -3,11 +3,13 @@
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { getCurrentWindow, canMakeCall, recordCall } from "./hourlyRateLimiter";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
+import { processComment } from "@/lib/action/instaApi.action";
 import RateLimitQueue from "../database/models/Rate/RateLimitQueue.model";
 
 export async function processQueueBatch(batchSize: number = 50): Promise<{
   processed: number;
   failed: number;
+  skipped: number;
   remaining: number;
 }> {
   await connectToDatabase();
@@ -25,6 +27,7 @@ export async function processQueueBatch(batchSize: number = 50): Promise<{
 
   let processed = 0;
   let failed = 0;
+  let skipped = 0;
 
   for (const item of queueItems) {
     try {
@@ -49,35 +52,68 @@ export async function processQueueBatch(batchSize: number = 50): Promise<{
 
         switch (item.actionType) {
           case "comment_reply":
-            processResult = await processCommentReply(item);
+            processResult = await processQueuedComment(item);
             break;
           case "dm":
-            processResult = await processDM(item);
+            processResult = await processQueuedDM(item);
             break;
-          // Add other action types as needed
+          case "follow_check":
+            processResult = await processQueuedFollowCheck(item);
+            break;
           default:
             processResult = { success: false, error: "Unknown action type" };
         }
 
         if (processResult.success) {
           // Record the successful call
-          await recordCall(
+          const recordResult = await recordCall(
             item.clerkId,
             item.instagramAccountId,
             item.actionType,
             item.actionPayload
           );
 
-          // Mark as completed
-          await RateLimitQueue.updateOne(
-            { _id: item._id },
-            {
-              status: "completed",
-              processingCompletedAt: new Date(),
-            }
-          );
+          if (recordResult.success) {
+            // Mark as completed
+            await RateLimitQueue.updateOne(
+              { _id: item._id },
+              {
+                status: "completed",
+                processingCompletedAt: new Date(),
+              }
+            );
 
-          processed++;
+            processed++;
+          } else if (recordResult.queued) {
+            // Got queued again - update retry count
+            await RateLimitQueue.updateOne(
+              { _id: item._id },
+              {
+                retryCount: item.retryCount + 1,
+                errorMessage: "Re-queued during processing",
+                status:
+                  item.retryCount + 1 >= item.maxRetries ? "failed" : "pending",
+              }
+            );
+
+            if (item.retryCount + 1 >= item.maxRetries) {
+              failed++;
+            } else {
+              skipped++;
+            }
+          } else {
+            // Failed to record
+            await RateLimitQueue.updateOne(
+              { _id: item._id },
+              {
+                status: "failed",
+                errorMessage: "Failed to record call",
+                retryCount: item.retryCount + 1,
+              }
+            );
+
+            failed++;
+          }
         } else {
           // Increment retry count
           await RateLimitQueue.updateOne(
@@ -92,6 +128,8 @@ export async function processQueueBatch(batchSize: number = 50): Promise<{
 
           if (item.retryCount + 1 >= item.maxRetries) {
             failed++;
+          } else {
+            skipped++;
           }
         }
       } else {
@@ -102,6 +140,7 @@ export async function processQueueBatch(batchSize: number = 50): Promise<{
             { windowStart: currentWindowStart }
           );
         }
+        skipped++;
       }
     } catch (error) {
       console.error(`Error processing queue item ${item._id}:`, error);
@@ -118,24 +157,26 @@ export async function processQueueBatch(batchSize: number = 50): Promise<{
 
       if (item.retryCount + 1 >= item.maxRetries) {
         failed++;
+      } else {
+        skipped++;
       }
     }
   }
 
-  // Get remaining items
+  // Get remaining queue items
   const remaining = await RateLimitQueue.countDocuments({
     status: "pending",
     windowStart: { $lte: currentWindowStart },
   });
 
-  return { processed, failed, remaining };
+  return { processed, failed, skipped, remaining };
 }
 
-async function processCommentReply(
+async function processQueuedComment(
   item: any
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { comment, template } = item.actionPayload;
+    const { comment } = item.actionPayload;
     const account = await InstagramAccount.findOne({
       instagramId: item.instagramAccountId,
     });
@@ -144,8 +185,34 @@ async function processCommentReply(
       return { success: false, error: "Account not found" };
     }
 
-    // Import and use your actual comment processing logic here
+    // Use the existing processComment function
+    const result = await processComment(
+      account.instagramId,
+      item.clerkId,
+      comment
+    );
+
+    return {
+      success: result.success,
+      error: result.success
+        ? undefined
+        : result.message || "Failed to process comment",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+async function processQueuedDM(
+  item: any
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Implement DM processing logic
     // For now, return success for demonstration
+    await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate processing
     return { success: true };
   } catch (error) {
     return {
@@ -155,11 +222,13 @@ async function processCommentReply(
   }
 }
 
-async function processDM(
+async function processQueuedFollowCheck(
   item: any
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Implement DM processing logic
+    // Implement follow check processing logic
+    // For now, return success for demonstration
+    await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate processing
     return { success: true };
   } catch (error) {
     return {
@@ -185,6 +254,11 @@ export async function getQueueStats() {
 
   const byType = await RateLimitQueue.aggregate([
     {
+      $match: {
+        status: { $in: ["pending", "processing"] },
+      },
+    },
+    {
       $group: {
         _id: "$actionType",
         count: { $sum: 1 },
@@ -195,19 +269,62 @@ export async function getQueueStats() {
     },
   ]);
 
+  const byReason = await RateLimitQueue.aggregate([
+    {
+      $match: {
+        status: { $in: ["pending", "processing"] },
+        "metadata.reason": { $exists: true },
+      },
+    },
+    {
+      $group: {
+        _id: "$metadata.reason",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
   const oldestPending = await RateLimitQueue.findOne({
     status: "pending",
   })
     .sort({ createdAt: 1 })
-    .select("createdAt clerkId actionType");
+    .select("createdAt clerkId instagramAccountId actionType metadata");
 
   return {
     totals: stats.reduce((acc, stat) => {
       acc[stat._id] = stat.count;
       return acc;
-    }, {}),
+    }, {} as Record<string, number>),
     byType,
+    byReason,
     oldestPending,
     totalItems: stats.reduce((acc, stat) => acc + stat.count, 0),
+  };
+}
+
+// Clean up old queue items (older than 7 days)
+export async function cleanupOldQueueItems(): Promise<{
+  deleted: number;
+  kept: number;
+}> {
+  await connectToDatabase();
+
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  // Delete completed items older than 7 days
+  const deleteResult = await RateLimitQueue.deleteMany({
+    status: "completed",
+    createdAt: { $lt: sevenDaysAgo },
+  });
+
+  // Get count of remaining items
+  const remainingCount = await RateLimitQueue.countDocuments({
+    createdAt: { $gte: sevenDaysAgo },
+  });
+
+  return {
+    deleted: deleteResult.deletedCount,
+    kept: remainingCount,
   };
 }

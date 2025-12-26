@@ -18,6 +18,7 @@ export interface IRateLimitQueue extends Document {
     mediaId?: string;
     userId?: string;
     username?: string;
+    reason?: "user_limit" | "app_limit" | "error"; // Why it was queued
   };
   createdAt: Date;
   updatedAt: Date;
@@ -83,6 +84,7 @@ const RateLimitQueueSchema = new Schema<IRateLimitQueue>(
       mediaId: String,
       userId: String,
       username: String,
+      reason: String,
     },
   },
   {
@@ -94,6 +96,7 @@ const RateLimitQueueSchema = new Schema<IRateLimitQueue>(
 RateLimitQueueSchema.index({ status: 1, priority: 1, createdAt: 1 });
 RateLimitQueueSchema.index({ clerkId: 1, status: 1 });
 RateLimitQueueSchema.index({ windowStart: 1, status: 1 });
+RateLimitQueueSchema.index({ instagramAccountId: 1, status: 1 });
 
 const RateLimitQueue =
   mongoose.models?.RateLimitQueue ||

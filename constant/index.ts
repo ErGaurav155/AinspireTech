@@ -1082,7 +1082,6 @@ export const instagramFeatures = [
     tag: ["Analytics", "Insights"],
   },
 ];
-// lib/constants/rateLimits.ts
 
 export const TIER_LIMITS = {
   free: 100,
@@ -1097,6 +1096,8 @@ export interface TierInfo {
   name: string;
   limit: number;
   color: string;
+  bgColor: string;
+  textColor: string;
 }
 
 export const TIER_INFO: Record<TierType, TierInfo> = {
@@ -1104,20 +1105,30 @@ export const TIER_INFO: Record<TierType, TierInfo> = {
     name: "Free",
     limit: 100,
     color: "bg-gray-500",
+    bgColor: "bg-gray-500/10",
+    textColor: "text-gray-500",
   },
   starter: {
     name: "Starter",
     limit: 2000,
     color: "bg-green-500",
+    bgColor: "bg-green-500/10",
+    textColor: "text-green-500",
   },
   grow: {
     name: "Grow",
     limit: 5000,
     color: "bg-blue-500",
+    bgColor: "bg-blue-500/10",
+    textColor: "text-blue-500",
   },
   professional: {
     name: "Professional",
     limit: 10000,
     color: "bg-purple-500",
+    bgColor: "bg-purple-500/10",
+    textColor: "text-purple-500",
   },
 };
+
+export const META_API_LIMIT_PER_ACCOUNT = 200; // 200 calls per hour per Instagram account

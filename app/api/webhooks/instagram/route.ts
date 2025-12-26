@@ -1,6 +1,9 @@
 import { handleInstagramWebhook } from "@/lib/action/instaApi.action";
 import { processQueueBatch } from "@/lib/services/queueProcessor";
-import { getCurrentWindow } from "@/lib/services/hourlyRateLimiter";
+import {
+  getCurrentWindow,
+  isAppLimitReached,
+} from "@/lib/services/hourlyRateLimiter";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -20,25 +23,45 @@ export async function GET(req: NextRequest) {
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
-    console.log("Received Instagram webhook payload:", payload);
+
+    // Check if app automation is paused due to app limit
+    const appLimitStatus = await isAppLimitReached();
+
+    if (appLimitStatus.reached) {
+      console.log(
+        `App limit reached (${appLimitStatus.percentage.toFixed(
+          1
+        )}%). Webhook received but automation is paused.`
+      );
+
+      return NextResponse.json({
+        success: false,
+        message: `App limit reached. Automation paused until next window.`,
+        appLimit: appLimitStatus.appLimit,
+        globalCalls: appLimitStatus.globalCalls,
+        percentage: appLimitStatus.percentage,
+        queued: 0,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    console.log("Received Instagram webhook payload");
 
     // Process the webhook
     const result = await handleInstagramWebhook(payload);
 
     // After processing webhook, check if queue needs processing
-    // This helps process any queued items immediately when we have webhook activity
     const { start: currentWindowStart } = await getCurrentWindow();
 
     // Only process queue if we have queued items
     if (result.queued && result.queued > 0) {
       console.log(`Processing ${result.queued} queued items from webhook`);
 
-      // Process a small batch from the queue
-      // We do this asynchronously so we don't delay the webhook response
+      // Process a small batch from the queue asynchronously
       setTimeout(async () => {
         try {
-          const queueResult = await processQueueBatch(10); // Process 10 items
-          console.log("Queue processing result:", queueResult);
+          const queueResult = await processQueueBatch(20); // Process 20 items
+          console.log("Queue processing result after webhook:", queueResult);
         } catch (error) {
           console.error("Error processing queue after webhook:", error);
         }

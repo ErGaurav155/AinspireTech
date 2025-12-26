@@ -660,6 +660,8 @@ export async function processComment(
       return { success: false, message: "No matching template found" };
     }
 
+    // In the processComment function, update the rate limiting section:
+
     // Check rate limit before proceeding
     const rateLimitResult = await recordCall(
       userId,
@@ -679,30 +681,27 @@ export async function processComment(
 
     if (!rateLimitResult.success) {
       if (rateLimitResult.queued) {
-        console.log(`Comment queued due to rate limit: ${comment.id}`);
-
-        // Also log this in the queue for tracking
-        await RateLimitQueue.updateOne(
-          { _id: rateLimitResult.queueId },
-          {
-            metadata: {
-              commentId: comment.id,
-              mediaId: comment.media_id,
-              userId: comment.user_id,
-              username: comment.username,
-            },
-          }
+        console.log(
+          `Comment queued due to ${rateLimitResult.reason}: ${comment.id}`
         );
+
+        // Log reason for queueing
+        if (rateLimitResult.reason === "app_limit_reached") {
+          console.warn(
+            `App limit reached! Global automation paused until next window.`
+          );
+        } else if (rateLimitResult.reason === "user_limit_reached") {
+          console.warn(`User ${userId} reached tier limit. Automation paused.`);
+        }
 
         return {
           success: false,
           queued: true,
-          message: `Rate limit reached, comment queued. Queue ID: ${rateLimitResult.queueId}`,
+          message: `Rate limit reached (${rateLimitResult.reason}), comment queued`,
         };
       }
       return { success: false, message: "Rate limit check failed" };
     }
-
     const startTime = Date.now();
 
     // Process comment - send initial DM to everyone

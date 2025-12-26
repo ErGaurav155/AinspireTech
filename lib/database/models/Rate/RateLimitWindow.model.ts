@@ -6,6 +6,7 @@ export interface IRateLimitWindow extends Document {
   globalCalls: number;
   appLimit: number;
   accountsProcessed: number;
+  isAutomationPaused: boolean; // New: Track if app automation is paused due to global limit
   status: "active" | "completed" | "processing";
   createdAt: Date;
   updatedAt: Date;
@@ -33,6 +34,10 @@ const RateLimitWindowSchema = new Schema<IRateLimitWindow>(
     accountsProcessed: {
       type: Number,
       default: 0,
+    },
+    isAutomationPaused: {
+      type: Boolean,
+      default: false,
     },
     status: {
       type: String,

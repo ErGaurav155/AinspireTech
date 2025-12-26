@@ -1,23 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processQueueBatch } from "@/lib/services/queueProcessor";
+import { cleanupOldQueueItems } from "@/lib/services/queueProcessor";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret
     const url = new URL(request.url);
     const secret = url.searchParams.get("secret");
 
     if (secret !== process.env.CRON_SECRET) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const result = await processQueueBatch(50);
+    console.log(`Starting queue processing at ${new Date().toISOString()}`);
+
+    // Process queue
+    const processResult = await processQueueBatch(100);
+
+    // Clean up old queue items (run less frequently)
+    const now = new Date();
+    if (now.getMinutes() % 30 === 0) {
+      // Run every 30 minutes
+      const cleanupResult = await cleanupOldQueueItems();
+      console.log(
+        `Queue cleanup: Deleted ${cleanupResult.deleted}, Kept ${cleanupResult.kept}`
+      );
+    }
+
+    console.log(`Queue processing completed:`, processResult);
 
     return NextResponse.json({
       success: true,
       message: "Queue processed successfully",
-      data: result,
+      data: {
+        processing: processResult,
+      },
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

@@ -181,8 +181,8 @@ export async function cleanupUserData(clerkId: string) {
       await InstaReplyLog?.deleteMany({ userId: clerkId }),
       await InstaSubscription?.deleteMany({ clerkId }),
       await InstagramAccount?.deleteMany({ userId: clerkId }),
-      await RateLimitQueue?.deleteMany({ userId: clerkId }),
-      await RateUserRateLimit?.deleteMany({ userId: clerkId }),
+      await RateLimitQueue?.deleteMany({ clerkId }),
+      await RateUserRateLimit?.deleteMany({ clerkId }),
 
       // Affiliate Data
       await Affiliate?.deleteMany({ userId: clerkId }),

@@ -1,16 +1,48 @@
 import mongoose, { Schema, Document, model } from "mongoose";
 
+export interface IAccountUsage {
+  instagramAccountId: string;
+  callsMade: number;
+  lastCallAt: Date;
+  accountUsername?: string;
+  accountProfile?: string;
+}
+
 export interface IUserRateLimit extends Document {
   clerkId: string;
   windowStart: Date;
-  callsMade: number;
+  totalCallsMade: number;
   tier: "free" | "starter" | "grow" | "professional";
   tierLimit: number;
   isAutomationPaused: boolean;
-  instagramAccounts: string[]; // Array of Instagram account IDs
+  accountUsage: IAccountUsage[]; // Detailed account usage
   createdAt: Date;
   updatedAt: Date;
 }
+
+const AccountUsageSchema = new Schema<IAccountUsage>(
+  {
+    instagramAccountId: {
+      type: String,
+      required: true,
+    },
+    callsMade: {
+      type: Number,
+      default: 0,
+    },
+    lastCallAt: {
+      type: Date,
+      default: Date.now,
+    },
+    accountUsername: {
+      type: String,
+    },
+    accountProfile: {
+      type: String,
+    },
+  },
+  { _id: false }
+);
 
 const UserRateLimitSchema = new Schema<IUserRateLimit>(
   {
@@ -24,7 +56,7 @@ const UserRateLimitSchema = new Schema<IUserRateLimit>(
       required: true,
       index: true,
     },
-    callsMade: {
+    totalCallsMade: {
       type: Number,
       default: 0,
     },
@@ -41,8 +73,8 @@ const UserRateLimitSchema = new Schema<IUserRateLimit>(
       type: Boolean,
       default: false,
     },
-    instagramAccounts: {
-      type: [String],
+    accountUsage: {
+      type: [AccountUsageSchema],
       default: [],
     },
   },
@@ -53,6 +85,7 @@ const UserRateLimitSchema = new Schema<IUserRateLimit>(
 
 // Compound index for efficient queries
 UserRateLimitSchema.index({ clerkId: 1, windowStart: 1 });
+UserRateLimitSchema.index({ "accountUsage.instagramAccountId": 1 });
 
 const RateUserRateLimit =
   mongoose.models?.RateUserRateLimit ||
