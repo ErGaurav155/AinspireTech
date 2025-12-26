@@ -1,6 +1,8 @@
 import { getInstagramUser } from "@/lib/action/insta.action";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import InstaSubscription from "@/lib/database/models/insta/InstaSubscription.model";
+import RateUserRateLimit from "@/lib/database/models/Rate/UserRateLimit.model";
+
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
@@ -170,22 +172,33 @@ export async function GET(req: NextRequest) {
 
       await existingAccountWithUser.save();
 
+      // Add this Instagram account to UserRateLimit for tracking
+      await addInstagramAccountToRateLimit(
+        userId,
+        user.user_id,
+        user.username,
+        user.profile_picture_url
+      );
+
       return NextResponse.json({
         account: existingAccountWithUser,
         message: "Account updated successfully",
         status: 200,
       });
     }
+
     const existingAccount = await InstagramAccount.findOne({
       instagramId: user.user_id,
     });
+
     if (existingAccount) {
       return NextResponse.json({
         account: existingAccount,
-        message: "Dublicate Account Found",
+        message: "Duplicate Account Found",
         status: 400,
       });
     }
+
     // Create new account
     const newAccount = await InstagramAccount.create({
       userId,
@@ -199,6 +212,14 @@ export async function GET(req: NextRequest) {
       isActive: true,
       expiresAt,
     });
+
+    // Add this Instagram account to UserRateLimit for tracking
+    await addInstagramAccountToRateLimit(
+      userId,
+      user.user_id,
+      user.username,
+      user.profile_picture_url
+    );
 
     return NextResponse.json({
       account: newAccount,
@@ -216,6 +237,66 @@ export async function GET(req: NextRequest) {
           process.env.NODE_ENV === "development" ? error.stack : undefined,
       },
       { status: error.status || 500 }
+    );
+  }
+}
+
+// Helper function to add Instagram account to UserRateLimit tracking
+async function addInstagramAccountToRateLimit(
+  clerkId: string,
+  instagramAccountId: string,
+  username?: string,
+  profilePicture?: string
+): Promise<void> {
+  try {
+    // Get current window
+    const currentWindow = new Date();
+    currentWindow.setUTCMinutes(0, 0, 0); // Set to start of current hour
+
+    // Find or create user rate limit record for current window
+    let userRateLimit = await RateUserRateLimit.findOne({
+      clerkId,
+      windowStart: currentWindow,
+    });
+
+    if (!userRateLimit) {
+      // Create new record if doesn't exist
+      userRateLimit = await RateUserRateLimit.create({
+        clerkId,
+        windowStart: currentWindow,
+        totalCallsMade: 0,
+        tier: "free", // Default, will be updated based on subscription
+        tierLimit: 100, // Default free tier
+        isAutomationPaused: false,
+        accountUsage: [],
+      });
+    }
+
+    // Check if account already exists in accountUsage
+    const accountIndex = userRateLimit.accountUsage.findIndex(
+      (acc: any) => acc.instagramAccountId === instagramAccountId
+    );
+
+    if (accountIndex === -1) {
+      // Add new account to tracking
+      userRateLimit.accountUsage.push({
+        instagramAccountId,
+        callsMade: 0,
+        lastCallAt: new Date(),
+        accountUsername: username,
+        accountProfile: profilePicture,
+      });
+
+      await userRateLimit.save();
+    } else {
+      console.log(
+        `Instagram account ${instagramAccountId} already tracked for user ${clerkId}`
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Error adding Instagram account to rate limit tracking:",
+      error
     );
   }
 }

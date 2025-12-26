@@ -25,6 +25,7 @@ const AccountUsageSchema = new Schema<IAccountUsage>(
     instagramAccountId: {
       type: String,
       required: true,
+      unique: true,
     },
     callsMade: {
       type: Number,
@@ -36,6 +37,7 @@ const AccountUsageSchema = new Schema<IAccountUsage>(
     },
     accountUsername: {
       type: String,
+      unique: true,
     },
     accountProfile: {
       type: String,
@@ -50,6 +52,7 @@ const UserRateLimitSchema = new Schema<IUserRateLimit>(
       type: String,
       required: true,
       index: true,
+      unique: true,
     },
     windowStart: {
       type: Date,

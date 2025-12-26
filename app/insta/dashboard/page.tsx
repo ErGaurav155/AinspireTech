@@ -318,7 +318,7 @@ export default function Dashboard() {
               replyLimit: replyLimit || 500,
               accountLimit: accountLimit || 1,
               totalAccounts: totalAccounts || 0,
-              accountReply: dbAccount.accountReply || 0,
+              accountReply: dbAccount.callsMade || 0,
               lastActivity: dbAccount.lastActivity || new Date().toISOString(),
               engagementRate: Math.floor(Math.random() * 4) + 85,
               successRate: Math.floor(Math.random() * 4) + 90,
@@ -340,6 +340,7 @@ export default function Dashboard() {
       );
 
       if (validAccounts.length > 0) {
+        console.log("Setting accounts cache", validAccounts);
         setCachedData(ACCOUNTS_CACHE_KEY, validAccounts);
         setUserAccounts(validAccounts);
       }

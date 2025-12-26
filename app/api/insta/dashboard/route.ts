@@ -40,37 +40,18 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get the user's rate limit document
-    const rateLimitDoc = await RateUserRateLimit.findOne({ clerkId: userId });
+    const rateLimitData = await RateUserRateLimit.findOne({ clerkId: userId });
 
-    // Get all Instagram account IDs
-    const accountIds = accounts.map((account) => account.instagramId);
-
-    let totalReplies = 0;
-    const rateUserCallMap: Record<string, number> = {};
-
-    if (rateLimitDoc) {
-      accounts.forEach((account) => {
-        const hasAutomationActive = !rateLimitDoc.instagramAccounts.includes(
-          account.instagramId
+    // Create a map for quick lookup of callsMade by instagramAccountId
+    const accountCallsMap = new Map<string, number>();
+    if (rateLimitData && rateLimitData.accountUsage) {
+      rateLimitData.accountUsage.forEach((accountUsage: any) => {
+        accountCallsMap.set(
+          accountUsage.instagramAccountId,
+          accountUsage.callsMade
         );
-
-        if (hasAutomationActive) {
-          const activeAccountsCount =
-            accounts.length - rateLimitDoc.instagramAccounts.length;
-          const repliesPerAccount =
-            activeAccountsCount > 0
-              ? Math.floor(rateLimitDoc.callsMade / activeAccountsCount)
-              : 0;
-
-          rateUserCallMap[account.instagramId] = repliesPerAccount;
-          totalReplies += repliesPerAccount;
-        } else {
-          rateUserCallMap[account.instagramId] = 0;
-        }
       });
     }
-
     const enhancedAccounts = await Promise.all(
       accounts.map(async (account) => {
         // Get template count
@@ -78,8 +59,18 @@ export async function GET(request: NextRequest) {
           accountId: account.instagramId,
         });
 
-        // Get average response time
-        const avgResTimeAggregation = await InstaReplyLog.aggregate([
+        // Get reply count (callsMade) from rate limit data or calculate from logs
+        let replyCount = accountCallsMap.get(account.instagramId) || 0;
+
+        // If not found in rate limit data, calculate from reply logs as fallback
+        if (replyCount === 0) {
+          replyCount = await InstaReplyLog.countDocuments({
+            accountId: account.instagramId,
+            success: true,
+          });
+        }
+
+        const avgResTime = (await InstaReplyLog.aggregate([
           {
             $match: {
               accountId: account.instagramId,
@@ -92,35 +83,24 @@ export async function GET(request: NextRequest) {
               avgResponseTime: { $avg: "$responseTime" },
             },
           },
-        ]);
-
-        const avgResTime =
-          avgResTimeAggregation.length > 0
-            ? avgResTimeAggregation[0].avgResponseTime
-            : 0;
+        ])) || [{ avgResponseTime: 0 }];
 
         return {
-          ...account.toObject(),
+          ...account.toObject(), // Convert Mongoose document to plain object
           templatesCount,
+          replyCount, // Add reply count (callsMade)
           avgResTime,
-          replies: rateUserCallMap[account.instagramId] || 0,
-          isAutomationPaused:
-            rateLimitDoc?.instagramAccounts.includes(account.instagramId) ||
-            false,
+          callsMade: accountCallsMap.get(account.instagramId) || 0,
         };
       })
     );
 
     return NextResponse.json({
       accounts: enhancedAccounts,
-      totalReplies,
+      totalReplies: rateLimitData?.totalCallsMade || 0,
       accountLimit: userData.accountLimit,
-      replyLimit: userData.replyLimit || rateLimitDoc?.tierLimit || 100, // Use tierLimit from rate limit doc
+      replyLimit: userData.replyLimit,
       totalAccounts: accounts.length,
-      tier: rateLimitDoc?.tier || "free",
-      callsMade: rateLimitDoc?.callsMade || 0,
-      tierLimit: rateLimitDoc?.tierLimit || 100,
-      isAutomationPaused: rateLimitDoc?.isAutomationPaused || false,
     });
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
