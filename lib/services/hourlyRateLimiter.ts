@@ -45,7 +45,11 @@ export async function getCurrentWindow(): Promise<{
 }
 
 // Helper to get next window
-export function getNextWindow(): { start: Date; end: Date; label: string } {
+export async function getNextWindow(): Promise<{
+  start: Date;
+  end: Date;
+  label: string;
+}> {
   const now = new Date();
   const nextHour = now.getUTCHours() + 1;
   const windowStart = new Date(
