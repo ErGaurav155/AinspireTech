@@ -9,10 +9,9 @@ import InstaReplyTemplate, {
 import { getUserById } from "./user.actions";
 import User from "../database/models/user.model";
 import {
-  recordCall,
   queueCall,
-  getCurrentWindow,
   canMakeCall,
+  recordCall,
 } from "@/lib/services/hourlyRateLimiter";
 import RateLimitQueue from "../database/models/Rate/RateLimitQueue.model";
 
@@ -369,24 +368,6 @@ async function replyToComment(
   }
 }
 
-async function validateAccessToken(accessToken: string): Promise<boolean> {
-  try {
-    // Check Meta API rate limit
-    const accountId = "me"; // Use a placeholder for token validation
-    if (!canMakeMetaRequest(accountId)) {
-      console.warn(`Meta API rate limit reached for token validation`);
-      return false;
-    }
-
-    const response = await fetch(
-      `https://graph.instagram.com/v23.0/me?fields=id&access_token=${accessToken}`
-    );
-    return response.ok;
-  } catch (error) {
-    return false;
-  }
-}
-
 // AI Template Matching
 async function findMatchingTemplate(
   commentText: string,
@@ -425,46 +406,6 @@ export async function handlePostback(
       return { success: false, message: "Account not found" };
     }
 
-    // Check rate limit for postback action
-    const rateLimitCheck = await canMakeCall(userId, account.instagramId);
-    if (!rateLimitCheck.allowed) {
-      // Queue the postback action
-      const queueId = await queueCall(
-        userId,
-        account.instagramId,
-        "dm",
-        {
-          accountId,
-          recipientId,
-          payload,
-          action: "postback",
-        },
-        3 // Higher priority for postbacks
-      );
-
-      return {
-        success: false,
-        queued: true,
-        message: `Postback queued due to rate limit. Queue ID: ${queueId}`,
-      };
-    }
-
-    // Record the call
-    const recordResult = await recordCall(userId, account.instagramId, "dm", {
-      accountId,
-      recipientId,
-      payload,
-      action: "postback",
-    });
-
-    if (!recordResult.success && recordResult.queued) {
-      return {
-        success: false,
-        queued: true,
-        message: `Postback queued. Queue ID: ${recordResult.queueId}`,
-      };
-    }
-
     // Handle CHECK_FOLLOW - when user clicks "Send me the access"
     if (payload.startsWith("CHECK_FOLLOW_")) {
       const targetTemplate = payload.replace("CHECK_FOLLOW_", "");
@@ -480,6 +421,27 @@ export async function handlePostback(
       }
 
       if (templates[0].isFollow === false) {
+        // Record the call
+        const recordResult = await recordCall(
+          userId,
+          account.instagramId,
+          "dm",
+          {
+            accountId,
+            recipientId,
+            payload,
+            action: "postback",
+          },
+          1
+        );
+
+        if (!recordResult.success && recordResult.queued) {
+          return {
+            success: false,
+            queued: true,
+            message: `Postback queued. Queue ID: ${recordResult.queueId}`,
+          };
+        }
         // Directly send link if no follow required
         const dmSent = await sendFinalLinkDM(
           account.instagramId,
@@ -493,7 +455,27 @@ export async function handlePostback(
           message: dmSent ? "Link sent successfully" : "Failed to send link",
         };
       }
+      // Record the call
+      const recordResult = await recordCall(
+        userId,
+        account.instagramId,
+        "dm",
+        {
+          accountId,
+          recipientId,
+          payload,
+          action: "postback",
+        },
+        2
+      );
 
+      if (!recordResult.success && recordResult.queued) {
+        return {
+          success: false,
+          queued: true,
+          message: `Postback queued. Queue ID: ${recordResult.queueId}`,
+        };
+      }
       // Check if user follows - DB-first method
       const followStatus = await checkFollowRelationshipDBFirst(
         recipientId,
@@ -544,6 +526,27 @@ export async function handlePostback(
       if (templates.length === 0) {
         console.error("No active templates found for postback");
         return { success: false, message: "No active templates found" };
+      }
+      // Record the call
+      const recordResult = await recordCall(
+        userId,
+        account.instagramId,
+        "dm",
+        {
+          accountId,
+          recipientId,
+          payload,
+          action: "postback",
+        },
+        2
+      );
+
+      if (!recordResult.success && recordResult.queued) {
+        return {
+          success: false,
+          queued: true,
+          message: `Postback queued. Queue ID: ${recordResult.queueId}`,
+        };
       }
 
       // Verify if user actually followed (DB-first)
@@ -628,25 +631,6 @@ export async function processComment(
       return { success: false, message: "User not found" };
     }
 
-    if (userInfo.totalReplies >= userInfo.replyLimit) {
-      console.warn(
-        `Account ${accountId} has reached its reply limit (${userInfo.totalReplies}/${userInfo.replyLimit})`
-      );
-      if (account.isActive) {
-        account.isActive = false;
-        await account.save();
-        return { success: false, message: "Account reply limit reached" };
-      }
-    }
-
-    // Validate access token
-    const isValidToken = await validateAccessToken(account.accessToken);
-    if (!isValidToken) {
-      account.isActive = false;
-      await account.save();
-      return { success: false, message: "Invalid access token" };
-    }
-
     // Find matching template
     const templates = await InstaReplyTemplate.find({
       userId,
@@ -676,7 +660,8 @@ export async function processComment(
           userId: comment.user_id,
           username: comment.username,
         },
-      }
+      },
+      2
     );
 
     if (!rateLimitResult.success) {
@@ -745,9 +730,7 @@ export async function processComment(
       responseTime,
       mediaId: comment.media_id,
       commenterUsername: comment.username,
-      rateLimitWindow: (await getCurrentWindow()).start,
-      processedAt: new Date(),
-      metaApiRemaining: getRemainingMetaRequests(account.instagramId),
+      createdAt: new Date(),
     });
 
     // Update template usage
@@ -757,9 +740,6 @@ export async function processComment(
         $set: { lastUsed: new Date() },
       });
     }
-
-    // Update user reply count
-    await User.findByIdAndUpdate(userInfo._id, { $inc: { totalReplies: 1 } });
 
     // Update account activity
     account.lastActivity = new Date();
@@ -1186,7 +1166,8 @@ export async function forceProcessComment(
           comment,
           template: matchingTemplate,
           forced: true,
-        }
+        },
+        1
       );
 
       if (!rateLimitResult.success && !rateLimitResult.queued) {

@@ -287,7 +287,8 @@ export async function recordCall(
   clerkId: string,
   instagramAccountId: string,
   actionType: IRateLimitQueue["actionType"],
-  metadata?: any
+  metadata?: any,
+  incrementBy?: number
 ): Promise<{
   success: boolean;
   queued?: boolean;
@@ -308,13 +309,6 @@ export async function recordCall(
       instagramAccountId,
       actionType,
       actionPayload: metadata || {},
-      priority: canCall.reason === "user_limit_reached" ? 6 : 5, // Higher priority for user limits
-      status: "pending",
-      windowStart,
-      metadata: {
-        ...metadata?.metadata,
-        reason: canCall.reason,
-      },
     });
 
     return {
@@ -399,7 +393,7 @@ export async function recordCall(
   const userLimit = await RateUserRateLimit.findOneAndUpdate(
     { clerkId, windowStart },
     {
-      $inc: { totalCallsMade: 1 },
+      $inc: { totalCallsMade: incrementBy },
       $setOnInsert: {
         tier: await getUserTier(clerkId),
         tierLimit: TIER_LIMITS[await getUserTier(clerkId)],
@@ -419,13 +413,13 @@ export async function recordCall(
 
     if (accountIndex >= 0) {
       // Update existing account usage
-      userLimit.accountUsage[accountIndex].callsMade += 1;
+      userLimit.accountUsage[accountIndex].callsMade += incrementBy;
       userLimit.accountUsage[accountIndex].lastCallAt = new Date();
     } else {
       // Add new account usage
       userLimit.accountUsage.push({
         instagramAccountId,
-        callsMade: 1,
+        callsMade: incrementBy,
         lastCallAt: new Date(),
         accountUsername: accountInfo.username,
         accountProfile: accountInfo.profilePicture,
@@ -572,7 +566,8 @@ export async function resetWindowAndProcessQueue(): Promise<{
             item.clerkId,
             item.instagramAccountId,
             item.actionType,
-            item.actionPayload
+            item.actionPayload,
+            1
           );
         } catch (processError) {
           console.error(

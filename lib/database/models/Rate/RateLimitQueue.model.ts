@@ -5,21 +5,6 @@ export interface IRateLimitQueue extends Document {
   instagramAccountId: string;
   actionType: "comment_reply" | "dm" | "follow_check" | "media_fetch";
   actionPayload: any;
-  priority: number; // Lower number = higher priority
-  status: "pending" | "processing" | "completed" | "failed";
-  retryCount: number;
-  maxRetries: number;
-  windowStart: Date; // The window when this was queued
-  processingStartedAt?: Date;
-  processingCompletedAt?: Date;
-  errorMessage?: string;
-  metadata?: {
-    commentId?: string;
-    mediaId?: string;
-    userId?: string;
-    username?: string;
-    reason?: "user_limit" | "app_limit" | "error"; // Why it was queued
-  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,51 +25,11 @@ const RateLimitQueueSchema = new Schema<IRateLimitQueue>(
       type: String,
       enum: ["comment_reply", "dm", "follow_check", "media_fetch"],
       required: true,
+      index: true,
     },
     actionPayload: {
       type: Schema.Types.Mixed,
       required: true,
-    },
-    priority: {
-      type: Number,
-      default: 5, // Default medium priority
-      min: 1,
-      max: 10,
-    },
-    status: {
-      type: String,
-      enum: ["pending", "processing", "completed", "failed"],
-      default: "pending",
-      index: true,
-    },
-    retryCount: {
-      type: Number,
-      default: 0,
-    },
-    maxRetries: {
-      type: Number,
-      default: 3,
-    },
-    windowStart: {
-      type: Date,
-      required: true,
-      index: true,
-    },
-    processingStartedAt: {
-      type: Date,
-    },
-    processingCompletedAt: {
-      type: Date,
-    },
-    errorMessage: {
-      type: String,
-    },
-    metadata: {
-      commentId: String,
-      mediaId: String,
-      userId: String,
-      username: String,
-      reason: String,
     },
   },
   {
@@ -92,11 +37,20 @@ const RateLimitQueueSchema = new Schema<IRateLimitQueue>(
   }
 );
 
-// Compound indexes for efficient queue queries
-RateLimitQueueSchema.index({ status: 1, priority: 1, createdAt: 1 });
-RateLimitQueueSchema.index({ clerkId: 1, status: 1 });
-RateLimitQueueSchema.index({ windowStart: 1, status: 1 });
-RateLimitQueueSchema.index({ instagramAccountId: 1, status: 1 });
+// TTL index for automatic cleanup of queue items (2 days = 48 hours)
+RateLimitQueueSchema.index(
+  { createdAt: 1 },
+  {
+    expireAfterSeconds: 172800, // 48 hours in seconds
+  }
+);
+
+// Index for FIFO processing
+RateLimitQueueSchema.index({ createdAt: 1 });
+
+// Compound indexes for efficient queries
+RateLimitQueueSchema.index({ clerkId: 1 });
+RateLimitQueueSchema.index({ instagramAccountId: 1 });
 
 const RateLimitQueue =
   mongoose.models?.RateLimitQueue ||

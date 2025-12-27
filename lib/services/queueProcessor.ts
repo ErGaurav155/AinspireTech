@@ -1,9 +1,10 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/database/mongoose";
-import { getCurrentWindow, canMakeCall, recordCall } from "./hourlyRateLimiter";
+import { getCurrentWindow, canMakeCall } from "./hourlyRateLimiter";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import { processComment } from "@/lib/action/instaApi.action";
+import { handlePostback } from "@/lib/action/instaApi.action";
 import RateLimitQueue from "../database/models/Rate/RateLimitQueue.model";
 
 export async function processQueueBatch(batchSize: number = 50): Promise<{
@@ -16,13 +17,11 @@ export async function processQueueBatch(batchSize: number = 50): Promise<{
 
   const { start: currentWindowStart } = await getCurrentWindow();
 
-  // Get pending queue items for processing
+  // Get queue items for processing (FIFO: by createdAt)
   const queueItems = await RateLimitQueue.find({
-    status: "pending",
-    windowStart: { $lte: currentWindowStart },
-    retryCount: { $lt: 3 },
+    createdAt: { $lte: currentWindowStart },
   })
-    .sort({ priority: 1, createdAt: 1 })
+    .sort({ createdAt: 1 }) // FIFO ordering
     .limit(batchSize);
 
   let processed = 0;
@@ -38,15 +37,6 @@ export async function processQueueBatch(batchSize: number = 50): Promise<{
       );
 
       if (canProcess.allowed) {
-        // Mark as processing
-        await RateLimitQueue.updateOne(
-          { _id: item._id },
-          {
-            status: "processing",
-            processingStartedAt: new Date(),
-          }
-        );
-
         // Process based on action type
         let processResult;
 
@@ -57,116 +47,41 @@ export async function processQueueBatch(batchSize: number = 50): Promise<{
           case "dm":
             processResult = await processQueuedDM(item);
             break;
-          case "follow_check":
-            processResult = await processQueuedFollowCheck(item);
-            break;
+
           default:
             processResult = { success: false, error: "Unknown action type" };
         }
 
         if (processResult.success) {
-          // Record the successful call
-          const recordResult = await recordCall(
-            item.clerkId,
-            item.instagramAccountId,
-            item.actionType,
-            item.actionPayload
-          );
-
-          if (recordResult.success) {
-            // Mark as completed
-            await RateLimitQueue.updateOne(
-              { _id: item._id },
-              {
-                status: "completed",
-                processingCompletedAt: new Date(),
-              }
-            );
-
+          try {
+            await RateLimitQueue.deleteOne({ _id: item._id });
             processed++;
-          } else if (recordResult.queued) {
-            // Got queued again - update retry count
-            await RateLimitQueue.updateOne(
-              { _id: item._id },
-              {
-                retryCount: item.retryCount + 1,
-                errorMessage: "Re-queued during processing",
-                status:
-                  item.retryCount + 1 >= item.maxRetries ? "failed" : "pending",
-              }
-            );
-
-            if (item.retryCount + 1 >= item.maxRetries) {
-              failed++;
-            } else {
-              skipped++;
-            }
-          } else {
-            // Failed to record
-            await RateLimitQueue.updateOne(
-              { _id: item._id },
-              {
-                status: "failed",
-                errorMessage: "Failed to record call",
-                retryCount: item.retryCount + 1,
-              }
-            );
-
+          } catch (recordError) {
+            // DELETE the item on recording error
+            await RateLimitQueue.deleteOne({ _id: item._id });
             failed++;
           }
         } else {
-          // Increment retry count
-          await RateLimitQueue.updateOne(
-            { _id: item._id },
-            {
-              retryCount: item.retryCount + 1,
-              errorMessage: processResult.error,
-              status:
-                item.retryCount + 1 >= item.maxRetries ? "failed" : "pending",
-            }
-          );
-
-          if (item.retryCount + 1 >= item.maxRetries) {
-            failed++;
-          } else {
-            skipped++;
-          }
+          // Processing failed - DELETE the item immediately
+          await RateLimitQueue.deleteOne({ _id: item._id });
+          failed++;
         }
       } else {
-        // Update window start to current window if it's from previous window
-        if (item.windowStart.getTime() < currentWindowStart.getTime()) {
-          await RateLimitQueue.updateOne(
-            { _id: item._id },
-            { windowStart: currentWindowStart }
-          );
-        }
+        // Can't process now - keep in queue
         skipped++;
       }
     } catch (error) {
       console.error(`Error processing queue item ${item._id}:`, error);
 
-      await RateLimitQueue.updateOne(
-        { _id: item._id },
-        {
-          retryCount: item.retryCount + 1,
-          errorMessage:
-            error instanceof Error ? error.message : "Unknown error",
-          status: item.retryCount + 1 >= item.maxRetries ? "failed" : "pending",
-        }
-      );
-
-      if (item.retryCount + 1 >= item.maxRetries) {
-        failed++;
-      } else {
-        skipped++;
-      }
+      // On any error, DELETE the item
+      await RateLimitQueue.deleteOne({ _id: item._id });
+      failed++;
     }
   }
 
   // Get remaining queue items
   const remaining = await RateLimitQueue.countDocuments({
-    status: "pending",
-    windowStart: { $lte: currentWindowStart },
+    createdAt: { $lte: currentWindowStart },
   });
 
   return { processed, failed, skipped, remaining };
@@ -210,30 +125,46 @@ async function processQueuedDM(
   item: any
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Implement DM processing logic
-    // For now, return success for demonstration
-    await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate processing
-    return { success: true };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
-}
+    const { accountId, recipientId, payload } = item.actionPayload;
 
-async function processQueuedFollowCheck(
-  item: any
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    // Implement follow check processing logic
-    // For now, return success for demonstration
-    await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate processing
-    return { success: true };
+    // Validate required parameters
+    if (!accountId || !recipientId || !payload) {
+      return {
+        success: false,
+        error: "Missing required parameters for DM processing",
+      };
+    }
+
+    const account = await InstagramAccount.findOne({
+      instagramId: item.instagramAccountId,
+    });
+
+    if (!account) {
+      return { success: false, error: "Account not found" };
+    }
+
+    // Handle postback action
+    const result = await handlePostback(
+      account.instagramId,
+      item.clerkId,
+      recipientId,
+      payload
+    );
+
+    return {
+      success: result.success,
+      error: result.success
+        ? undefined
+        : result.message || "Failed to process postback",
+    };
   } catch (error) {
+    console.error("Error processing queued DM:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unknown error in DM processing",
     };
   }
 }
@@ -242,89 +173,51 @@ async function processQueuedFollowCheck(
 export async function getQueueStats() {
   await connectToDatabase();
 
-  const stats = await RateLimitQueue.aggregate([
-    {
-      $group: {
-        _id: "$status",
-        count: { $sum: 1 },
-        avgRetryCount: { $avg: "$retryCount" },
-      },
-    },
-  ]);
+  const totalItems = await RateLimitQueue.countDocuments();
 
   const byType = await RateLimitQueue.aggregate([
-    {
-      $match: {
-        status: { $in: ["pending", "processing"] },
-      },
-    },
     {
       $group: {
         _id: "$actionType",
         count: { $sum: 1 },
-        pending: {
-          $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
-        },
       },
     },
   ]);
 
-  const byReason = await RateLimitQueue.aggregate([
-    {
-      $match: {
-        status: { $in: ["pending", "processing"] },
-        "metadata.reason": { $exists: true },
-      },
-    },
-    {
-      $group: {
-        _id: "$metadata.reason",
-        count: { $sum: 1 },
-      },
-    },
-  ]);
-
-  const oldestPending = await RateLimitQueue.findOne({
-    status: "pending",
-  })
+  const oldestItem = await RateLimitQueue.findOne({})
     .sort({ createdAt: 1 })
-    .select("createdAt clerkId instagramAccountId actionType metadata");
+    .select("createdAt clerkId instagramAccountId actionType");
 
   return {
-    totals: stats.reduce((acc, stat) => {
-      acc[stat._id] = stat.count;
-      return acc;
-    }, {} as Record<string, number>),
+    totalItems,
     byType,
-    byReason,
-    oldestPending,
-    totalItems: stats.reduce((acc, stat) => acc + stat.count, 0),
+    oldestItem,
   };
 }
 
-// Clean up old queue items (older than 7 days)
-export async function cleanupOldQueueItems(): Promise<{
+// Manual cleanup of old queue items (MongoDB TTL should handle this automatically)
+export async function manualCleanupOldQueueItems(): Promise<{
   deleted: number;
-  kept: number;
 }> {
   await connectToDatabase();
 
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
 
-  // Delete completed items older than 7 days
-  const deleteResult = await RateLimitQueue.deleteMany({
-    status: "completed",
-    createdAt: { $lt: sevenDaysAgo },
+  // Find all items older than 2 days
+  const oldItems = await RateLimitQueue.find({
+    createdAt: { $lt: twoDaysAgo },
   });
 
-  // Get count of remaining items
-  const remainingCount = await RateLimitQueue.countDocuments({
-    createdAt: { $gte: sevenDaysAgo },
-  });
+  const deletedCount = oldItems.length;
 
-  return {
-    deleted: deleteResult.deletedCount,
-    kept: remainingCount,
-  };
+  // DELETE all old items
+  for (const item of oldItems) {
+    await RateLimitQueue.deleteOne({ _id: item._id });
+  }
+
+  if (deletedCount > 0) {
+    console.log(`Manually cleaned up ${deletedCount} old queue items`);
+  }
+
+  return { deleted: deletedCount };
 }

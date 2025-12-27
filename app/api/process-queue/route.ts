@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { processQueueBatch } from "@/lib/services/queueProcessor";
-import { cleanupOldQueueItems } from "@/lib/services/queueProcessor";
+import {
+  manualCleanupOldQueueItems,
+  processQueueBatch,
+} from "@/lib/services/queueProcessor";
 import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +24,7 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     if (now.getMinutes() % 30 === 0) {
       // Run every 30 minutes
-      const cleanupResult = await cleanupOldQueueItems();
-      console.log(
-        `Queue cleanup: Deleted ${cleanupResult.deleted}, Kept ${cleanupResult.kept}`
-      );
+      const cleanupResult = await manualCleanupOldQueueItems();
     }
 
     console.log(`Queue processing completed:`, processResult);

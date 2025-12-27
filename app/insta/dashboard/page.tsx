@@ -340,7 +340,6 @@ export default function Dashboard() {
       );
 
       if (validAccounts.length > 0) {
-        console.log("Setting accounts cache", validAccounts);
         setCachedData(ACCOUNTS_CACHE_KEY, validAccounts);
         setUserAccounts(validAccounts);
       }
