@@ -1048,6 +1048,7 @@ function PricingWithSearchParams() {
           plan={selectedPlan}
           billingCycle={billingCycle}
           buyerId={buyerId}
+          userId={userId}
           isSubscribed={isSubscribed}
           isInstaAccount={isInstaAccount}
           isgettingAcc={isGettingAcc}

@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { CreditCard } from "lucide-react";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { PricingPlan } from "@/types/types";
 import { useTheme } from "next-themes";
@@ -32,6 +32,7 @@ interface PaymentModalProps {
   plan: PricingPlan | null;
   billingCycle: "monthly" | "yearly";
   buyerId: string;
+  userId: string;
   isSubscribed: boolean;
   isInstaAccount: boolean;
   isgettingAcc: boolean;
@@ -49,6 +50,7 @@ export default function PaymentModal({
   plan,
   billingCycle,
   buyerId,
+  userId,
   isSubscribed,
   isInstaAccount,
   isgettingAcc,
@@ -62,7 +64,6 @@ export default function PaymentModal({
   const router = useRouter();
   const { theme, resolvedTheme } = useTheme();
   const currentTheme = resolvedTheme || theme || "light";
-
   // Theme-based styles
   const themeStyles = useMemo(() => {
     const isDark = currentTheme === "dark";
@@ -154,7 +155,7 @@ export default function PaymentModal({
               }),
             });
 
-            await updateUserLimits(buyerId, plan.limit, plan.account);
+            await updateUserLimits(userId, plan.limit, plan.account);
 
             await onSuccess(plan.id);
 

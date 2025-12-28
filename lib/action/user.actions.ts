@@ -16,6 +16,8 @@ import Affiliate from "../database/models/affiliate/Affiliate";
 import AffiReferral from "../database/models/affiliate/Referral";
 import RateUserRateLimit from "../database/models/Rate/UserRateLimit.model";
 import RateLimitQueue from "../database/models/Rate/RateLimitQueue.model";
+import { TIER_LIMITS } from "@/constant";
+import { getCurrentWindow } from "../services/hourlyRateLimiter";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
@@ -268,30 +270,199 @@ export async function hasActiveSubscriptions(clerkId: string): Promise<{
     };
   }
 }
+// export async function updateUserLimits(
+//   buyerId: string,
+//   replyLimit: number,
+//   accountLimit: number
+// ) {
+//   try {
+//     await connectToDatabase();
+
+//     const updatedUser = await User.findOneAndUpdate(
+//       { _id: buyerId },
+//       {
+//         accountLimit: accountLimit,
+//         totalReplies: 0,
+//         replyLimit: replyLimit,
+//       },
+//       { new: true }
+//     );
+
+//     return updatedUser;
+//   } catch (error) {
+//     handleError(error);
+//   }
+// }
+
 export async function updateUserLimits(
-  buyerId: string,
+  userId: string,
   replyLimit: number,
   accountLimit: number
 ) {
   try {
     await connectToDatabase();
 
-    const updatedUser = await User.findOneAndUpdate(
-      { _id: buyerId },
+    // Determine tier based on replyLimit
+    let tier: "free" | "starter" | "grow" | "professional" = "free";
+    let hourlyRateLimit = 100; // Free tier default
+
+    if (replyLimit >= 5000) {
+      tier = "professional";
+      hourlyRateLimit = TIER_LIMITS.professional;
+    } else if (replyLimit >= 2000) {
+      tier = "grow";
+      hourlyRateLimit = TIER_LIMITS.grow;
+    } else if (replyLimit >= 500) {
+      tier = "starter";
+      hourlyRateLimit = TIER_LIMITS.starter;
+    }
+
+    // Update User model
+    await User.findOneAndUpdate(
+      { clerkId: userId },
       {
-        accountLimit: accountLimit,
-        totalReplies: 0,
-        replyLimit: replyLimit,
+        // tier,
+        // hourlyRateLimit,
+        // replyLimit,
+        accountLimit,
+        $inc: { updatedAt: 1 }, // Force update
       },
-      { new: true }
+      { upsert: true, new: true }
     );
 
-    return updatedUser;
+    // Update UserRateLimit for current window
+    const { start: windowStart } = await getCurrentWindow();
+
+    await RateUserRateLimit.findOneAndUpdate(
+      {
+        clerkId: userId,
+        // , windowStart
+      },
+      {
+        tier,
+        tierLimit: hourlyRateLimit,
+        // $setOnInsert: {
+        //   totalCallsMade: 0,
+        //   isAutomationPaused: false,
+        //   accountUsage: [],
+        // },
+      },
+      { upsert: true, new: true }
+    );
+
+    console.log(
+      `Updated user ${userId} to ${tier} tier with ${hourlyRateLimit} hourly calls limit`
+    );
+
+    return { success: true, tier, hourlyRateLimit };
   } catch (error) {
-    handleError(error);
+    console.error("Error updating user limits:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
+// Function to update tier for existing users
+export async function updateUserTier(
+  clerkId: string,
+  subscriptionType: string
+): Promise<{ success: boolean; tier?: string; message?: string }> {
+  try {
+    await connectToDatabase();
+
+    // Map subscription type to tier
+    let tier: "free" | "starter" | "grow" | "professional" = "free";
+    let tierLimit = TIER_LIMITS?.free || 100;
+    let replyLimit = 500; // Default daily DM limit
+    let accountLimit = 1; // Default account limit
+
+    switch (subscriptionType) {
+      case "Insta-Automation-Starter":
+        tier = "starter";
+        tierLimit = TIER_LIMITS.starter;
+        replyLimit = 500; // Daily DM limit from pricing
+        accountLimit = 1;
+        break;
+      case "Insta-Automation-Grow":
+        tier = "grow";
+        tierLimit = TIER_LIMITS.grow;
+        replyLimit = 2000; // Daily DM limit from pricing
+        accountLimit = 3;
+        break;
+      case "Insta-Automation-Professional":
+        tier = "professional";
+        tierLimit = TIER_LIMITS.professional;
+        replyLimit = 5000; // Daily DM limit from pricing
+        accountLimit = 5;
+        break;
+      default:
+        tier = "free";
+        tierLimit = TIER_LIMITS.free;
+        replyLimit = 500;
+        accountLimit = 1;
+    }
+
+    // Update User model
+    await User.findOneAndUpdate(
+      { clerkId },
+      {
+        // tier,
+        // hourlyRateLimit: tierLimit,
+        // replyLimit,
+        accountLimit,
+        $inc: { updatedAt: 1 }, // Force update
+      },
+      { upsert: true, new: true }
+    );
+
+    // Update UserRateLimit for current window
+    // const { start: windowStart } = await getCurrentWindow();
+
+    await RateUserRateLimit.findOneAndUpdate(
+      {
+        clerkId,
+        // , windowStart
+      },
+      {
+        tier,
+        tierLimit,
+        // $setOnInsert: {
+        //   totalCallsMade: 0,
+        //   isAutomationPaused: false,
+        //   accountUsage: [],
+        // },
+      },
+      { upsert: true, new: true }
+    );
+
+    // Also update any old UserRateLimit records for this user in current window
+    // await RateUserRateLimit.updateMany(
+    //   { clerkId, windowStart },
+    //   { tier, tierLimit }
+    // );
+
+    console.log(
+      `Updated user ${clerkId} to ${tier} tier with ${tierLimit} hourly calls limit`
+    );
+
+    return {
+      success: true,
+      tier,
+      message: `User updated to ${tier} tier successfully`,
+    };
+  } catch (error) {
+    console.error("Error updating user tier:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Unknown error updating user tier",
+    };
+  }
+}
 // export async function setPrimaryAccount(userId: string, accountId: string) {
 //   try {
 //     await connectToDatabase();
