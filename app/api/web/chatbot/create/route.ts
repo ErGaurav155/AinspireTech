@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import Chatbot from "@/lib/database/models/web/chatbot.model";
+import WebChatbot from "@/lib/database/models/web/chatbot.model";
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Use Mongoose create() method
-    const createdChatbot = await Chatbot.create(newChatbot);
+    const createdChatbot = await WebChatbot.create(newChatbot);
 
     return NextResponse.json({
       message: "Chatbot created successfully",

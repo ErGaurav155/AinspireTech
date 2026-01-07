@@ -7,7 +7,6 @@ import InstaReplyTemplate, {
   IReplyTemplate,
 } from "../database/models/insta/ReplyTemplate.model";
 import { getUserById } from "./user.actions";
-import User from "../database/models/user.model";
 import {
   queueCall,
   canMakeCall,

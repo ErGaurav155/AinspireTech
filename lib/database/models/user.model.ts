@@ -1,4 +1,3 @@
-// models/User.ts
 import { Schema, model, models } from "mongoose";
 
 const UserSchema = new Schema(
@@ -16,12 +15,6 @@ const UserSchema = new Schema(
     username: {
       type: String,
     },
-    websiteUrl: {
-      type: String,
-    },
-    phone: {
-      type: String,
-    },
     totalReplies: {
       type: Number,
       default: 0,
@@ -34,13 +27,6 @@ const UserSchema = new Schema(
       type: Number,
       default: 1,
     },
-    scrappedFile: {
-      type: String,
-    },
-    isScrapped: {
-      type: Boolean,
-      default: false,
-    },
     photo: {
       type: String,
     },
@@ -49,10 +35,6 @@ const UserSchema = new Schema(
     },
     lastName: {
       type: String,
-    },
-    imageUrls: {
-      type: [String],
-      default: [],
     },
     referredBy: {
       type: String,

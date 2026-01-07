@@ -22,6 +22,7 @@ const RateLimitWindowSchema = new Schema<IRateLimitWindow>(
     windowEnd: {
       type: Date,
       required: true,
+      index: true,
     },
     globalCalls: {
       type: Number,
@@ -49,9 +50,6 @@ const RateLimitWindowSchema = new Schema<IRateLimitWindow>(
     timestamps: true,
   }
 );
-
-// Compound index for window queries
-RateLimitWindowSchema.index({ windowStart: 1, windowEnd: 1 });
 
 const RateLimitWindow =
   mongoose.models?.RateLimitWindow ||

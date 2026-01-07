@@ -68,10 +68,7 @@ export async function POST(req: Request) {
       username,
       public_metadata,
     } = evt.data;
-    const websiteUrl = (public_metadata?.websiteUrl as string) || null;
-    const scrappedFile = (public_metadata?.scrappedFile as string) || null;
-    const phone = (public_metadata?.phone as string) || null;
-    const isScrapped = (public_metadata?.isScrapped as boolean) || false;
+
     const totalReplies = (public_metadata?.totalReplies as number) || 0;
     const replyLimit = (public_metadata?.replyLimit as number) || 500;
     const accountLimit = (public_metadata?.accountLimit as number) || 1;
@@ -83,10 +80,6 @@ export async function POST(req: Request) {
       username: username!,
       firstName: first_name!,
       lastName: last_name!,
-      websiteUrl: websiteUrl!,
-      isScrapped: isScrapped,
-      scrappedFile: scrappedFile!,
-      phone: phone!,
       totalReplies: totalReplies,
       replyLimit: replyLimit,
       accountLimit: accountLimit,

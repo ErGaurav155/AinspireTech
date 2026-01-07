@@ -45,13 +45,6 @@ RateLimitQueueSchema.index(
   }
 );
 
-// Index for FIFO processing
-RateLimitQueueSchema.index({ createdAt: 1 });
-
-// Compound indexes for efficient queries
-RateLimitQueueSchema.index({ clerkId: 1 });
-RateLimitQueueSchema.index({ instagramAccountId: 1 });
-
 const RateLimitQueue =
   mongoose.models?.RateLimitQueue ||
   model<IRateLimitQueue>("RateLimitQueue", RateLimitQueueSchema);

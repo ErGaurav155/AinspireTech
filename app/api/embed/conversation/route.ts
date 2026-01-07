@@ -4,9 +4,7 @@ import {
 } from "@/lib/action/sendEmail.action";
 import { getUserById } from "@/lib/action/user.actions";
 import WebConversation from "@/lib/database/models/web/Conversation.model";
-import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import { handleError } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 const SECRET_KEY = process.env.API_KEY!; // Ensure this is set in your environment
 
@@ -71,21 +69,6 @@ export async function POST(request: NextRequest) {
           },
         }
       );
-    }
-    const subscriptions = await WebSubscription.find({
-      clerkId: userId,
-      chatbotType: {
-        $in: ["chatbot-customer-support", "chatbot-lead-generation"],
-      },
-      status: "active",
-    });
-    if (!subscriptions || subscriptions.length === 0) {
-      return NextResponse.json([], {
-        status: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
-      });
     }
 
     const newConversation = {

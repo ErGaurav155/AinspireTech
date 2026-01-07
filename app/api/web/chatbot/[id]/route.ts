@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import Chatbot from "@/lib/database/models/web/chatbot.model";
+import WebChatbot from "@/lib/database/models/web/chatbot.model";
 import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
@@ -20,7 +20,7 @@ export async function GET(
 
     await connectToDatabase;
 
-    const chatbot = await Chatbot.findOne({
+    const chatbot = await WebChatbot.findOne({
       _id: new ObjectId(id),
       clerkId: userId,
     });
@@ -56,7 +56,7 @@ export async function PUT(
 
     await connectToDatabase;
 
-    const result = await Chatbot.updateOne(
+    const result = await WebChatbot.updateOne(
       {
         _id: new ObjectId(id),
         clerkId: userId,
@@ -100,7 +100,7 @@ export async function DELETE(
 
     await connectToDatabase;
 
-    const result = await Chatbot.deleteOne({
+    const result = await WebChatbot.deleteOne({
       _id: new ObjectId(id),
       clerkId: userId,
     });

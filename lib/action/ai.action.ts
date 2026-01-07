@@ -118,13 +118,17 @@ export const generateGptResponse = async ({
       temperature: 0.7,
     });
 
-    const response = completion.choices[0]?.message?.content;
+    const response = completion.choices[0]?.message?.content ?? "";
 
-    if (!response) {
-      throw new Error("Empty response from AI model");
-    }
-
-    return response;
+    const usage = completion.usage ?? {
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      total_tokens: 0,
+    };
+    return {
+      response,
+      tokens: usage.total_tokens,
+    };
   } catch (error) {
     console.error("Error in generateGptResponse:", error);
     throw new Error(
@@ -166,36 +170,15 @@ export const generateMcqResponse = async ({
       { role: "user", content: userInput },
     ],
   });
+  const content = completion.choices[0]?.message?.content ?? "";
 
-  return completion.choices[0]?.message?.content || "";
+  const usage = completion.usage ?? {
+    prompt_tokens: 0,
+    completion_tokens: 0,
+    total_tokens: 0,
+  };
+  return {
+    content,
+    tokens: usage.total_tokens,
+  };
 };
-// export const generateCommentResponse = async ({
-//   userInput,
-//   templates,
-// }: {
-//   userInput: string;
-//   templates: string[];
-// }) => {
-//   if (openai instanceof Error) {
-//     throw openai;
-//   }
-
-//   const systemMessage = `Choose one template name from this array ${JSON.stringify(
-//     templates
-//   )} that mostly matches this user comment: "${userInput}".
-//   Must respond with exactly this JSON structure (no other text):
-//   {
-//     "matchedtemplate": "template_name_here"
-//   }`;
-
-//   const completion = await openai.chat.completions.create({
-//     model: "deepseek-chat",
-//     messages: [
-//       { role: "system", content: systemMessage },
-//       { role: "user", content: userInput },
-//     ],
-//     response_format: { type: "json_object" },
-//   });
-
-//   return completion.choices[0]?.message?.content || "";
-// };

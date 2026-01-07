@@ -582,8 +582,7 @@ export default function AffiliateLandingPage() {
                   >
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
-                  className=
-                  {`rounded-2xl backdrop-blur-sm ${themeStyles.cardBg}`}
+
                   <h3
                     className={`${themeStyles.descriptionText} text-xl font-bold mb-3`}
                   >

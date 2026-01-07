@@ -86,10 +86,6 @@ const UserRateLimitSchema = new Schema<IUserRateLimit>(
   }
 );
 
-// Compound index for efficient queries
-UserRateLimitSchema.index({ clerkId: 1, windowStart: 1 });
-UserRateLimitSchema.index({ "accountUsage.instagramAccountId": 1 });
-
 const RateUserRateLimit =
   mongoose.models?.RateUserRateLimit ||
   model<IUserRateLimit>("RateUserRateLimit", UserRateLimitSchema);

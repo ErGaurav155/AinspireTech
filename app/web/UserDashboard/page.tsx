@@ -44,6 +44,10 @@ import {
   Check,
   Loader2,
   LucideIcon,
+  AlertTriangle,
+  Coins,
+  Sparkles,
+  ExternalLink,
 } from "lucide-react";
 import {
   LineChart,
@@ -88,16 +92,15 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogHeader,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
 import OTPVerification from "@/components/shared/OTPVerification";
+import { TokenPurchase } from "@/components/shared/TokenPurchase";
 
 // Actions & Utils
 import { apiClient } from "@/lib/utils";
-import {
-  getSubscription,
-  updateSubcriptionInfo,
-} from "@/lib/action/subscription.action";
 import {
   getUserById,
   setScrappedFile,
@@ -185,6 +188,19 @@ interface ChatbotType {
   features: string[];
 }
 
+interface TokenBalance {
+  availableTokens: number;
+  freeTokensRemaining: number;
+  purchasedTokensRemaining: number;
+  freeTokens: number;
+  purchasedTokens: number;
+  usedFreeTokens: number;
+  usedPurchasedTokens: number;
+  totalTokensUsed: number;
+  lastResetAt: string;
+  nextResetAt: string;
+}
+
 type BillingMode = "Immediate" | "End-of-term";
 type OTPStep = "phone" | "otp" | "weblink";
 type DashboardTab = "overview" | "conversations" | "integration" | "settings";
@@ -267,6 +283,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
+  // Token states
+  const [tokenBalance, setTokenBalance] = useState<TokenBalance | null>(null);
+  const [showTokenPurchase, setShowTokenPurchase] = useState(false);
+  const [tokenUsage, setTokenUsage] = useState<any>(null);
+  const [showLowTokenAlert, setShowLowTokenAlert] = useState(false);
+
   // Website scraping states
   const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
   const [isWebScrapped, setIsWebScrapped] = useState(true);
@@ -341,20 +363,24 @@ export default function DashboardPage() {
     },
   ]);
 
-  // Subscription cancellation states
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [selectedChatbotId, setSelectedChatbotId] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isImmediateSubmitting, setIsImmediateSubmitting] = useState(false);
-  const [cancellationMode, setCancellationMode] =
-    useState<BillingMode>("End-of-term");
+  // Build chatbot dialog states
+  const [showBuildDialog, setShowBuildDialog] = useState(false);
+  const [buildWebsiteUrl, setBuildWebsiteUrl] = useState("");
+  const [buildStep, setBuildStep] = useState<
+    "weblink" | "processing" | "complete"
+  >("weblink");
+  const [isBuilding, setIsBuilding] = useState(false);
+  const [buildError, setBuildError] = useState<string | null>(null);
 
   // Derived state
   const currentTheme = resolvedTheme || theme || "light";
   const currentChatbot = CHATBOT_TYPES.find(
     (bot) => bot.id === selectedChatbot
   );
+  const hasBuiltChatbot = isWebScrapped;
   const isSubscribed = subscriptions[selectedChatbot]?.status === "active";
+  const isTokenLow =
+    tokenBalance?.availableTokens && tokenBalance.availableTokens < 1000;
 
   // Form handling
   const {
@@ -436,6 +462,25 @@ export default function DashboardPage() {
         setPhone(userInfo.phone);
       }
 
+      // Load token balance
+      const tokenRes = await fetch("/api/tokens/balance");
+      if (tokenRes.ok) {
+        const tokenData = await tokenRes.json();
+        setTokenBalance(tokenData.data);
+
+        // Check for low token alert
+        if (tokenData.data.availableTokens < 1000) {
+          setShowLowTokenAlert(true);
+        }
+      }
+
+      // Load token usage
+      const usageRes = await fetch("/api/tokens/usage?period=month");
+      if (usageRes.ok) {
+        const usageData = await usageRes.json();
+        setTokenUsage(usageData.data);
+      }
+
       // Load subscriptions
       const subscriptionsData = await apiClient.getSubscriptions(userId);
 
@@ -488,7 +533,7 @@ export default function DashboardPage() {
       if (
         (selectedChatbot === "chatbot-lead-generation" ||
           selectedChatbot === "chatbot-customer-support") &&
-        subscriptionsMap[selectedChatbot]?.status === "active"
+        hasBuiltChatbot
       ) {
         if (selectedChatbot === "chatbot-lead-generation") {
           try {
@@ -515,7 +560,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [userId, selectedChatbot, router]);
+  }, [userId, selectedChatbot, router, hasBuiltChatbot]);
 
   // Effects
   useEffect(() => {
@@ -529,6 +574,25 @@ export default function DashboardPage() {
     loadDashboardData();
   }, [userId, isLoaded, router, loadDashboardData]);
 
+  // Token-related functions
+  const refreshTokenBalance = async () => {
+    try {
+      const tokenRes = await fetch("/api/tokens/balance");
+      if (tokenRes.ok) {
+        const tokenData = await tokenRes.json();
+        setTokenBalance(tokenData.data);
+
+        if (tokenData.data.availableTokens < 1000) {
+          setShowLowTokenAlert(true);
+        } else {
+          setShowLowTokenAlert(false);
+        }
+      }
+    } catch (error) {
+      console.error("Error refreshing token balance:", error);
+    }
+  };
+
   // Event handlers
   const handleCopyCode = () => {
     const code =
@@ -537,27 +601,27 @@ export default function DashboardPage() {
 src="https://ainspiretech.com/mcqchatbotembed.js" 
 data-mcq-chatbot='{
   "userId":"${userId}",
-  "isAuthorized":${isSubscribed},
+  "isAuthorized":${hasBuiltChatbot},
   "chatbotType":"${selectedChatbot}",
   "apiUrl":"https://ainspiretech.com",
   "primaryColor":"#00F0FF",
   "position":"bottom-right",
-  "welcomeMessage":"${subscriptions[selectedChatbot]?.chatbotMessage}",
-  "chatbotName":"${subscriptions[selectedChatbot]?.chatbotName}"
+  "welcomeMessage":"${chatbotMessage || "Hi! How can I help you today?"}",
+  "chatbotName":"${chatbotName || currentChatbot?.name}"
 }'>
 </script>`
         : `<script 
 src="https://ainspiretech.com/chatbotembed.js" 
 data-chatbot-config='{
   "userId":"${userId}",
-  "isAuthorized":${isSubscribed},
+  "isAuthorized":${hasBuiltChatbot},
   "filename":"${fileLink}",
   "chatbotType":"${selectedChatbot}",
   "apiUrl":"https://ainspiretech.com",
   "primaryColor":"#00F0FF",
   "position":"bottom-right",
-  "welcomeMessage":"${subscriptions[selectedChatbot]?.chatbotMessage}",
-  "chatbotName":"${subscriptions[selectedChatbot]?.chatbotName}"
+  "welcomeMessage":"${chatbotMessage || "Hi! How can I help you today?"}",
+  "chatbotName":"${chatbotName || currentChatbot?.name}"
 }'>
 </script>`;
 
@@ -571,59 +635,96 @@ data-chatbot-config='{
     setTimeout(() => setCopied(false), 3000);
   };
 
-  const handleCancelSubscription = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleBuildChatbot = async (event: React.FormEvent) => {
     event.preventDefault();
-    const subscriptionId = subscriptions[selectedChatbotId]?.subscriptionId;
-    const formData = new FormData(event.currentTarget);
-    const reason = formData.get("reason") as string;
 
-    if (!subscriptionId) {
-      showErrorToast("Error", "No subscription found to cancel");
+    if (!buildWebsiteUrl.trim()) {
+      setBuildError("Please enter a website URL");
+      return;
+    }
+
+    // URL validation
+    if (!/^https?:\/\//i.test(buildWebsiteUrl.trim())) {
+      setBuildError("URL must start with http:// or https://");
       return;
     }
 
     try {
-      // Set appropriate loading state
-      if (cancellationMode === "Immediate") {
-        setIsSubmitting(true);
+      new URL(buildWebsiteUrl.trim());
+    } catch {
+      setBuildError("Invalid URL format. Please enter a valid URL.");
+      return;
+    }
+
+    setIsBuilding(true);
+    setBuildError(null);
+    setBuildStep("processing");
+
+    try {
+      // Call scraping API
+      const scrapeResponse = await fetch(
+        `/api/scrape-anu?url=${encodeURIComponent(
+          buildWebsiteUrl.trim()
+        )}&userId=${encodeURIComponent(userId!)}&agentId=${selectedChatbot}`
+      );
+
+      if (!scrapeResponse.ok) {
+        if (scrapeResponse.status === 429) {
+          throw new Error("Rate limit reached. Please try again later.");
+        }
+        const errorText = await scrapeResponse.text();
+        throw new Error(errorText || "Failed to scrape website.");
+      }
+
+      const scrapeResult = await scrapeResponse.json();
+
+      if (scrapeResult.success) {
+        // Process scraped data
+        const processResponse = await fetch("/api/scrape-anu/process-data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(scrapeResult.data),
+        });
+
+        if (!processResponse.ok) {
+          throw new Error("Failed to process scraped data.");
+        }
+
+        const processResult = await processResponse.json();
+
+        if (processResult.success) {
+          // Update user with website URL and scraped status
+          await setScrappedFile(userId!, processResult.data.cloudinaryLink);
+          await setWebsiteScrapped(userId!);
+
+          setBuildStep("complete");
+          setWebsiteUrl(buildWebsiteUrl.trim());
+          setIsWebScrapped(true);
+          setFileLink(processResult.data.cloudinaryLink);
+
+          showSuccessToast(
+            "Chatbot Built Successfully!",
+            "Your chatbot is now ready to use with your website data."
+          );
+
+          // Refresh dashboard data
+          setTimeout(() => {
+            loadDashboardData();
+            setShowBuildDialog(false);
+          }, 2000);
+        } else {
+          throw new Error("Data processing failed");
+        }
       } else {
-        setIsImmediateSubmitting(true);
+        throw new Error("Scraping failed");
       }
-
-      // Verify subscription exists
-      const getSub = await getSubscription(selectedChatbotId, subscriptionId);
-      if (!getSub) {
-        router.push("/");
-        return;
-      }
-
-      const response = await fetch("/api/web/subscription/cancel", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subscriptionId,
-          reason,
-          mode: cancellationMode,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        showSuccessToast("Subscription cancelled!", result.message);
-        setShowCancelDialog(false);
-        await loadDashboardData(); // Refresh data
-      } else {
-        showErrorToast("Cancellation Failed", result.message);
-      }
-    } catch (error) {
-      console.error("Error cancelling subscription:", error);
-      showErrorToast("Error", "Failed to cancel subscription");
+    } catch (err: any) {
+      const errorMessage = err.message || "An unknown error occurred.";
+      setBuildError(errorMessage);
+      setBuildStep("weblink");
+      showErrorToast("Build Error", errorMessage);
     } finally {
-      setIsSubmitting(false);
-      setIsImmediateSubmitting(false);
+      setIsBuilding(false);
     }
   };
 
@@ -651,14 +752,10 @@ data-chatbot-config='{
     setScrapedData(null);
 
     try {
-      const webSubscriptionId = subscriptions[selectedChatbot]?.subscriptionId;
-
       const scrapeResponse = await fetch(
         `/api/scrape-anu?url=${encodeURIComponent(
           websiteUrl
-        )}&userId=${encodeURIComponent(
-          userId
-        )}&subscriptionId=${webSubscriptionId}&agentId=${selectedChatbot}`
+        )}&userId=${encodeURIComponent(userId)}&agentId=${selectedChatbot}`
       );
 
       if (!scrapeResponse.ok) {
@@ -761,31 +858,19 @@ data-chatbot-config='{
       return;
     }
 
-    const subscriptionId = subscriptions[selectedChatbot]?.subscriptionId;
-    if (!subscriptionId) {
-      showErrorToast("Error", "No active subscription found");
-      return;
-    }
-
     setInfoLoading(true);
     try {
-      const result = await updateSubcriptionInfo(
-        userId,
-        selectedChatbot,
-        subscriptionId,
-        chatbotMessage,
-        chatbotName
+      // For free users, we save the chatbot info locally
+      localStorage.setItem(`${userId}-${selectedChatbot}-name`, chatbotName);
+      localStorage.setItem(
+        `${userId}-${selectedChatbot}-message`,
+        chatbotMessage
       );
 
-      if (result) {
-        showSuccessToast(
-          "Settings Updated",
-          "Chatbot information updated successfully!"
-        );
-        await loadDashboardData(); // Refresh data
-      } else {
-        throw new Error("Failed to update chatbot info");
-      }
+      showSuccessToast(
+        "Settings Updated",
+        "Chatbot information updated successfully!"
+      );
     } catch (error: any) {
       console.error("Error updating chatbotInfo:", error);
       showErrorToast(
@@ -1000,16 +1085,300 @@ data-chatbot-config='{
     </div>
   );
 
+  const renderTokenBalanceCard = () => (
+    <Card className={`${themeStyles.cardBg} ${themeStyles.cardBorder} mb-6`}>
+      <CardContent className="p-3 md:p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            <div
+              className={`hidden md:flex p-3 rounded-lg ${themeStyles.badgeActiveBg}`}
+            >
+              <Coins className="h-6 w-6 text-yellow-500" />
+            </div>
+            <div>
+              <h3
+                className={`text-lg font-semibold ${themeStyles.textPrimary}`}
+              >
+                Token Balance
+              </h3>
+              <div className="flex items-center space-x-4 mt-1">
+                <p className="text-2xl font-bold bg-gradient-to-r from-[#00F0FF] to-[#B026FF] bg-clip-text text-transparent">
+                  {tokenBalance?.availableTokens?.toLocaleString() || 0} tokens
+                </p>
+                <Badge
+                  variant={isTokenLow ? "destructive" : "secondary"}
+                  className="flex items-center"
+                >
+                  <Zap className="h-3 w-3 mr-1" />
+                  {isTokenLow ? "Low Balance" : "Active"}
+                </Badge>
+              </div>
+              <p className={`text-sm ${themeStyles.textSecondary} mt-1`}>
+                Free: {tokenBalance?.freeTokensRemaining?.toLocaleString() || 0}{" "}
+                | Purchased:{" "}
+                {tokenBalance?.purchasedTokensRemaining?.toLocaleString() || 0}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 ">
+            <Button
+              onClick={() => setShowTokenPurchase(true)}
+              className="bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-white"
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Buy Tokens
+            </Button>
+            <Button
+              onClick={() => router.push("/web/TokenDashboard")}
+              variant="outline"
+              className={themeStyles.cardBorder}
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              View Usage
+            </Button>
+          </div>
+        </div>
+
+        {showLowTokenAlert && (
+          <div className="mt-4 p-3 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg flex items-center justify-between">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-yellow-500 mr-3" />
+              <div>
+                <p className={`font-medium ${themeStyles.textPrimary}`}>
+                  Low Token Alert
+                </p>
+                <p
+                  className={`text-sm ${themeStyles.textSecondary} font-montserrat`}
+                >
+                  You have only{" "}
+                  {tokenBalance?.availableTokens?.toLocaleString()} tokens
+                  remaining
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setShowTokenPurchase(true)}
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:opacity-90 text-white"
+            >
+              Buy More Tokens
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderBuildDialog = () => (
+    <AlertDialog open={showBuildDialog} onOpenChange={setShowBuildDialog}>
+      <AlertDialogContent className={`${themeStyles.alertBg} max-w-md`}>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center">
+            <Bot className="h-5 w-5 mr-2 text-[#00F0FF]" />
+            Build Your {currentChatbot?.name} Chatbot
+          </AlertDialogTitle>
+          <AlertDialogDescription
+            className={`${themeStyles.textSecondary} font-montserrat`}
+          >
+            {buildStep === "weblink"
+              ? "Enter your website URL to train the chatbot with your business information."
+              : buildStep === "processing"
+              ? "Scraping your website and training the AI chatbot. This may take 1-2 minutes."
+              : "Your chatbot has been successfully built! You can now use it on your website."}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        {buildStep === "weblink" ? (
+          <form onSubmit={handleBuildChatbot} className="space-y-4">
+            <div>
+              <Label
+                htmlFor="buildWebsiteUrl"
+                className={themeStyles.textSecondary}
+              >
+                Website URL
+              </Label>
+              <Input
+                id="buildWebsiteUrl"
+                type="url"
+                value={buildWebsiteUrl}
+                onChange={(e) => setBuildWebsiteUrl(e.target.value)}
+                placeholder="https://yourwebsite.com"
+                className={`mt-1 ${themeStyles.inputBg} ${themeStyles.inputBorder} font-montserrat`}
+                required
+              />
+            </div>
+
+            {buildError && (
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <p className="text-red-400 text-sm">{buildError}</p>
+              </div>
+            )}
+
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+              <p className="text-blue-400 text-sm flex items-center font-montserrat">
+                <Sparkles className="h-4 w-4 mr-2" />
+                You will receive 10,000 free tokens after building your chatbot
+              </p>
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowBuildDialog(false)}>
+                Cancel
+              </AlertDialogCancel>
+              <Button
+                type="submit"
+                disabled={isBuilding || !buildWebsiteUrl.trim()}
+                className="bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-white"
+              >
+                {isBuilding ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Building...
+                  </>
+                ) : (
+                  <>
+                    <Bot className="h-4 w-4 mr-2" />
+                    Build Chatbot
+                  </>
+                )}
+              </Button>
+            </AlertDialogFooter>
+          </form>
+        ) : buildStep === "processing" ? (
+          <div className="space-y-4">
+            <div className="flex flex-col items-center justify-center py-8">
+              <Loader2 className="h-12 w-12 text-[#00F0FF] animate-spin mb-4" />
+              <p className={themeStyles.textPrimary}>
+                Training your chatbot...
+              </p>
+              <p
+                className={`text-sm ${themeStyles.textSecondary} mt-2 text-center font-montserrat`}
+              >
+                Please do not close this window. This may take 1-2 minutes.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex flex-col items-center justify-center py-8">
+              <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
+              <h3
+                className={`text-xl font-bold ${themeStyles.textPrimary} mb-2`}
+              >
+                Chatbot Built Successfully!
+              </h3>
+              <p
+                className={`text-sm ${themeStyles.textSecondary} text-center mb-4 font-montserrat`}
+              >
+                Your {currentChatbot?.name} chatbot is now ready to use with
+                your website data.
+              </p>
+
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 w-full mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Coins className="h-5 w-5 text-yellow-500 mr-2" />
+                    <span className={themeStyles.textPrimary}>
+                      Free Tokens Added
+                    </span>
+                  </div>
+                  <Badge className="bg-green-500 text-white">10,000</Badge>
+                </div>
+                <p
+                  className={`text-sm ${themeStyles.textSecondary} mt-2 font-montserrat`}
+                >
+                  Use these tokens to power your chatbot conversations
+                </p>
+              </div>
+            </div>
+
+            <AlertDialogFooter>
+              <Button
+                onClick={() => {
+                  setShowBuildDialog(false);
+                  setBuildStep("weblink");
+                  setBuildWebsiteUrl("");
+                }}
+                className="w-full bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-white"
+              >
+                Start Using Chatbot
+              </Button>
+            </AlertDialogFooter>
+          </div>
+        )}
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
+  const renderTokenPurchaseDialog = () => (
+    <Dialog open={showTokenPurchase} onOpenChange={setShowTokenPurchase}>
+      <DialogContent
+        className={`${themeStyles.dialogBg} max-w-4xl max-h-[90vh] overflow-y-auto`}
+      >
+        <DialogHeader>
+          <DialogTitle className="flex items-center">
+            <Coins className="h-6 w-6 mr-2 text-yellow-500" />
+            Purchase Tokens
+          </DialogTitle>
+          <DialogDescription
+            className={`${themeStyles.textSecondary} font-montserrat`}
+          >
+            Tokens are used across all your chatbots. Purchase additional tokens
+            to continue using your chatbots.
+          </DialogDescription>
+        </DialogHeader>
+
+        <TokenPurchase
+          currentBalance={tokenBalance?.availableTokens || 0}
+          onSuccess={() => {
+            refreshTokenBalance();
+            setShowTokenPurchase(false);
+            showSuccessToast(
+              "Tokens Added",
+              "Your tokens have been added successfully!"
+            );
+          }}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+
   const renderChatbotSelection = () => (
     <div className="mb-8">
-      <h2 className={`text-2xl font-bold ${themeStyles.textPrimary} mb-6`}>
-        Your AI Chatbots
-      </h2>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+        <h2
+          className={`text-2xl font-bold ${themeStyles.textPrimary} mb-4 md:mb-0`}
+        >
+          Your AI Chatbots
+        </h2>
+
+        {tokenBalance && (
+          <div className="flex items-center space-x-2">
+            <div
+              className={`px-3 py-2 rounded-md ${themeStyles.badgeActiveBg} flex items-center`}
+            >
+              <Zap className="h-3 w-3 mr-1" />
+              <span className="text-sm text-nowrap ">
+                {tokenBalance.availableTokens.toLocaleString()} tokens
+              </span>
+            </div>
+            <Button
+              onClick={() => setShowTokenPurchase(true)}
+              size="sm"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-white"
+            >
+              <CreditCard className="h-3 w-3 mr-1" />
+              Buy Tokens
+            </Button>
+          </div>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {CHATBOT_TYPES.map((chatbot) => {
           const isActive = selectedChatbot === chatbot.id;
-          const hasSubscription =
-            subscriptions[chatbot.id]?.status === "active";
+          const hasBuilt = isWebScrapped;
 
           return (
             <Card
@@ -1027,19 +1396,24 @@ data-chatbot-config='{
               }`}
               onClick={() => {
                 setSelectedChatbot(chatbot.id);
-                setChatbotName(subscriptions[chatbot.id]?.chatbotName || null);
-                setChatbotMessage(
-                  subscriptions[chatbot.id]?.chatbotMessage || null
+                // Load saved chatbot info from localStorage
+                const savedName = localStorage.getItem(
+                  `${userId}-${chatbot.id}-name`
                 );
+                const savedMessage = localStorage.getItem(
+                  `${userId}-${chatbot.id}-message`
+                );
+                setChatbotName(savedName || null);
+                setChatbotMessage(savedMessage || null);
               }}
             >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <chatbot.icon className={`h-8 w-8 ${chatbot.color}`} />
-                  {hasSubscription ? (
+                  {hasBuilt ? (
                     <Badge className={themeStyles.badgeActiveBg}>
-                      <Crown className="h-3 w-3 mr-1" />
-                      Active
+                      <Check className="h-3 w-3 mr-1" />
+                      Built
                     </Badge>
                   ) : (
                     <Badge
@@ -1047,45 +1421,60 @@ data-chatbot-config='{
                       className={themeStyles.badgeInactiveBg}
                     >
                       <Lock className="h-3 w-3 mr-1" />
-                      Inactive
+                      Not Built
                     </Badge>
                   )}
                 </div>
                 <h3 className={`font-semibold ${themeStyles.textPrimary} mb-1`}>
                   {chatbot.name}
                 </h3>
-                <p className={`text-xs ${themeStyles.textSecondary} mb-3`}>
+                <p
+                  className={`text-xs ${themeStyles.textSecondary} mb-3 font-montserrat`}
+                >
                   {chatbot.description}
                 </p>
-                {!hasSubscription && (
+
+                {!hasBuilt ? (
                   <Button
                     size="sm"
                     className={`w-full bg-gradient-to-r ${chatbot.gradient} hover:opacity-90 text-black font-medium`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      router.push(`/web/pricing?id=${chatbot.id}`);
+                      setSelectedChatbot(chatbot.id);
+                      setShowBuildDialog(true);
                     }}
                   >
-                    Subscribe Now
+                    <Bot className="h-4 w-4 mr-2" />
+                    Build Now (Free)
                   </Button>
-                )}
-                {hasSubscription && (
-                  <Button
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowCancelDialog(true);
-                      setSelectedChatbotId(chatbot.id);
-                    }}
-                    className={`border-red-500/50 text-red-400 w-full bg-gradient-to-r hover:bg-red-500/10 ${
-                      currentTheme === "dark"
-                        ? "from-[#7d3c3c]/50 to-[#921642]/20"
-                        : "from-red-50 to-pink-50"
-                    } hover:opacity-90 font-medium`}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel Subscription
-                  </Button>
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      size="sm"
+                      className={`w-full bg-gradient-to-r ${chatbot.gradient} hover:opacity-90 text-black font-medium`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedChatbot(chatbot.id);
+                      }}
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Manage Chatbot
+                    </Button>
+                    {isTokenLow && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowTokenPurchase(true);
+                        }}
+                      >
+                        <AlertTriangle className="h-3 w-3 mr-2" />
+                        Low Tokens - Buy More
+                      </Button>
+                    )}
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -1098,7 +1487,7 @@ data-chatbot-config='{
   const renderStatsGrid = () => {
     if (
       selectedChatbot !== "chatbot-lead-generation" ||
-      !isSubscribed ||
+      !hasBuiltChatbot ||
       !analytics
     ) {
       return null;
@@ -1143,15 +1532,17 @@ data-chatbot-config='{
           <Card
             className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
           >
-            <CardHeader>
+            <CardHeader className="p-3 md:p-4">
               <CardTitle className={themeStyles.textPrimary}>
                 Conversation Trends
               </CardTitle>
-              <CardDescription className={themeStyles.textSecondary}>
+              <CardDescription
+                className={`${themeStyles.textSecondary} font-montserrat`}
+              >
                 Daily conversation volume for {currentChatbot?.name}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 md:p-4">
               <div className="h-64 overflow-x-auto">
                 <ResponsiveContainer width={1000} height="100%">
                   <LineChart data={analytics.trends}>
@@ -1206,15 +1597,17 @@ data-chatbot-config='{
           <Card
             className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
           >
-            <CardHeader>
+            <CardHeader className="p-3 md:p-4">
               <CardTitle className={themeStyles.textPrimary}>
                 Response Time Distribution
               </CardTitle>
-              <CardDescription className={themeStyles.textSecondary}>
+              <CardDescription
+                className={`${themeStyles.textSecondary} font-montserrat`}
+              >
                 How quickly your {currentChatbot?.name.toLowerCase()} responds
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 md:p-4">
               <div className="h-64 overflow-x-auto">
                 <ResponsiveContainer width={1000} height="100%">
                   <BarChart data={analytics.responseTime}>
@@ -1256,15 +1649,17 @@ data-chatbot-config='{
           <Card
             className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
           >
-            <CardHeader>
+            <CardHeader className="p-3 md:p-4">
               <CardTitle className={themeStyles.textPrimary}>
                 Customer Satisfaction
               </CardTitle>
-              <CardDescription className={themeStyles.textSecondary}>
+              <CardDescription
+                className={`${themeStyles.textSecondary} font-montserrat`}
+              >
                 Feedback ratings from {currentChatbot?.name.toLowerCase()} users
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 md:p-4">
               <div className="h-64 overflow-x-auto">
                 <ResponsiveContainer width={500} height="100%">
                   <PieChart>
@@ -1296,15 +1691,17 @@ data-chatbot-config='{
           <Card
             className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
           >
-            <CardHeader>
+            <CardHeader className="p-3 md:p-4">
               <CardTitle className={themeStyles.textPrimary}>
                 Recent Conversations
               </CardTitle>
-              <CardDescription className={themeStyles.textSecondary}>
+              <CardDescription
+                className={`${themeStyles.textSecondary} font-montserrat`}
+              >
                 Latest {currentChatbot?.name.toLowerCase()} interactions
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 md:p-4">
               <div className="space-y-4">
                 {conversations.slice(0, 4).map((conversation, index) => (
                   <div
@@ -1336,11 +1733,13 @@ data-chatbot-config='{
                         </Badge>
                       </div>
                       <p
-                        className={`text-sm ${themeStyles.textSecondary} truncate`}
+                        className={`text-sm ${themeStyles.textSecondary} truncate font-montserrat`}
                       >
                         {conversation.messages[0]?.content || "No message"}
                       </p>
-                      <p className={`text-xs ${themeStyles.textMuted} mt-1`}>
+                      <p
+                        className={`text-xs ${themeStyles.textMuted} mt-1 font-montserrat`}
+                      >
                         {new Date(conversation.createdAt).toLocaleString()}
                       </p>
                     </div>
@@ -1359,16 +1758,18 @@ data-chatbot-config='{
       <Card
         className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
       >
-        <CardHeader>
+        <CardHeader className="p-3 md:p-4">
           <CardTitle className={themeStyles.textPrimary}>
             All Conversations - {currentChatbot?.name}
           </CardTitle>
-          <CardDescription className={themeStyles.textSecondary}>
+          <CardDescription
+            className={`${themeStyles.textSecondary} font-montserrat`}
+          >
             Manage and respond to {currentChatbot?.name.toLowerCase()}{" "}
             conversations
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 md:p-4">
           <div className="space-y-4">
             {conversations?.map((conversation, index) => (
               <div
@@ -1416,7 +1817,7 @@ data-chatbot-config='{
                           <DialogHeader>
                             <DialogTitle>Conversation Details</DialogTitle>
                             <DialogDescription
-                              className={themeStyles.textSecondary}
+                              className={`${themeStyles.textSecondary} font-montserrat`}
                             >
                               Customer:{" "}
                               {conversation.customerName || "Anonymous"} |
@@ -1426,7 +1827,7 @@ data-chatbot-config='{
                           <div className="space-y-4">
                             <div>
                               <h4 className="font-medium mb-2">Message</h4>
-                              <div className="space-y-2 max-h-64 overflow-y-auto">
+                              <div className="space-y-2 max-h-64 overflow-y-auto font-montserrat">
                                 {conversation.messages.map((message: any) => (
                                   <div
                                     key={message.id}
@@ -1480,7 +1881,7 @@ data-chatbot-config='{
                                       return (
                                         <div
                                           key="name"
-                                          className="flex items-center space-x-2"
+                                          className="flex items-center space-x-2 font-montserrat"
                                         >
                                           <User className="h-4 w-4 text-[#00F0FF]" />
                                           <span>Name: {field.answer}</span>
@@ -1491,7 +1892,7 @@ data-chatbot-config='{
                                       return (
                                         <div
                                           key="email"
-                                          className="flex items-center space-x-2"
+                                          className="flex items-center space-x-2 font-montserrat"
                                         >
                                           <Mail className="h-4 w-4 text-[#FF2E9F]" />
                                           <span>
@@ -1514,7 +1915,7 @@ data-chatbot-config='{
                                       return (
                                         <div
                                           key="phone"
-                                          className="flex items-center space-x-2"
+                                          className="flex items-center space-x-2 font-montserrat"
                                         >
                                           <Phone className="h-4 w-4 text-[#B026FF]" />
                                           <span>
@@ -1538,10 +1939,14 @@ data-chatbot-config='{
                       </Dialog>
                     </div>
                   </div>
-                  <p className={`text-sm ${themeStyles.textSecondary}`}>
+                  <p
+                    className={`text-sm ${themeStyles.textSecondary} font-montserrat`}
+                  >
                     {conversation.messages[0]?.content || "No message"}
                   </p>
-                  <p className={`text-xs ${themeStyles.textMuted} mt-1`}>
+                  <p
+                    className={`text-xs ${themeStyles.textMuted} mt-1 font-montserrat`}
+                  >
                     {new Date(conversation.createdAt).toLocaleString()}
                   </p>
                 </div>
@@ -1560,19 +1965,21 @@ data-chatbot-config='{
         <Card
           className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
         >
-          <CardHeader>
+          <CardHeader className="p-3 md:p-4">
             <CardTitle
               className={`${themeStyles.textPrimary} flex items-center`}
             >
               <Code className="h-5 w-5 mr-2" />
               {currentChatbot?.name} Widget Integration
             </CardTitle>
-            <CardDescription className={themeStyles.textSecondary}>
+            <CardDescription
+              className={`${themeStyles.textSecondary} font-montserrat`}
+            >
               Copy and paste the code below to integrate {currentChatbot?.name}{" "}
               into your website
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 md:p-4">
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
                 <AlertCircle className="h-5 w-5 text-blue-400 mt-0.5" />
@@ -1580,7 +1987,9 @@ data-chatbot-config='{
                   <h4 className="text-sm font-medium text-blue-400">
                     Universal Integration
                   </h4>
-                  <p className={`text-sm ${themeStyles.textSecondary} mt-1`}>
+                  <p
+                    className={`text-sm ${themeStyles.textSecondary} mt-1 font-montserrat`}
+                  >
                     This code works on any website platform. Simply copy and
                     paste it before the closing &lt;/body&gt; tag.
                   </p>
@@ -1601,27 +2010,27 @@ data-chatbot-config='{
 src="https://ainspiretech.com/mcqchatbotembed.js" 
 data-mcq-chatbot='{
   "userId":"${userId}",
-  "isAuthorized":${isSubscribed},
+  "isAuthorized":${hasBuiltChatbot},
   "chatbotType":"${selectedChatbot}",
   "apiUrl":"https://ainspiretech.com",
   "primaryColor":"#00F0FF",
   "position":"bottom-right",
-  "welcomeMessage":"${subscriptions[selectedChatbot]?.chatbotMessage}",
-  "chatbotName":"${subscriptions[selectedChatbot]?.chatbotName}"
+  "welcomeMessage":"${chatbotMessage || "Hi! How can I help you today?"}",
+  "chatbotName":"${chatbotName || currentChatbot?.name}"
 }'>
 </script>`
                       : `<script 
 src="https://ainspiretech.com/chatbotembed.js" 
 data-chatbot-config='{
   "userId":"${userId}",
-  "isAuthorized":${isSubscribed},
+  "isAuthorized":${hasBuiltChatbot},
   "filename":"${fileLink}",
   "chatbotType":"${selectedChatbot}",
   "apiUrl":"https://ainspiretech.com",
   "primaryColor":"#00F0FF",
   "position":"bottom-right",
-  "welcomeMessage":"${subscriptions[selectedChatbot]?.chatbotMessage}",
-  "chatbotName":"${subscriptions[selectedChatbot]?.chatbotName}"
+  "welcomeMessage":"${chatbotMessage || "Hi! How can I help you today?"}",
+  "chatbotName":"${chatbotName || currentChatbot?.name}"
 }'>
 </script>`}
                   </code>
@@ -1631,7 +2040,7 @@ data-chatbot-config='{
                   size="sm"
                   className="absolute top-2 right-2 bg-green-600 hover:bg-green-700"
                   onClick={handleCopyCode}
-                  disabled={copied}
+                  disabled={copied || !hasBuiltChatbot}
                 >
                   {copied ? (
                     <>
@@ -1648,6 +2057,39 @@ data-chatbot-config='{
               </div>
             </div>
 
+            {!hasBuiltChatbot && (
+              <div
+                className={`mt-4 p-4 ${
+                  currentTheme === "dark"
+                    ? "bg-yellow-900/20 border-yellow-400/30"
+                    : "bg-yellow-50 border-yellow-200"
+                } border rounded-lg`}
+              >
+                <div className="flex items-start space-x-3">
+                  <AlertTriangle className="h-5 w-5 text-yellow-400 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-medium text-yellow-400">
+                      Chatbot Not Built
+                    </h4>
+                    <p
+                      className={`text-sm ${themeStyles.textSecondary} mt-1 font-montserrat`}
+                    >
+                      You need to build your chatbot first before you can
+                      integrate it.
+                    </p>
+                    <Button
+                      size="sm"
+                      className="mt-2 bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-white"
+                      onClick={() => setShowBuildDialog(true)}
+                    >
+                      <Bot className="h-4 w-4 mr-2" />
+                      Build Chatbot Now
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div
               className={`mt-6 p-4 ${
                 currentTheme === "dark"
@@ -1662,7 +2104,7 @@ data-chatbot-config='{
                     Important Notes
                   </h4>
                   <ul
-                    className={`text-sm ${themeStyles.textSecondary} mt-1 list-disc list-inside space-y-1`}
+                    className={`text-sm ${themeStyles.textSecondary} mt-1 list-disc list-inside space-y-1 font-montserrat`}
                   >
                     <li>
                       Works on WordPress, React, Angular, Vue, plain HTML - any
@@ -1676,7 +2118,8 @@ data-chatbot-config='{
                       corner
                     </li>
                     <li>
-                      Make sure your subscription is active (isAuthorized: true)
+                      Make sure you have enough tokens for chatbot to work
+                      (isAuthorized: {hasBuiltChatbot.toString()})
                     </li>
                   </ul>
                 </div>
@@ -1689,9 +2132,9 @@ data-chatbot-config='{
         <Card
           className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
         >
-          <CardHeader>
+          <CardHeader className="p-3 md:p-4">
             <CardTitle
-              className={`${themeStyles.textPrimary} flex items-center justify-between`}
+              className={`${themeStyles.textPrimary} flex flex-wrap gap-2 items-center justify-between`}
             >
               <span className="flex items-center">
                 <MessageCircle className="h-5 w-5 mr-2" />
@@ -1701,127 +2144,160 @@ data-chatbot-config='{
                 size="sm"
                 onClick={addFAQQuestion}
                 className="bg-[#00F0FF] hover:bg-[#00F0FF]/80 text-black"
+                disabled={!hasBuiltChatbot}
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add FAQ
               </Button>
             </CardTitle>
-            <CardDescription className={themeStyles.textSecondary}>
+            <CardDescription
+              className={`${themeStyles.textSecondary} font-montserrat`}
+            >
               Add frequently asked questions and answers for your chatbot
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {faqQuestions.map((faq) => (
-                <div
-                  key={faq.id}
-                  className={`p-4 rounded-lg ${
-                    currentTheme === "dark" ? "bg-[#1a4d7c]/10" : "bg-blue-50"
-                  }`}
+          <CardContent className="p-3 md:p-4">
+            {!hasBuiltChatbot ? (
+              <div className="text-center py-8">
+                <Bot className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className={`${themeStyles.textSecondary} font-montserrat`}>
+                  Build your chatbot first to manage FAQ
+                </p>
+                <Button
+                  className="mt-4 bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-white"
+                  onClick={() => setShowBuildDialog(true)}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex-1 mr-2">
-                      <Input
-                        value={faq.question}
-                        onChange={(e) =>
-                          updateFAQQuestion(faq.id, "question", e.target.value)
-                        }
-                        className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} text-sm mb-2`}
-                        placeholder="FAQ Question"
-                      />
-                      {!faq.question.trim() && (
-                        <p className="text-red-500 text-xs mt-1">
-                          Question cannot be empty
-                        </p>
-                      )}
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => removeFAQQuestion(faq.id)}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center space-x-4 mb-3">
-                    <select
-                      value={faq.category}
-                      onChange={(e) =>
-                        updateFAQQuestion(faq.id, "category", e.target.value)
-                      }
-                      className={`${
+                  <Bot className="h-4 w-4 mr-2" />
+                  Build Chatbot Now
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-4 max-h-96 overflow-y-auto font-montserrat">
+                  {faqQuestions.map((faq) => (
+                    <div
+                      key={faq.id}
+                      className={`p-4 rounded-lg ${
                         currentTheme === "dark"
-                          ? "bg-[#2d5a8c]/40 border-gray-600"
-                          : "bg-white border-gray-300"
-                      } border rounded px-2 py-1 ${
-                        themeStyles.textPrimary
-                      } text-sm`}
+                          ? "bg-[#1a4d7c]/10"
+                          : "bg-blue-50"
+                      }`}
                     >
-                      <option value="General">General</option>
-                      <option value="Support">Support</option>
-                      <option value="Pricing">Pricing</option>
-                      <option value="Technical">Technical</option>
-                      <option value="Services">Services</option>
-                    </select>
-                  </div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex-1 mr-2">
+                          <Input
+                            value={faq.question}
+                            onChange={(e) =>
+                              updateFAQQuestion(
+                                faq.id,
+                                "question",
+                                e.target.value
+                              )
+                            }
+                            className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} text-sm mb-2`}
+                            placeholder="FAQ Question"
+                          />
+                          {!faq.question.trim() && (
+                            <p className="text-red-500 text-xs mt-1">
+                              Question cannot be empty
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeFAQQuestion(faq.id)}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
 
-                  <div className="relative">
-                    <Textarea
-                      value={faq.answer}
-                      onChange={(e) =>
-                        updateFAQQuestion(faq.id, "answer", e.target.value)
-                      }
-                      className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} text-sm min-h-[80px]`}
-                      placeholder="FAQ Answer"
-                    />
-                    {!faq.answer.trim() && (
-                      <p className="text-red-500 text-xs mt-1">
-                        Answer cannot be empty
+                      <div className="flex items-center space-x-4 mb-3">
+                        <select
+                          value={faq.category}
+                          onChange={(e) =>
+                            updateFAQQuestion(
+                              faq.id,
+                              "category",
+                              e.target.value
+                            )
+                          }
+                          className={`${
+                            currentTheme === "dark"
+                              ? "bg-[#2d5a8c]/40 border-gray-600"
+                              : "bg-white border-gray-300"
+                          } border rounded px-2 py-1 ${
+                            themeStyles.textPrimary
+                          } text-sm`}
+                        >
+                          <option value="General">General</option>
+                          <option value="Support">Support</option>
+                          <option value="Pricing">Pricing</option>
+                          <option value="Technical">Technical</option>
+                          <option value="Services">Services</option>
+                        </select>
+                      </div>
+
+                      <div className="relative">
+                        <Textarea
+                          value={faq.answer}
+                          onChange={(e) =>
+                            updateFAQQuestion(faq.id, "answer", e.target.value)
+                          }
+                          className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} text-sm min-h-[80px]`}
+                          placeholder="FAQ Answer"
+                        />
+                        {!faq.answer.trim() && (
+                          <p className="text-red-500 text-xs mt-1">
+                            Answer cannot be empty
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {faqQuestions.length === 0 && (
+                  <div className="text-center py-8">
+                    <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className={themeStyles.textSecondary}>
+                      No FAQ questions added yet
+                    </p>
+                    <p
+                      className={`text-sm ${themeStyles.textMuted} mt-1 font-montserrat`}
+                    >
+                      Add some frequently asked questions to help your users
+                    </p>
+                  </div>
+                )}
+
+                <div className="pt-4">
+                  <Button
+                    disabled={
+                      faqQuestions.length === 0 ||
+                      faqQuestions.some(
+                        (faq) => !faq.question.trim() || !faq.answer.trim()
+                      )
+                    }
+                    onClick={saveFAQ}
+                    className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save FAQ Questions
+                  </Button>
+
+                  {faqQuestions.length > 0 &&
+                    faqQuestions.some(
+                      (faq) => !faq.question.trim() || !faq.answer.trim()
+                    ) && (
+                      <p className="text-red-500 text-sm mt-2 font-montserrat">
+                        Please fill in all questions and answers before saving
                       </p>
                     )}
-                  </div>
                 </div>
-              ))}
-            </div>
-
-            {faqQuestions.length === 0 && (
-              <div className="text-center py-8">
-                <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className={themeStyles.textSecondary}>
-                  No FAQ questions added yet
-                </p>
-                <p className={`text-sm ${themeStyles.textMuted} mt-1`}>
-                  Add some frequently asked questions to help your users
-                </p>
-              </div>
+              </>
             )}
-
-            <div className="pt-4">
-              <Button
-                disabled={
-                  faqQuestions.length === 0 ||
-                  faqQuestions.some(
-                    (faq) => !faq.question.trim() || !faq.answer.trim()
-                  )
-                }
-                onClick={saveFAQ}
-                className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save FAQ Questions
-              </Button>
-
-              {faqQuestions.length > 0 &&
-                faqQuestions.some(
-                  (faq) => !faq.question.trim() || !faq.answer.trim()
-                ) && (
-                  <p className="text-red-500 text-sm mt-2">
-                    Please fill in all questions and answers before saving
-                  </p>
-                )}
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -1835,352 +2311,327 @@ data-chatbot-config='{
         <Card
           className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
         >
-          <CardHeader>
+          <CardHeader className="p-3 md:p-4">
             <CardTitle className={themeStyles.textPrimary}>
               {currentChatbot?.name} Settings
             </CardTitle>
-            <CardDescription className={themeStyles.textSecondary}>
+            <CardDescription
+              className={`${themeStyles.textSecondary} font-montserrat`}
+            >
               Configure your chatbot behavior and appearance
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label
-                    htmlFor="chatbotName"
-                    className={themeStyles.textSecondary}
-                  >
-                    Chatbot Name
-                  </Label>
-                  <Input
-                    id="chatbotName"
-                    value={chatbotName || currentChatbot?.name || ""}
-                    onChange={(e) => setChatbotName(e.target.value)}
-                    className={`mt-2 ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary}`}
-                    placeholder={currentChatbot?.name}
-                  />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="welcomeMessage"
-                    className={themeStyles.textSecondary}
-                  >
-                    Welcome Message
-                  </Label>
-                  <Input
-                    id="welcomeMessage"
-                    value={chatbotMessage || "Hi! How can I help you today?"}
-                    onChange={(e) => setChatbotMessage(e.target.value)}
-                    className={`mt-2 ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary}`}
-                    placeholder="Hi! How can I help you today?"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4">
+          <CardContent className="p-3 md:p-4">
+            {!hasBuiltChatbot ? (
+              <div className="text-center py-8">
+                <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className={`${themeStyles.textSecondary} font-montserrat`}>
+                  Build your chatbot first to configure settings
+                </p>
                 <Button
-                  onClick={handleChangedInfo}
-                  disabled={infoLoading || !chatbotMessage || !chatbotName}
-                  className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black`}
+                  className="mt-4 bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-white"
+                  onClick={() => setShowBuildDialog(true)}
                 >
-                  {infoLoading ? "Saving...." : "Save Changes"}
+                  <Bot className="h-4 w-4 mr-2" />
+                  Build Chatbot Now
                 </Button>
               </div>
-
-              {/* Website URL Section */}
-              {currentChatbot?.id !== "chatbot-education" && (
-                <div>
-                  <Label
-                    htmlFor="websiteUrl"
-                    className={themeStyles.textSecondary}
-                  >
-                    Website URL
-                  </Label>
-
-                  <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
-                    {websiteUrl === null || !isWebScrapped ? (
-                      <Input
-                        disabled={websiteUrl === null}
-                        id="websiteUrl"
-                        value={websiteUrl || ""}
-                        onChange={(e) => setWebsiteUrl(e.target.value)}
-                        className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary}`}
-                        placeholder="https://yourwebsite.com"
-                      />
-                    ) : (
-                      <p
-                        className={`flex items-center justify-center border ${themeStyles.inputBorder} ${themeStyles.textPrimary} p-2 rounded-lg w-full`}
-                      >
-                        {websiteUrl}
-                      </p>
-                    )}
-                    <Button
-                      disabled={
-                        websiteUrl === null ||
-                        isWebScrapped ||
-                        webLoading ||
-                        processing
-                      }
-                      onClick={handleScrape}
-                      className={`hover:opacity-90 text-black ${
-                        websiteUrl === null || !isWebScrapped
-                          ? "bg-gradient-to-r from-[#00F0FF] to-[#0080FF]"
-                          : "bg-gray-500"
-                      }`}
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label
+                      htmlFor="chatbotName"
+                      className={themeStyles.textSecondary}
                     >
-                      <Upload className="h-4 w-4 mr-1" />
-                      {webLoading
-                        ? "Scraping..."
-                        : processing
-                        ? "Processing..."
-                        : "Start Scraping"}
-                    </Button>
+                      Chatbot Name
+                    </Label>
+                    <Input
+                      id="chatbotName"
+                      value={chatbotName || currentChatbot?.name || ""}
+                      onChange={(e) => setChatbotName(e.target.value)}
+                      className={`mt-2 ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat`}
+                      placeholder={currentChatbot?.name}
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="welcomeMessage"
+                      className={themeStyles.textSecondary}
+                    >
+                      Welcome Message
+                    </Label>
+                    <Input
+                      id="welcomeMessage"
+                      value={chatbotMessage || "Hi! How can I help you today?"}
+                      onChange={(e) => setChatbotMessage(e.target.value)}
+                      className={`mt-2 ${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat`}
+                      placeholder="Hi! How can I help you today?"
+                    />
                   </div>
                 </div>
-              )}
 
-              {/* WhatsApp Number Section */}
-              {currentChatbot?.id === "chatbot-lead-generation" && (
                 <div className="pt-4">
-                  <Label
-                    htmlFor="whatsappNumber"
-                    className={themeStyles.textSecondary}
+                  <Button
+                    onClick={handleChangedInfo}
+                    disabled={infoLoading || !chatbotMessage || !chatbotName}
+                    className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black`}
                   >
-                    WhatsApp Number
-                  </Label>
-                  <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
-                    {phone === null ? (
-                      <p
-                        className={`flex items-center justify-center border ${themeStyles.inputBorder} ${themeStyles.textPrimary} p-2 rounded-lg w-full`}
-                      >
-                        Please Add WhatsApp Number.
-                      </p>
-                    ) : (
-                      <p
-                        className={`flex items-center justify-center border ${themeStyles.inputBorder} ${themeStyles.textPrimary} p-2 rounded-lg w-full`}
-                      >
-                        {phone}
-                      </p>
-                    )}
-                    <Button
-                      onClick={() => setOtpStep("phone")}
-                      disabled={true}
-                      className="bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-black"
+                    {infoLoading ? "Saving...." : "Save Changes"}
+                  </Button>
+                </div>
+
+                {/* Website URL Section */}
+                {currentChatbot?.id !== "chatbot-education" && (
+                  <div>
+                    <Label
+                      htmlFor="websiteUrl"
+                      className={themeStyles.textSecondary}
                     >
-                      <Save className="h-4 w-4 mr-2" />
-                      Coming Soon...
-                    </Button>
+                      Website URL
+                    </Label>
+
+                    <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
+                      {websiteUrl ? (
+                        <p
+                          className={`flex items-center justify-center border ${themeStyles.inputBorder} ${themeStyles.textPrimary} p-2 rounded-lg w-full font-montserrat`}
+                        >
+                          {websiteUrl}
+                        </p>
+                      ) : (
+                        <Input
+                          id="websiteUrl"
+                          value={websiteUrl || ""}
+                          onChange={(e) => setWebsiteUrl(e.target.value)}
+                          className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} font-montserrat`}
+                          placeholder="https://yourwebsite.com"
+                        />
+                      )}
+                      {!isWebScrapped && websiteUrl && (
+                        <Button
+                          disabled={webLoading || processing}
+                          onClick={handleScrape}
+                          className={`hover:opacity-90 text-black bg-gradient-to-r from-[#00F0FF] to-[#0080FF]`}
+                        >
+                          <Upload className="h-4 w-4 mr-1" />
+                          {webLoading
+                            ? "Scraping..."
+                            : processing
+                            ? "Processing..."
+                            : "Update Data"}
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-green-400 text-sm mt-1">
-                    * Add WhatsApp number to get appointment info immediately on
-                    WhatsApp
-                  </span>
-                </div>
-              )}
+                )}
 
-              {/* Error and Status Messages */}
-              {webError && (
-                <div className="border border-red-200 rounded-lg p-4 mt-8">
-                  <p className={`text-red-700 ${themeStyles.textPrimary}`}>
-                    {webError}
-                  </p>
-                </div>
-              )}
+                {/* WhatsApp Number Section */}
+                {currentChatbot?.id === "chatbot-lead-generation" && (
+                  <div className="pt-4">
+                    <Label
+                      htmlFor="whatsappNumber"
+                      className={themeStyles.textSecondary}
+                    >
+                      WhatsApp Number
+                    </Label>
+                    <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
+                      {phone ? (
+                        <p
+                          className={`flex items-center justify-center border ${themeStyles.inputBorder} ${themeStyles.textPrimary} p-2 rounded-lg w-full font-montserrat`}
+                        >
+                          {phone}
+                        </p>
+                      ) : (
+                        <p
+                          className={`flex items-center justify-center border ${themeStyles.inputBorder} ${themeStyles.textPrimary} p-2 rounded-lg w-full font-montserrat`}
+                        >
+                          Please Add WhatsApp Number.
+                        </p>
+                      )}
+                      <Button
+                        onClick={() => setOtpStep("phone")}
+                        disabled={true}
+                        className="bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-black"
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Coming Soon...
+                      </Button>
+                    </div>
+                    <span className="text-green-400 text-sm mt-1 font-montserrat">
+                      * Add WhatsApp number to get appointment info immediately
+                      on WhatsApp
+                    </span>
+                  </div>
+                )}
 
-              {(webLoading || processing) && (
-                <div className="border border-green-200 rounded-lg p-4 mt-8">
-                  <p className={`text-green-700 ${themeStyles.textPrimary}`}>
-                    This might take 1-2 min so please wait. Don&apos;t do
-                    anything.
-                  </p>
-                </div>
-              )}
-            </div>
+                {/* Error and Status Messages */}
+                {webError && (
+                  <div className="border border-red-200 rounded-lg p-4 mt-8">
+                    <p
+                      className={`text-red-700 ${themeStyles.textPrimary} font-montserrat`}
+                    >
+                      {webError}
+                    </p>
+                  </div>
+                )}
+
+                {(webLoading || processing) && (
+                  <div className="border border-green-200 rounded-lg p-4 mt-8 font-montserrat">
+                    <p className={`text-green-700 ${themeStyles.textPrimary}`}>
+                      This might take 1-2 min so please wait. Don&apos;t do
+                      anything.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
+
         {/* Appointment Form Questions */}
         {currentChatbot?.id === "chatbot-lead-generation" && (
           <Card
             className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
           >
-            <CardHeader>
+            <CardHeader className="p-3 md:p-4">
               <CardTitle
-                className={`${themeStyles.textPrimary} flex items-center justify-between`}
+                className={`${themeStyles.textPrimary} flex flex-wrap gap-2 items-center justify-between`}
               >
                 <span className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2" />
+                  <Calendar className="h-5 w-5 mr-2 " />
                   Appointment Form Questions
                 </span>
                 <Button
                   size="sm"
                   onClick={addAppointmentQuestion}
                   className="bg-[#00F0FF] hover:bg-[#00F0FF]/80 text-black"
+                  disabled={!hasBuiltChatbot}
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Question
                 </Button>
               </CardTitle>
-              <CardDescription className={themeStyles.textSecondary}>
+              <CardDescription
+                className={`${themeStyles.textSecondary} font-montserrat`}
+              >
                 Configure questions for appointment booking
               </CardDescription>
             </CardHeader>
 
-            <CardContent>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {appointmentQuestions.map((question) => (
-                  <div
-                    key={question.id}
-                    className={`p-4 rounded-lg ${
-                      currentTheme === "dark" ? "bg-[#921a58]/10" : "bg-pink-50"
-                    }`}
+            <CardContent className="p-3 md:p-4">
+              {!hasBuiltChatbot ? (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className={`${themeStyles.textSecondary} font-montserrat`}>
+                    Build your chatbot first to configure appointment questions
+                  </p>
+                  <Button
+                    className="mt-4 bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-white"
+                    onClick={() => setShowBuildDialog(true)}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <Input
-                        value={question.question}
-                        onChange={(e) =>
-                          updateAppointmentQuestion(
-                            question.id,
-                            "question",
-                            e.target.value
-                          )
-                        }
-                        className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} text-sm`}
-                      />
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeAppointmentQuestion(question.id)}
-                        className="text-red-400 hover:text-red-300 ml-2"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                      <select
-                        value={question.type}
-                        onChange={(e) =>
-                          updateAppointmentQuestion(
-                            question.id,
-                            "type",
-                            e.target.value
-                          )
-                        }
-                        className={`${
+                    <Bot className="h-4 w-4 mr-2" />
+                    Build Chatbot Now
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-4 max-h-96 overflow-y-auto font-montserrat">
+                    {appointmentQuestions.map((question) => (
+                      <div
+                        key={question.id}
+                        className={`p-4 rounded-lg ${
                           currentTheme === "dark"
-                            ? "bg-[#805283]/40 border-gray-600"
-                            : "bg-white border-gray-300"
-                        } border rounded px-2 py-1 ${
-                          themeStyles.textPrimary
-                        } text-sm`}
+                            ? "bg-[#921a58]/10"
+                            : "bg-pink-50"
+                        }`}
                       >
-                        <option value="text">Text</option>
-                        <option value="email">Email</option>
-                        <option value="tel">Phone</option>
-                        <option value="date">Date</option>
-                        <option value="select">Select</option>
-                      </select>
+                        <div className="flex items-center justify-between mb-2">
+                          <Input
+                            value={question.question}
+                            onChange={(e) =>
+                              updateAppointmentQuestion(
+                                question.id,
+                                "question",
+                                e.target.value
+                              )
+                            }
+                            className={`${themeStyles.inputBg} ${themeStyles.inputBorder} ${themeStyles.textPrimary} text-sm`}
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              removeAppointmentQuestion(question.id)
+                            }
+                            className="text-red-400 hover:text-red-300 ml-2"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
 
-                      <label
-                        className={`flex items-center text-sm ${themeStyles.textSecondary}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={question.required}
-                          onChange={(e) =>
-                            updateAppointmentQuestion(
-                              question.id,
-                              "required",
-                              e.target.checked
-                            )
-                          }
-                          className="mr-2"
-                        />
-                        Required
-                      </label>
-                    </div>
+                        <div className="flex items-center space-x-4">
+                          <select
+                            value={question.type}
+                            onChange={(e) =>
+                              updateAppointmentQuestion(
+                                question.id,
+                                "type",
+                                e.target.value
+                              )
+                            }
+                            className={`${
+                              currentTheme === "dark"
+                                ? "bg-[#805283]/40 border-gray-600"
+                                : "bg-white border-gray-300"
+                            } border rounded px-2 py-1 ${
+                              themeStyles.textPrimary
+                            } text-sm`}
+                          >
+                            <option value="text">Text</option>
+                            <option value="email">Email</option>
+                            <option value="tel">Phone</option>
+                            <option value="date">Date</option>
+                            <option value="select">Select</option>
+                          </select>
+
+                          <label
+                            className={`flex items-center text-sm ${themeStyles.textSecondary}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={question.required}
+                              onChange={(e) =>
+                                updateAppointmentQuestion(
+                                  question.id,
+                                  "required",
+                                  e.target.checked
+                                )
+                              }
+                              className="mr-2"
+                            />
+                            Required
+                          </label>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
 
-              <div className="pt-4">
-                <Button
-                  onClick={saveAppointmentQuestions}
-                  className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black`}
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Questions
-                </Button>
-              </div>
+                  <div className="pt-4">
+                    <Button
+                      onClick={saveAppointmentQuestions}
+                      className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black`}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Questions
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         )}
       </div>
     </TabsContent>
-  );
-
-  const renderCancelDialog = () => (
-    <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-      <AlertDialogContent className={`${themeStyles.alertBg}`}>
-        <AlertDialogDescription className={`${themeStyles.textSecondary} mb-4`}>
-          Cancelling your subscription will result in the loss of access to
-          premium features. You can choose to cancel immediately or at the end
-          of your current billing cycle.
-        </AlertDialogDescription>
-        <AlertDialogTitle className={themeStyles.textPrimary}>
-          Are you sure you want to cancel your subscription?
-        </AlertDialogTitle>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF2E9F] to-[#B026FF]">
-              Cancel Subscription
-            </h2>
-            <XMarkIcon
-              onClick={() => setShowCancelDialog(false)}
-              className={`${themeStyles.textSecondary} size-6 cursor-pointer hover:${themeStyles.textPrimary}`}
-            />
-          </div>
-          <form onSubmit={handleCancelSubscription} className="space-y-6">
-            <label
-              className={`block text-lg font-semibold ${themeStyles.textSecondary}`}
-            >
-              Please Provide Reason
-            </label>
-            <textarea
-              name="reason"
-              className={`w-full ${
-                currentTheme === "dark"
-                  ? "bg-gray-800/50 border-gray-700"
-                  : "bg-gray-100 border-gray-300"
-              } border rounded-lg p-3 ${
-                themeStyles.textPrimary
-              } focus:outline-none focus:ring-2 focus:ring-[#B026FF]`}
-              placeholder="Cancellation reason"
-              required
-            />
-            <div className="flex justify-center gap-4">
-              <button
-                type="submit"
-                onClick={() => setCancellationMode("Immediate")}
-                className="px-6 py-2 bg-gradient-to-r from-[#FF2E9F]/20 to-[#B026FF]/20 bg-transparent text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-                disabled={isSubmitting || isImmediateSubmitting}
-              >
-                {isSubmitting ? "Cancelling..." : "Immediate"}
-              </button>
-              <button
-                type="submit"
-                onClick={() => setCancellationMode("End-of-term")}
-                className="px-6 py-2 bg-gradient-to-r from-[#00F0FF]/20 to-[#B026FF]/20 bg-transparent text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-                disabled={isSubmitting || isImmediateSubmitting}
-              >
-                {isImmediateSubmitting ? "Cancelling..." : "End-of-term"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </AlertDialogContent>
-    </AlertDialog>
   );
 
   const renderPhoneVerification = () => (
@@ -2238,7 +2689,7 @@ data-chatbot-config='{
               transition={{ delay: 0.3 }}
               className="text-center"
             >
-              <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+              <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF] font-montserrat">
                 PLEASE ENTER YOUR MOBILE NUMBER
               </h3>
             </motion.div>
@@ -2272,7 +2723,7 @@ data-chatbot-config='{
                   {countryCodes.map((countryCode, index) => (
                     <option
                       key={index}
-                      className="bg-[#1a1a1a] text-gray-300 py-2"
+                      className="bg-[#1a1a1a] text-gray-300 py-2 font-montserrat"
                       value={countryCode.code}
                     >
                       {countryCode.code}
@@ -2284,7 +2735,7 @@ data-chatbot-config='{
                   id="MobileNumber"
                   type="text"
                   {...registerPhone("MobileNumber")}
-                  className="w-full bg-transparent py-4 px-4 text-white placeholder:text-gray-500 focus:outline-none text-lg"
+                  className="w-full bg-transparent py-4 px-4 text-white placeholder:text-gray-500 focus:outline-none text-lg font-montserrat"
                   placeholder="Phone number"
                 />
               </motion.div>
@@ -2297,7 +2748,7 @@ data-chatbot-config='{
                     exit={{ opacity: 0, height: 0 }}
                     className="text-center"
                   >
-                    <p className="text-red-400 text-sm bg-red-400/10 py-2 rounded-lg border border-red-400/20">
+                    <p className="text-red-400 text-sm bg-red-400/10 py-2 rounded-lg border border-red-400/20 font-montserrat">
                       {phoneErrors.MobileNumber.message}
                     </p>
                   </motion.div>
@@ -2370,7 +2821,7 @@ data-chatbot-config='{
             className="p-4 text-center border-t border-white/10 bg-black/20"
           >
             <AlertDialogDescription className="text-sm">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF] font-semibold">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF] font-semibold font-montserrat">
                 IT WILL HELP US TO PROVIDE BETTER SERVICES
               </span>
             </AlertDialogDescription>
@@ -2383,21 +2834,22 @@ data-chatbot-config='{
     </AlertDialog>
   );
 
-  const renderSubscriptionRequired = () => (
+  const renderBuildRequired = () => (
     <div className="text-center py-16">
-      <Lock className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+      <Bot className="h-16 w-16 text-gray-600 mx-auto mb-4" />
       <h3 className={`text-xl font-semibold ${themeStyles.textSecondary} mb-2`}>
-        Subscription Required
+        Build Your Chatbot First
       </h3>
-      <p className={`${themeStyles.textMuted} mb-6`}>
-        Subscribe to access dashboard features for {currentChatbot?.name}
+      <p className={`${themeStyles.textMuted} mb-6 font-montserrat`}>
+        Build your {currentChatbot?.name} chatbot for free to access dashboard
+        features
       </p>
       <Button
-        onClick={() => router.push(`/web/pricing?id=${currentChatbot?.id}`)}
+        onClick={() => setShowBuildDialog(true)}
         className={`bg-gradient-to-r ${currentChatbot?.gradient} hover:opacity-90 text-black font-semibold`}
       >
-        <CreditCard className="h-4 w-4 mr-2" />
-        Subscribe to {currentChatbot?.name}
+        <Bot className="h-4 w-4 mr-2" />
+        Build {currentChatbot?.name} Chatbot
       </Button>
     </div>
   );
@@ -2420,10 +2872,13 @@ data-chatbot-config='{
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && renderErrorAlert()}
 
-        {renderChatbotSelection()}
-        {renderStatsGrid()}
+        {tokenBalance && renderTokenBalanceCard()}
 
-        {isSubscribed ? (
+        {renderChatbotSelection()}
+
+        {hasBuiltChatbot && renderStatsGrid()}
+
+        {hasBuiltChatbot ? (
           <Tabs defaultValue={getDefaultTab()} className="space-y-6">
             <TabsList
               className={`${
@@ -2476,11 +2931,12 @@ data-chatbot-config='{
             {renderSettingsTab()}
           </Tabs>
         ) : (
-          renderSubscriptionRequired()
+          renderBuildRequired()
         )}
       </div>
 
-      {renderCancelDialog()}
+      {renderBuildDialog()}
+      {renderTokenPurchaseDialog()}
 
       {otpStep === "phone" && renderPhoneVerification()}
       {otpStep === "otp" && phone && (

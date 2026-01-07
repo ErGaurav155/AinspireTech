@@ -50,10 +50,51 @@ export default async function RootLayout({
             <div className="relative z-10">{children}</div>
           </ThemeProvider>
 
+          {/* <Script
+            src="/chatbotembed.js"
+            data-chatbot-config='{"userId":"user_32gfPkz04sXmH5xzFQKyZvqib4Q","isAuthorized":true,"filename":"https://res.cloudinary.com/dr6yywiz8/raw/upload/v1764154827/scraped-data/ainspiretech.com_1764154824955","chatbotType":"chatbot-education","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi,How May i help you?","chatbotName":"AI Assistance"}'
+          ></Script> */}
+          {/* <Script
+            src="/chatbotembed.js"
+            data-chatbot-config='{
+  "userId":"user_37O6LE16A4wTgwYsJPeVmS9fevI",
+  "isAuthorized":true,
+  "filename":"https://res.cloudinary.com/dr6yywiz8/raw/upload/v1767166485/scraped-data/ainspiretech.com_1767166482404",
+  "chatbotType":"chatbot-lead-generation",
+  "apiUrl":"http://localhost:3000",
+  "primaryColor":"#00F0FF",
+  "position":"bottom-right",
+  "welcomeMessage":"Hi,How May i help you?",
+  "chatbotName":"AI Assistance"
+}'
+          ></Script> */}
           <Script
-            src="/mcqchatbotembed.js"
-            data-mcq-chatbot='{"userId":"user_32gfPkz04sXmH5xzFQKyZvqib4Q","isAuthorized":true,"filename":"https://res.cloudinary.com/dr6yywiz8/raw/upload/v1764154827/scraped-data/ainspiretech.com_1764154824955","chatbotType":"chatbot-education","apiUrl":"https://ainspiretech.com","primaryColor":"#00F0FF","position":"bottom-right","welcomeMessage":"Hi,How May i help you?","chatbotName":"AI Assistance"}'
+            src="/chatbotembed.js"
+            data-chatbot-config='{
+  "userId":"user_37Ha4m7FJAZg6xDScRDPO04DhMv",
+  "isAuthorized":true,
+  "filename":"https://res.cloudinary.com/dr6yywiz8/raw/upload/v1767787288/scraped-data/ainspiretech.com_1767787284207",
+  "chatbotType":"chatbot-customer-support",
+  "apiUrl":"http://localhost:3000",
+  "primaryColor":"#00F0FF",
+  "position":"bottom-right",
+  "welcomeMessage":"Hi,How May i help you?",
+  "chatbotName":"AI Assistance"
+}'
           ></Script>
+          {/* <Script
+            src="/mcqchatbotembed.js"
+            data-mcq-chatbot='{
+  "userId":"user_37O6LE16A4wTgwYsJPeVmS9fevI",
+  "isAuthorized":true,
+  "chatbotType":"chatbot-education",
+  "apiUrl":"http://localhost:3000",
+  "primaryColor":"#00F0FF",
+  "position":"bottom-right",
+  "welcomeMessage":"Hi! How can I help you today?",
+  "chatbotName":"Chatbot Education"
+}'
+          ></Script> */}
         </body>
       </html>
     </ClerkProvider>

@@ -16,7 +16,15 @@ export default function Navbar() {
   const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const currentTheme = resolvedTheme || theme || "light";
+  const [isScrolled, setIsScrolled] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
 
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -25,7 +33,7 @@ export default function Navbar() {
   const themeStyles = useMemo(() => {
     const isDark = currentTheme === "dark";
     return {
-      navBg: isDark ? "bg-[#0a0a0a]/80" : "bg-white/50",
+      cardBg: isDark ? "bg-transparent" : "bg-white/50",
       navBorder: isDark ? "border-white/10" : "border-gray-200",
       textPrimary: isDark ? "text-gray-300" : "text-n-5",
       textHover: isDark ? "hover:text-[#00F0FF]" : "hover:text-[#00F0FF]",
@@ -48,7 +56,9 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`${themeStyles.navBg} backdrop-blur-md border-b ${themeStyles.navBorder} sticky top-0 z-50`}
+      className={`sticky top-0 z-50 bg-background/80 backdrop-blur-md pb-1 border-b transition-all duration-300 ${
+        themeStyles.cardBg
+      } ${isScrolled ? "rounded-lg shadow-md" : "rounded-none"}`}
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
@@ -76,7 +86,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-2 lg:space-x-8 text-sm lg:text-lg">
+          <div className="hidden md:flex items-center space-x-2 md:space-x-3 lg:space-x-4 text-sm lg:text-base">
             <Link
               href="/web/UserDashboard"
               className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium`}
@@ -84,10 +94,10 @@ export default function Navbar() {
               Dashboard
             </Link>
             <Link
-              href="/web/product"
+              href="/web/TokenDashboard"
               className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium`}
             >
-              Categories
+              Token <span className="hidden lg:inline-flex">Usage</span>
             </Link>
             <Link
               href="/web/feature"
@@ -95,31 +105,27 @@ export default function Navbar() {
             >
               Feature
             </Link>
+            <Link
+              href="/web/product"
+              className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium`}
+            >
+              Categories
+            </Link>
           </div>
 
           {/* Right side */}
           <div className="hidden md:flex items-center space-x-2 lg:space-x-4 ">
             <ThemeToggle />
-            <SignedOut>
-              <Button
-                variant="outline"
-                className={themeStyles.buttonOutline}
-                asChild
-              >
-                <Link href="/sign-in">Sign In</Link>
-              </Button>
-            </SignedOut>
-
             <Button
-              className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity p-2 lg:px-4 "
               asChild
             >
               <Link href="/web/pricing">
-                <Zap className="h-4 w-4 mr-2" />
-                Get Pricing
+                <Zap className="hidden lg:flex h-4 w-4 mr-2" />
+                <span className="hidden lg:inline-flex">Get&nbsp;</span>
+                Pricing
               </Link>
             </Button>
-            {/* <div className="flex justify-center p-1 gap-1 md:gap-2 rounded-md bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"> */}
             <SignedIn>
               <UserButton afterSignOutUrl="/" />
             </SignedIn>
@@ -128,7 +134,6 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <div className="flex md:hidden items-center justify-center gap-2">
-            {/* <div className="flex justify-center p-1 gap-1 md:gap-2 rounded-md bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"> */}
             <ThemeToggle />
             <SignedIn>
               <UserButton afterSignOutUrl="/" />
@@ -136,70 +141,74 @@ export default function Navbar() {
             {/* </div> */}
             <Button
               variant="ghost"
-              className={`md:hidden h-9 w-9 p-0 ${themeStyles.mobileButtonText}`}
+              className="md:hidden text-xl text-[#00F0FF] border border-purple-700 rounded-md cursor-pointer px-2 py-1 whitespace-nowrap"
               onClick={() => setIsOpen(!isOpen)}
             >
-              {isOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
+              {isOpen ? "✕" : "☰"}
             </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {isOpen && (
-          <div
-            className={`md:hidden py-4 border-t ${themeStyles.mobileBorder}`}
-          >
-            <div className="flex flex-col space-y-3">
-              <Link
-                href="/web/UserDashboard"
-                className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium px-2 py-1`}
-                onClick={() => setIsOpen(false)}
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/web/product"
-                className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium px-2 py-1`}
-                onClick={() => setIsOpen(false)}
-              >
-                Categories
-              </Link>
-              <Link
-                href="/web/feature"
-                className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium px-2 py-1`}
-                onClick={() => setIsOpen(false)}
-              >
-                Feature
-              </Link>
 
-              <div className="flex flex-col space-y-2 pt-2">
-                <SignedOut>
-                  <Button
-                    variant="outline"
-                    className={themeStyles.buttonOutline}
-                    asChild
-                  >
-                    <Link href="/sign-in">Sign In</Link>
-                  </Button>
-                </SignedOut>
+        <div
+          className={`md:hidden transition-all duration-300  overflow-hidden ${
+            isOpen ? "max-h-96" : "max-h-0"
+          } bg-background/80 backdrop-blur-sm`}
+        >
+          <div className="flex flex-col space-y-3">
+            <Link
+              href="/web/UserDashboard"
+              className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium px-2 py-1`}
+              onClick={() => setIsOpen(false)}
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/web/TokenDashboard"
+              className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium px-2 py-1`}
+              onClick={() => setIsOpen(false)}
+            >
+              Token Usage
+            </Link>
+            <Link
+              href="/web/product"
+              className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium px-2 py-1`}
+              onClick={() => setIsOpen(false)}
+            >
+              Categories
+            </Link>
+            <Link
+              href="/web/feature"
+              className={`${themeStyles.textPrimary} ${themeStyles.textHover} transition-colors font-medium px-2 py-1`}
+              onClick={() => setIsOpen(false)}
+            >
+              Feature
+            </Link>
 
+            <div className="flex flex-col space-y-2 pt-2">
+              <SignedOut>
                 <Button
-                  className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
+                  variant="outline"
+                  className={themeStyles.buttonOutline}
                   asChild
                 >
-                  <Link href="/web/pricing">
-                    <Zap className="h-4 w-4 mr-2" />
-                    Get Pricing
-                  </Link>
+                  <Link href="/sign-in">Sign In</Link>
                 </Button>
-              </div>
+              </SignedOut>
+
+              <Button
+                className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity"
+                asChild
+              >
+                <Link href="/web/pricing">
+                  <Zap className="h-4 w-4 mr-2" />
+                  Get Pricing
+                </Link>
+              </Button>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );

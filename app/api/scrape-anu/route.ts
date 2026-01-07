@@ -1,4 +1,3 @@
-import { getAgentSubscriptionInfo } from "@/lib/action/subscription.action";
 import { NextRequest, NextResponse } from "next/server";
 
 // alternatively, you can host the chromium-pack.tar file elsewhere and update the URL below
@@ -393,10 +392,9 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const urlParam = searchParams.get("url");
   const userId = searchParams.get("userId");
-  const subscriptionId = searchParams.get("subscriptionId");
   const agentId = searchParams.get("agentId");
 
-  if (!urlParam || !userId || !subscriptionId || !agentId) {
+  if (!urlParam || !userId || !agentId) {
     return NextResponse.json(
       { error: "Please provide a inputs." },
       { status: 400 }
@@ -404,20 +402,8 @@ export async function GET(request: NextRequest) {
   }
   console.log("urlParam:", urlParam);
   console.log("userId:", userId);
-  console.log("subscriptionId:", subscriptionId);
   console.log("agentId:", agentId);
 
-  const isSubscribed = await getAgentSubscriptionInfo(
-    userId,
-    agentId,
-    subscriptionId
-  );
-  if (!isSubscribed || isSubscribed.length === 0) {
-    return NextResponse.json(
-      { error: "Subscription not found." },
-      { status: 404 }
-    );
-  }
   let inputUrl = urlParam.trim();
   if (!/^https?:\/\//i.test(inputUrl)) {
     inputUrl = `http://${inputUrl}`;

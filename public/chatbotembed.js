@@ -30,6 +30,14 @@
       this.appointmentQuestions = [];
       this.activeFAQ = null;
 
+      // Token management
+      this.availableTokens = 0;
+      this.totalTokensUsed = 0;
+      this.lastTokenCheck = null;
+      this.isTokenCheckInProgress = false;
+      this.showTokenAlert = false;
+      this.tokenAlertMessage = "";
+
       this.init();
     }
 
@@ -64,13 +72,159 @@
       }
     }
 
+    async checkTokenBalance() {
+      if (this.isTokenCheckInProgress) return;
+
+      try {
+        this.isTokenCheckInProgress = true;
+
+        const response = await fetch(
+          `${this.config.apiUrl}/api/embed/tokens/balance?userId=${this.config.userId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-KEY": "your_32byte_encryption_key_here_12345",
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            this.availableTokens = data.data.availableTokens || 0;
+            this.lastTokenCheck = new Date();
+
+            // Show token alert if tokens are low
+            if (this.availableTokens < 1000 && this.availableTokens > 0) {
+              this.showTokenAlertMessage(
+                "Low tokens remaining. Please purchase more tokens to continue."
+              );
+            } else if (this.availableTokens <= 0) {
+              this.showTokenAlertMessage(
+                "Tokens exhausted. Please purchase more tokens to continue."
+              );
+            } else {
+              this.hideTokenAlert();
+            }
+
+            // Update token display
+            this.updateTokenDisplay();
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check token balance:", error);
+      } finally {
+        this.isTokenCheckInProgress = false;
+      }
+    }
+
+    showTokenAlertMessage(message) {
+      this.showTokenAlert = true;
+      this.tokenAlertMessage = message;
+
+      // Update the UI to show token alert
+      const unauthorizedDiv = document.querySelector(".chatbot-unauthorized");
+      if (unauthorizedDiv && this.config.isAuthorized) {
+        unauthorizedDiv.innerHTML = `
+          <div class="unauthorized-message">
+            <p>${message}</p>
+            ${
+              this.availableTokens > 0
+                ? `
+              <div class="token-balance-info">
+                <p>Tokens remaining: <strong>${this.availableTokens.toLocaleString()}</strong></p>
+              </div>
+            `
+                : ""
+            }
+            <a href="https://ainspiretech.com/web/TokenDashboard" target="_blank" class="subscription-link">
+              Purchase Tokens
+            </a>
+            <p class="token-notice">If you're not the website owner, please inform them that chatbot tokens need to be replenished.</p>
+          </div>
+          <div class="chatbot-footer">
+            <a href="https://ainspiretech.com/" target="_blank" class="powered-by">
+              Powered by AinspireTech
+            </a>
+          </div>
+        `;
+        unauthorizedDiv.style.display = "flex";
+      }
+    }
+
+    hideTokenAlert() {
+      this.showTokenAlert = false;
+      this.tokenAlertMessage = "";
+
+      // Hide token alert UI if visible
+      const unauthorizedDiv = document.querySelector(".chatbot-unauthorized");
+      if (unauthorizedDiv) {
+        unauthorizedDiv.style.display = "none";
+      }
+    }
+
+    async trackTokenUsage(tokensUsed, conversationId = null) {
+      try {
+        const response = await fetch(
+          `${this.config.apiUrl}/api/embed/tokens/usage`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-KEY": "your_32byte_encryption_key_here_12345",
+            },
+            body: JSON.stringify({
+              userId: this.config.userId,
+              chatbotType: this.config.chatbotType,
+              tokensUsed: tokensUsed,
+              conversationId: conversationId || this.conversationId,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            // Refresh token balance after usage
+            await this.checkTokenBalance();
+            this.totalTokensUsed += tokensUsed;
+
+            return true;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to track token usage:", error);
+      }
+      return false;
+    }
+
+    updateTokenDisplay() {
+      // Update token info in the chat if available
+      const tokenInfoElement = document.getElementById("token-info");
+      if (tokenInfoElement) {
+        tokenInfoElement.innerHTML = `
+          <div style="font-size: 11px; color: #888; text-align: center; padding: 4px; border-top: 1px solid rgba(0, 240, 255, 0.2);">
+            Tokens: ${this.availableTokens.toLocaleString()} remaining
+          </div>
+        `;
+      }
+    }
+
     init() {
       this.createStyles();
       this.createWidget();
       this.bindEvents();
+
+      // Check initial token balance
+      if (this.config.isAuthorized) {
+        setTimeout(() => this.checkTokenBalance(), 500);
+      }
+
       if (this.config.chatbotType === "chatbot-lead-generation") {
         this.loadAppointmentQuestions();
       }
+
       // Load FAQ will call populateFAQ when done
       this.loadFAQ();
     }
@@ -561,6 +715,7 @@
           display: flex;
           flex-direction: column;
           align-items: center;
+          position: relative;
         }
 
         .chatbot-input-container {
@@ -697,6 +852,28 @@
           line-height: 1.5;
         }
 
+        .token-balance-info {
+          background: rgba(0, 240, 255, 0.1);
+          border: 1px solid rgba(0, 240, 255, 0.3);
+          border-radius: 8px;
+          padding: 8px 12px;
+          margin: 12px 0;
+          font-size: 14px;
+        }
+
+        .token-balance-info strong {
+          color: #00F0FF;
+          font-weight: 600;
+        }
+
+        .token-notice {
+          font-size: 11px;
+          color: #888;
+          margin-top: 12px;
+          font-style: italic;
+          max-width: 300px;
+        }
+
         .subscription-link {
           padding: 10px 16px;
           margin-top: 1rem;
@@ -809,6 +986,24 @@
           background: rgba(255, 255, 255, 0.1);
         }
 
+        /* Token info styles */
+        .token-info {
+          position: absolute;
+          top: -30px;
+          right: 0;
+          background: rgba(10, 10, 10, 0.9);
+          border: 1px solid rgba(0, 240, 255, 0.3);
+          border-radius: 8px;
+          padding: 6px 12px;
+          font-size: 11px;
+          color: #00F0FF;
+          display: none;
+        }
+
+        .token-info.visible {
+          display: block;
+        }
+
         @media (max-width: 520px) {
   .chatbot-window { width:calc(100vw - 0px); height: calc(100vh - 75px); right: -20px !important; bottom:60px }
   .chatbot-toggle { width: 50px; height: 50px }
@@ -830,6 +1025,16 @@
     createWidget() {
       const widget = document.createElement("div");
       widget.className = "chatbot-widget";
+
+      // Create token info element
+      const tokenInfoHtml = this.config.isAuthorized
+        ? `
+        <div class="token-info" id="token-info">
+          Checking tokens...
+        </div>
+      `
+        : "";
+
       widget.innerHTML = `
         <div class="chatbot-toggle-container">
           <div class="welcome-bubble" id="welcome-bubble">Welcome! How can we help?</div>
@@ -908,6 +1113,7 @@
                   </div>
                   
                   <div class="chatbot-input-area">
+                    ${tokenInfoHtml}
                     <div class="chatbot-input-container">
                       <textarea class="chatbot-input" id="chatbot-input" placeholder="Type your message..." rows="1"></textarea>
                       <button class="chatbot-send" id="chatbot-send">
@@ -1179,6 +1385,11 @@
         // Hide welcome bubble when window opens
         welcomeBubble.style.display = "none";
         this.switchTab("help");
+
+        // Check token balance when opening widget
+        if (this.config.isAuthorized) {
+          this.checkTokenBalance();
+        }
       } else {
         window.classList.remove("open");
         // Show welcome bubble when window closes
@@ -1211,6 +1422,15 @@
       const message = input.value.trim();
 
       if (!message) return;
+
+      // Check token balance before sending
+      if (this.availableTokens <= 0) {
+        this.showTokenAlertMessage(
+          "No tokens remaining. Please purchase more tokens to continue."
+        );
+        return;
+      }
+
       this.addMessage(message, "user");
       input.value = "";
       input.style.height = "auto";
@@ -1221,7 +1441,23 @@
 
       const response = await this.getBotResponse(message);
       this.hideTyping();
-      this.addMessage(response, "bot");
+
+      if (response.error === "insufficient_tokens") {
+        this.addMessage(
+          "I'm unable to process your request due to insufficient tokens. Please purchase more tokens to continue.",
+          "bot"
+        );
+        this.showTokenAlertMessage(
+          "Tokens exhausted. Please purchase more tokens to continue."
+        );
+      } else {
+        this.addMessage(response.text, "bot");
+
+        // Track token usage using actual token count from API
+        if (response.tokensUsed) {
+          await this.trackTokenUsage(response.tokensUsed);
+        }
+      }
 
       if (this.config.chatbotType === "chatbot-lead-generation") {
         if (this.messageCount >= 2 && !this.showAppointmentForm) {
@@ -1287,15 +1523,33 @@
             }),
           }
         );
+
         if (!response.ok) {
+          if (response.status === 402) {
+            return {
+              error: "insufficient_tokens",
+              text: "Insufficient tokens",
+            };
+          }
           throw new Error(`API error: ${response.status}`);
         }
 
         const data = await response.json();
-        return data.response || "I couldn't process your request.";
+        // Extract token usage from response if available
+        let tokensUsed = 0;
+        if (data.response.tokens) {
+          tokensUsed = data.response.tokens || 0;
+        }
+
+        return {
+          text: data.response.response || "I couldn't process your request.",
+          tokensUsed: tokensUsed,
+        };
       } catch (error) {
         console.error("Chatbot error:", error);
-        return "I'm having some technical difficulties. Please try again later.";
+        return {
+          text: "I'm having some technical difficulties. Please try again later.",
+        };
       }
     }
 
@@ -1533,6 +1787,11 @@
           const result = await response.json();
           this.conversationId = result.conversationId;
           this.conversationSaved = true;
+
+          // Track token usage for the conversation if available
+          if (result.tokenUsage) {
+            await this.trackTokenUsage(result.tokenUsage, this.conversationId);
+          }
         }
       } catch (error) {
         console.error("Failed to save conversation:", error);

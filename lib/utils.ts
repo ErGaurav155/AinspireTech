@@ -256,7 +256,18 @@ export const formatResponseTimeSmart = (milliseconds: number): string => {
   const minutes = seconds / 60;
   return `${minutes.toFixed(1)}m`;
 };
+export function verifyApiKey(apiKey: string): boolean {
+  // In production, you should store this in environment variables
+  const validApiKeys = process.env.API_KEYS?.split(",") || [];
 
+  // For development/testing, accept the hardcoded key
+  if (apiKey === "your_32byte_encryption_key_here_12345") {
+    return true;
+  }
+
+  // Check against environment variable
+  return validApiKeys.includes(apiKey.trim());
+}
 // export async function getTotalComments(accountId: any, accessToken: string) {
 //   try {
 //     console.log("Fetching comments for account:", accountId);

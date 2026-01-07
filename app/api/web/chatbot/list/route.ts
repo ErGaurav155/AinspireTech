@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import Chatbot from "@/lib/database/models/web/chatbot.model";
+import WebChatbot from "@/lib/database/models/web/chatbot.model";
 import { auth } from "@clerk/nextjs/server";
 
 export async function GET(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     await connectToDatabase(); // Don't forget parentheses
 
     // Using Mongoose syntax - no toArray() needed
-    const userChatbots = await Chatbot.find({ clerkId: userId })
+    const userChatbots = await WebChatbot.find({ clerkId: userId })
       .sort({ createdAt: -1 })
       .lean(); // Convert Mongoose documents to plain objects
 

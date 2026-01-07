@@ -1,8 +1,5 @@
 // app/api/chatbot/route.ts
 import { generateMcqResponse } from "@/lib/action/ai.action";
-
-import WebSubscription from "@/lib/database/models/web/Websubcription.model";
-import { connectToDatabase } from "@/lib/database/mongoose";
 import { NextResponse } from "next/server";
 const SECRET_KEY = process.env.API_KEY!; // Ensure this is set in your environment
 
@@ -45,22 +42,6 @@ export async function POST(request: Request) {
           },
         }
       );
-    }
-    await connectToDatabase();
-
-    const subscriptions = await WebSubscription.find({
-      clerkId: userId,
-      chatbotType: chatbotType,
-      status: "active",
-    });
-
-    if (!subscriptions || subscriptions.length === 0) {
-      return NextResponse.json([], {
-        status: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
-      });
     }
 
     const response = await generateMcqResponse({

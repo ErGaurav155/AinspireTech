@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/public/assets/img/logo.png";
 import { SignedIn, SignedOut, useAuth, UserButton } from "@clerk/nextjs";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Contact } from "lucide-react";
 import { getUserById } from "@/lib/action/user.actions";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
@@ -38,6 +38,9 @@ export function NavBar() {
     return {
       cardBg: isDark ? "bg-transparent" : "bg-white/50",
       textPrimary: isDark ? "text-gray-300" : "text-n-5",
+      outlineButton: isDark
+        ? "border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/10"
+        : "border-[#00F0FF]/50 text-[#00F0FF] hover:bg-[#00F0FF]/5",
     };
   }, [currentTheme]);
   useEffect(() => {
@@ -94,240 +97,271 @@ export function NavBar() {
   }
   return (
     <header
-      className={`sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b transition-all duration-300 ${
+      className={`sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b pb-1 transition-all duration-300 ${
         themeStyles.cardBg
       } ${isScrolled ? "rounded-lg shadow-md" : "rounded-none"}`}
     >
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between gap-2 items-center">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center"
-          onClick={() => handleNavClick("home")}
-        >
-          <div className="relative h-7 w-7 md:w-10 md:h-10 mr-1 md:mr-3">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
-            <div className="absolute inset-1 rounded-full bg-background flex items-center justify-center">
-              <Image
-                alt="Logo"
-                src={Logo}
-                width={24}
-                height={24}
-                className="object-contain"
-              />
-            </div>
-          </div>
-          <h1 className="text-lg lg:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
-            Ainpire<span className="text-[#B026FF]">Tech</span>
-          </h1>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex justify-evenly items-center space-x-3 lg:space-x-8 text-sm lg:text-base">
-          {navItems.map((item) => (
-            <Link
-              key={item.id}
-              href={item.href}
-              className={`nav-link font-medium relative group  cursor-pointer ${
-                activeNavItem === item.id
-                  ? "text-[#00F0FF]"
-                  : `${themeStyles.textPrimary}`
-              }`}
-              onClick={() => handleNavClick(item.id)}
-            >
-              <span className="hover:text-[#00F0FF] transition-colors">
-                {item.label}
-              </span>
-              <span
-                className={`absolute bottom-0 left-0 h-0.5 bg-[#00F0FF] transition-all duration-300 ${
-                  activeNavItem === item.id
-                    ? "w-full"
-                    : "w-0 group-hover:w-full"
-                }`}
-              ></span>
-            </Link>
-          ))}
-        </nav>
-
-        {/* Auth Buttons & Theme Toggle */}
-        <div className="flex items-center space-x-2 lg:space-x-4">
-          {/* Theme Toggle */}
-
-          <SignedIn>
-            {isOwn ? (
-              <>
-                <ThemeToggle />
-
-                <button
-                  onClick={() => router.push("/admin")}
-                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-                >
-                  <span className="mr-2">Dashboard</span>
-                  <ArrowRight className="hidden lg:flex" size={16} />
-                </button>
-              </>
-            ) : (
-              <>
-                <ThemeToggle />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="hidden md:flex items-center justify-center px-4 py-2 rounded-md bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer">
-                      Dashboards
-                      <ArrowRight className="hidden lg:flex" size={16} />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
-                    <DropdownMenuCheckboxItem
-                      checked={showInstaBar}
-                      onClick={() => router.push("/insta/dashboard")}
-                      onCheckedChange={setShowInstaBar}
-                    >
-                      Insta Automation
-                      <ArrowRight className="hidden lg:flex" size={16} />
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={showWebBar}
-                      onCheckedChange={setShowWebBar}
-                      onClick={() => router.push("/web/UserDashboard")}
-                    >
-                      Web Chatbots
-                      <ArrowRight className="hidden lg:flex" size={16} />
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <button
-                  onClick={() => router.push("/affiliate")}
-                  className="hidden md:flex items-center justify-center px-4 py-2 rounded-md bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-                >
-                  <span className="mr-2">Affiliate</span>
-                  <ArrowRight className="hidden lg:flex" size={16} />
-                </button>
-              </>
-            )}
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  userButtonAvatarBox: "w-9 h-9",
-                },
-              }}
-            />
-          </SignedIn>
-
-          <SignedOut>
-            <ThemeToggle />
-
-            <button
-              onClick={() => router.push("/contactUs")}
-              className="hidden md:flex px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-            >
-              Contact Us
-            </button>
-            <button
-              onClick={() => router.push("/sign-in")}
-              className="hidden md:flex px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-            >
-              Login
-            </button>
-          </SignedOut>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden text-xl text-[#00F0FF] border border-purple-700 rounded-md cursor-pointer px-2 py-1 whitespace-nowrap"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+      {/* Logo */}
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          <Link
+            href="/"
+            className="flex items-center"
+            onClick={() => handleNavClick("home")}
           >
-            {isMenuOpen ? "✕" : "☰"}
-          </button>
-        </div>
-      </div>
+            <div className="relative h-7 w-7 md:w-10 md:h-10 mr-1 md:mr-3">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] animate-pulse"></div>
+              <div className="absolute inset-1 rounded-full bg-background flex items-center justify-center">
+                <Image
+                  alt="Logo"
+                  src={Logo}
+                  width={24}
+                  height={24}
+                  className="object-contain"
+                />
+              </div>
+            </div>
+            <h1 className="text-lg lg:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#FF2E9F]">
+              Ainpire<span className="text-[#B026FF]">Tech</span>
+            </h1>
+          </Link>
 
-      {/* Mobile Navigation Menu */}
-      <div
-        className={`md:hidden transition-all duration-300 overflow-hidden ${
-          isMenuOpen ? "max-h-96" : "max-h-0"
-        } bg-background/80 backdrop-blur-sm`}
-      >
-        <div className="container mx-auto px-4 py-4 flex flex-col items-center justify-center max-w-max space-y-4">
-          {/* Theme Toggle in Mobile Menu */}
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex justify-evenly items-center space-x-3 lg:space-x-8 text-sm lg:text-base">
+            {navItems.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={`nav-link font-medium relative group  cursor-pointer px-2 py-1 ${
+                  activeNavItem === item.id
+                    ? "text-[#00F0FF]"
+                    : `${themeStyles.textPrimary}`
+                }`}
+                onClick={() => handleNavClick(item.id)}
+              >
+                <span className="hover:text-[#00F0FF] transition-colors">
+                  {item.label}
+                </span>
+                <span
+                  className={`absolute bottom-0 left-0 h-0.5 bg-[#00F0FF] transition-all duration-300 ${
+                    activeNavItem === item.id
+                      ? "w-full"
+                      : "w-0 group-hover:w-full"
+                  }`}
+                ></span>
+              </Link>
+            ))}
+          </nav>
 
-          {navItems.map((item) => (
-            <Link
-              key={item.id}
-              href={item.href}
-              className={`text-foreground font-medium  hover:text-[#00F0FF] transition-colors cursor-pointer ${
-                activeNavItem === item.id
-                  ? "text-[#00F0FF]"
-                  : ` ${themeStyles.textPrimary}`
-              }`}
-              onClick={() => handleNavClick(item.id)}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {/* Auth Buttons & Theme Toggle */}
+          <div className="flex items-center space-x-2 lg:space-x-4">
+            {/* Theme Toggle */}
 
-          <SignedIn>
-            <div className="flex flex-col gap-4">
+            <SignedIn>
               {isOwn ? (
-                <button
-                  onClick={() => {
-                    router.push("/admin");
-                    setIsMenuOpen(false);
-                  }}
-                  className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-                >
-                  Admin Dashboard
-                </button>
+                <>
+                  <ThemeToggle />
+
+                  <Button
+                    className="hidden md:flex bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity w-full"
+                    asChild
+                    onClick={() => router.push("/admin")}
+                  >
+                    <span>
+                      Dashboard
+                      <ArrowRight className="hidden lg:flex" size={16} />
+                    </span>
+                  </Button>
+                </>
               ) : (
                 <>
-                  <button
-                    onClick={() => {
-                      router.push("/web/UserDashboard");
-                      setIsMenuOpen(false);
-                    }}
-                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-                  >
-                    Web Chatbots
-                  </button>
-                  <button
-                    onClick={() => {
-                      router.push("/insta/dashboard");
-                      setIsMenuOpen(false);
-                    }}
-                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-                  >
-                    Insta Automation
-                  </button>
-                  <button
+                  <ThemeToggle />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className="hidden md:flex bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity w-full">
+                        <span>
+                          Dashboard
+                          <ArrowRight className="hidden lg:flex" size={16} />
+                        </span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuCheckboxItem
+                        checked={showInstaBar}
+                        onClick={() => router.push("/insta/dashboard")}
+                        onCheckedChange={setShowInstaBar}
+                      >
+                        Insta Automation
+                        <ArrowRight className="hidden lg:flex" size={16} />
+                      </DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem
+                        checked={showWebBar}
+                        onCheckedChange={setShowWebBar}
+                        onClick={() => router.push("/web/UserDashboard")}
+                      >
+                        Web Chatbots
+                        <ArrowRight className="hidden lg:flex" size={16} />
+                      </DropdownMenuCheckboxItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button
+                    asChild
                     onClick={() => router.push("/affiliate")}
-                    className=" items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                    className="hidden md:flex bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity w-full"
                   >
-                    <span className="mr-2">Affiliate</span>
-                  </button>
+                    <span>
+                      Affiliate
+                      <ArrowRight className="hidden lg:flex" size={16} />
+                    </span>
+                  </Button>
                 </>
               )}
-            </div>
-          </SignedIn>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "w-9 h-9",
+                  },
+                }}
+              />
+            </SignedIn>
 
-          <SignedOut>
+            <SignedOut>
+              <ThemeToggle />
+              <Button
+                className="hidden md:flex bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity w-full"
+                asChild
+                onClick={() => {
+                  router.push("/contactUs");
+                }}
+              >
+                <span>
+                  <Contact className="h-4 w-4 mr-2" />
+                  Contact Us
+                </span>
+              </Button>
+              <Button
+                variant="outline"
+                className={`hidden md:flex hover:opacity-90 transition-opacity ${themeStyles.outlineButton} w-full`}
+                asChild
+                onClick={() => {
+                  router.push("/sign-in");
+                }}
+              >
+                <span>Sign In</span>
+              </Button>
+            </SignedOut>
+
+            {/* Mobile Menu Button */}
             <button
-              onClick={() => {
-                router.push("/contactUs");
-                setIsMenuOpen(false);
-              }}
-              className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+              className="md:hidden text-xl text-[#00F0FF] border border-purple-700 rounded-md cursor-pointer px-2 py-1 whitespace-nowrap"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              Contact Us
+              {isMenuOpen ? "✕" : "☰"}
             </button>
-            <button
-              onClick={() => {
-                router.push("/sign-in");
-                setIsMenuOpen(false);
-              }}
-              className="px-4 py-2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black font-medium hover:opacity-90 w-full transition-opacity whitespace-nowrap cursor-pointer"
-            >
-              Login
-            </button>
-          </SignedOut>
+          </div>
+        </div>
+        {/* Mobile Navigation Menu */}
+        <div
+          className={`md:hidden transition-all duration-300 overflow-hidden ${
+            isMenuOpen ? "max-h-96" : "max-h-0"
+          } bg-background/80 backdrop-blur-sm`}
+        >
+          {/* Theme Toggle in Mobile Menu */}
+          <div className="flex flex-col space-y-3">
+            {navItems.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={`text-foreground font-medium  hover:text-[#00F0FF] transition-colors cursor-pointer px-2 py-1 ${
+                  activeNavItem === item.id
+                    ? "text-[#00F0FF]"
+                    : ` ${themeStyles.textPrimary}`
+                }`}
+                onClick={() => handleNavClick(item.id)}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            <div className="flex flex-col space-y-2 pt-2">
+              <SignedIn>
+                {isOwn ? (
+                  <Button
+                    className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity w-full"
+                    asChild
+                    onClick={() => {
+                      router.push("/admin");
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <span className="mr-2"> Admin Dashboard</span>
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity w-full"
+                      asChild
+                      onClick={() => {
+                        router.push("/web/UserDashboard");
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <span className="mr-2"> Web Chatbots</span>
+                    </Button>
+                    <Button
+                      className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity w-full"
+                      asChild
+                      onClick={() => {
+                        router.push("/insta/dashboard");
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <span className="mr-2"> Insta Automation</span>
+                    </Button>
+
+                    <Button
+                      className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity w-full"
+                      asChild
+                      onClick={() => {
+                        router.push("/affiliate");
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <span className="mr-2">Affiliate</span>
+                    </Button>
+                  </>
+                )}
+              </SignedIn>
+
+              <SignedOut>
+                <Button
+                  variant="outline"
+                  className={`hover:opacity-90 transition-opacity ${themeStyles.outlineButton} w-full`}
+                  asChild
+                  onClick={() => {
+                    router.push("/sign-in");
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <span>Sign In</span>
+                </Button>
+                <Button
+                  className="bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity w-full"
+                  asChild
+                  onClick={() => {
+                    router.push("/contactUs");
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <span>
+                    <Contact className="h-4 w-4 mr-2" />
+                    Contact Us
+                  </span>
+                </Button>
+              </SignedOut>
+            </div>
+          </div>
         </div>
       </div>
     </header>

@@ -2,7 +2,6 @@
 
 import { connectToDatabase } from "@/lib/database/mongoose";
 
-import User from "@/lib/database/models/user.model";
 import InstagramAccount from "@/lib/database/models/insta/InstagramAccount.model";
 import { META_API_LIMIT_PER_ACCOUNT, TIER_LIMITS, TierType } from "@/constant";
 import InstaSubscription from "../database/models/insta/InstaSubscription.model";

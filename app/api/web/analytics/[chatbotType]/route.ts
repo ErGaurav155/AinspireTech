@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
@@ -22,19 +21,6 @@ export async function GET(
     await connectToDatabase;
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "7d";
-
-    const activeSubscription = await WebSubscription.findOne({
-      clerkId: userId,
-      chatbotType: chatbotType,
-      status: "active",
-    });
-
-    if (!activeSubscription) {
-      return NextResponse.json(
-        { error: "No active subscription for this chatbot type" },
-        { status: 403 }
-      );
-    }
 
     // Generate analytics data based on chatbot type
     const generateAnalyticsData = (chatbotType: string) => {

@@ -24,6 +24,8 @@ const isPublicRoute = createRouteMatcher([
   "/api/embed/mcqchatbot",
   "/api/embed/conversation",
   "/api/embed/webQuestion",
+  "/api/embed/tokens/balance",
+  "/api/embed/tokens/usage",
   "/privacy-policy",
   "/TermsandCondition",
   "/sign-in(.*)",

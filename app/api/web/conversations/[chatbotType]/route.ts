@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 import Conversation from "@/lib/database/models/web/Conversation.model";
 import { auth } from "@clerk/nextjs/server";
 
@@ -21,18 +20,6 @@ export async function GET(
     const offset = parseInt(searchParams.get("offset") || "0");
 
     await connectToDatabase;
-    const activeSubscription = await WebSubscription.findOne({
-      clerkId: userId,
-      chatbotType: chatbotType,
-      status: "active",
-    });
-
-    if (!activeSubscription) {
-      return NextResponse.json(
-        { error: "No active subscription for this chatbot type" },
-        { status: 403 }
-      );
-    }
 
     // Generate mock conversations if none exist
     const existingConversations = await Conversation.find({
