@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/database/mongoose";
 import { auth } from "@clerk/nextjs/server";
-import WebChatbot from "@/lib/database/models/web/Chatbot.model";
+import WebChatbot from "@/lib/database/models/web/WebChatbot.model";
 import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 
 export async function POST(request: NextRequest) {

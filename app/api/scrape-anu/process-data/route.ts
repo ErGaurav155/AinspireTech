@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadTextToCloudinary } from "@/lib/action/transaction.action";
-import WebChatbot from "@/lib/database/models/web/Chatbot.model";
+import WebChatbot from "@/lib/database/models/web/WebChatbot.model";
 import { connectToDatabase } from "@/lib/database/mongoose";
 
 function sanitizeForOpenAI(text: string): string {

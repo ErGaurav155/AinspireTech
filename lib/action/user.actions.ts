@@ -18,7 +18,7 @@ import RateUserRateLimit from "../database/models/Rate/UserRateLimit.model";
 import RateLimitQueue from "../database/models/Rate/RateLimitQueue.model";
 import { TIER_LIMITS } from "@/constant";
 import { getCurrentWindow } from "../services/hourlyRateLimiter";
-import WebChatbot from "../database/models/web/Chatbot.model";
+import WebChatbot from "../database/models/web/WebChatbot.model";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import WebChatbot from "@/lib/database/models/web/Chatbot.model";
+import WebChatbot from "@/lib/database/models/web/WebChatbot.model";
 
 // alternatively, you can host the chromium-pack.tar file elsewhere and update the URL below
 const CHROMIUM_PACK_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
