@@ -115,6 +115,9 @@ const PricingContent = () => {
   const [showCustom, setShowCustom] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Add state for user chatbots to check if chatbot is already created
+  const [userChatbots, setUserChatbots] = useState<any[]>([]);
+
   // Derived state
   const currentTheme = resolvedTheme || theme || "light";
 
@@ -180,9 +183,9 @@ const PricingContent = () => {
     pink: "text-[#FF2E9F]",
   };
 
-  // Fetch subscriptions
+  // Fetch subscriptions and user chatbots
   useEffect(() => {
-    const fetchSubscriptions = async () => {
+    const fetchUserData = async () => {
       if (!isLoaded) return;
 
       try {
@@ -191,35 +194,49 @@ const PricingContent = () => {
 
         if (!userId) {
           setSubscriptions([]);
+          setUserChatbots([]);
           return;
         }
 
-        const response = await apiClient.getSubscriptions(userId);
+        // Fetch subscriptions
+        const subscriptionsResponse = await apiClient.getSubscriptions(userId);
 
-        if (!response || !Array.isArray(response)) {
-          throw new Error("Invalid response format");
+        if (!subscriptionsResponse || !Array.isArray(subscriptionsResponse)) {
+          throw new Error("Invalid subscriptions response format");
         }
 
-        const formattedSubscriptions: Subscription[] = response.map(
-          (sub: any) => ({
+        const formattedSubscriptions: Subscription[] =
+          subscriptionsResponse.map((sub: any) => ({
             chatbotType: sub.chatbotType || "",
             clerkId: sub.clerkId || "",
             status: sub.status || "inactive",
             billingCycle: sub.billingCycle || "monthly",
-          })
-        );
+          }));
 
         setSubscriptions(formattedSubscriptions);
+
+        // Fetch user chatbots to check if chatbot is already created
+        try {
+          const chatbotsResponse = await fetch("/api/web/chatbot");
+          if (chatbotsResponse.ok) {
+            const chatbotsData = await chatbotsResponse.json();
+            setUserChatbots(chatbotsData.chatbots || []);
+          }
+        } catch (chatbotError) {
+          console.warn("Failed to fetch user chatbots:", chatbotError);
+          // Continue without chatbot data
+        }
       } catch (err) {
-        console.error("Error fetching subscriptions:", err);
+        console.error("Error fetching user data:", err);
         setError("Failed to load subscription data. Please try again.");
         setSubscriptions([]);
+        setUserChatbots([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchSubscriptions();
+    fetchUserData();
   }, [userId, isLoaded]);
 
   if (!mounted) {
@@ -247,6 +264,14 @@ const PricingContent = () => {
     return subscriptions.some(
       (sub) => sub.chatbotType === productId && sub.status === "active"
     );
+  };
+
+  const hasChatbotCreated = (productId: string) => {
+    // Check if user has already created a chatbot of this type
+    const existingChatbot = userChatbots.find(
+      (chatbot: any) => chatbot.type === productId
+    );
+    return !!existingChatbot;
   };
 
   const getCardStyles = (productId: string) => {
@@ -528,6 +553,7 @@ const PricingContent = () => {
     const { displayPrice, originalPrice, isYearly } = getProductPrice(product);
     const isSubscribed = isProductSubscribed(product.productId);
     const isMostPopular = product.productId === "chatbot-lead-generation";
+    const hasCreated = hasChatbotCreated(product.productId);
 
     return (
       <div
@@ -649,6 +675,8 @@ const PricingContent = () => {
                   billingCycle={billingMode}
                   amount={displayPrice}
                   planType="chatbot"
+                  chatbotCreated={hasCreated}
+                  tokens={1000000}
                 />
               )}
             </SignedIn>
@@ -708,11 +736,8 @@ const PricingContent = () => {
         >
           {plan.features.map((feature: string, idx: number) => (
             <li key={idx} className="flex items-center justify-start text-sm">
-              {/* <Check className="h-4 w-4 text-green-500 mr-2" /> */}
               <span
-                className={`flex-shrink-0 w-5 h-5 mt-1 mr-2 rounded-full flex items-center justify-center bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white ${
-                  currentTheme === "dark" ? "bg-gray-700" : "bg-gray-400"
-                }`}
+                className={`flex-shrink-0 w-5 h-5 mt-1 mr-2 rounded-full flex items-center justify-center bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-white`}
               >
                 <Check className="w-3 h-3" />
               </span>

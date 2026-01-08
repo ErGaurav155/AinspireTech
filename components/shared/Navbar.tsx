@@ -181,7 +181,10 @@ export function NavBar() {
                       <Button className="hidden md:flex bg-gradient-to-r from-[#00F0FF] to-[#B026FF] text-black hover:opacity-90 transition-opacity w-full">
                         <span>
                           Dashboard
-                          <ArrowRight className="hidden lg:flex" size={16} />
+                          <ArrowRight
+                            className="hidden lg:inline-flex ml-1"
+                            size={16}
+                          />
                         </span>
                       </Button>
                     </DropdownMenuTrigger>
@@ -211,7 +214,10 @@ export function NavBar() {
                   >
                     <span>
                       Affiliate
-                      <ArrowRight className="hidden lg:flex" size={16} />
+                      <ArrowRight
+                        className="hidden lg:inline-flex ml-1"
+                        size={16}
+                      />
                     </span>
                   </Button>
                 </>

@@ -17,7 +17,6 @@ export async function POST(request: NextRequest) {
         razorpayplanId: string;
         buyerId: string;
         productId: string;
-
         amount: number;
       };
 

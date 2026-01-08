@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import WebChatbot from "@/lib/database/models/web/chatbot.model";
 import { auth } from "@clerk/nextjs/server";
+import WebChatbot from "@/lib/database/models/web/Chatbot.model";
 
 export async function GET(
   request: NextRequest,
@@ -11,14 +10,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-
     const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDatabase;
+    await connectToDatabase();
 
     const chatbot = await WebChatbot.findOne({
       _id: new ObjectId(id),
@@ -45,7 +43,6 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-
     const { userId } = await auth();
 
     if (!userId) {
@@ -54,7 +51,7 @@ export async function PUT(
 
     const updateData = await request.json();
 
-    await connectToDatabase;
+    await connectToDatabase();
 
     const result = await WebChatbot.updateOne(
       {
@@ -91,14 +88,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-
     const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDatabase;
+    await connectToDatabase();
 
     const result = await WebChatbot.deleteOne({
       _id: new ObjectId(id),

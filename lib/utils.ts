@@ -99,30 +99,36 @@ class ApiClient {
   }
 
   // Chatbot methods
-  async getChatbots() {
-    return this.request("/web/chatbot/list");
+  async getChatbots(userId: string) {
+    return this.request(`/web/chatbot/list?userId=${userId}`);
+  }
+  async getChatbot(chatbotId: string) {
+    return this.request(`/web/chatbot/${chatbotId}`);
   }
 
-  async getChatbot(id: string) {
-    return this.request(`/web/chatbot/${id}`);
-  }
-
-  async createChatbot(data: any) {
+  async createChatbot(data: {
+    name: string;
+    type: string;
+    websiteUrl: string;
+    subscriptionId?: string;
+  }) {
     return this.request("/web/chatbot/create", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
   }
 
-  async updateChatbot(id: string, data: any) {
-    return this.request(`/web/chatbot/${id}`, {
+  async updateChatbot(chatbotId: string, updates: any) {
+    return this.request(`/web/chatbot/${chatbotId}`, {
       method: "PUT",
-      body: JSON.stringify(data),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
     });
   }
 
-  async deleteChatbot(id: string) {
-    return this.request(`/web/chatbot/${id}`, {
+  async deleteChatbot(chatbotId: string) {
+    return this.request(`/web/chatbot/${chatbotId}`, {
       method: "DELETE",
     });
   }
@@ -131,7 +137,26 @@ class ApiClient {
   async getAnalytics(chatbotType: string, period: string = "7d") {
     return this.request(`/web/analytics/${chatbotType}?period=${period}`);
   }
-
+  async scrapeWebsite(data: {
+    url: string;
+    userId: string;
+    chatbotId: string;
+  }) {
+    return this.request(
+      `/scrape-anu?url=${encodeURIComponent(
+        data.url
+      )}&userId=${encodeURIComponent(
+        data.userId
+      )}&chatbotId=${encodeURIComponent(data.chatbotId)}`
+    );
+  }
+  async processScrapedData(data: any) {
+    return this.request("/scrape-anu/process-data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+  }
   // Conversations methods
   async getConversations(
     chatbotType: string,

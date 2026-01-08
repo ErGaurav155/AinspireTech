@@ -1,20 +1,59 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import WebChatbot from "@/lib/database/models/web/chatbot.model";
+import { auth } from "@clerk/nextjs/server";
+import WebChatbot from "@/lib/database/models/web/Chatbot.model";
+import WebSubscription from "@/lib/database/models/web/Websubcription.model";
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, name, websiteUrl, settings } = await request.json();
+    const { userId } = await auth();
 
-    if (!userId || !name || !websiteUrl) {
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { name, type, websiteUrl, subscriptionId } = body;
+
+    if (!name || !type) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    await connectToDatabase(); // Don't forget parentheses
+    await connectToDatabase();
+
+    // Check if user already has this type of chatbot
+    const existingChatbot = await WebChatbot.findOne({
+      clerkId: userId,
+      type,
+    });
+
+    if (existingChatbot) {
+      return NextResponse.json(
+        { error: "You can only create one chatbot of this type" },
+        { status: 400 }
+      );
+    }
+
+    // Check if subscription is active for this chatbot type (if provided)
+    if (subscriptionId) {
+      const subscription = await WebSubscription.findOne({
+        clerkId: userId,
+        chatbotType: type,
+        status: "active",
+        subscriptionId,
+      });
+
+      if (!subscription) {
+        return NextResponse.json(
+          { error: "Active subscription required for this chatbot type" },
+          { status: 400 }
+        );
+      }
+    }
 
     // Generate embed code
     const chatbotId = new ObjectId();
@@ -25,7 +64,12 @@ export async function POST(request: NextRequest) {
       apiUrl: '${
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
       }/api/chatbot',
-      settings: ${JSON.stringify(settings)}
+      settings: {
+        welcomeMessage: "Hello! How can I help you today?",
+        primaryColor: "#3B82F6",
+        position: "bottom-right",
+        autoExpand: true
+      }
     };
     
     const script = document.createElement('script');
@@ -38,17 +82,17 @@ export async function POST(request: NextRequest) {
 </script>`;
 
     const newChatbot = {
-      _id: chatbotId, // Use the ObjectId directly
-      clerkId: userId, // Convert string to ObjectId
+      _id: chatbotId,
+      clerkId: userId,
       name,
-      websiteUrl,
+      type,
+      websiteUrl: websiteUrl || null,
       embedCode,
       settings: {
-        welcomeMessage:
-          settings?.welcomeMessage || "Hi! How can I help you today?",
-        primaryColor: settings?.primaryColor || "#00F0FF",
-        position: settings?.position || "bottom-right",
-        autoExpand: settings?.autoExpand || false,
+        welcomeMessage: "Hello! How can I help you today?",
+        primaryColor: "#3B82F6",
+        position: "bottom-right",
+        autoExpand: true,
       },
       analytics: {
         totalConversations: 0,
@@ -57,9 +101,9 @@ export async function POST(request: NextRequest) {
         satisfactionScore: 0,
       },
       isActive: true,
+      subscriptionId: subscriptionId || null,
     };
 
-    // Use Mongoose create() method
     const createdChatbot = await WebChatbot.create(newChatbot);
 
     return NextResponse.json({

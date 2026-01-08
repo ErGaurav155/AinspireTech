@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
@@ -201,6 +201,19 @@ interface TokenBalance {
   nextResetAt: string;
 }
 
+interface ChatbotStatus {
+  id: string;
+  name: string;
+  type: string;
+  isBuilt: boolean;
+  websiteUrl?: string;
+  scrappedFile?: string;
+  chatbotName?: string;
+  chatbotMessage?: string;
+  analytics?: any;
+  conversations?: Conversation[];
+}
+
 type BillingMode = "Immediate" | "End-of-term";
 type OTPStep = "phone" | "otp" | "weblink";
 type DashboardTab = "overview" | "conversations" | "integration" | "settings";
@@ -269,6 +282,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { userId, isLoaded } = useAuth();
   const { theme, resolvedTheme } = useTheme();
+  const hasLoadedRef = useRef(false);
 
   // State
   const [selectedChatbot, setSelectedChatbot] = useState<string>(
@@ -283,6 +297,28 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
+  // Chatbot status tracking
+  const [chatbotStatuses, setChatbotStatuses] = useState<ChatbotStatus[]>([
+    {
+      id: "chatbot-lead-generation",
+      name: "Lead Generation",
+      type: "chatbot-lead-generation",
+      isBuilt: false,
+    },
+    {
+      id: "chatbot-customer-support",
+      name: "Customer Support",
+      type: "chatbot-customer-support",
+      isBuilt: false,
+    },
+    {
+      id: "chatbot-education",
+      name: "Chatbot Education",
+      type: "chatbot-education",
+      isBuilt: false,
+    },
+  ]);
+
   // Token states
   const [tokenBalance, setTokenBalance] = useState<TokenBalance | null>(null);
   const [showTokenPurchase, setShowTokenPurchase] = useState(false);
@@ -291,7 +327,7 @@ export default function DashboardPage() {
 
   // Website scraping states
   const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
-  const [isWebScrapped, setIsWebScrapped] = useState(true);
+  const [isWebScrapped, setIsWebScrapped] = useState(false);
   const [webError, setWebError] = useState<string | null>(null);
   const [webLoading, setWebLoading] = useState(false);
   const [scrapedData, setScrapedData] = useState<ScrapedData | null>(null);
@@ -366,8 +402,9 @@ export default function DashboardPage() {
   // Build chatbot dialog states
   const [showBuildDialog, setShowBuildDialog] = useState(false);
   const [buildWebsiteUrl, setBuildWebsiteUrl] = useState("");
+  const [buildChatbotName, setBuildChatbotName] = useState("");
   const [buildStep, setBuildStep] = useState<
-    "weblink" | "processing" | "complete"
+    "weblink" | "payment" | "scraping" | "chatbot-create"
   >("weblink");
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
@@ -377,10 +414,14 @@ export default function DashboardPage() {
   const currentChatbot = CHATBOT_TYPES.find(
     (bot) => bot.id === selectedChatbot
   );
-  const hasBuiltChatbot = isWebScrapped;
+  const currentChatbotStatus = chatbotStatuses.find(
+    (status) => status.type === selectedChatbot
+  );
+  const hasBuiltChatbot = currentChatbotStatus?.isBuilt || false;
   const isSubscribed = subscriptions[selectedChatbot]?.status === "active";
   const isTokenLow =
     tokenBalance?.availableTokens && tokenBalance.availableTokens < 1000;
+  const isEducationChatbot = selectedChatbot === "chatbot-education";
 
   // Form handling
   const {
@@ -442,24 +483,94 @@ export default function DashboardPage() {
     });
   };
 
+  // Load chatbot data for a specific type
+  const loadChatbotData = useCallback(
+    async (chatbotType: string) => {
+      try {
+        // Load user chatbots from API
+        const response = await fetch("/api/web/chatbot");
+        if (response.ok) {
+          const data = await response.json();
+          const userChatbots = data.chatbots || [];
+
+          // Find chatbot for the current type
+          const chatbot = userChatbots.find((c: any) => c.type === chatbotType);
+
+          if (chatbot) {
+            // Update chatbot status without triggering re-render loops
+            setChatbotStatuses((prev) => {
+              const existing = prev.find((s) => s.type === chatbotType);
+              if (existing?.isBuilt) return prev; // Don't update if already built
+
+              return prev.map((status) =>
+                status.type === chatbotType
+                  ? {
+                      ...status,
+                      isBuilt: true,
+                      websiteUrl: chatbot.websiteUrl,
+                      scrappedFile: chatbot.scrappedFile,
+                      chatbotName: chatbot.name,
+                      chatbotMessage: chatbot.settings?.welcomeMessage,
+                    }
+                  : status
+              );
+            });
+
+            // Set current state for the selected chatbot
+            if (selectedChatbot === chatbotType) {
+              setIsWebScrapped(true);
+              setWebsiteUrl(chatbot.websiteUrl);
+              setFileLink(chatbot.scrappedFile);
+              setChatbotName(chatbot.name);
+              setChatbotMessage(chatbot.settings?.welcomeMessage);
+
+              // Load analytics and conversations for built chatbots
+              if (
+                chatbotType === "chatbot-lead-generation" ||
+                chatbotType === "chatbot-customer-support"
+              ) {
+                try {
+                  const analyticsData = await apiClient.getAnalytics(
+                    chatbotType
+                  );
+                  setAnalytics(analyticsData.analytics);
+                } catch (analyticsError) {
+                  console.warn("Failed to load analytics:", analyticsError);
+                }
+
+                try {
+                  const conversationsData = await apiClient.getConversations(
+                    chatbotType
+                  );
+                  setConversations(conversationsData.conversations || []);
+                } catch (conversationsError) {
+                  console.warn(
+                    "Failed to load conversations:",
+                    conversationsError
+                  );
+                }
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error loading chatbot data for ${chatbotType}:`, error);
+      }
+    },
+    [selectedChatbot]
+  ); // Only depends on selectedChatbot
+
   // Data loading
   const loadDashboardData = useCallback(async () => {
+    if (!userId || hasLoadedRef.current) return; // Prevent re-running
     try {
       setLoading(true);
       setError("");
+      hasLoadedRef.current = true; // Mark as loading started
 
       if (!userId) {
         router.push("/sign-in");
         return;
-      }
-
-      // Load user info
-      const userInfo = await getUserById(userId);
-      if (userInfo) {
-        setWebsiteUrl(userInfo.websiteUrl || null);
-        setIsWebScrapped(userInfo.isScrapped);
-        setFileLink(userInfo.scrappedFile);
-        setPhone(userInfo.phone);
       }
 
       // Load token balance
@@ -498,15 +609,27 @@ export default function DashboardPage() {
 
       setSubscriptions(subscriptionsMap);
 
-      // Set chatbot name and message for selected chatbot
-      if (subscriptionsMap[selectedChatbot]) {
-        setChatbotName(subscriptionsMap[selectedChatbot].chatbotName || null);
-        setChatbotMessage(
-          subscriptionsMap[selectedChatbot].chatbotMessage || null
-        );
+      // Load data for all chatbots
+      for (const chatbotType of [
+        "chatbot-lead-generation",
+        "chatbot-customer-support",
+        "chatbot-education",
+      ]) {
+        await loadChatbotData(chatbotType);
       }
 
-      // Load FAQ questions
+      // Set chatbot name and message for selected chatbot
+      if (selectedChatbot) {
+        const currentStatus = chatbotStatuses.find(
+          (status) => status.type === selectedChatbot
+        );
+        if (currentStatus?.isBuilt) {
+          setChatbotName(currentStatus.chatbotName || null);
+          setChatbotMessage(currentStatus.chatbotMessage || null);
+        }
+      }
+
+      // Load FAQ questions for selected chatbot
       try {
         const faqResponse = await apiClient.getFAQ(userId, selectedChatbot);
         setFaqQuestions(faqResponse.faq?.questions || []);
@@ -515,7 +638,7 @@ export default function DashboardPage() {
         // Keep default FAQ questions
       }
 
-      // Load appointment questions
+      // Load appointment questions for selected chatbot
       try {
         const questionsResponse = await apiClient.getAppointmentQuestions(
           selectedChatbot
@@ -528,31 +651,6 @@ export default function DashboardPage() {
       } catch (appointmentError) {
         console.warn("Failed to load appointment questions:", appointmentError);
       }
-
-      // Load analytics and conversations for relevant chatbots
-      if (
-        (selectedChatbot === "chatbot-lead-generation" ||
-          selectedChatbot === "chatbot-customer-support") &&
-        hasBuiltChatbot
-      ) {
-        if (selectedChatbot === "chatbot-lead-generation") {
-          try {
-            const analyticsData = await apiClient.getAnalytics(selectedChatbot);
-            setAnalytics(analyticsData.analytics);
-          } catch (analyticsError) {
-            console.warn("Failed to load analytics:", analyticsError);
-          }
-        }
-
-        try {
-          const conversationsData = await apiClient.getConversations(
-            selectedChatbot
-          );
-          setConversations(conversationsData.conversations || []);
-        } catch (conversationsError) {
-          console.warn("Failed to load conversations:", conversationsError);
-        }
-      }
     } catch (err: any) {
       const errorMessage = err.message || "Failed to load dashboard data";
       setError(errorMessage);
@@ -560,7 +658,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [userId, selectedChatbot, router, hasBuiltChatbot]);
+  }, [userId, selectedChatbot, router, chatbotStatuses, loadChatbotData]);
 
   // Effects
   useEffect(() => {
@@ -571,8 +669,23 @@ export default function DashboardPage() {
       return;
     }
 
-    loadDashboardData();
+    if (!hasLoadedRef.current) {
+      loadDashboardData();
+    }
+    return () => {
+      hasLoadedRef.current = false;
+    };
   }, [userId, isLoaded, router, loadDashboardData]);
+
+  useEffect(() => {
+    if (userId && hasLoadedRef.current) {
+      // When chatbot changes, load data for that specific chatbot
+      loadChatbotData(selectedChatbot);
+
+      // Also update token balance if needed
+      refreshTokenBalance();
+    }
+  }, [selectedChatbot, userId, loadChatbotData]); // Only reload when selectedChatbot changes
 
   // Token-related functions
   const refreshTokenBalance = async () => {
@@ -595,13 +708,21 @@ export default function DashboardPage() {
 
   // Event handlers
   const handleCopyCode = () => {
+    const currentStatus = chatbotStatuses.find(
+      (status) => status.type === selectedChatbot
+    );
+    if (!currentStatus?.isBuilt) {
+      showErrorToast("Error", "Please build your chatbot first");
+      return;
+    }
+
     const code =
       selectedChatbot === "chatbot-education"
         ? `<script 
 src="https://ainspiretech.com/mcqchatbotembed.js" 
 data-mcq-chatbot='{
   "userId":"${userId}",
-  "isAuthorized":${hasBuiltChatbot},
+  "isAuthorized":true,
   "chatbotType":"${selectedChatbot}",
   "apiUrl":"https://ainspiretech.com",
   "primaryColor":"#00F0FF",
@@ -614,8 +735,8 @@ data-mcq-chatbot='{
 src="https://ainspiretech.com/chatbotembed.js" 
 data-chatbot-config='{
   "userId":"${userId}",
-  "isAuthorized":${hasBuiltChatbot},
-  "filename":"${fileLink}",
+  "isAuthorized":true,
+  "filename":"${currentStatus.scrappedFile}",
   "chatbotType":"${selectedChatbot}",
   "apiUrl":"https://ainspiretech.com",
   "primaryColor":"#00F0FF",
@@ -638,42 +759,85 @@ data-chatbot-config='{
   const handleBuildChatbot = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!buildWebsiteUrl.trim()) {
-      setBuildError("Please enter a website URL");
+    if (!buildChatbotName.trim()) {
+      setBuildError("Please enter a chatbot name");
       return;
     }
 
-    // URL validation
-    if (!/^https?:\/\//i.test(buildWebsiteUrl.trim())) {
-      setBuildError("URL must start with http:// or https://");
-      return;
-    }
+    // For education chatbot, skip URL validation
+    if (!isEducationChatbot) {
+      if (!buildWebsiteUrl.trim()) {
+        setBuildError("Please enter a website URL");
+        return;
+      }
 
-    try {
-      new URL(buildWebsiteUrl.trim());
-    } catch {
-      setBuildError("Invalid URL format. Please enter a valid URL.");
-      return;
+      // URL validation for non-education chatbots
+      if (!/^https?:\/\//i.test(buildWebsiteUrl.trim())) {
+        setBuildError("URL must start with http:// or https://");
+        return;
+      }
+
+      try {
+        new URL(buildWebsiteUrl.trim());
+      } catch {
+        setBuildError("Invalid URL format. Please enter a valid URL.");
+        return;
+      }
     }
 
     setIsBuilding(true);
     setBuildError(null);
-    setBuildStep("processing");
+    setBuildStep("payment");
 
+    // For now, we'll simulate the payment step and move to next step
+    setTimeout(() => {
+      if (isEducationChatbot) {
+        // For education chatbot, skip scraping and go directly to chatbot creation
+        setBuildStep("chatbot-create");
+        proceedWithChatbotCreation();
+      } else {
+        // For other chatbots, proceed with scraping
+        setBuildStep("scraping");
+        proceedWithScraping();
+      }
+    }, 2000);
+  };
+
+  const proceedWithScraping = async () => {
     try {
-      // Call scraping API
+      // Create chatbot first
+      setBuildStep("chatbot-create");
+
+      // Call chatbot creation API
+      const response = await fetch("/api/web/chatbot/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: buildChatbotName.trim(),
+          type: selectedChatbot,
+          websiteUrl: buildWebsiteUrl.trim() || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create chatbot");
+      }
+
+      const chatbotData = await response.json();
+      const chatbotId = chatbotData.chatbot.id;
+
+      // Now scrape the website (only for non-education chatbots)
       const scrapeResponse = await fetch(
         `/api/scrape-anu?url=${encodeURIComponent(
           buildWebsiteUrl.trim()
-        )}&userId=${encodeURIComponent(userId!)}&agentId=${selectedChatbot}`
+        )}&userId=${encodeURIComponent(userId!)}&chatbotId=${encodeURIComponent(
+          chatbotId
+        )}`
       );
 
       if (!scrapeResponse.ok) {
-        if (scrapeResponse.status === 429) {
-          throw new Error("Rate limit reached. Please try again later.");
-        }
-        const errorText = await scrapeResponse.text();
-        throw new Error(errorText || "Failed to scrape website.");
+        throw new Error("Failed to scrape website");
       }
 
       const scrapeResult = await scrapeResponse.json();
@@ -683,24 +847,39 @@ data-chatbot-config='{
         const processResponse = await fetch("/api/scrape-anu/process-data", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(scrapeResult.data),
+          body: JSON.stringify({
+            ...scrapeResult.data,
+            chatbotId,
+          }),
         });
 
         if (!processResponse.ok) {
-          throw new Error("Failed to process scraped data.");
+          throw new Error("Failed to process scraped data");
         }
 
         const processResult = await processResponse.json();
 
         if (processResult.success) {
-          // Update user with website URL and scraped status
-          await setScrappedFile(userId!, processResult.data.cloudinaryLink);
-          await setWebsiteScrapped(userId!);
+          // Update chatbot status
+          setChatbotStatuses((prev) =>
+            prev.map((status) =>
+              status.type === selectedChatbot
+                ? {
+                    ...status,
+                    isBuilt: true,
+                    websiteUrl: buildWebsiteUrl.trim(),
+                    scrappedFile: processResult.data.cloudinaryLink,
+                    chatbotName: buildChatbotName.trim(),
+                  }
+                : status
+            )
+          );
 
-          setBuildStep("complete");
-          setWebsiteUrl(buildWebsiteUrl.trim());
+          // Set current state
           setIsWebScrapped(true);
+          setWebsiteUrl(buildWebsiteUrl.trim());
           setFileLink(processResult.data.cloudinaryLink);
+          setChatbotName(buildChatbotName.trim());
 
           showSuccessToast(
             "Chatbot Built Successfully!",
@@ -709,8 +888,11 @@ data-chatbot-config='{
 
           // Refresh dashboard data
           setTimeout(() => {
-            loadDashboardData();
+            loadChatbotData(selectedChatbot);
             setShowBuildDialog(false);
+            setBuildStep("weblink");
+            setBuildWebsiteUrl("");
+            setBuildChatbotName("");
           }, 2000);
         } else {
           throw new Error("Data processing failed");
@@ -728,20 +910,89 @@ data-chatbot-config='{
     }
   };
 
+  const proceedWithChatbotCreation = async () => {
+    try {
+      // For education chatbot, create without website scraping
+      const response = await fetch("/api/web/chatbot/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: buildChatbotName.trim(),
+          type: selectedChatbot,
+          websiteUrl: null, // No website URL for education chatbot
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create chatbot");
+      }
+
+      const chatbotData = await response.json();
+
+      // Update chatbot status for education chatbot
+      setChatbotStatuses((prev) =>
+        prev.map((status) =>
+          status.type === selectedChatbot
+            ? {
+                ...status,
+                isBuilt: true,
+                websiteUrl: undefined, // No website URL
+                scrappedFile: undefined, // No scraped file
+                chatbotName: buildChatbotName.trim(),
+              }
+            : status
+        )
+      );
+
+      // Set current state
+      setIsWebScrapped(true);
+      setWebsiteUrl(null);
+      setFileLink(undefined);
+      setChatbotName(buildChatbotName.trim());
+
+      showSuccessToast(
+        "Education Chatbot Built Successfully!",
+        "Your MCQ education chatbot is now ready to use."
+      );
+
+      // Refresh dashboard data
+      setTimeout(() => {
+        loadChatbotData(selectedChatbot);
+        setShowBuildDialog(false);
+        setBuildStep("weblink");
+        setBuildWebsiteUrl("");
+        setBuildChatbotName("");
+      }, 2000);
+    } catch (err: any) {
+      const errorMessage = err.message || "An unknown error occurred.";
+      setBuildError(errorMessage);
+      setBuildStep("weblink");
+      showErrorToast("Build Error", errorMessage);
+    } finally {
+      setIsBuilding(false);
+    }
+  };
+
   const handleScrape = async () => {
-    if (!websiteUrl || !userId) {
-      setWebError("Please enter a valid URL.");
+    const currentStatus = chatbotStatuses.find(
+      (status) => status.type === selectedChatbot
+    );
+    if (!currentStatus?.websiteUrl || !userId || isEducationChatbot) {
+      setWebError("Website scraping is not applicable for education chatbot");
       return;
     }
 
+    const websiteUrlToScrape = currentStatus.websiteUrl;
+
     // URL validation
-    if (!/^https?:\/\//i.test(websiteUrl.trim())) {
+    if (!/^https?:\/\//i.test(websiteUrlToScrape.trim())) {
       setWebError("URL must start with http:// or https://");
       return;
     }
 
     try {
-      new URL(websiteUrl.trim());
+      new URL(websiteUrlToScrape);
     } catch {
       setWebError("Invalid URL format. Please enter a valid URL.");
       return;
@@ -752,73 +1003,21 @@ data-chatbot-config='{
     setScrapedData(null);
 
     try {
-      const scrapeResponse = await fetch(
-        `/api/scrape-anu?url=${encodeURIComponent(
-          websiteUrl
-        )}&userId=${encodeURIComponent(userId)}&agentId=${selectedChatbot}`
+      // We need the chatbot ID to rescrape
+      // For now, we'll just show an error
+      setWebError(
+        "Rescraping requires chatbot ID. Please rebuild the chatbot if needed."
       );
-
-      if (!scrapeResponse.ok) {
-        if (scrapeResponse.status === 429) {
-          throw new Error("Rate limit reached. Please try again later.");
-        }
-        const errorText = await scrapeResponse.text();
-        throw new Error(errorText || "Failed to scrape website.");
-      }
-
-      const scrapeResult = await scrapeResponse.json();
-
-      if (scrapeResult.success) {
-        await handleProcessData(scrapeResult.data);
-      } else {
-        throw new Error("Scraping failed");
-      }
+      showErrorToast(
+        "Scraping Error",
+        "Please rebuild the chatbot to update website data."
+      );
     } catch (err: any) {
       const errorMessage = err.message || "An unknown error occurred.";
       setWebError(errorMessage);
       showErrorToast("Scraping Error", errorMessage);
     } finally {
       setWebLoading(false);
-    }
-  };
-
-  const handleProcessData = async (data: any) => {
-    setProcessing(true);
-    setWebError(null);
-
-    try {
-      const processResponse = await fetch("/api/scrape-anu/process-data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!processResponse.ok) {
-        const errorText = await processResponse.text();
-        throw new Error(errorText || "Failed to process data.");
-      }
-
-      const processResult = await processResponse.json();
-
-      if (processResult.success) {
-        await setScrappedFile(userId!, processResult.data.cloudinaryLink);
-        await setWebsiteScrapped(userId!);
-        setScrapedData(processResult.data);
-        showSuccessToast(
-          "Scraping Complete",
-          "Website data has been successfully scraped and processed."
-        );
-        router.refresh();
-      } else {
-        throw new Error("Data processing failed");
-      }
-    } catch (err: any) {
-      const errorMessage =
-        err.message || "An error occurred while processing data.";
-      setWebError(errorMessage);
-      showErrorToast("Processing Error", errorMessage);
-    } finally {
-      setProcessing(false);
     }
   };
 
@@ -860,7 +1059,20 @@ data-chatbot-config='{
 
     setInfoLoading(true);
     try {
-      // For free users, we save the chatbot info locally
+      // Update chatbot status with new info
+      setChatbotStatuses((prev) =>
+        prev.map((status) =>
+          status.type === selectedChatbot
+            ? {
+                ...status,
+                chatbotName,
+                chatbotMessage,
+              }
+            : status
+        )
+      );
+
+      // Also save to localStorage for persistence
       localStorage.setItem(`${userId}-${selectedChatbot}-name`, chatbotName);
       localStorage.setItem(
         `${userId}-${selectedChatbot}-message`,
@@ -1172,141 +1384,180 @@ data-chatbot-config='{
 
   const renderBuildDialog = () => (
     <AlertDialog open={showBuildDialog} onOpenChange={setShowBuildDialog}>
-      <AlertDialogContent className={`${themeStyles.alertBg} max-w-md`}>
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center">
-            <Bot className="h-5 w-5 mr-2 text-[#00F0FF]" />
-            Build Your {currentChatbot?.name} Chatbot
-          </AlertDialogTitle>
-          <AlertDialogDescription
-            className={`${themeStyles.textSecondary} font-montserrat`}
-          >
-            {buildStep === "weblink"
-              ? "Enter your website URL to train the chatbot with your business information."
-              : buildStep === "processing"
-              ? "Scraping your website and training the AI chatbot. This may take 1-2 minutes."
-              : "Your chatbot has been successfully built! You can now use it on your website."}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+      <AlertDialogContent className="bg-gradient-to-br from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] backdrop-blur-2xl border border-white/10 rounded-2xl max-w-md p-0 overflow-hidden shadow-2xl">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="relative"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-[#00F0FF]/5 via-transparent to-[#B026FF]/5" />
+          <div className="absolute top-0 left-0 w-20 h-20 bg-[#00F0FF]/10 rounded-full blur-xl -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-0 w-20 h-20 bg-[#B026FF]/10 rounded-full blur-xl translate-x-1/2 translate-y-1/2" />
+          <AlertDialogHeader className="relative p-6 border-b border-white/10">
+            <AlertDialogTitle className="flex items-center">
+              <Bot className="h-5 w-5 mr-2 text-[#00F0FF]" />
+              Build Your {currentChatbot?.name} Chatbot
+            </AlertDialogTitle>
+            <AlertDialogDescription
+              className={`${themeStyles.textSecondary} font-montserrat`}
+            >
+              {buildStep === "weblink"
+                ? isEducationChatbot
+                  ? "Configure your MCQ education chatbot"
+                  : "Enter your website URL to train the chatbot with your business information."
+                : buildStep === "payment"
+                ? "Processing payment for your chatbot subscription..."
+                : buildStep === "scraping"
+                ? "Scraping your website and training the AI chatbot. This may take 1-2 minutes."
+                : "Creating your chatbot..."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-        {buildStep === "weblink" ? (
-          <form onSubmit={handleBuildChatbot} className="space-y-4">
-            <div>
-              <Label
-                htmlFor="buildWebsiteUrl"
-                className={themeStyles.textSecondary}
-              >
-                Website URL
-              </Label>
-              <Input
-                id="buildWebsiteUrl"
-                type="url"
-                value={buildWebsiteUrl}
-                onChange={(e) => setBuildWebsiteUrl(e.target.value)}
-                placeholder="https://yourwebsite.com"
-                className={`mt-1 ${themeStyles.inputBg} ${themeStyles.inputBorder} font-montserrat`}
-                required
-              />
-            </div>
-
-            {buildError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                <p className="text-red-400 text-sm">{buildError}</p>
+          {buildStep === "weblink" ? (
+            <form onSubmit={handleBuildChatbot} className="p-6 space-y-6">
+              <div className="text-center">
+                <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                  CONFIGURE YOUR CHATBOT
+                </h3>
+                <p className="text-sm text-gray-400 mt-2 font-montserrat">
+                  {isEducationChatbot
+                    ? "Enter your chatbot details"
+                    : "Enter your website and chatbot details"}
+                </p>
               </div>
-            )}
-
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-              <p className="text-blue-400 text-sm flex items-center font-montserrat">
-                <Sparkles className="h-4 w-4 mr-2" />
-                You will receive 10,000 free tokens after building your chatbot
-              </p>
-            </div>
-
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setShowBuildDialog(false)}>
-                Cancel
-              </AlertDialogCancel>
-              <Button
-                type="submit"
-                disabled={isBuilding || !buildWebsiteUrl.trim()}
-                className="bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-white"
-              >
-                {isBuilding ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Building...
-                  </>
-                ) : (
-                  <>
-                    <Bot className="h-4 w-4 mr-2" />
-                    Build Chatbot
-                  </>
-                )}
-              </Button>
-            </AlertDialogFooter>
-          </form>
-        ) : buildStep === "processing" ? (
-          <div className="space-y-4">
-            <div className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="h-12 w-12 text-[#00F0FF] animate-spin mb-4" />
-              <p className={themeStyles.textPrimary}>
-                Training your chatbot...
-              </p>
-              <p
-                className={`text-sm ${themeStyles.textSecondary} mt-2 text-center font-montserrat`}
-              >
-                Please do not close this window. This may take 1-2 minutes.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex flex-col items-center justify-center py-8">
-              <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
-              <h3
-                className={`text-xl font-bold ${themeStyles.textPrimary} mb-2`}
-              >
-                Chatbot Built Successfully!
-              </h3>
-              <p
-                className={`text-sm ${themeStyles.textSecondary} text-center mb-4 font-montserrat`}
-              >
-                Your {currentChatbot?.name} chatbot is now ready to use with
-                your website data.
-              </p>
-
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 w-full mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Coins className="h-5 w-5 text-yellow-500 mr-2" />
-                    <span className={themeStyles.textPrimary}>
-                      Free Tokens Added
-                    </span>
-                  </div>
-                  <Badge className="bg-green-500 text-white">10,000</Badge>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Chatbot Name
+                  </label>
+                  <Input
+                    id="buildChatbotName"
+                    type="text"
+                    value={buildChatbotName}
+                    onChange={(e) => setBuildChatbotName(e.target.value)}
+                    placeholder={
+                      isEducationChatbot
+                        ? "My Education Chatbot"
+                        : "My Support Chatbot"
+                    }
+                    className="w-full bg-[#1a1a1a]/80 backdrop-blur-sm border-2 border-white/10 rounded-xl py-3 px-4 text-white font-montserrat placeholder:text-gray-500 focus:outline-none text-lg transition-all duration-300 focus:border-[#00F0FF] focus:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+                    required
+                  />
                 </div>
-                <p
-                  className={`text-sm ${themeStyles.textSecondary} mt-2 font-montserrat`}
+                {!isEducationChatbot && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Website URL
+                    </label>
+                    <Input
+                      id="buildWebsiteUrl"
+                      type="url"
+                      value={buildWebsiteUrl}
+                      onChange={(e) => setBuildWebsiteUrl(e.target.value)}
+                      placeholder="https://yourwebsite.com"
+                      className="w-full bg-[#1a1a1a]/80 backdrop-blur-sm border-2 border-white/10 rounded-xl py-3 px-4 text-white font-montserrat placeholder:text-gray-500 focus:outline-none text-lg transition-all duration-300 focus:border-[#00F0FF] focus:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+                      required
+                    />
+                  </div>
+                )}
+              </div>
+
+              {buildError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                  <p className="text-red-400 text-sm">{buildError}</p>
+                </div>
+              )}
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                <p className="text-blue-400 text-sm flex items-center font-montserrat">
+                  <Bot className="h-4 w-4 mr-2" />
+                  {isEducationChatbot
+                    ? "Education chatbot is designed for MCQ-based learning and doesn't require website scraping"
+                    : "Each chatbot type can only be created once per account"}
+                </p>
+              </div>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel
+                  onClick={() => {
+                    setShowBuildDialog(false);
+                    setBuildStep("weblink");
+                    setBuildWebsiteUrl("");
+                    setBuildChatbotName("");
+                    setBuildError(null);
+                  }}
+                  className="relative"
                 >
-                  Use these tokens to power your chatbot conversations
+                  Cancel
+                </AlertDialogCancel>
+                <Button
+                  type="submit"
+                  disabled={
+                    isBuilding ||
+                    !buildChatbotName.trim() ||
+                    (!isEducationChatbot && !buildWebsiteUrl.trim())
+                  }
+                  className="relative bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-white"
+                >
+                  {isBuilding ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="h-4 w-4 mr-2" />
+                      Build Chatbot
+                    </>
+                  )}
+                </Button>
+              </AlertDialogFooter>
+            </form>
+          ) : buildStep === "payment" ? (
+            <div className="space-y-4">
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="h-12 w-12 text-[#00F0FF] animate-spin mb-4" />
+                <p className={themeStyles.textPrimary}>Processing payment...</p>
+                <p
+                  className={`text-sm ${themeStyles.textSecondary} mt-2 text-center font-montserrat`}
+                >
+                  Please wait while we process your payment.
                 </p>
               </div>
             </div>
-
-            <AlertDialogFooter>
-              <Button
-                onClick={() => {
-                  setShowBuildDialog(false);
-                  setBuildStep("weblink");
-                  setBuildWebsiteUrl("");
-                }}
-                className="w-full bg-gradient-to-r from-[#00F0FF] to-[#0080FF] hover:opacity-90 text-white"
-              >
-                Start Using Chatbot
-              </Button>
-            </AlertDialogFooter>
-          </div>
-        )}
+          ) : buildStep === "scraping" ? (
+            <div className="space-y-4">
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="h-12 w-12 text-[#00F0FF] animate-spin mb-4" />
+                <p className={themeStyles.textPrimary}>Scraping website...</p>
+                <p
+                  className={`text-sm ${themeStyles.textSecondary} mt-2 text-center font-montserrat`}
+                >
+                  Please do not close this window. This may take 1-2 minutes.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="h-12 w-12 text-[#00F0FF] animate-spin mb-4" />
+                <p className={themeStyles.textPrimary}>
+                  {isEducationChatbot
+                    ? "Creating your education chatbot..."
+                    : "Creating your chatbot..."}
+                </p>
+                <p
+                  className={`text-sm ${themeStyles.textSecondary} mt-2 text-center font-montserrat`}
+                >
+                  {isEducationChatbot
+                    ? "Setting up your MCQ education chatbot."
+                    : "Finalizing your chatbot setup."}
+                </p>
+              </div>
+            </div>
+          )}
+        </motion.div>
       </AlertDialogContent>
     </AlertDialog>
   );
@@ -1354,7 +1605,7 @@ data-chatbot-config='{
         </h2>
 
         {tokenBalance && (
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap gap-2 items-center ">
             <div
               className={`px-3 py-2 rounded-md ${themeStyles.badgeActiveBg} flex items-center`}
             >
@@ -1378,7 +1629,10 @@ data-chatbot-config='{
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {CHATBOT_TYPES.map((chatbot) => {
           const isActive = selectedChatbot === chatbot.id;
-          const hasBuilt = isWebScrapped;
+          const chatbotStatus = chatbotStatuses.find(
+            (s) => s.type === chatbot.id
+          );
+          const hasBuilt = chatbotStatus?.isBuilt || false;
 
           return (
             <Card
@@ -1403,8 +1657,10 @@ data-chatbot-config='{
                 const savedMessage = localStorage.getItem(
                   `${userId}-${chatbot.id}-message`
                 );
-                setChatbotName(savedName || null);
-                setChatbotMessage(savedMessage || null);
+                setChatbotName(savedName || chatbotStatus?.chatbotName || null);
+                setChatbotMessage(
+                  savedMessage || chatbotStatus?.chatbotMessage || null
+                );
               }}
             >
               <CardContent className="p-4">
@@ -1445,7 +1701,7 @@ data-chatbot-config='{
                     }}
                   >
                     <Bot className="h-4 w-4 mr-2" />
-                    Build Now (Free)
+                    Build Now
                   </Button>
                 ) : (
                   <div className="space-y-2">
@@ -1486,9 +1742,10 @@ data-chatbot-config='{
 
   const renderStatsGrid = () => {
     if (
-      selectedChatbot !== "chatbot-lead-generation" ||
       !hasBuiltChatbot ||
-      !analytics
+      !analytics ||
+      (selectedChatbot !== "chatbot-lead-generation" &&
+        selectedChatbot !== "chatbot-customer-support")
     ) {
       return null;
     }
@@ -1528,69 +1785,72 @@ data-chatbot-config='{
     <TabsContent value="overview" className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Conversation Trends */}
-        {analytics && selectedChatbot === "chatbot-lead-generation" && (
-          <Card
-            className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
-          >
-            <CardHeader className="p-3 md:p-4">
-              <CardTitle className={themeStyles.textPrimary}>
-                Conversation Trends
-              </CardTitle>
-              <CardDescription
-                className={`${themeStyles.textSecondary} font-montserrat`}
-              >
-                Daily conversation volume for {currentChatbot?.name}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-3 md:p-4">
-              <div className="h-64 overflow-x-auto">
-                <ResponsiveContainer width={1000} height="100%">
-                  <LineChart data={analytics.trends}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke={currentTheme === "dark" ? "#374151" : "#e5e7eb"}
-                    />
-                    <XAxis
-                      dataKey="name"
-                      stroke={themeStyles.textSecondary}
-                      tick={{ fill: themeStyles.textSecondary }}
-                    />
-                    <YAxis
-                      stroke={themeStyles.textSecondary}
-                      tick={{ fill: themeStyles.textSecondary }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor:
-                          currentTheme === "dark" ? "#1F2937" : "#ffffff",
-                        border:
-                          currentTheme === "dark"
-                            ? "1px solid #374151"
-                            : "1px solid #e5e7eb",
-                        borderRadius: "8px",
-                        color: currentTheme === "dark" ? "#F3F4F6" : "#1f2937",
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="conversations"
-                      stroke="#00F0FF"
-                      strokeWidth={2}
-                      activeDot={{ r: 6 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="responses"
-                      stroke="#FF2E9F"
-                      strokeWidth={2}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {analytics &&
+          (selectedChatbot === "chatbot-lead-generation" ||
+            selectedChatbot === "chatbot-customer-support") && (
+            <Card
+              className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
+            >
+              <CardHeader className="p-3 md:p-4">
+                <CardTitle className={themeStyles.textPrimary}>
+                  Conversation Trends
+                </CardTitle>
+                <CardDescription
+                  className={`${themeStyles.textSecondary} font-montserrat`}
+                >
+                  Daily conversation volume for {currentChatbot?.name}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-3 md:p-4">
+                <div className="h-64 overflow-x-auto">
+                  <ResponsiveContainer width={1000} height="100%">
+                    <LineChart data={analytics.trends || []}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={currentTheme === "dark" ? "#374151" : "#e5e7eb"}
+                      />
+                      <XAxis
+                        dataKey="name"
+                        stroke={themeStyles.textSecondary}
+                        tick={{ fill: themeStyles.textSecondary }}
+                      />
+                      <YAxis
+                        stroke={themeStyles.textSecondary}
+                        tick={{ fill: themeStyles.textSecondary }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor:
+                            currentTheme === "dark" ? "#1F2937" : "#ffffff",
+                          border:
+                            currentTheme === "dark"
+                              ? "1px solid #374151"
+                              : "1px solid #e5e7eb",
+                          borderRadius: "8px",
+                          color:
+                            currentTheme === "dark" ? "#F3F4F6" : "#1f2937",
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="conversations"
+                        stroke="#00F0FF"
+                        strokeWidth={2}
+                        activeDot={{ r: 6 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="responses"
+                        stroke="#FF2E9F"
+                        strokeWidth={2}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
         {/* Response Time Distribution */}
         {analytics && selectedChatbot === "chatbot-lead-generation" && (
@@ -1610,7 +1870,7 @@ data-chatbot-config='{
             <CardContent className="p-3 md:p-4">
               <div className="h-64 overflow-x-auto">
                 <ResponsiveContainer width={1000} height="100%">
-                  <BarChart data={analytics.responseTime}>
+                  <BarChart data={analytics.responseTime || []}>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       stroke={currentTheme === "dark" ? "#374151" : "#e5e7eb"}
@@ -1664,14 +1924,14 @@ data-chatbot-config='{
                 <ResponsiveContainer width={500} height="100%">
                   <PieChart>
                     <Pie
-                      data={analytics.satisfaction}
+                      data={analytics.satisfaction || []}
                       cx="50%"
                       cy="50%"
                       outerRadius={100}
                       dataKey="value"
                       label={({ name, value }) => `${name}: ${value}%`}
                     >
-                      {analytics.satisfaction.map(
+                      {(analytics.satisfaction || []).map(
                         (entry: any, index: number) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         )
@@ -2381,8 +2641,8 @@ data-chatbot-config='{
                   </Button>
                 </div>
 
-                {/* Website URL Section */}
-                {currentChatbot?.id !== "chatbot-education" && (
+                {/* Website URL Section - Only for non-education chatbots */}
+                {!isEducationChatbot && (
                   <div>
                     <Label
                       htmlFor="websiteUrl"
@@ -2407,18 +2667,14 @@ data-chatbot-config='{
                           placeholder="https://yourwebsite.com"
                         />
                       )}
-                      {!isWebScrapped && websiteUrl && (
+                      {hasBuiltChatbot && websiteUrl && (
                         <Button
-                          disabled={webLoading || processing}
+                          disabled={true}
                           onClick={handleScrape}
                           className={`hover:opacity-90 text-black bg-gradient-to-r from-[#00F0FF] to-[#0080FF]`}
                         >
                           <Upload className="h-4 w-4 mr-1" />
-                          {webLoading
-                            ? "Scraping..."
-                            : processing
-                            ? "Processing..."
-                            : "Update Data"}
+                          Rescrape (Soon)
                         </Button>
                       )}
                     </div>
@@ -2488,7 +2744,7 @@ data-chatbot-config='{
           </CardContent>
         </Card>
 
-        {/* Appointment Form Questions */}
+        {/* Appointment Form Questions - Only for lead generation */}
         {currentChatbot?.id === "chatbot-lead-generation" && (
           <Card
             className={`${themeStyles.cardBg} backdrop-blur-sm ${themeStyles.cardBorder}`}
@@ -2855,7 +3111,7 @@ data-chatbot-config='{
   );
 
   // Loading state
-  if (loading || !isLoaded) {
+  if ((loading || !isLoaded) && !hasLoadedRef.current) {
     return (
       <div className="min-h-screen bg-transparent flex items-center justify-center h-full w-full">
         <div className="w-5 h-5 border-2 border-t-transparent border-blue-600 rounded-full animate-spin" />

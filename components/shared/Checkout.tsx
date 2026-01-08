@@ -8,9 +8,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Loader2, Zap, CreditCard } from "lucide-react";
+import { Loader2, Zap, CreditCard, Bot, Check, Upload } from "lucide-react";
 
-// Components
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -21,16 +20,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-
-// Actions
-import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
-import { getUserById, updateUserByDbId } from "@/lib/action/user.actions";
-
-// Utils
 import { apiClient } from "@/lib/utils";
-import { sendSubscriptionEmailToUser } from "@/lib/action/sendEmail.action";
+import { checkAndPrepareScrape, getUserById } from "@/lib/action/user.actions";
+import { getRazerpayPlanInfo } from "@/lib/action/plan.action";
+import {
+  sendSubscriptionEmailToOwner,
+  sendSubscriptionEmailToUser,
+} from "@/lib/action/sendEmail.action";
 
-// Types
 interface CheckoutProps {
   userId: string;
   amount: number;
@@ -38,23 +35,44 @@ interface CheckoutProps {
   billingCycle: "monthly" | "yearly" | "one-time";
   planType: "chatbot" | "tokens";
   tokens?: number;
+  chatbotCreated?: boolean;
 }
 
-type CheckoutStep = "weblink" | "payment" | "scraping";
+type CheckoutStep =
+  | "weblink"
+  | "chatbot-create"
+  | "scraping"
+  | "payment"
+  | "subscription-activate";
 
-// Form Schemas
-const websiteFormSchema = z.object({
-  websiteUrl: z
-    .string()
-    .min(1, "Website URL is required")
-    .url("Please enter a valid URL"),
-});
+// Define schema based on chatbot type
+const createWebsiteFormSchema = (isEducationChatbot: boolean) => {
+  if (isEducationChatbot) {
+    return z.object({
+      chatbotName: z.string().min(1, "Chatbot name is required"),
+      websiteUrl: z.string().optional(), // Optional for education chatbot
+    });
+  } else {
+    return z.object({
+      chatbotName: z.string().min(1, "Chatbot name is required"),
+      websiteUrl: z
+        .string()
+        .min(1, "Website URL is required")
+        .url("Please enter a valid URL"),
+    });
+  }
+};
 
-type WebsiteFormData = z.infer<typeof websiteFormSchema>;
+type WebsiteFormData = z.infer<ReturnType<typeof createWebsiteFormSchema>>;
 
-// Constants
 const RAZORPAY_SCRIPT_ID = "razorpay-checkout-js";
 const RAZORPAY_SCRIPT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
+
+// Interface for Razorpay plan info
+interface RazorpayPlanInfo {
+  razorpaymonthlyplanId: string;
+  razorpayyearlyplanId: string;
+}
 
 export const Checkout = ({
   userId,
@@ -63,30 +81,40 @@ export const Checkout = ({
   billingCycle,
   planType = "chatbot",
   tokens,
+  chatbotCreated = false,
 }: CheckoutProps) => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("weblink");
   const [showModal, setShowModal] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const userEmailRef = useRef<string>("");
-  const buyerIdRef = useRef<string | null>(null);
-  const razorpayPlanRef = useRef<{
-    monthly: string | null;
-    yearly: string | null;
-  }>({ monthly: null, yearly: null });
+  const [scrapingStatus, setScrapingStatus] = useState("");
+  const [scrapingComplete, setScrapingComplete] = useState(false);
+  const [chatbotCreationComplete, setChatbotCreationComplete] = useState(false);
+  const [createdChatbotId, setCreatedChatbotId] = useState<string | null>(null);
 
-  // Form handling
+  const chatbotNameRef = useRef<string>("");
+  const websiteUrlRef = useRef<string>("");
+  const razorpayPlanRef = useRef<{ monthly: string; yearly: string } | null>(
+    null
+  );
+  const userEmailRef = useRef<string>("");
+
+  // Check if this is an education chatbot
+  const isEducationChatbot = productId === "chatbot-education";
+
+  // Create form schema based on chatbot type
+  const websiteFormSchema = createWebsiteFormSchema(isEducationChatbot);
+
   const {
     handleSubmit: handleWebsiteSubmit,
     register: registerWebsite,
     formState: { errors: websiteErrors },
   } = useForm<WebsiteFormData>({
     resolver: zodResolver(websiteFormSchema),
-    defaultValues: { websiteUrl: "" },
+    defaultValues: { websiteUrl: "", chatbotName: "" },
   });
 
-  // Helper Functions
   const redirectToSignIn = useCallback(() => {
     router.push("/sign-in");
   }, [router]);
@@ -108,7 +136,6 @@ export const Checkout = ({
     });
   };
 
-  // Data fetching
   const fetchRequiredData = async (): Promise<boolean> => {
     try {
       // For chatbot subscriptions, fetch plan info
@@ -138,8 +165,9 @@ export const Checkout = ({
         redirectToSignIn();
         throw new Error("User not found");
       }
-      userEmailRef.current = user.email;
-      buyerIdRef.current = user._id;
+
+      // Store user info for later use
+      userEmailRef.current = user.email || "";
       return true;
     } catch (error) {
       console.error("Error fetching required data:", error);
@@ -150,82 +178,254 @@ export const Checkout = ({
     }
   };
 
-  // Payment handling - Token Purchase
-  const processTokenPayment = async () => {
-    if (!tokens) {
-      showErrorToast("Token amount is required");
-      return;
-    }
-
+  const processScraping = async (websiteUrl: string, chatbotId: string) => {
     try {
-      // Create token purchase order
-      setShowModal(false);
-      const response = await fetch("/api/tokens/purchase", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tokens,
-          amount,
-          planId: productId,
-        }),
+      setScrapingStatus("Checking if website is already scraped...");
+
+      const checkWebsiteScraped = await checkAndPrepareScrape({
+        userId: userId,
+        url: websiteUrl,
+        chatbotId: chatbotId,
       });
 
-      const orderData = await response.json();
+      if (checkWebsiteScraped.alreadyScrapped) {
+        setScrapingStatus("Website already scraped, skipping...");
+        return true;
+      }
+      if (checkWebsiteScraped.success) {
+        setScrapingStatus("Scraping website...");
+        const scrapeResponse = await fetch(
+          `/api/scrape-anu?url=${encodeURIComponent(
+            websiteUrl
+          )}&userId=${encodeURIComponent(
+            userId
+          )}&chatbotId=${encodeURIComponent(chatbotId)}`
+        );
 
-      if (!orderData.success) {
-        throw new Error("Failed to create token purchase order");
+        if (!scrapeResponse.ok) {
+          throw new Error("Failed to check scraping status");
+        }
+
+        const scrapeResult = await scrapeResponse.json();
+
+        if (scrapeResult.alreadyScrapped) {
+          setScrapingStatus("Website already scraped, skipping...");
+          return true;
+        }
+
+        if (scrapeResult.success) {
+          setScrapingStatus("Processing scraped data...");
+
+          const processResponse = await fetch("/api/scrape-anu/process-data", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...scrapeResult.data,
+              chatbotId,
+            }),
+          });
+
+          if (!processResponse.ok) {
+            throw new Error("Failed to process scraped data");
+          }
+
+          const processResult = await processResponse.json();
+
+          if (processResult.success) {
+            setScrapingStatus("Scraping complete!");
+            return true;
+          }
+        }
       }
 
-      const paymentOptions = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: "AI Chatbot Tokens",
-        description: `${tokens.toLocaleString()} tokens purchase`,
-        order_id: orderData.orderId,
-        notes: {
-          userId,
-          tokens,
-          planId: productId,
-          type: "token_purchase",
-        },
-        handler: async (response: any) => {
-          await handleTokenPaymentSuccess(response, orderData.orderId, tokens);
-        },
-        theme: { color: "#3B82F6" },
-      };
-
-      const razorpay = new (window as any).Razorpay(paymentOptions);
-      razorpay.open();
+      throw new Error("Scraping failed");
     } catch (error) {
-      console.error("Token payment processing error:", error);
-      showErrorToast(error instanceof Error ? error.message : "Payment failed");
+      console.error("Error during scraping:", error);
+      showErrorToast(
+        "Scraping failed, but you can still use the chatbot with limited knowledge"
+      );
+      return false;
     }
   };
 
-  // Payment handling - Chatbot Subscription
-  const processChatbotPayment = async () => {
-    const currentPlanId =
-      billingCycle === "monthly"
-        ? razorpayPlanRef.current.monthly
-        : razorpayPlanRef.current.yearly;
+  const createChatbot = async (data: WebsiteFormData) => {
+    try {
+      setScrapingStatus("Creating chatbot...");
 
-    if (!currentPlanId) {
-      showErrorToast("Plan not available");
+      const response = await fetch("/api/web/chatbot/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.chatbotName,
+          type: productId,
+          websiteUrl: data.websiteUrl || null, // Null for education chatbot
+          // No subscriptionId yet - will be added after payment
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setScrapingStatus("Chatbot created successfully!");
+        return result.chatbot;
+      } else {
+        throw new Error(result.error || "Failed to create chatbot");
+      }
+    } catch (error) {
+      console.error("Error creating chatbot:", error);
+      throw error;
+    }
+  };
+
+  const updateChatbotWithSubscription = async (
+    chatbotId: string,
+    subscriptionId: string
+  ) => {
+    try {
+      const response = await fetch(`/api/web/chatbot/${chatbotId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscriptionId,
+          isActive: true,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        return result;
+      } else {
+        throw new Error(
+          result.error || "Failed to update chatbot with subscription"
+        );
+      }
+    } catch (error) {
+      console.error("Error updating chatbot:", error);
+      throw error;
+    }
+  };
+
+  const handleWebsiteFormSubmit = async (data: WebsiteFormData) => {
+    chatbotNameRef.current = data.chatbotName;
+    websiteUrlRef.current = data.websiteUrl || "";
+
+    if (planType === "tokens") {
+      // For tokens, go directly to payment
+      setCurrentStep("payment");
+      await processTokenPayment();
+    } else if (chatbotCreated) {
+      // If chatbot is already created, skip creation and go directly to payment
+      setShowModal(false);
+      setCurrentStep("payment");
+      await processChatbotPayment();
+    } else {
+      // For new chatbot, start chatbot creation process
+      setCurrentStep("chatbot-create");
+      await processChatbotCreation(data);
+    }
+  };
+
+  const handleCheckout = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!userId) {
+      redirectToSignIn();
       return;
     }
 
+    if (planType === "tokens") {
+      // For token purchases, go directly to payment
+      await processTokenPayment();
+    } else if (chatbotCreated) {
+      // If chatbot is already created, go directly to payment without showing modal
+      setCurrentStep("payment");
+      await processChatbotPayment();
+    } else if (isEducationChatbot) {
+      // For education chatbot, show modal with just chatbot name field
+      setShowModal(true);
+      setCurrentStep("weblink");
+    } else {
+      // For new non-education chatbot purchases, show the modal with weblink form
+      setShowModal(true);
+      setCurrentStep("weblink");
+    }
+  };
+
+  const processChatbotCreation = async (data: WebsiteFormData) => {
     try {
-      setShowModal(false);
+      setIsSubmitting(true);
+      setProcessing(true);
+
+      // Step 1: Create chatbot first
+      setScrapingStatus("Creating your chatbot...");
+
+      const chatbot = await createChatbot(data);
+
+      if (chatbot) {
+        setCreatedChatbotId(chatbot.id);
+        setChatbotCreationComplete(true);
+
+        if (isEducationChatbot) {
+          // For education chatbot, no scraping needed
+          setScrapingStatus("Education chatbot created successfully!");
+          setScrapingComplete(true);
+        } else {
+          // For non-education chatbots, proceed with scraping
+          setScrapingStatus(
+            "Chatbot created successfully! Preparing for scraping..."
+          );
+
+          // Step 2: Process scraping (only for non-education chatbots)
+          if (data.websiteUrl) {
+            await processScraping(data.websiteUrl, chatbot.id);
+          }
+
+          setScrapingComplete(true);
+          setScrapingStatus("Chatbot setup complete! Proceeding to payment...");
+        }
+
+        // Step 3: After successful creation, proceed to payment
+        setTimeout(() => {
+          setShowModal(false);
+          processChatbotPayment();
+        }, 1500);
+      }
+    } catch (error) {
+      console.error("Error in chatbot creation process:", error);
+      showErrorToast("Failed to create chatbot. Please try again.");
+      setCurrentStep("weblink");
+      setProcessing(false);
+      setIsSubmitting(false);
+    }
+  };
+
+  const processChatbotPayment = async () => {
+    try {
+      // Fetch required data before proceeding
+      const isDataReady = await fetchRequiredData();
+      if (!isDataReady) {
+        return;
+      }
+
       const referralCode = localStorage.getItem("referral_code");
+      const razorpayPlanId =
+        billingCycle === "monthly"
+          ? razorpayPlanRef.current?.monthly
+          : razorpayPlanRef.current?.yearly;
+
+      if (!razorpayPlanId) {
+        throw new Error("Razorpay plan ID not found");
+      }
+
       const response = await fetch("/api/webhooks/razerpay/subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount,
-          razorpayplanId: currentPlanId,
           productId,
-          buyerId: buyerIdRef.current,
+          buyerId: userId,
+          razorpayplanId: razorpayPlanId,
           referralCode: referralCode || null,
         }),
       });
@@ -243,21 +443,28 @@ export const Checkout = ({
         name: "AI Chatbot Subscription",
         description: `${productId} - ${billingCycle}`,
         subscription_id: subscriptionData.subsId,
+        prefill: {
+          email: userEmailRef.current || "",
+        },
         notes: {
           productId,
-          buyerId: buyerIdRef.current,
+          buyerId: userId,
           amount,
+          chatbotName: chatbotNameRef.current,
+          websiteUrl: websiteUrlRef.current,
+          chatbotId: createdChatbotId,
           referralCode: referralCode || "",
         },
         handler: async (response: any) => {
           await handleChatbotPaymentSuccess(
             response,
             subscriptionData.subsId,
-            currentPlanId
+            tokens
           );
         },
         theme: { color: "#2563eb" },
       };
+
       const razorpay = new (window as any).Razorpay(paymentOptions);
 
       razorpay.on("payment.failed", (response: any) => {
@@ -267,6 +474,144 @@ export const Checkout = ({
       razorpay.open();
     } catch (error) {
       console.error("Chatbot payment processing error:", error);
+      showErrorToast(error instanceof Error ? error.message : "Payment failed");
+    } finally {
+      setIsSubmitting(false);
+      setProcessing(false);
+    }
+  };
+
+  const handleChatbotPaymentSuccess = async (
+    razorpayResponse: any,
+    subscriptionId: string,
+    tokens?: number
+  ) => {
+    try {
+      const verificationData = {
+        subscription_id: subscriptionId,
+        razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+        razorpay_signature: razorpayResponse.razorpay_signature,
+        tokens,
+        amount,
+        currency: "INR",
+      };
+
+      const verifyResponse = await fetch("/api/webhooks/razerpay/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(verificationData),
+      });
+
+      const verificationResult = await verifyResponse.json();
+
+      if (verificationResult.success) {
+        const referralCode = localStorage.getItem("referral_code");
+        if (referralCode) {
+          localStorage.removeItem("referral_code");
+        }
+
+        // Create subscription record
+        await apiClient.createSubscription(
+          productId,
+          subscriptionId,
+          billingCycle,
+          subscriptionId,
+          referralCode || null
+        );
+
+        // Update chatbot with subscription ID if it was newly created
+        if (createdChatbotId && !chatbotCreated) {
+          await updateChatbotWithSubscription(createdChatbotId, subscriptionId);
+        }
+
+        setCurrentStep("subscription-activate");
+        setShowModal(true);
+        setScrapingStatus("Activating your subscription...");
+
+        // Send subscription email
+        await sendSubscriptionEmailToOwner({
+          email: userEmailRef.current,
+          userDbId: userId,
+          subscriptionId,
+        });
+        await sendSubscriptionEmailToUser({
+          email: userEmailRef.current,
+          userDbId: userId,
+          agentId: productId,
+          subscriptionId,
+        });
+
+        showSuccessToast("Subscription activated successfully!");
+
+        setTimeout(() => {
+          setShowModal(false);
+          router.push("/web/UserDashboard");
+        }, 2000);
+      } else {
+        showErrorToast(verificationResult.message || "Verification failed");
+      }
+    } catch (error) {
+      console.error("Chatbot payment verification error:", error);
+      showErrorToast("Payment verification failed");
+    }
+  };
+
+  const processTokenPayment = async () => {
+    if (!tokens) {
+      showErrorToast("Token amount is required");
+      return;
+    }
+
+    try {
+      // Fetch required data before proceeding
+      const isDataReady = await fetchRequiredData();
+      if (!isDataReady) {
+        return;
+      }
+
+      const response = await fetch("/api/tokens/purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tokens,
+          amount,
+          planId: productId,
+          buyerId: userId,
+        }),
+      });
+
+      const orderData = await response.json();
+
+      if (!orderData.success) {
+        throw new Error("Failed to create token purchase order");
+      }
+
+      const paymentOptions = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "AI Chatbot Tokens",
+        description: `${tokens.toLocaleString()} tokens purchase`,
+        order_id: orderData.orderId,
+        prefill: {
+          email: userEmailRef.current || "",
+        },
+        notes: {
+          userId: userId,
+          tokens,
+          planId: productId,
+          type: "token_purchase",
+        },
+        handler: async (response: any) => {
+          await handleTokenPaymentSuccess(response, orderData.orderId, tokens);
+        },
+        theme: { color: "#3B82F6" },
+      };
+
+      const razorpay = new (window as any).Razorpay(paymentOptions);
+      razorpay.open();
+    } catch (error) {
+      console.error("Token payment processing error:", error);
       showErrorToast(error instanceof Error ? error.message : "Payment failed");
     }
   };
@@ -308,171 +653,150 @@ export const Checkout = ({
     }
   };
 
-  const handleChatbotPaymentSuccess = async (
-    razorpayResponse: any,
-    subscriptionId: string,
-    planId: string
-  ) => {
-    try {
-      const verificationData = {
-        subscription_id: subscriptionId,
-        razorpay_payment_id: razorpayResponse.razorpay_payment_id,
-        razorpay_signature: razorpayResponse.razorpay_signature,
-      };
-
-      const verifyResponse = await fetch("/api/webhooks/razerpay/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(verificationData),
-      });
-
-      const verificationResult = await verifyResponse.json();
-
-      if (verificationResult.success) {
-        const referralCode = localStorage.getItem("referral_code");
-
-        // Create subscription
-        await apiClient.createSubscription(
-          productId,
-          planId,
-          billingCycle,
-          subscriptionId,
-          referralCode || null
-        );
-
-        // Clear referral code
-        if (referralCode) {
-          localStorage.removeItem("referral_code");
-        }
-
-        showSuccessToast("Subscription activated successfully!");
-
-        // Redirect based on chatbot type
-        if (productId === "chatbot-education") {
-          await sendSubscriptionEmailToUser({
-            email: userEmailRef.current,
-            userDbId: userId,
-            agentId: productId,
-            subscriptionId: subscriptionId,
-          });
-          router.push("/web/UserDashboard");
-          return;
-        }
-
-        // Check if website needs scraping for free tier
-        const user = await getUserById(userId);
-        if (!user.isScrapped) {
-          router.push(
-            `/web/WebsiteOnboarding?userId=${userId}&agentId=${productId}&subscriptionId=${subscriptionId}`
-          );
-        } else {
-          router.push("/web/UserDashboard");
-        }
-      } else {
-        showErrorToast(verificationResult.message || "Verification failed");
-      }
-    } catch (error) {
-      console.error("Chatbot payment verification error:", error);
-      showErrorToast("Payment verification failed");
-    }
-  };
-
-  // Handle website scraping
-  const handleScrapeWebsite = async (websiteUrl: string) => {
-    if (!userId || !buyerIdRef.current) {
-      showErrorToast("User information not available");
-      return;
-    }
-
-    setProcessing(true);
-
-    try {
-      // Update user with website URL
-      await updateUserByDbId(buyerIdRef.current, websiteUrl);
-
-      // Call scraping API
-      const scrapeResponse = await fetch(
-        `/api/scrape-anu?url=${encodeURIComponent(
-          websiteUrl
-        )}&userId=${encodeURIComponent(userId)}&agentId=${encodeURIComponent(
-          productId
-        )}`
-      );
-
-      if (!scrapeResponse.ok) {
-        throw new Error("Failed to scrape website");
-      }
-
-      const scrapeResult = await scrapeResponse.json();
-
-      if (scrapeResult.success) {
-        // Process scraped data
-        const processResponse = await fetch("/api/scrape-anu/process-data", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(scrapeResult.data),
-        });
-
-        if (!processResponse.ok) {
-          throw new Error("Failed to process scraped data");
-        }
-
-        showSuccessToast("Website scraped successfully!");
-        return true;
-      }
-
-      throw new Error("Scraping failed");
-    } catch (error) {
-      console.error("Error scraping website:", error);
-      showErrorToast(
-        "Failed to scrape website. You can still proceed, but chatbot may have limited knowledge."
-      );
-      return false;
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  // Form submission
-  const handleWebsiteFormSubmit = async (data: WebsiteFormData) => {
-    await handleScrapeWebsite(data.websiteUrl);
-    setCurrentStep("payment");
-    setShowModal(false);
+  const getButtonText = () => {
     if (planType === "tokens") {
-      await processTokenPayment();
-    } else {
-      await processChatbotPayment();
+      return tokens ? `Buy ${tokens.toLocaleString()} Tokens` : "Buy Tokens";
+    }
+
+    if (chatbotCreated) {
+      return `Activate Subscription `;
+    }
+    if (productId === "free-tier") {
+      return "Free Tier";
+    }
+    return `Create & Subscribe `;
+  };
+
+  const getButtonGradient = () => {
+    if (planType === "tokens") {
+      return "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]";
+    }
+    switch (productId) {
+      case "chatbot-customer-support":
+        return "bg-gradient-to-r from-[#00F0FF] to-[#0080FF]";
+      case "chatbot-lead-generation":
+        return "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]";
+      case "chatbot-education":
+        return "bg-gradient-to-r from-[#FFD700] to-[#FFA500]";
+      default:
+        return "bg-gradient-to-r from-[#00F0FF] to-[#B026FF]";
     }
   };
 
-  // Main checkout handler
-  const handleCheckout = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (!userId) {
-      redirectToSignIn();
-      return;
+  const getButtonIcon = () => {
+    if (planType === "tokens") {
+      return <Zap className="h-4 w-4 mr-2" />;
     }
 
-    const dataFetched = await fetchRequiredData();
-    if (!dataFetched) return;
+    if (chatbotCreated) {
+      return <Check className="h-4 w-4 mr-2" />;
+    }
 
-    setShowModal(true);
+    return <Bot className="h-4 w-4 mr-2" />;
+  };
 
-    // For education chatbot or token purchases, skip website scraping
-    if (productId === "chatbot-education" || planType === "tokens") {
-      setCurrentStep("payment");
-      if (planType === "tokens") {
-        await processTokenPayment();
-      } else {
-        await processChatbotPayment();
-      }
-    } else {
-      setCurrentStep("weblink");
+  const getModalTitle = () => {
+    if (isEducationChatbot) {
+      return "Create Your MCQ Education Chatbot";
+    }
+
+    switch (currentStep) {
+      case "weblink":
+        return "Create Your Chatbot";
+      case "chatbot-create":
+        return "Setting Up Your Chatbot";
+      case "scraping":
+        return "Training Your Chatbot";
+      case "subscription-activate":
+        return "Activating Subscription";
+      default:
+        return "Processing Payment";
     }
   };
 
-  // Modal rendering
+  const getModalDescription = () => {
+    if (isEducationChatbot) {
+      return "Configure your MCQ education chatbot details";
+    }
+
+    switch (currentStep) {
+      case "weblink":
+        return "Configure your chatbot details";
+      case "chatbot-create":
+        return "We're creating your chatbot";
+      case "scraping":
+        return "Training chatbot with your website data";
+      case "subscription-activate":
+        return "Finalizing your subscription";
+      default:
+        return "Complete your purchase";
+    }
+  };
+
+  const getStepTitle = () => {
+    if (isEducationChatbot) {
+      return "CONFIGURE YOUR MCQ CHATBOT";
+    }
+
+    switch (currentStep) {
+      case "weblink":
+        return "CONFIGURE YOUR CHATBOT";
+      case "chatbot-create":
+        return "CREATING YOUR CHATBOT";
+      case "scraping":
+        return "TRAINING YOUR CHATBOT";
+      case "subscription-activate":
+        return "ACTIVATING YOUR SUBSCRIPTION";
+      default:
+        return "SECURE PAYMENT PROCESSING";
+    }
+  };
+
+  const getStepDescription = () => {
+    if (isEducationChatbot) {
+      return "Enter your MCQ chatbot details";
+    }
+
+    switch (currentStep) {
+      case "weblink":
+        return "Enter your website and chatbot details";
+      case "chatbot-create":
+        return "We're setting up your chatbot instance";
+      case "scraping":
+        return "Training chatbot with your website data";
+      case "subscription-activate":
+        return "Finalizing your subscription activation";
+      default:
+        return "Complete your purchase";
+    }
+  };
+
+  const getStatusMessage = () => {
+    if (isEducationChatbot) {
+      return "Education chatbot created successfully!";
+    }
+    return scrapingStatus || "Initializing...";
+  };
+
+  const getFooterText = () => {
+    if (isEducationChatbot) {
+      return "MCQ EDUCATION CHATBOT CONFIGURATION";
+    }
+
+    switch (currentStep) {
+      case "weblink":
+        return "CUSTOM CHATBOT CONFIGURATION";
+      case "chatbot-create":
+        return "CHATBOT CREATION IN PROGRESS";
+      case "scraping":
+        return "AUTOMATED TRAINING IN PROGRESS";
+      case "subscription-activate":
+        return "SUBSCRIPTION ACTIVATION";
+      default:
+        return "SECURE PAYMENT PROCESSING";
+    }
+  };
+
   const renderWebsiteModal = () => (
     <AlertDialog open={showModal} onOpenChange={setShowModal}>
       <AlertDialogContent className="bg-gradient-to-br from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] backdrop-blur-2xl border border-white/10 rounded-2xl max-w-md p-0 overflow-hidden shadow-2xl">
@@ -482,32 +806,27 @@ export const Checkout = ({
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="relative"
         >
-          {/* Background effects */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#00F0FF]/5 via-transparent to-[#B026FF]/5" />
           <div className="absolute top-0 left-0 w-20 h-20 bg-[#00F0FF]/10 rounded-full blur-xl -translate-x-1/2 -translate-y-1/2" />
           <div className="absolute bottom-0 right-0 w-20 h-20 bg-[#B026FF]/10 rounded-full blur-xl translate-x-1/2 translate-y-1/2" />
 
-          {/* Header */}
           <div className="relative p-6 border-b border-white/10">
             <div className="flex justify-between items-center">
               <div>
                 <AlertDialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-                  {currentStep === "weblink"
-                    ? "Enter Website URL"
-                    : "Processing Payment"}
+                  {getModalTitle()}
                 </AlertDialogTitle>
                 <p className="text-sm text-gray-400 mt-1 font-montserrat">
-                  {currentStep === "weblink"
-                    ? "Connect your website for better AI training"
-                    : "Complete your purchase"}
+                  {getModalDescription()}
                 </p>
               </div>
-              <AlertDialogCancel
-                onClick={() => router.push("/")}
-                className="border-0 p-2 hover:bg-white/10 rounded-xl transition-all bg-transparent"
-              >
-                <XMarkIcon className="h-6 w-6 text-gray-400 hover:text-white transition-colors" />
-              </AlertDialogCancel>
+              {currentStep !== "chatbot-create" &&
+                currentStep !== "scraping" &&
+                currentStep !== "subscription-activate" && (
+                  <AlertDialogCancel className="border-0 p-2 hover:bg-white/10 rounded-xl transition-all bg-transparent">
+                    <XMarkIcon className="h-6 w-6 text-gray-400 hover:text-white transition-colors" />
+                  </AlertDialogCancel>
+                )}
             </div>
           </div>
 
@@ -518,55 +837,62 @@ export const Checkout = ({
             >
               <div className="text-center">
                 <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
-                  PLEASE ENTER YOUR WEBSITE URL
+                  {getStepTitle()}
                 </h3>
                 <p className="text-sm text-gray-400 mt-2 font-montserrat">
-                  This helps train your chatbot with relevant information
+                  {getStepDescription()}
                 </p>
               </div>
 
               <div className="space-y-4">
-                <label className="block text-sm font-medium text-gray-300">
-                  Website URL
-                </label>
-                <div className="relative">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Chatbot Name
+                  </label>
                   <input
-                    {...registerWebsite("websiteUrl")}
-                    className="w-full bg-[#1a1a1a]/80 backdrop-blur-sm border-2 border-white/10 rounded-xl py-4 px-4 text-white font-montserrat placeholder:text-gray-500 focus:outline-none text-lg transition-all duration-300 focus:border-[#00F0FF] focus:shadow-[0_0_20px_rgba(0,240,255,0.2)] "
-                    placeholder="https://example.com"
+                    {...registerWebsite("chatbotName")}
+                    className="w-full bg-[#1a1a1a]/80 backdrop-blur-sm border-2 border-white/10 rounded-xl py-3 px-4 text-white font-montserrat placeholder:text-gray-500 focus:outline-none text-lg transition-all duration-300 focus:border-[#00F0FF] focus:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+                    placeholder={
+                      isEducationChatbot
+                        ? "My MCQ Education Chatbot"
+                        : "My Support Chatbot"
+                    }
                     disabled={isSubmitting || processing}
                   />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <div className="w-6 h-6 bg-gradient-to-r from-[#00F0FF] to-[#B026FF] rounded-lg flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                        />
-                      </svg>
-                    </div>
-                  </div>
+                  {websiteErrors.chatbotName && (
+                    <p className="text-red-400 text-sm mt-1 font-montserrat">
+                      {websiteErrors.chatbotName.message}
+                    </p>
+                  )}
                 </div>
 
-                <AnimatePresence>
-                  {websiteErrors.websiteUrl && (
-                    <motion.p
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="text-red-400 text-sm bg-red-400/10 py-2 rounded-lg border border-red-400/20 text-center font-montserrat"
-                    >
-                      {websiteErrors.websiteUrl.message}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
+                {!isEducationChatbot && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Website URL
+                    </label>
+                    <input
+                      {...registerWebsite("websiteUrl")}
+                      className="w-full bg-[#1a1a1a]/80 backdrop-blur-sm border-2 border-white/10 rounded-xl py-3 px-4 text-white font-montserrat placeholder:text-gray-500 focus:outline-none text-lg transition-all duration-300 focus:border-[#00F0FF] focus:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+                      placeholder="https://example.com"
+                      disabled={isSubmitting || processing}
+                    />
+                    {websiteErrors.websiteUrl && (
+                      <p className="text-red-400 text-sm mt-1 font-montserrat">
+                        {websiteErrors.websiteUrl.message}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                  <p className="text-blue-400 text-sm flex items-center font-montserrat">
+                    <Bot className="h-4 w-4 mr-2" />
+                    {isEducationChatbot
+                      ? "Education chatbot is designed for MCQ-based learning and doesn't require website scraping"
+                      : "Each chatbot type can only be created once per account"}
+                  </p>
+                </div>
               </div>
 
               <Button
@@ -585,10 +911,90 @@ export const Checkout = ({
                     Processing...
                   </div>
                 ) : (
-                  "Continue to Payment"
+                  "Create & Proceed to Payment"
                 )}
               </Button>
             </form>
+          ) : currentStep === "chatbot-create" || currentStep === "scraping" ? (
+            <div className="p-6 space-y-6">
+              <div className="text-center">
+                <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                  {getStepTitle()}
+                </h3>
+                <p className="text-sm text-gray-400 mt-2 font-montserrat">
+                  {getStepDescription()}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-gray-900/50 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      {scrapingComplete && chatbotCreationComplete ? (
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                          <Check className="w-5 h-5 text-white" />
+                        </div>
+                      ) : (
+                        <Loader2 className="w-8 h-8 text-[#00F0FF] animate-spin" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-white font-medium">
+                        {scrapingComplete && chatbotCreationComplete
+                          ? "Setup Complete"
+                          : "Processing"}
+                      </p>
+                      <p className="text-gray-400 text-sm mt-1 font-montserrat">
+                        {getStatusMessage()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {scrapingComplete && chatbotCreationComplete && (
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                    <p className="text-green-400 text-sm font-montserrat">
+                      ✓ Your chatbot is ready! Redirecting to payment...
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : currentStep === "subscription-activate" ? (
+            <div className="p-6 space-y-6">
+              <div className="text-center">
+                <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF]">
+                  {getStepTitle()}
+                </h3>
+                <p className="text-sm text-gray-400 mt-2 font-montserrat">
+                  {getStepDescription()}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-gray-900/50 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      <Loader2 className="w-8 h-8 text-[#00F0FF] animate-spin" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-white font-medium">
+                        Activating Subscription
+                      </p>
+                      <p className="text-gray-400 text-sm mt-1 font-montserrat">
+                        {scrapingStatus || "Finalizing setup..."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                  <p className="text-green-400 text-sm font-montserrat">
+                    ✓ Payment successful! Activating your subscription...
+                  </p>
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="p-6 text-center">
               <div className="flex flex-col items-center justify-center space-y-4">
@@ -598,13 +1004,10 @@ export const Checkout = ({
             </div>
           )}
 
-          {/* Footer */}
           <div className="p-4 text-center border-t border-white/10 bg-black/20">
             <AlertDialogDescription className="text-sm">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00F0FF] to-[#B026FF] font-semibold font-montserrat">
-                {currentStep === "weblink"
-                  ? "IMPROVES CHATBOT ACCURACY & PERFORMANCE"
-                  : "SECURE PAYMENT PROCESSING"}
+                {getFooterText()}
               </span>
             </AlertDialogDescription>
           </div>
@@ -613,48 +1016,13 @@ export const Checkout = ({
     </AlertDialog>
   );
 
-  // Get button text based on plan type
-  const getButtonText = () => {
-    if (planType === "tokens") {
-      return tokens ? `Buy ${tokens.toLocaleString()} Tokens` : "Buy Tokens";
-    }
-
-    return `Subscribe - ${billingCycle === "monthly" ? "Monthly" : "Yearly"}`;
-  };
-
-  // Get button gradient based on plan type
-  const getButtonGradient = () => {
-    if (planType === "tokens") {
-      return "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]";
-    }
-
-    // Different gradients for different chatbots
-    switch (productId) {
-      case "chatbot-customer-support":
-        return "bg-gradient-to-r from-[#00F0FF] to-[#0080FF]";
-      case "chatbot-lead-generation":
-        return "bg-gradient-to-r from-[#B026FF] to-[#FF2E9F]";
-      case "chatbot-education":
-        return "bg-gradient-to-r from-[#FFD700] to-[#FFA500]";
-      default:
-        return "bg-gradient-to-r from-[#00F0FF] to-[#B026FF]";
-    }
-  };
-
-  // Get icon based on plan type
-  const getButtonIcon = () => {
-    if (planType === "tokens") {
-      return <Zap className="h-4 w-4 mr-2" />;
-    }
-    return <CreditCard className="h-4 w-4 mr-2" />;
-  };
-
   return (
     <>
       <form onSubmit={handleCheckout} className="flex-1 w-full">
         <Button
           type="submit"
-          className={`w-full relative  rounded-full font-medium hover:opacity-90 transition-opacity ${getButtonGradient()} text-white z-10`}
+          disabled={isSubmitting || processing || productId === "free-tier"}
+          className={`w-full relative rounded-full font-medium hover:opacity-90 transition-opacity ${getButtonGradient()} text-white z-10`}
         >
           {getButtonIcon()}
           {getButtonText()}
@@ -663,7 +1031,7 @@ export const Checkout = ({
 
       {showModal && renderWebsiteModal()}
 
-      {(currentStep === "payment" || planType === "tokens") && (
+      {planType === "chatbot" && (
         <Script id={RAZORPAY_SCRIPT_ID} src={RAZORPAY_SCRIPT_SRC} />
       )}
     </>

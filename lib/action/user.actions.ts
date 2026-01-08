@@ -18,6 +18,7 @@ import RateUserRateLimit from "../database/models/Rate/UserRateLimit.model";
 import RateLimitQueue from "../database/models/Rate/RateLimitQueue.model";
 import { TIER_LIMITS } from "@/constant";
 import { getCurrentWindow } from "../services/hourlyRateLimiter";
+import WebChatbot from "../database/models/web/Chatbot.model";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
@@ -80,13 +81,13 @@ export async function updateNumberByUserId(userId: string, newNumber: string) {
     handleError(error);
   }
 }
-export async function updateUserByDbId(userId: string, newUrl: string) {
+export async function updateUserByDbId(userId: string, updates: any) {
   try {
     await connectToDatabase();
 
     const user = await User.findOneAndUpdate(
       { _id: userId },
-      { $set: { websiteUrl: newUrl } },
+      { $set: updates },
       { new: true }
     );
 
@@ -96,7 +97,8 @@ export async function updateUserByDbId(userId: string, newUrl: string) {
 
     return JSON.parse(JSON.stringify(user));
   } catch (error) {
-    handleError(error);
+    console.error("Error updating user:", error);
+    throw error;
   }
 }
 export async function setWebsiteScrapped(userId: string) {
@@ -600,5 +602,77 @@ export async function getAffiliateUser(userId: string) {
     return JSON.parse(JSON.stringify({ success: true, user: user }));
   } catch (error) {
     handleError(error);
+  }
+}
+
+interface CheckScrapeInput {
+  userId: string;
+  url: string;
+  chatbotId: string;
+}
+
+export async function checkAndPrepareScrape({
+  userId,
+  url,
+  chatbotId,
+}: CheckScrapeInput) {
+  try {
+    if (!url || !chatbotId) {
+      return {
+        success: false,
+        error: "Missing required inputs",
+      };
+    }
+
+    await connectToDatabase();
+
+    const chatbot = await WebChatbot.findOne({
+      _id: chatbotId,
+      clerkId: userId,
+    });
+
+    if (!chatbot) {
+      return {
+        success: false,
+        error: "Chatbot not found or unauthorized",
+      };
+    }
+
+    // ✅ Already scraped
+    if (chatbot.isScrapped) {
+      return {
+        success: true,
+        alreadyScrapped: true,
+        message: "Website already scraped, skipping process",
+        data: {
+          fileName: chatbot.scrappedFile || "",
+          domain: new URL(chatbot.websiteUrl).hostname,
+          userId,
+          chatbotId,
+          totalPages: 0,
+          maxLevel: 0,
+          scrapedPages: [],
+        },
+      };
+    }
+
+    // 🚀 Ready to scrape
+    return {
+      success: true,
+      alreadyScrapped: false,
+      message: "Ready to start scraping",
+      data: {
+        domain: new URL(url).hostname,
+        userId,
+        chatbotId,
+      },
+    };
+  } catch (error) {
+    console.error("SERVER_ACTION_ERROR:", error);
+
+    return {
+      success: false,
+      error: "Something went wrong",
+    };
   }
 }

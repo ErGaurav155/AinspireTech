@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/database/mongoose";
-import WebChatbot from "@/lib/database/models/web/Chatbot.model";
 import { auth } from "@clerk/nextjs/server";
+import WebChatbot from "@/lib/database/models/web/Chatbot.model";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,12 +11,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDatabase(); // Don't forget parentheses
+    await connectToDatabase();
 
-    // Using Mongoose syntax - no toArray() needed
     const userChatbots = await WebChatbot.find({ clerkId: userId })
       .sort({ createdAt: -1 })
-      .lean(); // Convert Mongoose documents to plain objects
+      .lean();
 
     return NextResponse.json({
       chatbots: userChatbots,

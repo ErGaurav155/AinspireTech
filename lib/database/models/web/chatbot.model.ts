@@ -25,11 +25,15 @@ export interface IChatbot extends Document {
   clerkId: string;
   name: string;
   type: ChatbotType;
-  websiteUrl: string;
+  websiteUrl?: string;
+  phone?: string;
+  scrappedFile?: string;
+  isScrapped: boolean;
   embedCode: string;
   settings: IChatbotSettings;
   analytics: IChatbotAnalytics;
   isActive: boolean;
+  subscriptionId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -116,12 +120,21 @@ const ChatbotSchema = new Schema<IChatbot>(
     },
     websiteUrl: {
       type: String,
-      required: true,
       trim: true,
       match: [
         /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
         "Please enter a valid URL",
       ],
+    },
+    phone: {
+      type: String,
+    },
+    scrappedFile: {
+      type: String,
+    },
+    isScrapped: {
+      type: Boolean,
+      default: false,
     },
     embedCode: {
       type: String,
@@ -139,11 +152,17 @@ const ChatbotSchema = new Schema<IChatbot>(
       type: Boolean,
       default: true,
     },
+    subscriptionId: {
+      type: String,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+// Ensure unique chatbot type per user
+ChatbotSchema.index({ clerkId: 1, type: 1 }, { unique: true });
 
 // Indexes for optimized queries
 ChatbotSchema.index({ clerkId: 1 });

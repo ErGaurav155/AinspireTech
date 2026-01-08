@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { connectToDatabase } from "@/lib/database/mongoose";
+import WebChatbot from "@/lib/database/models/web/Chatbot.model";
 
 // alternatively, you can host the chromium-pack.tar file elsewhere and update the URL below
 const CHROMIUM_PACK_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
@@ -10,10 +12,8 @@ let cachedExecutablePath: string | null = null;
 let downloadPromise: Promise<string> | null = null;
 
 async function getChromiumPath(): Promise<string> {
-  // Return cached path if available
   if (cachedExecutablePath) return cachedExecutablePath;
 
-  // Prevent concurrent downloads by reusing the same promise
   if (!downloadPromise) {
     const chromium = (await import("@sparticuz/chromium-min")).default;
     downloadPromise = chromium
@@ -25,7 +25,7 @@ async function getChromiumPath(): Promise<string> {
       })
       .catch((error) => {
         console.error("Failed to get Chromium path:", error);
-        downloadPromise = null; // Reset on error to allow retry
+        downloadPromise = null;
         throw error;
       });
   }
@@ -182,7 +182,6 @@ class WebScraper {
   ): Promise<{ url: string; level: number }[]> {
     const baseDomain = this.extractDomain(startUrl);
 
-    // FIXED: Use separate arrays for each level to prevent skipping
     const levelUrls: { [key: number]: { url: string; level: number }[] } = {
       0: [{ url: this.normalizeUrl(startUrl), level: 0 }],
       1: [],
@@ -208,7 +207,6 @@ class WebScraper {
         `🔍 Level ${currentLevel}: Processing ${currentLevelUrls.length} pages`
       );
 
-      // Process current level concurrently
       const discoveryPromises = currentLevelUrls.map(({ url }) =>
         this.scrapePageForDiscovery(url)
       );
@@ -216,7 +214,6 @@ class WebScraper {
 
       let newUrlsCount = 0;
 
-      // Collect links from current level for next level
       for (const result of discoveryResults) {
         if (result.status === "fulfilled" && result.value) {
           const { links } = result.value;
@@ -228,7 +225,6 @@ class WebScraper {
               if (
                 this.isSameDomain(link, baseDomain) &&
                 !discoveredUrls.has(normalizedLink) &&
-                // Check total URLs across all levels
                 Object.values(levelUrls).flat().length + newUrlsCount <
                   this.maxPages
               ) {
@@ -239,7 +235,6 @@ class WebScraper {
                 });
                 newUrlsCount++;
 
-                // Stop if we reached max pages
                 if (Object.values(levelUrls).flat().length >= this.maxPages) {
                   break;
                 }
@@ -248,7 +243,6 @@ class WebScraper {
           }
         }
 
-        // Stop if we reached max pages
         if (Object.values(levelUrls).flat().length >= this.maxPages) {
           break;
         }
@@ -258,10 +252,8 @@ class WebScraper {
         `🔗 Level ${currentLevel + 1}: Discovered ${newUrlsCount} new URLs`
       );
 
-      // Move to next level
       currentLevel++;
 
-      // Stop if we reached max pages or max level
       if (
         Object.values(levelUrls).flat().length >= this.maxPages ||
         currentLevel > this.maxLevel
@@ -270,12 +262,10 @@ class WebScraper {
       }
     }
 
-    // Combine all levels into final array
     const allUrls = Object.values(levelUrls).flat().slice(0, this.maxPages);
 
     console.log(`🎯 Total URLs discovered: ${allUrls.length}`);
 
-    // Log the actual URLs by level for debugging
     console.log("📋 Discovered URLs by level:");
     for (let level = 0; level <= this.maxLevel; level++) {
       const levelUrlsList = allUrls.filter((item) => item.level === level);
@@ -337,14 +327,11 @@ class WebScraper {
   async scrapeWebsite(startUrl: string): Promise<ScrapedPage[]> {
     console.log("🚀 Starting level-by-level concurrent scraping process...");
 
-    // First: Discover all URLs we want to scrape
     const allUrlsToScrape = await this.discoverAllUrls(startUrl);
     console.log(`🎯 Will scrape ${allUrlsToScrape.length} URLs concurrently`);
 
-    // Clear visited URLs so we can scrape the discovered URLs
     this.visitedUrls.clear();
 
-    // Second: Scrape ALL pages concurrently
     const scrapePromises = allUrlsToScrape.map(({ url, level }) =>
       this.scrapePage(url, level)
     );
@@ -352,7 +339,6 @@ class WebScraper {
     console.log("🔄 Starting concurrent scraping of all pages...");
     const scrapeResults = await Promise.allSettled(scrapePromises);
 
-    // Process results
     const successfulScrapes: ScrapedPage[] = [];
     for (const result of scrapeResults) {
       if (result.status === "fulfilled" && result.value) {
@@ -368,7 +354,6 @@ class WebScraper {
       `🎉 Scraping completed: ${this.scrapedPages.length} pages successfully scraped`
     );
 
-    // Log successfully scraped URLs by level
     console.log("✅ Successfully scraped URLs by level:");
     for (let level = 0; level <= this.maxLevel; level++) {
       const levelPages = this.scrapedPages.filter(
@@ -392,17 +377,49 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const urlParam = searchParams.get("url");
   const userId = searchParams.get("userId");
-  const agentId = searchParams.get("agentId");
+  const chatbotId = searchParams.get("chatbotId");
 
-  if (!urlParam || !userId || !agentId) {
+  if (!urlParam || !userId || !chatbotId) {
     return NextResponse.json(
-      { error: "Please provide a inputs." },
+      { error: "Please provide all required inputs." },
       { status: 400 }
     );
   }
+
   console.log("urlParam:", urlParam);
   console.log("userId:", userId);
-  console.log("agentId:", agentId);
+  console.log("chatbotId:", chatbotId);
+
+  await connectToDatabase();
+
+  const chatbot = await WebChatbot.findOne({
+    _id: chatbotId,
+    clerkId: userId,
+  });
+
+  if (!chatbot) {
+    return NextResponse.json(
+      { error: "Chatbot not found or unauthorized" },
+      { status: 404 }
+    );
+  }
+
+  if (chatbot.isScrapped) {
+    return NextResponse.json({
+      success: true,
+      data: {
+        fileName: chatbot.scrappedFile || "",
+        domain: new URL(chatbot.websiteUrl).hostname,
+        userId,
+        chatbotId,
+        totalPages: 0,
+        maxLevel: 0,
+        scrapedPages: [],
+      },
+      message: "Website already scraped, skipping process",
+      alreadyScrapped: true,
+    });
+  }
 
   let inputUrl = urlParam.trim();
   if (!/^https?:\/\//i.test(inputUrl)) {
@@ -415,19 +432,8 @@ export async function GET(request: NextRequest) {
   try {
     parsedUrl = new URL(inputUrl);
     domain = parsedUrl.hostname;
-
-    // Remove www. prefix
     domain = domain.startsWith("www.") ? domain.substring(4) : domain;
-
-    // Determine the actual protocol that works
-    const protocol = parsedUrl.protocol;
-    mainUrl = `${protocol}//${domain}`;
-    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
-      return NextResponse.json(
-        { error: "URL must start with http:// or https://" },
-        { status: 400 }
-      );
-    }
+    mainUrl = `${parsedUrl.protocol}//${domain}`;
   } catch {
     return NextResponse.json(
       { error: "Invalid URL provided." },
@@ -486,13 +492,13 @@ export async function GET(request: NextRequest) {
         fileName,
         domain,
         userId,
+        chatbotId,
         totalPages: scrapedPages.length,
         maxLevel: Math.max(...scrapedPages.map((page) => page.level)),
         scrapedPages: scrapedPages,
       },
       scrapedAt: new Date().toISOString(),
-      message:
-        "Level-by-level concurrent scraping completed successfully. Call /api/process-data to store and upload.",
+      message: "Scraping completed successfully.",
     });
   } catch (error) {
     console.error("💥 Scraping error:", error);
