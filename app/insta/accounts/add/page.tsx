@@ -70,8 +70,8 @@ export default function AddAccountPage() {
     <div
       className={`min-h-screen ${themeStyles.containerBg} ${themeStyles.textPrimary}`}
     >
+      <BreadcrumbsDefault />
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <BreadcrumbsDefault />
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Button

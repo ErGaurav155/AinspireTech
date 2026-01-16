@@ -110,6 +110,7 @@ import {
 // Constants
 import { countryCodes } from "@/constant";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
 // Types
 interface ScrapedPage {
@@ -3125,6 +3126,7 @@ data-chatbot-config='{
     <div
       className={`min-h-screen ${themeStyles.containerBg} ${themeStyles.textPrimary}`}
     >
+      <BreadcrumbsDefault />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && renderErrorAlert()}
 

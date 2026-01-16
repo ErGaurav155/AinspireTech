@@ -52,6 +52,7 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { useTheme } from "next-themes";
 import { useMemo } from "react";
+import { BreadcrumbsDefault } from "@/components/shared/breadcrumbs";
 
 interface TokenStats {
   availableTokens: number;
@@ -325,12 +326,13 @@ export default function TokenDashboard() {
 
   return (
     <motion.div
-      className={`min-h-screen bg-transparent p-4 md:p-8 `}
+      className={`min-h-screen bg-transparent `}
       variants={containerVariants}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <div className="max-w-7xl mx-auto">
+      <BreadcrumbsDefault />
+      <div className="max-w-7xl mx-auto p-4 md:p-8 ">
         {/* Header */}
         <motion.div
           className="flex flex-col  md:flex-row md:items-center justify-between mb-10"

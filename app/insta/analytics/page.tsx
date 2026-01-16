@@ -563,9 +563,8 @@ export default function AnalyticsPage() {
     <div
       className={`min-h-screen ${themeStyles.textPrimary} ${themeStyles.containerBg}`}
     >
+      <BreadcrumbsDefault />
       <div className="container mx-auto px-4 py-8">
-        <BreadcrumbsDefault />
-
         {/* Header */}
         <div className="flex flex-wrap justify-between items-center gap-3 md:gap-0 mb-8">
           <div>

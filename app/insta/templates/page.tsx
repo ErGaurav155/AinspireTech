@@ -724,9 +724,8 @@ export default function TemplatesPage() {
     <div
       className={`min-h-screen ${themeStyles.textPrimary} ${themeStyles.containerBg}`}
     >
+      <BreadcrumbsDefault />
       <div className="container mx-auto p-2 md:px-4 py-8">
-        <BreadcrumbsDefault />
-
         {/* Header */}
         <div className="flex flex-wrap justify-between items-center gap-3 lg:gap-0 mb-8">
           <div>

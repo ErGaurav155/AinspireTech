@@ -1051,7 +1051,7 @@ const PricingContent = () => {
 
   return (
     <div
-      className={`flex flex-col items-center min-h-screen relative z-10 max-w-7xl md:p-4 mx-auto ${themeStyles.containerBg} ${themeStyles.textPrimary}`}
+      className={`flex flex-col items-center min-h-screen relative z-10 max-w-7xl md:px-4 mx-auto ${themeStyles.containerBg} ${themeStyles.textPrimary}`}
     >
       <BreadcrumbsDefault />
 

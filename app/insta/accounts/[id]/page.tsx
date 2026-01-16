@@ -1006,8 +1006,8 @@ export default function AccountPage({
     <div
       className={`min-h-screen ${themeStyles.containerBg} ${themeStyles.textPrimary}`}
     >
+      <BreadcrumbsDefault />
       <div className="container mx-auto px-4 py-8">
-        <BreadcrumbsDefault />
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Button
