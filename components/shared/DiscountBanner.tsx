@@ -160,7 +160,7 @@ const DiscountBanner = () => {
                     {item.value}
                   </div>
                   <div
-                    className={`text-xs font-thin  md:text-sm md:font-light  ${themeStyles.countdownText} mt-1.5 tracking-wide`}
+                    className={`text-xs md:text-sm ${themeStyles.countdownText} mt-1.5 tracking-wide font-montserrat`}
                   >
                     {item.label}
                   </div>
@@ -196,7 +196,7 @@ const DiscountBanner = () => {
               className={`absolute inset-0 ${themeStyles.gradientOverlay} transition-all duration-1000 text-sm border ${themeStyles.scrollBannerBorder} rounded-lg `}
             ></div>
             <div
-              className={`flex animate-scroll-left whitespace-nowrap py-1 md:py-3 relative z-10 font-light text-sm`}
+              className={`flex animate-scroll-left whitespace-nowrap py-1 md:py-3 relative z-10 text-sm font-montserrat`}
             >
               <span className="font-light text-sm">
                 🚀 Get <span className="text-[#00F0FF]">One Month Free</span>{" "}
