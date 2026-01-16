@@ -6,7 +6,9 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Best Ai Services studio",
   description: "Web dev,ai agent,chatbots in best quality",
-  keywords: ["Ai chatbots for local business,Local business ai solutions,"],
+  keywords: [
+    "Ai chatbots for local business,Local business ai solutions,Insta Automation,Auto DMs and Comment Replies",
+  ],
 };
 import { Suspense } from "react";
 

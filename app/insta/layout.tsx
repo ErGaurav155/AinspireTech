@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: "InstaReply Pro - Instagram Auto-Reply Management",
   description:
     "Professional Instagram comment automation and reply management system",
+  keywords: [
+    "Instagram auto-reply, Instagram comment automation, InstaReply Pro, Instagram management tool, social media automation",
+  ],
 };
 
 export default function RootLayout({

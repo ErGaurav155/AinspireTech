@@ -946,9 +946,7 @@ export default function TokenDashboard() {
               initial="hidden"
               animate="visible"
             >
-              <Card
-                className={`${themeStyles.cardBg} border ${themeStyles.border}`}
-              >
+              <Card className={`bg-transparent border ${themeStyles.border}`}>
                 <CardHeader className="p-2 md:p-4 ">
                   <div className="flex items-center gap-2">
                     <div
@@ -1092,7 +1090,7 @@ export default function TokenDashboard() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-3 md:p-4">
-                    <div className="overflow-hidden rounded-xl border">
+                    <div className="overflow-x-auto rounded-xl border">
                       <table className="w-full">
                         <thead>
                           <tr
@@ -1274,7 +1272,7 @@ function PurchaseHistory({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border">
+    <div className="overflow-x-auto rounded-xl border">
       <table className="w-full">
         <thead>
           <tr

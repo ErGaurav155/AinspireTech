@@ -9,7 +9,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: "https://ainspiretech.com/Aboutus",
+      url: "https://ainspiretech.com/insta",
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+    {
+      url: "https://ainspiretech.com/web",
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+    {
+      url: "https://ainspiretech.com/affiliate",
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
@@ -21,31 +33,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: "https://ainspiretech.com/ChatBots",
+      url: "https://ainspiretech.com/insta/pricing",
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: "https://ainspiretech.com/pricing",
+      url: "https://ainspiretech.com/web/pricing",
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: "https://ainspiretech.com/UserDashboard",
+      url: "https://ainspiretech.com/web/feature",
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
     },
+
     {
-      url: "https://ainspiretech.com/WebsiteOnboarding",
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    {
-      url: "https://ainspiretech.com/admin",
+      url: "https://ainspiretech.com/web/product",
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
@@ -63,19 +70,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
-    {
-      url: "https://ainspiretech.com/Review",
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    {
-      url: "https://ainspiretech.com/product",
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-
     {
       url: "https://ainspiretech.com/TermsandCondition",
       lastModified: new Date(),

@@ -4,9 +4,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "InstaReply Pro - Instagram Auto-Reply Management",
+  title: " Affiliate Program - AinspireTech",
   description:
-    "Professional Instagram comment automation and reply management system",
+    " Join the AinspireTech Affiliate Program and earn commissions by promoting our AI solutions and services.",
+  keywords: [
+    "AinspireTech Affiliate Program, AI solutions affiliate, earn commissions, promote AI services",
+  ],
 };
 
 export default function RootLayout({

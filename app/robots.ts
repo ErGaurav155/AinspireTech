@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://ainspire-tech.vercel.app/sitemap.xml",
+    sitemap: "https://ainspiretech.com/sitemap.xml",
   };
 }

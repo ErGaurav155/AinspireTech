@@ -5,9 +5,11 @@ import { Footer } from "@/components/shared/Footer";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "InstaReply Pro - Instagram Auto-Reply Management",
-  description:
-    "Professional Instagram comment automation and reply management system",
+  title: " Web Chatbot Services - AinspireTech",
+  description: " Professional web chatbot development and integration services",
+  keywords: [
+    "Web chatbots, chatbot development, web chatbot integration, AinspireTech web services",
+  ],
 };
 
 export default function RootLayout({

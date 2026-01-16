@@ -23,6 +23,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -59,7 +60,7 @@ export const TokenPurchase = ({
     const isDark = currentTheme === "dark";
     return {
       // Backgrounds
-      containerBg: isDark ? "bg-[#0a0a0a]" : "bg-gray-50",
+      containerBg: isDark ? "bg-[#0a0a0a]/10 backdrop-blur-sm" : "bg-gray-50",
       cardBg: isDark
         ? "bg-transparent backdrop-blur-sm"
         : "bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm",
@@ -308,7 +309,7 @@ export const TokenPurchase = ({
 
         {/* Plan Selection */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch"
           variants={containerVariants}
         >
           {plans.map((plan) => {
@@ -320,13 +321,14 @@ export const TokenPurchase = ({
                 key={plan.id}
                 variants={cardVariants}
                 whileHover="hover"
+                className="h-full"
               >
                 <Card
-                  className={`transition-all duration-300 overflow-hidden relative ${
+                  className={`h-full flex flex-col justify-between  transition-all duration-300 overflow-hidden outline-none relative ${
                     themeStyles.cardBg
                   } border ${
                     isSelected
-                      ? `${themeStyles.activeBorder} ring-2 ring-blue-500/30`
+                      ? `${themeStyles.activeBorder} ring-1 ring-blue-500/30`
                       : themeStyles.border
                   }`}
                   onClick={() => {
@@ -382,7 +384,7 @@ export const TokenPurchase = ({
                     </CardDescription>
                   </CardHeader>
 
-                  <CardContent className="relative z-10 p-3 md:p-4">
+                  <CardContent className=" relative z-10 p-3 md:p-4">
                     <div className="mb-6">
                       <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                         ₹{plan.price.toLocaleString()}
@@ -412,7 +414,8 @@ export const TokenPurchase = ({
                         </motion.li>
                       ))}
                     </ul>
-
+                  </CardContent>
+                  <CardFooter>
                     <Button
                       className={`w-full transition-all duration-300 ${
                         isSelected
@@ -432,7 +435,7 @@ export const TokenPurchase = ({
                       )}
                       Purchase Now
                     </Button>
-                  </CardContent>
+                  </CardFooter>
                 </Card>
               </motion.div>
             );
